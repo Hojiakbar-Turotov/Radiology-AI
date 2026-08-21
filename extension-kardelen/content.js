@@ -1624,27 +1624,39 @@ async function openQueueListModal() {
   } catch (e) {}
 }
 
-async function fetchDeviceQueueCounts() {
+async function fetchDeviceQueueCounts(targetDate) {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
+  const checkDate = targetDate || todayStr;
 
   try {
-    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`);
-    if (!res || !res.ok) return;
+    deviceQueues = {};
+    dynamicDevices.forEach(dev => {
+      deviceQueues[dev.id] = 0;
+    });
+
+    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${checkDate}.json`);
+    if (!res || !res.ok) return deviceQueues;
     const data = await res.json();
     
-    deviceQueues = { mrt1: 0, mrt2: 0, mskt1: 0, mskt2: 0 };
     if (data) {
       Object.values(data).forEach(p => {
-        if (p.status === "waiting" && deviceQueues[p.doctorId] !== undefined) {
-          deviceQueues[p.doctorId]++;
+        // Navbatda turganlar (kutmoqda, chaqirilmoqda, qabulda) - Faqat o'chirilmagan va yakunlanmaganlar!
+        if (p.status !== "cancelled" && p.status !== "completed") {
+          const docId = p.doctorId;
+          if (docId) {
+            deviceQueues[docId] = (deviceQueues[docId] || 0) + 1;
+          }
         }
       });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("fetchDeviceQueueCounts error:", e);
+  }
+  return deviceQueues;
 }
 
 // 12. QURILMANI TANLASH VA YUBORISH MODALI
@@ -1659,6 +1671,13 @@ async function openSendModal(patientData) {
 
     const oldModal = document.getElementById("uttSendModal");
     if (oldModal) oldModal.remove();
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let selectedDate = todayStr;
+
+    // Dastlabki navbatdagi bemorlar sonini aniq yuklash:
+    await fetchDeviceQueueCounts(selectedDate);
 
     // Bemorga biriktirilgan barcha xizmatlar (pastki jadvaldan yoki modalga kelgan obyektidan)
     const allAvailableServices = (patientData.allPatientServices && patientData.allPatientServices.length > 0)
@@ -1679,15 +1698,11 @@ async function openSendModal(patientData) {
       servicesList: patientData.servicesList || [],
       calcMethod: patientData.calcMethod || ""
     };
-
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
-    let selectedDate = todayStr;
     let selectedMode = "auto";
     let isModalSlotValid = true;
     let currentSlotData = await calculateNextAvailableTimeSlot(activeServiceInfo.autoDeviceId, activeServiceInfo.duration);
@@ -1937,10 +1952,22 @@ async function openSendModal(patientData) {
 
     async function evaluateModalTimeSlot() {
       try {
-        const devId = devSelect.value;
         selectedDate = dateInput.value || todayStr;
         selectedMode = modeCustom.checked ? "custom" : "auto";
         const currentDur = activeServiceInfo.duration || 30;
+
+        // 1. Tanlangan sana bo'yicha har bir qurilmadagi bemorlar sonini qayta hisoblash:
+        await fetchDeviceQueueCounts(selectedDate);
+
+        // 2. Select option matnlarini yangi sonlar bilan yangilash:
+        const currentDevVal = devSelect.value;
+        devSelect.innerHTML = dynamicDevices.map(d => `
+          <option value="${d.id}" ${d.id === currentDevVal ? 'selected' : ''}>
+            ${escapeHtml(d.room || d.name)} (${escapeHtml(d.name)}) - [Navbatda: ${deviceQueues[d.id] || 0} nafar]
+          </option>
+        `).join("");
+
+        const devId = devSelect.value;
 
         // Firebase-dan tanlangan sana bemorlarini olish
         let dayPatients = [];
