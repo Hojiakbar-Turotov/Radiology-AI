@@ -30,6 +30,7 @@ let selectedPatient = null;
 let servicesCatalog = {};
 let deviceQueues = {};
 let todayOperatorQueueCount = 0;
+let lastPatientInfo = null; // Oxirgi tanlangan bemor ma'lumotlari (yuqori jadvaldan)
 
 // Faqat asosiy oynada (window === window.top) ishga tushirish
 if (window === window.top) {
@@ -185,8 +186,19 @@ function handlePassiveRowClick(e) {
     }
 
     const cells = Array.from(row.querySelectorAll("td"));
+    if (cells.length < 3) return;
 
-    // 1. QAT'IY FILTR: Yashil (Tugagan / Qabul qilingan) qator bo'lsa, qat'iyan navbatga qo'yilmaydi!
+    // A) AGAR FOYDALANUVCHI PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
+    const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
+    const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/.test(c.innerText.trim()));
+    const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
+
+    if (hasTransId && (hasTransDate || hasServiceCode)) {
+      handleSpecificBottomServiceClick(row, cells);
+      return;
+    }
+
+    // B) AGAR YUQORI JADVALDAGI YASHIL (TUGAGAN) QATOR BO'LSA:
     if (isRowFinishedOrGreen(row, cells)) {
       selectedPatient = null;
       const txt = document.getElementById("uttFloatingPatientText");
@@ -198,14 +210,13 @@ function handlePassiveRowClick(e) {
       return;
     }
 
-    // 2. Ultratovush, Endoskopiya yoki Rentgen bo'lsa, e'tiborsiz qoldirish
+    // C) Ultratovush, Endoskopiya yoki Rentgen bo'lsa, e'tiborsiz qoldirish
     const lowerText = rowText.toLowerCase();
     if (lowerText.includes("ultratovush") || lowerText.includes("endoskopiya") || lowerText.includes("rentgen")) {
       return;
     }
 
-    if (cells.length < 3) return;
-
+    // D) YUQORI JADVALDAN BEMOR MA'LUMOTLARINI ANIKLASH:
     let idIdx = -1;
     let patientId = "";
 
@@ -226,7 +237,7 @@ function handlePassiveRowClick(e) {
     let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
     let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
 
-    // Sarlavhalardan ustun nomlarini tekshirish
+    // Sarlavhalardan ustun nomlarini aniqroq tekshirish
     try {
       const table = row.closest("table");
       if (table) {
@@ -244,38 +255,132 @@ function handlePassiveRowClick(e) {
       }
     } catch (e) {}
 
-    // Agar Ustuvorlik ustunida "Statsionar" bo'lsa -> Bo'limda yotibdi + Bo'lim nomi
-    // Boshqa qiymat bo'lsa -> Uyidan qatnaydi
     const isStationary = priority.toLowerCase().includes("statsionar");
     const patientType = isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi";
     const departmentName = isStationary ? department : "";
 
     if (!surname || /^\d+$/.test(surname) || surname.includes(":")) return;
 
-    // Pastki jadvaldagi BARCHA biriktirilgan xizmatlarni topish (FAQAT Registrator panelidagi mavjud xizmatlar!)
-    const servicesList = findAllCurrentServicesPassively();
-    if (!servicesList || servicesList.length === 0) {
-      selectedPatient = null;
-      const txt = document.getElementById("uttFloatingPatientText");
-      const btn = document.getElementById("uttFloatingSendBtn");
-      if (txt && btn) {
-        txt.innerHTML = `<strong>${patientId} - ${surname} ${name}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
-        btn.disabled = true;
-      }
-      return;
-    }
-
     const fullName = `${surname} ${name}`.trim();
-    const combo = calculateCombinedProcedureInfo(servicesList);
 
-    selectedPatient = {
+    // Bemor ma'lumotlarini eslab qolish
+    lastPatientInfo = {
       id: patientId,
       name: fullName,
       referringDoctor: referringDoctor,
       priority: priority,
       department: departmentName,
       patientType: patientType,
-      isStationary: isStationary,
+      isStationary: isStationary
+    };
+
+    // Pastki jadvaldagi xizmatlarni o'qish va qo'llash
+    const servicesList = findAllCurrentServicesPassively();
+    applyServicesToPatient(lastPatientInfo, servicesList);
+
+    // Kardelen pastki jadvalni AJAX orqali kechroq yuklashi mumkinligi sababli kechiktirilgan qayta tekshiruvlar:
+    setTimeout(() => {
+      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
+        const freshServices = findAllCurrentServicesPassively();
+        if (freshServices.length > 0) {
+          applyServicesToPatient(lastPatientInfo, freshServices);
+        }
+      }
+    }, 200);
+
+    setTimeout(() => {
+      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
+        const freshServices = findAllCurrentServicesPassively();
+        if (freshServices.length > 0) {
+          applyServicesToPatient(lastPatientInfo, freshServices);
+        }
+      }
+    }, 500);
+
+    setTimeout(() => {
+      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
+        const freshServices = findAllCurrentServicesPassively();
+        if (freshServices.length > 0) {
+          applyServicesToPatient(lastPatientInfo, freshServices);
+        }
+      }
+    }, 900);
+
+  } catch (err) {
+    console.warn("Passive click handler caught:", err);
+  }
+}
+
+// 2.1 PASTKI JADVALDAN ANIQ BOSILGAN TEKSHIRUVNI QABUL QILISH
+function handleSpecificBottomServiceClick(row, cells) {
+  try {
+    let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
+    let candidateName = "";
+    let serviceDoctor = "";
+
+    for (const cell of cells) {
+      const c = cell.innerText.trim();
+      if (/^\d+$/.test(c)) continue;
+      if (/\d{2}\.\d{2}\.\d{4}/.test(c)) continue;
+      if (/^R\d{2,5}$/i.test(c)) continue;
+      if (c === "-" || c === "") continue;
+      if (c.includes("To'lanmagan") || c.includes("Tolanmagan") || c.includes("To'langan")) continue;
+
+      if (c.includes("Dr.") || c.includes("Shifokor") || c.includes("Muminov") || c.includes("Sobit")) {
+        serviceDoctor = c;
+        continue;
+      }
+
+      if (c.length >= 4 && !candidateName) {
+        candidateName = c;
+      }
+    }
+
+    const catalogEntry = getServiceCatalogEntry(candidateCode, candidateName);
+    if (!catalogEntry) return;
+
+    const finalCode = catalogEntry.code || candidateCode;
+    const finalName = catalogEntry.name || candidateName;
+    const duration = parseInt(catalogEntry.duration, 10) || 30;
+    const isContrast = catalogEntry.isContrast !== undefined ? catalogEntry.isContrast : isContrastService(finalName, row.innerText);
+    const isMSKT = catalogEntry.type ? catalogEntry.type === "MSKT" : isMsktCheck(finalCode, finalName, row.innerText);
+    const fullName = finalCode ? `${finalCode} - ${finalName}` : finalName;
+
+    const specificService = {
+      code: finalCode,
+      name: finalName,
+      fullName: fullName,
+      duration: duration,
+      preparation: catalogEntry.preparation || "",
+      contraindications: catalogEntry.contraindications || "",
+      isContrast: isContrast,
+      isMSKT: isMSKT,
+      type: isMSKT ? "MSKT" : "MRT"
+    };
+
+    // Bemor ma'lumotini olish
+    let pInfo = lastPatientInfo || findActivePatientFromTopTable() || selectedPatient;
+    if (!pInfo) {
+      pInfo = {
+        id: "—",
+        name: "Tanlangan bemor",
+        referringDoctor: serviceDoctor,
+        priority: "",
+        department: "",
+        patientType: "Uyidan qatnaydi",
+        isStationary: false
+      };
+    }
+
+    if (serviceDoctor && !pInfo.referringDoctor) {
+      pInfo.referringDoctor = serviceDoctor;
+    }
+
+    const combo = calculateCombinedProcedureInfo([specificService]);
+    const allServices = findAllCurrentServicesPassively();
+
+    selectedPatient = {
+      ...pInfo,
       service: combo.service,
       serviceCode: combo.serviceCode,
       duration: combo.duration,
@@ -287,27 +392,124 @@ function handlePassiveRowClick(e) {
       autoDeviceId: combo.recommendedDevice.id,
       autoDeviceName: combo.recommendedDevice.name,
       autoDeviceRoom: combo.recommendedDevice.room,
-      servicesCount: combo.servicesCount,
-      servicesList: combo.servicesList,
-      calcMethod: combo.calcMethod
+      servicesCount: 1,
+      servicesList: [specificService],
+      allPatientServices: allServices.length > 0 ? allServices : [specificService],
+      calcMethod: "Foydalanuvchi tanlagan alohida tekshiruv",
+      userSelectedSpecific: true
     };
 
-    // Yuqori paneldagi ma'lumotni yangilash
+    updateFloatingBarPatientDisplay();
+  } catch (e) {
+    console.warn("handleSpecificBottomServiceClick error:", e);
+  }
+}
+
+function applyServicesToPatient(patientInfo, servicesList) {
+  if (!patientInfo) return;
+
+  if (!servicesList || servicesList.length === 0) {
+    selectedPatient = null;
     const txt = document.getElementById("uttFloatingPatientText");
     const btn = document.getElementById("uttFloatingSendBtn");
-
     if (txt && btn) {
-      const multiBadge = combo.servicesCount > 1 ? ` <span style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${combo.servicesCount} ta tekshiruv</span>` : "";
-      const typeBadge = isStationary
-        ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏥 Bo'limda: ${escapeHtml(departmentName || 'Statsionar')}</span>`
-        : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏠 Uyidan qatnaydi</span>`;
-
-      txt.innerHTML = `<strong>${selectedPatient.id} - ${selectedPatient.name}</strong>${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(selectedPatient.service)}</span>${multiBadge} <span style="color:#f59e0b;">(${selectedPatient.autoDeviceName} | ⏱ ${selectedPatient.duration} daq | ${selectedPatient.contrastLabel})</span>`;
-      btn.disabled = false;
+      txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
+      btn.disabled = true;
     }
-  } catch (err) {
-    console.warn("Passive click handler caught:", err);
+    return;
   }
+
+  const combo = calculateCombinedProcedureInfo(servicesList);
+
+  selectedPatient = {
+    ...patientInfo,
+    service: combo.service,
+    serviceCode: combo.serviceCode,
+    duration: combo.duration,
+    preparation: combo.preparation,
+    contraindications: combo.contraindications,
+    type: combo.type,
+    isContrast: combo.isContrast,
+    contrastLabel: combo.contrastLabel,
+    autoDeviceId: combo.recommendedDevice.id,
+    autoDeviceName: combo.recommendedDevice.name,
+    autoDeviceRoom: combo.recommendedDevice.room,
+    servicesCount: combo.servicesCount,
+    servicesList: combo.servicesList,
+    allPatientServices: servicesList,
+    calcMethod: combo.calcMethod,
+    userSelectedSpecific: false
+  };
+
+  updateFloatingBarPatientDisplay();
+}
+
+function updateFloatingBarPatientDisplay() {
+  const txt = document.getElementById("uttFloatingPatientText");
+  const btn = document.getElementById("uttFloatingSendBtn");
+  if (!txt || !btn || !selectedPatient) return;
+
+  const multiBadge = (selectedPatient.servicesCount > 1) 
+    ? ` <span style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${selectedPatient.servicesCount} ta tekshiruv</span>` 
+    : (selectedPatient.userSelectedSpecific ? ` <span style="background:#10b981; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">Tanlangan tekshiruv</span>` : "");
+
+  const typeBadge = selectedPatient.isStationary
+    ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏥 Bo'limda: ${escapeHtml(selectedPatient.department || 'Statsionar')}</span>`
+    : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏠 Uyidan qatnaydi</span>`;
+
+  txt.innerHTML = `<strong>${selectedPatient.id} - ${selectedPatient.name}</strong>${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(selectedPatient.service)}</span>${multiBadge} <span style="color:#f59e0b;">(${selectedPatient.autoDeviceName} | ⏱ ${selectedPatient.duration} daq | ${selectedPatient.contrastLabel})</span>`;
+  btn.disabled = false;
+}
+
+function findActivePatientFromTopTable() {
+  try {
+    const allRows = document.querySelectorAll("tr");
+    for (const r of allRows) {
+      const text = (r.innerText || "").trim();
+      if (!text || isGroupHeaderOrNavigation(text)) continue;
+
+      const cells = Array.from(r.querySelectorAll("td"));
+      if (cells.length < 3) continue;
+
+      if (isRowFinishedOrGreen(r, cells)) continue;
+
+      let idIdx = -1;
+      let patientId = "";
+
+      for (let i = 0; i < cells.length; i++) {
+        const cText = cells[i].innerText.trim();
+        if (/^\d{3,8}$/.test(cText) && cText !== "2024" && cText !== "2025" && cText !== "2026") {
+          idIdx = i;
+          patientId = cText;
+          break;
+        }
+      }
+
+      if (idIdx === -1) continue;
+
+      let referringDoctor = cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "";
+      let surname = cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "";
+      let name = cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "";
+      let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
+      let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
+
+      if (!surname || /^\d+$/.test(surname) || surname.includes(":")) continue;
+
+      const isStationary = priority.toLowerCase().includes("statsionar");
+      const patientType = isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi";
+
+      return {
+        id: patientId,
+        name: `${surname} ${name}`.trim(),
+        referringDoctor: referringDoctor,
+        priority: priority,
+        department: isStationary ? department : "",
+        patientType: patientType,
+        isStationary: isStationary
+      };
+    }
+  } catch (e) {}
+  return null;
 }
 
 // 3. YASHIL (TUGAGAN/QABUL QILINGAN) QATORNI ANIQ TEKSHIRISH
@@ -1458,8 +1660,25 @@ async function openSendModal(patientData) {
     const oldModal = document.getElementById("uttSendModal");
     if (oldModal) oldModal.remove();
 
-    const duration = patientData.duration || 30;
-    const defaultDevId = patientData.autoDeviceId || (dynamicDevices[0] ? dynamicDevices[0].id : "mrt1");
+    // Bemorga biriktirilgan barcha xizmatlar (pastki jadvaldan yoki modalga kelgan obyektidan)
+    const allAvailableServices = (patientData.allPatientServices && patientData.allPatientServices.length > 0)
+      ? patientData.allPatientServices
+      : (patientData.servicesList && patientData.servicesList.length > 0 ? patientData.servicesList : []);
+
+    let activeServiceInfo = {
+      service: patientData.service,
+      serviceCode: patientData.serviceCode || "",
+      duration: patientData.duration || 30,
+      preparation: patientData.preparation || "",
+      contraindications: patientData.contraindications || "",
+      type: patientData.type || "MSKT",
+      isContrast: patientData.isContrast,
+      contrastLabel: patientData.contrastLabel || "Oddiy",
+      autoDeviceId: patientData.autoDeviceId || (dynamicDevices[0] ? dynamicDevices[0].id : "mrt1"),
+      servicesCount: patientData.servicesCount || 1,
+      servicesList: patientData.servicesList || [],
+      calcMethod: patientData.calcMethod || ""
+    };
 
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -1471,25 +1690,38 @@ async function openSendModal(patientData) {
     let selectedDate = todayStr;
     let selectedMode = "auto";
     let isModalSlotValid = true;
-    let currentSlotData = await calculateNextAvailableTimeSlot(defaultDevId, duration);
+    let currentSlotData = await calculateNextAvailableTimeSlot(activeServiceInfo.autoDeviceId, activeServiceInfo.duration);
 
     const overlay = document.createElement("div");
     overlay.id = "uttSendModal";
     overlay.className = "utt-modal-overlay";
 
-    // Bir nechta xizmatlar ro'yxati
-    let servicesHtml = "";
-    if (patientData.servicesList && patientData.servicesList.length > 1) {
-      servicesHtml = `
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin:8px 0;">
-          <div style="font-size:11px; font-weight:bold; color:#475569; margin-bottom:4px;">
-            📋 Bemorga yozilgan barcha tekshiruvlar (${patientData.servicesList.length} ta):
+    // Agar 1 dan ko'p xizmat bo'lsa yoki bitta bo'lsa, tanlash interfeysini shakllantirish
+    let serviceSelectorHtml = "";
+    if (allAvailableServices.length > 1) {
+      const isSpecific = patientData.userSelectedSpecific && patientData.servicesList && patientData.servicesList.length === 1;
+      const selectedCode = isSpecific ? patientData.servicesList[0].code : "";
+
+      serviceSelectorHtml = `
+        <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px; margin:10px 0;">
+          <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px;">
+            📋 Navbatga qo'yiladigan tekshiruvni tanlang:
           </div>
-          ${patientData.servicesList.map((s, idx) => `
-            <div style="font-size:12px; display:flex; justify-content:space-between; margin-bottom:2px;">
-              <span>${idx + 1}. <strong>${escapeHtml(s.fullName || s.name)}</strong></span>
-              <strong style="color:#0284c7;">⏱ ${s.duration} daq</strong>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px; cursor:pointer; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;">
+            <input type="radio" name="uttModalSvcChoice" value="all" ${!isSpecific ? 'checked' : ''}>
+            <div>
+              <strong style="color:#0284c7;">Barcha tekshiruvlarni birga navbatga qo'yish (Kombinatsiya)</strong>
+              <div style="color:#64748b; font-size:11px;">Jami ${allAvailableServices.length} ta tekshiruv</div>
             </div>
+          </label>
+          ${allAvailableServices.map((s, idx) => `
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:4px; cursor:pointer; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;">
+              <input type="radio" name="uttModalSvcChoice" value="${idx}" ${(isSpecific && selectedCode === s.code) ? 'checked' : ''}>
+              <div>
+                <strong style="color:#0f172a;">${idx + 1}. ${escapeHtml(s.fullName || s.name)}</strong>
+                <div style="color:#10b981; font-size:11px; font-weight:bold;">⏱ ${s.duration} daqiqa ${s.isContrast ? ' | 💉 Kontrastli' : ''}</div>
+              </div>
+            </label>
           `).join("")}
         </div>
       `;
@@ -1517,26 +1749,23 @@ async function openSendModal(patientData) {
             <span class="utt-info-label">Bemor F.I.Sh:</span>
             <span class="utt-info-val">${escapeHtml(patientData.name)}</span>
           </div>
-          <div class="utt-info-row">
-            <span class="utt-info-label">Tekshiruv:</span>
-            <span class="utt-info-val" style="color:#0284c7; font-weight:700;">${escapeHtml(patientData.service)}</span>
+
+          ${serviceSelectorHtml}
+
+          <div class="utt-info-row" id="uttModalServiceRow">
+            <span class="utt-info-label">Tanlangan Tekshiruv:</span>
+            <span class="utt-info-val" id="uttModalServiceTitle" style="color:#0284c7; font-weight:700;">${escapeHtml(activeServiceInfo.service)}</span>
           </div>
 
-          ${servicesHtml}
+          <div id="uttModalPrepBox" style="${activeServiceInfo.preparation ? '' : 'display:none;'} background:#f0fdf4; border-left:3px solid #10b981; padding:6px 10px; border-radius:4px; margin-top:6px;">
+            <span class="utt-info-label" style="color:#059669; font-weight:700;">📋 Tayyorgarlik:</span>
+            <span class="utt-info-val" id="uttModalPrepText" style="color:#065f46; font-size:12px; font-weight:600;">${escapeHtml(activeServiceInfo.preparation)}</span>
+          </div>
 
-          ${patientData.preparation ? `
-            <div class="utt-info-row" style="background:#f0fdf4; border-left:3px solid #10b981; padding:6px 10px; border-radius:4px; margin-top:6px;">
-              <span class="utt-info-label" style="color:#059669; font-weight:700;">📋 Tayyorgarlik:</span>
-              <span class="utt-info-val" style="color:#065f46; font-size:12px; font-weight:600;">${escapeHtml(patientData.preparation)}</span>
-            </div>
-          ` : ''}
-
-          ${patientData.contraindications ? `
-            <div class="utt-info-row" style="background:#fef2f2; border-left:3px solid #ef4444; padding:6px 10px; border-radius:4px; margin-top:6px;">
-              <span class="utt-info-label" style="color:#dc2626; font-weight:700;">🚫 Qarshi ko'rsatmalar:</span>
-              <span class="utt-info-val" style="color:#991b1b; font-size:12px; font-weight:700;">${escapeHtml(patientData.contraindications)}</span>
-            </div>
-          ` : ''}
+          <div id="uttModalContraBox" style="${activeServiceInfo.contraindications ? '' : 'display:none;'} background:#fef2f2; border-left:3px solid #ef4444; padding:6px 10px; border-radius:4px; margin-top:6px;">
+            <span class="utt-info-label" style="color:#dc2626; font-weight:700;">🚫 Qarshi ko'rsatmalar:</span>
+            <span class="utt-info-val" id="uttModalContraText" style="color:#991b1b; font-size:12px; font-weight:700;">${escapeHtml(activeServiceInfo.contraindications)}</span>
+          </div>
 
           <div class="utt-info-row">
             <span class="utt-info-label">Bemor Toifasi:</span>
@@ -1564,8 +1793,8 @@ async function openSendModal(patientData) {
 
           <div class="utt-info-row" style="margin-top:6px;">
             <span class="utt-info-label">Ketadigan Vaqt:</span>
-            <span class="utt-info-val" style="color:#10b981; font-weight:800;">
-              ⏱ ${duration} daqiqa (${patientData.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${patientData.calcMethod || ''}]</small>
+            <span class="utt-info-val" id="uttModalDurationVal" style="color:#10b981; font-weight:800;">
+              ⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small id="uttModalCalcMethod" style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>
             </span>
           </div>
         </div>
@@ -1584,7 +1813,7 @@ async function openSendModal(patientData) {
           <label for="uttDeviceSelect">Qurilma / Xonani tanlang:</label>
           <select id="uttDeviceSelect">
             ${dynamicDevices.map(d => `
-              <option value="${d.id}" ${d.id === defaultDevId ? 'selected' : ''}>
+              <option value="${d.id}" ${d.id === activeServiceInfo.autoDeviceId ? 'selected' : ''}>
                 ${escapeHtml(d.room || d.name)} (${escapeHtml(d.name)}) - [Navbatda: ${deviceQueues[d.id] || 0} nafar]
               </option>
             `).join("")}
@@ -1661,11 +1890,57 @@ async function openSendModal(patientData) {
     const deferReasonOther = document.getElementById("uttDeferReasonOther");
     const btnSend = document.getElementById("uttBtnSend");
 
+    // Xizmat tanlash radio tinglovchilari
+    const svcRadios = overlay.querySelectorAll('input[name="uttModalSvcChoice"]');
+    svcRadios.forEach(radio => {
+      radio.addEventListener("change", function() {
+        if (this.value === "all") {
+          activeServiceInfo = calculateCombinedProcedureInfo(allAvailableServices);
+        } else {
+          const idx = parseInt(this.value, 10);
+          if (allAvailableServices[idx]) {
+            activeServiceInfo = calculateCombinedProcedureInfo([allAvailableServices[idx]]);
+          }
+        }
+
+        // Modal matnlarini yangilash
+        document.getElementById("uttModalServiceTitle").innerText = activeServiceInfo.service;
+        document.getElementById("uttModalDurationVal").innerHTML = `⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
+
+        const prepBox = document.getElementById("uttModalPrepBox");
+        const prepText = document.getElementById("uttModalPrepText");
+        if (activeServiceInfo.preparation) {
+          prepText.innerText = activeServiceInfo.preparation;
+          prepBox.style.display = "block";
+        } else {
+          prepBox.style.display = "none";
+        }
+
+        const contraBox = document.getElementById("uttModalContraBox");
+        const contraText = document.getElementById("uttModalContraText");
+        if (activeServiceInfo.contraindications) {
+          contraText.innerText = activeServiceInfo.contraindications;
+          contraBox.style.display = "block";
+        } else {
+          contraBox.style.display = "none";
+        }
+
+        // Qurilma turini moslashtirish (agar MSKT/MRT o'zgarsa)
+        const matchingDevices = dynamicDevices.filter(d => d.type === activeServiceInfo.type);
+        if (matchingDevices.length > 0) {
+          devSelect.value = activeServiceInfo.recommendedDevice.id;
+        }
+
+        evaluateModalTimeSlot();
+      });
+    });
+
     async function evaluateModalTimeSlot() {
       try {
         const devId = devSelect.value;
         selectedDate = dateInput.value || todayStr;
         selectedMode = modeCustom.checked ? "custom" : "auto";
+        const currentDur = activeServiceInfo.duration || 30;
 
         // Firebase-dan tanlangan sana bemorlarini olish
         let dayPatients = [];
@@ -1681,7 +1956,7 @@ async function openSendModal(patientData) {
 
         if (selectedMode === "auto") {
           customTimeContainer.style.display = "none";
-          currentSlotData = calculateNextAvailableSlotFromList(devPatients, duration);
+          currentSlotData = calculateNextAvailableSlotFromList(devPatients, currentDur);
           isModalSlotValid = true;
 
           slotAlert.style.background = "#dcfce7";
@@ -1694,8 +1969,8 @@ async function openSendModal(patientData) {
           customTimeContainer.style.display = "block";
           const startTime = customStartTimeInput.value || "08:00";
           const startMin = timeToMinutes(startTime);
-          const endMin = startMin + duration;
-          const endTime = addMinutesToTime(startTime, duration);
+          const endMin = startMin + currentDur;
+          const endTime = addMinutesToTime(startTime, currentDur);
           const slotStr = `${startTime} - ${endTime}`;
 
           document.getElementById("uttCustomCalcSlot").innerText = slotStr;
@@ -1782,7 +2057,20 @@ async function openSendModal(patientData) {
           deferReason = (rSel === "Boshqa sabab" ? (rOth || "Boshqa sabab") : rSel);
         }
 
-        sendPatientToFirebase(patientData, selectedDev, currentSlotData, selectedDate, deferReason);
+        const finalPatientPayload = {
+          ...patientData,
+          service: activeServiceInfo.service,
+          serviceCode: activeServiceInfo.serviceCode,
+          duration: activeServiceInfo.duration,
+          preparation: activeServiceInfo.preparation,
+          contraindications: activeServiceInfo.contraindications,
+          isContrast: activeServiceInfo.isContrast,
+          contrastLabel: activeServiceInfo.contrastLabel,
+          servicesList: activeServiceInfo.servicesList,
+          servicesCount: activeServiceInfo.servicesCount
+        };
+
+        sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason);
         overlay.remove();
       } catch (e) {}
     };
