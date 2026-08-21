@@ -314,6 +314,18 @@ function handlePassiveRowClick(e) {
 // 2.1 PASTKI JADVALDAN ANIQ BOSILGAN TEKSHIRUVNI QABUL QILISH
 function handleSpecificBottomServiceClick(row, cells) {
   try {
+    // 1. QAT'IY TEKSHIRUV: Agar bosilgan qator YASHIL bo'lsa (o'tkazilgan / yakunlangan):
+    if (isRowFinishedOrGreen(row, cells)) {
+      selectedPatient = null;
+      const txt = document.getElementById("uttFloatingPatientText");
+      const btn = document.getElementById("uttFloatingSendBtn");
+      if (txt && btn) {
+        txt.innerHTML = `<span style="color:#22c55e; font-weight:800; font-size:13px;">🟢 Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi</span>`;
+        btn.disabled = true;
+      }
+      return;
+    }
+
     let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
     let candidateName = "";
     let serviceDoctor = "";
@@ -408,12 +420,17 @@ function handleSpecificBottomServiceClick(row, cells) {
 function applyServicesToPatient(patientInfo, servicesList) {
   if (!patientInfo) return;
 
+  const txt = document.getElementById("uttFloatingPatientText");
+  const btn = document.getElementById("uttFloatingSendBtn");
+
   if (!servicesList || servicesList.length === 0) {
     selectedPatient = null;
-    const txt = document.getElementById("uttFloatingPatientText");
-    const btn = document.getElementById("uttFloatingSendBtn");
     if (txt && btn) {
-      txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
+      if (servicesList && servicesList.totalServiceRows > 0 && servicesList.totalServiceRows === servicesList.greenServiceRows) {
+        txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#22c55e; font-weight:800; font-size:13px;">🟢 Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi</span>`;
+      } else {
+        txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
+      }
       btn.disabled = true;
     }
     return;
@@ -443,6 +460,8 @@ function applyServicesToPatient(patientInfo, servicesList) {
 
   updateFloatingBarPatientDisplay();
 }
+
+
 
 function updateFloatingBarPatientDisplay() {
   const txt = document.getElementById("uttFloatingPatientText");
@@ -512,16 +531,18 @@ function findActivePatientFromTopTable() {
   return null;
 }
 
-// 3. YASHIL (TUGAGAN/QABUL QILINGAN) QATORNI ANIQ TEKSHIRISH
+// 3. YASHIL (TUGAGAN/QABUL QILINGAN/O'TKAZILGAN) QATORNI ANIQ TEKSHIRISH
 function isRowFinishedOrGreen(row, cells) {
   try {
+    if (!row) return false;
     const rowClass = (row.className || "").toLowerCase();
-    if (rowClass.includes("green") || rowClass.includes("completed") || rowClass.includes("finished")) {
+    if (rowClass.includes("green") || rowClass.includes("completed") || rowClass.includes("finished") || rowClass.includes("passed")) {
       return true;
     }
 
-    const elementsToCheck = [row, ...cells];
+    const elementsToCheck = [row, ...(cells || Array.from(row.querySelectorAll("td")))];
     for (const el of elementsToCheck) {
+      if (!el) continue;
       const attrStyle = (el.getAttribute("style") || "").toLowerCase();
       if (isGreenColorText(attrStyle)) return true;
 
@@ -534,7 +555,15 @@ function isRowFinishedOrGreen(row, cells) {
 
 function isGreenColorText(s) {
   if (!s) return false;
-  return s.includes("green") || s.includes("lime") || s.includes("#00ff") || s.includes("#99ff") || s.includes("#c8e") || s.includes("#a5d") || s.includes("#81c") || s.includes("#b9f") || s.includes("#69f") || s.includes("#22c55e") || s.includes("#10b981") || s.includes("#4ade80");
+  const str = s.toLowerCase();
+  return str.includes("green") || str.includes("lime") || 
+         str.includes("#00ff") || str.includes("#99ff") || str.includes("#c8e") || 
+         str.includes("#a5d") || str.includes("#81c") || str.includes("#b9f") || 
+         str.includes("#69f") || str.includes("#22c55e") || str.includes("#10b981") || 
+         str.includes("#4ade80") || str.includes("#00e") || str.includes("#00c") || 
+         str.includes("#00d") || str.includes("#0e0") || str.includes("#0f0") || 
+         str.includes("#2e") || str.includes("#3f") || str.includes("#34d399") || 
+         str.includes("#86efac") || str.includes("#bbf7d0");
 }
 
 function isGreenColorRgb(colorStr) {
@@ -544,8 +573,10 @@ function isGreenColorRgb(colorStr) {
     const r = parseInt(m[1], 10);
     const g = parseInt(m[2], 10);
     const b = parseInt(m[3], 10);
-    if (g > 130 && g > r + 15 && g > b + 15) return true;
-    if (g > 170 && r < 210 && b < 210 && (g - r > 10 || g - b > 10)) return true;
+    // Green dominates:
+    if (g >= 120 && g > r + 15 && g > b + 15) return true;
+    if (g >= 150 && (g - r > 10 || g - b > 10)) return true;
+    if (g >= 180 && r <= 200 && b <= 200) return true;
   }
   return false;
 }
@@ -564,6 +595,9 @@ function isGroupHeaderOrNavigation(text) {
 // 4. PASTKI JADVALDAN FAQAT REGISTRATOR PANELIDA MAVJUD TEKSHIRUVLARNI ANIQ O'QISH
 function findAllCurrentServicesPassively() {
   const foundServices = [];
+  let totalServiceRows = 0;
+  let greenServiceRows = 0;
+
   try {
     const allRows = document.querySelectorAll("tr");
     for (let i = 0; i < allRows.length; i++) {
@@ -575,31 +609,40 @@ function findAllCurrentServicesPassively() {
         continue;
       }
 
-      const cells = Array.from(row.querySelectorAll("td")).map(c => c.innerText.trim());
+      const cells = Array.from(row.querySelectorAll("td"));
       if (cells.length < 4) continue;
 
       // Faqat pastki tranzaksiya jadvalidagi qatorlar (7 xonali Navbat raqami VA Tranzaksiya sanasi bo'lishi shart!)
-      const hasTransId = cells.some(c => /^\d{6,8}$/.test(c));
-      const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/.test(c));
+      const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
+      const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/.test(c.innerText.trim()));
 
       if (!hasTransId || !hasTransDate) {
         continue;
       }
 
+      totalServiceRows++;
+
+      // AGAR PASTKI QATOR YASHIL BO'LSA (O'TKAZILGAN) -> QAT'IYAN RAD ETAMIZ:
+      if (isRowFinishedOrGreen(row, cells)) {
+        greenServiceRows++;
+        continue; // Faqat o'tkazilmagan (oq yoki boshqa rangdagi) tekshiruvlarni olamiz!
+      }
+
       // 1. Kodni aniqlash (R184, R143, R157 va h.k.)
-      let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c)) || "";
+      let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
       
       // 2. Xizmat nomini aniqlash (Raqamlar, sanalar va shifokor nomlari chiqarib tashlanadi)
       let candidateName = "";
       for (const c of cells) {
-        if (/^\d+$/.test(c)) continue; // Har qanday sof raqamlarni (ID, 3998, 0, 1 va h.k.) QAT'IYAN RAD ETISH
-        if (/\d{2}\.\d{2}\.\d{4}/.test(c)) continue;
-        if (/^R\d{2,5}$/i.test(c)) continue;
-        if (c === "-" || c === "") continue;
-        if (c.includes("Atabekov") || c.includes("Azimov") || c.includes("Dr.") || c.includes("To'lanmagan") || c.includes("Tolanmagan") || c.includes("To'langan")) continue;
+        const cText = c.innerText.trim();
+        if (/^\d+$/.test(cText)) continue; // Har qanday sof raqamlarni (ID, 3998, 0, 1 va h.k.) QAT'IYAN RAD ETISH
+        if (/\d{2}\.\d{2}\.\d{4}/.test(cText)) continue;
+        if (/^R\d{2,5}$/i.test(cText)) continue;
+        if (cText === "-" || cText === "") continue;
+        if (cText.includes("Atabekov") || cText.includes("Azimov") || cText.includes("Dr.") || cText.includes("To'lanmagan") || cText.includes("Tolanmagan") || cText.includes("To'langan")) continue;
 
-        if (c.length >= 4) {
-          candidateName = c;
+        if (cText.length >= 4) {
+          candidateName = cText;
           break;
         }
       }
@@ -640,6 +683,10 @@ function findAllCurrentServicesPassively() {
   } catch (e) {
     console.warn("findAllCurrentServicesPassively error:", e);
   }
+
+  // Statistikani biriktirish
+  foundServices.totalServiceRows = totalServiceRows;
+  foundServices.greenServiceRows = greenServiceRows;
   return foundServices;
 }
 
