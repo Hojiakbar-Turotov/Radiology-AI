@@ -1,0 +1,19 @@
+{
+  "name": "utt-android-tv",
+  "version": "1.0.0",
+  "description": "UTT Navbat Tizimi - Android TV Monitor Paneli",
+  "main": "tv.js",
+  "scripts": {
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android"
+  },
+  "keywords": ["utt", "queue", "android-tv", "capacitor"],
+  "author": "UTT Diagnostika",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/cli": "^5.7.0",
+    "@capacitor/core": "^5.7.0"
+  }
+}

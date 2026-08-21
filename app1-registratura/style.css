@@ -1,0 +1,757 @@
+/* === Registratura Asosiy Stil === */
+:root {
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-light: #e0f2fe;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --bg-main: #f8fafc;
+  --bg-sidebar: #0f172a;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+}
+
+.app-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* === Sidebar === */
+.sidebar {
+  width: 280px;
+  background-color: var(--bg-sidebar);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #334155;
+  margin-bottom: 24px;
+}
+
+.logo i {
+  font-size: 2rem;
+  color: #38bdf8;
+}
+
+.logo h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.logo p {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.nav-item.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.connection-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #1e293b;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.status-dot.connected {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.status-dot.disconnected {
+  background: #ef4444;
+}
+
+/* === Main Content === */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 32px;
+  background: var(--bg-main);
+}
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-left h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.today-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.header-right {
+  display: flex;
+  gap: 12px;
+}
+
+/* === Tugmalar === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background: #f1f5f9;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-large {
+  padding: 14px 28px;
+  font-size: 1rem;
+}
+
+/* === Statistika Kartalari === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.stat-icon.total { background: #e0f2fe; color: #0284c7; }
+.stat-icon.waiting { background: #fef3c7; color: #d97706; }
+.stat-icon.calling { background: #fce7f3; color: #db2777; }
+.stat-icon.completed { background: #dcfce7; color: #15803d; }
+
+.stat-title {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* === Tab Kontent === */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* === Filtrlar va Qidiruv === */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  flex-grow: 1;
+  max-width: 400px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-group select, .form-group select, .form-group input, .form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.9rem;
+  background: #fff;
+  color: var(--text-main);
+}
+
+.filter-group select:focus, .form-group select:focus, .form-group input:focus, .form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+/* === Jadval === */
+.table-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  background: #f8fafc;
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.data-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.data-table th.sortable:hover {
+  background: #e2e8f0;
+  color: #0284c7;
+}
+
+.sort-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.data-table th.sort-active {
+  color: #0284c7;
+  background: #f0f9ff;
+}
+
+.data-table th.sort-active .sort-indicator {
+  color: #0284c7;
+}
+
+.row-cancelled {
+  opacity: 0.75;
+  background-color: #fff1f2 !important;
+}
+
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.data-table tr:hover {
+  background: #f8fafc;
+}
+
+/* Badjlar (Holatlar) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-waiting { background: #fef3c7; color: #b45309; }
+.badge-calling { background: #fce7f3; color: #be185d; animation: pulse 1.5s infinite; }
+.badge-in_progress { background: #e0e7ff; color: #4338ca; }
+.badge-completed { background: #dcfce7; color: #15803d; }
+.badge-cancelled { background: #fee2e2; color: #b91c1c; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.ticket-tag {
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+
+/* Form Card */
+.form-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 28px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-card h2 {
+  font-size: 1.3rem;
+  margin-bottom: 24px;
+  color: #0f172a;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.input-with-action {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-action input {
+  flex-grow: 1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Vrachlar Gridi */
+.doctors-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.doctors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.doctor-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.doctor-card .room-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.doctor-card h3 {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.doctor-card p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Modallar */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* POS Chek / Talon Stili */
+.ticket-box {
+  max-width: 320px;
+  padding: 16px;
+}
+
+.ticket-printable {
+  background: #fff;
+  color: #000;
+  padding: 12px;
+  border: 1px dashed #94a3b8;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.ticket-header {
+  text-align: center;
+}
+
+.ticket-header h3 {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.ticket-divider {
+  border-top: 1px dashed #000;
+  margin: 8px 0;
+}
+
+.ticket-number {
+  font-size: 2.2rem;
+  font-weight: 900;
+  text-align: center;
+  margin: 12px 0;
+  letter-spacing: 2px;
+}
+
+.ticket-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.ticket-footer {
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+/* === PRINT STIL (Printerdan chiqarish) === */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .no-print, .sidebar, .top-header, .stats-grid, .filter-bar, .table-card {
+    display: none !important;
+  }
+  #ticketModal, #printableTicket, #printableTicket * {
+    visibility: visible;
+  }
+  #ticketModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: transparent;
+    display: block !important;
+  }
+  .ticket-box {
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+  }
+  .ticket-printable {
+    border: none;
+    width: 80mm; /* POS printer kengligi */
+    margin: 0 auto;
+  }
+}
+
+/* === Tekshiruv Vaqtlari Paneli Stili === */
+.services-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.duration-control-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-step {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-step:hover {
+  background: #0284c7;
+  color: #fff;
+  border-color: #0284c7;
+}
+
+.duration-input {
+  width: 55px;
+  text-align: center;
+  padding: 4px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+  background: #fff;
+}
+
+.duration-input:focus {
+  border-color: #0284c7;
+  outline: none;
+}
+
+.duration-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* === Jadval ichida to'g'ridan-to'g'ri qo'lda yozish (Inline Textarea) === */
+.table-inline-textarea {
+  width: 100%;
+  min-width: 220px;
+  min-height: 52px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #0f172a;
+  background: #f8fafc;
+  resize: vertical;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.table-inline-textarea:focus {
+  background: #ffffff;
+  border-color: #0284c7;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.table-inline-textarea.contra {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.table-inline-textarea.contra:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+

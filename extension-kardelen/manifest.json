@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "UTT Navbat Tizimi - Kardelen Integratsiyasi",
+  "version": "1.0.0",
+  "description": "Kardelen Radiologiya tizimidan bemorlarni 1 ta tugma bilan to'g'ridan-to'g'ri Firebase navbatiga yuborish kengaytmasi",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://192.168.150.111:2025/*",
+    "http://192.168.150.111/*",
+    "http://*/*",
+    "https://*.firebaseio.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "UTT Navbat Sozlamalari"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://192.168.150.111:2025/*",
+        "http://192.168.150.111/*"
+      ],
+      "all_frames": false,
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

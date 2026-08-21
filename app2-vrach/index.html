@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vrach Xonasi - UTT Navbat Tizimi</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase App & Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="../shared/firebase-config.js"></script>
+</head>
+<body>
+  <!-- 1. VRACH TANLASH EKRANI (LOGIN) -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-card">
+      <div class="login-icon">
+        <i class="fa-solid fa-user-doctor"></i>
+      </div>
+      <h2>VRACH XONASI</h2>
+      <p class="login-desc">Ishni boshlash uchun o'z shifokor profilingizni va xonangizni tanlang</p>
+
+      <form id="loginForm" onsubmit="handleDoctorLogin(event)">
+        <div class="form-group">
+          <label for="doctorSelect">Shifokor va Xona:</label>
+          <select id="doctorSelect" required>
+            <option value="">-- Vrachlar yuklanmoqda... --</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-right-to-bracket"></i> Xonaga Kirish
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ASOSIY VRACH ISH STOLI -->
+  <div id="doctorWorkspace" class="workspace-container" style="display: none;">
+    <!-- Tepalik Bar -->
+    <header class="doctor-header">
+      <div class="doc-profile">
+        <div class="doc-avatar">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <div class="doc-info">
+          <h2 id="headerDocName">Dr. Familiya Ism</h2>
+          <span class="room-pill" id="headerDocRoom">101-xona</span>
+          <span class="specialty-text" id="headerDocSpecialty">UTT Mutaxassisi</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="connection-status">
+          <span class="status-dot connected" id="connDot"></span>
+          <span id="connText">Firebase: Ulangan</span>
+        </div>
+        <button class="btn btn-outline" onclick="logoutDoctor()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Xonani almashtirish
+        </button>
+      </div>
+    </header>
+
+    <!-- Asosiy Ish Maydoni (2 ustunli) -->
+    <div class="workspace-grid">
+      <!-- Chap Ustun: Hozirgi Bemor va Boshqaruv -->
+      <section class="active-patient-section">
+        <div class="section-title">
+          <h3><i class="fa-solid fa-hospital-user"></i> Hozirgi Bemor</h3>
+          <span id="currentStatusBadge" class="badge badge-waiting">Qabul bo'sh</span>
+        </div>
+
+        <!-- Hozirgi bemor kartasi -->
+        <div class="current-patient-card" id="currentPatientCard">
+          <div class="empty-state" id="emptyPatientState">
+            <i class="fa-solid fa-couch"></i>
+            <h4>Hozirda qabulda bemor yo'q</h4>
+            <p>Navbatdagi bemorni chaqirish uchun quyidagi tugmani bosing</p>
+          </div>
+
+          <div class="patient-active-details" id="activeDetails" style="display: none;">
+            <div class="ticket-big-badge" id="activeTicketId">U-001</div>
+            <h2 class="patient-name" id="activePatientName">Rustamov Jasur</h2>
+            
+            <div class="patient-meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">Telefon:</span>
+                <strong id="activePhone">+998 90 123 45 67</strong>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Yoshi:</span>
+                <strong id="activeAge">29 yosh</strong>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Xizmat:</span>
+                <strong id="activeService">Jigar va buyrak UTT</strong>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Kelgan vaqti:</span>
+                <strong id="activeTime">10:30</strong>
+              </div>
+            </div>
+
+            <div class="notes-box" id="activeNotesBox" style="display: none;">
+              <span class="meta-label">Registratura izohi:</span>
+              <p id="activeNotes">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boshqaruv Tugmalari Paneli -->
+        <div class="control-actions-panel">
+          <!-- Agar bemor chaqirilmagan bo'lsa -->
+          <button class="btn btn-call-big" id="btnCallNext" onclick="callNextPatient()">
+            <i class="fa-solid fa-bell"></i>
+            <span>KEYINGI BEMORNI CHAQIRISH</span>
+            <small>(Space yoki Enter)</small>
+          </button>
+
+          <!-- Agar bemor chaqirilgan yoki qabulda bo'lsa ko'rinadigan tugmalar -->
+          <div class="in-call-buttons" id="inCallButtons" style="display: none;">
+            <button class="btn btn-recall" onclick="recallCurrentPatient()">
+              <i class="fa-solid fa-volume-high"></i> Qayta Chaqirish (TV)
+            </button>
+            <button class="btn btn-start" id="btnStartExam" onclick="startExamination()">
+              <i class="fa-solid fa-play"></i> Qabul Boshlandi
+            </button>
+            <button class="btn btn-finish" onclick="finishExamination()">
+              <i class="fa-solid fa-check-double"></i> Qabulni Yakunlash
+            </button>
+            <button class="btn btn-skip" onclick="skipPatient()">
+              <i class="fa-solid fa-user-xmark"></i> Kelmadi
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- O'ng Ustun: Kutayotgan Bemorlar Navbati -->
+      <section class="queue-list-section">
+        <div class="section-header">
+          <div class="section-title">
+            <h3><i class="fa-solid fa-users"></i> Navbatdagi Bemorlar</h3>
+            <span class="count-badge" id="waitingCount">0 nafar</span>
+          </div>
+        </div>
+
+        <div class="queue-cards-list" id="queueCardsContainer">
+          <!-- Dinamik navbat kartalari -->
+        </div>
+
+        <!-- Bugun qabul qilinganlar tarixi -->
+        <div class="completed-section">
+          <div class="section-title toggle-title" onclick="toggleCompletedList()">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> Bugun qabul qilinganlar (<span id="completedCount">0</span>)</h4>
+            <i class="fa-solid fa-chevron-down" id="completedChevron"></i>
+          </div>
+          <div class="completed-list" id="completedList" style="display: none;">
+            <!-- Yakunlanganlar -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

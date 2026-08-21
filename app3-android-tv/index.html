@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRT & MSKT Navbat Ekrani - TV Monitor</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase App & Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="../shared/firebase-config.js"></script>
+</head>
+<body>
+  <div class="tv-container">
+    <!-- 1. TEPALIK HEADER -->
+    <header class="tv-header">
+      <div class="clinic-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="brand-text">
+          <h1>MRT & MSKT DIAGNOSTIKA MARKAZI</h1>
+          <p>ELEKTRON NAVBAT MONITORI</p>
+        </div>
+      </div>
+
+      <div class="header-center-status">
+        <span class="pulse-dot"></span>
+        <span>JONLI NAVBAT</span>
+      </div>
+
+      <div class="header-right-clock">
+        <div class="tv-time" id="clockTime">00:00:00</div>
+        <div class="tv-date" id="clockDate">Dushanba, 1 Yanvar</div>
+      </div>
+    </header>
+
+    <!-- 2. ASOSIY DISPLAY KONTENTI (SPLIT VIEW) -->
+    <main class="tv-main-grid">
+      
+      <!-- CHAP TOMON: CHAQIRILGAN BEMOR (KATMA-KAT E'LON) -->
+      <section class="calling-hero-panel">
+        <div class="panel-header">
+          <i class="fa-solid fa-bullhorn icon-blink"></i>
+          <span>HOZIRGI CHAQIRUV</span>
+        </div>
+
+        <div class="calling-card" id="callingCard">
+          <div class="calling-idle" id="callingIdleState">
+            <i class="fa-solid fa-user-clock"></i>
+            <h2>Navbat kutilmoqda</h2>
+            <p>Qurilma chaqirishi bilan bu yerda ko'rinadi</p>
+          </div>
+
+          <div class="calling-active" id="callingActiveState" style="display: none;">
+            <div class="ticket-jumbo" id="heroTicketId">5245</div>
+            <div class="patient-jumbo" id="heroPatientName">SAYIDOV SHERALI</div>
+            
+            <div class="hero-target-box">
+              <div class="target-room-badge" id="heroRoomNum">1-MRT XONASI</div>
+              <div class="target-doc-name" id="heroDoctorName">MRT 1</div>
+              <div class="target-service" id="heroService">Bosh Miya MRT</div>
+              <div class="target-contrast-badge" id="heroContrastBadge" style="display: none;">💉 KONTRASTLI</div>
+            </div>
+
+            <div class="call-action-hint">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> ILTIMOS, XONAGA KIRING
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- O'NG TOMON: 4 TA QURILMA JADVALI (MRT1, MRT2, MSKT1, MSKT2) -->
+      <section class="rooms-grid-panel">
+        <div class="panel-header">
+          <i class="fa-solid fa-desktop"></i>
+          <span>QURILMALAR BO'YICHA NAVBAT</span>
+        </div>
+
+        <div class="rooms-container" id="roomsContainer">
+          <!-- Dinamik 4 ta qurilma kartasi -->
+          <div class="room-loading">
+            <i class="fa-solid fa-spinner fa-spin"></i> Qurilmalar ma'lumotlari yuklanmoqda...
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 3. PASTDAGI YUGURUVCHI SATR (TICKER) -->
+    <footer class="tv-footer-ticker">
+      <div class="ticker-label">
+        <i class="fa-solid fa-circle-info"></i> DIQQAT:
+      </div>
+      <div class="ticker-wrap">
+        <div class="ticker-move">
+          Hurmatli bemorlar! MRT xonasiga kirishdan oldin barcha metall buyumlar, soat, kalit va telefonlarni topshiring. Kontrastli tekshiruvdan oldin hamshira ko'rigidan o'ting. &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp; Salomatligingiz biz uchun muhim!
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Audio Chaqiruv uchun ruxsat olish tugmasi -->
+  <div id="audioUnlockOverlay" class="audio-unlock-overlay" onclick="unlockAudio()">
+    <div class="unlock-box">
+      <i class="fa-solid fa-volume-high"></i>
+      <h3>Ovozli Tizimni Faollashtirish</h3>
+      <p>Android TV da ovozli chaqiruv ishlashi uchun ekranning istalgan joyiga bir marta bosing yoki pultdan OK tugmasini bosing</p>
+      <button class="btn-unlock">DAVOM ETISH (OK)</button>
+    </div>
+  </div>
+
+  <script src="tv.js"></script>
+</body>
+</html>

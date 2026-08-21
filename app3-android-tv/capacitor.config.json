@@ -1,0 +1,9 @@
+{
+  "appId": "com.utt.tv",
+  "appName": "UTT Monitor",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}

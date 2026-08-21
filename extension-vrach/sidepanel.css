@@ -1,0 +1,361 @@
+/* === Vrach Side Panel Stili === */
+:root {
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --success: #10b981;
+  --success-hover: #059669;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 10px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 14px;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+/* Header */
+.panel-header {
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.doc-select-box label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doc-select-box select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fff;
+  color: #0f172a;
+  outline: none;
+}
+
+.doc-select-box select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dot-online {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+/* Section Titles */
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* Active Patient Card */
+.active-patient-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.patient-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px 0;
+}
+
+.empty-state i {
+  font-size: 2rem;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 12px;
+}
+
+.active-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.patient-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  border-bottom: 1px dashed #f1f5f9;
+  padding-bottom: 4px;
+}
+
+.meta-label {
+  color: var(--text-muted);
+}
+
+.meta-val {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+  max-width: 65%;
+}
+
+/* Buttons */
+.actions-box {
+  margin-top: 10px;
+}
+
+.btn-call-big {
+  width: 100%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  transition: all 0.15s;
+}
+
+.btn-call-big:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  transform: translateY(-1px);
+}
+
+.in-call-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-action {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-recall {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.btn-recall:hover { background: #fde68a; }
+
+.btn-start {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.btn-start:hover { background: #bae6fd; }
+
+.btn-finish {
+  background: #10b981;
+  color: #ffffff;
+  grid-column: span 2;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.btn-finish:hover { background: #059669; }
+
+.btn-skip {
+  background: #fee2e2;
+  color: #b91c1c;
+  grid-column: span 2;
+  border: 1px solid #fecaca;
+}
+.btn-skip:hover { background: #fecaca; }
+
+/* Queue List */
+.queue-section {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 200px;
+}
+
+.count-pill {
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.queue-card-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.queue-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.queue-card-id {
+  background: #f1f5f9;
+  color: #0284c7;
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.queue-card-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.queue-card-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.btn-queue-call {
+  background: #0284c7;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-queue-call:hover { background: #0369a1; }
+
+.loading-text {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 20px 0;
+}
+
+/* Badges */
+.badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.badge-waiting { background: #fef3c7; color: #b45309; }
+.badge-calling { background: #fce7f3; color: #be185d; animation: pulse 1.5s infinite; }
+.badge-in_progress { background: #dbeafe; color: #1e40af; }
+.badge-completed { background: #dcfce7; color: #166534; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

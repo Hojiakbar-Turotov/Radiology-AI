@@ -1,0 +1,24 @@
+{
+  "name": "utt-vrach",
+  "version": "1.0.0",
+  "description": "UTT Navbat Tizimi - Vrach Xonasi Paneli",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:exe": "electron-builder --win portable"
+  },
+  "keywords": ["utt", "queue", "doctor", "electron"],
+  "author": "UTT Diagnostika",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.utt.vrach",
+    "productName": "UTT Vrach",
+    "win": {
+      "target": ["portable", "nsis"]
+    }
+  }
+}

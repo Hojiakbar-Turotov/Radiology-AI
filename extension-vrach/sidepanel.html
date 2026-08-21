@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vrach Ish Stoli - UTT Navbat</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="panel-container">
+    
+    <!-- 1. VRACH PROFILI VA XONASI TANLOVI -->
+    <header class="panel-header">
+      <div class="doc-select-box">
+        <label for="doctorSelect"><i class="fa-solid fa-user-doctor"></i> Shifokor va Xona:</label>
+        <select id="doctorSelect">
+          <!-- JS orqali to'ldiriladi -->
+        </select>
+      </div>
+      <div class="status-indicator">
+        <span class="dot-online" id="statusDot"></span>
+        <span id="statusText">Ulangan</span>
+      </div>
+    </header>
+
+    <!-- 2. HOZIRGI QABULDAGI / CHAQIRILGAN BEMOR -->
+    <section class="active-patient-section">
+      <div class="section-title">
+        <span><i class="fa-solid fa-hospital-user"></i> Hozirgi Bemor:</span>
+        <span class="badge" id="currentBadge">Bo'sh</span>
+      </div>
+
+      <div class="patient-card" id="patientCard">
+        <div class="empty-state" id="emptyState">
+          <i class="fa-solid fa-couch"></i>
+          <p>Hozirda qabulda bemor yo'q</p>
+        </div>
+
+        <div class="active-info" id="activeInfo" style="display: none;">
+          <div class="ticket-badge" id="activeId">5245</div>
+          <h2 class="patient-name" id="activeName">SAYIDOV SHERALI</h2>
+          
+          <div class="meta-row">
+            <span class="meta-label">Xizmat:</span>
+            <strong class="meta-val" id="activeService">R62 - Jigar, o't qopi...</strong>
+          </div>
+          
+          <div class="meta-row" id="referringRow" style="display: none;">
+            <span class="meta-label">Yuborgan vrach:</span>
+            <span class="meta-val" id="activeReferring">-</span>
+          </div>
+
+          <div class="meta-row">
+            <span class="meta-label">Vaqti:</span>
+            <span class="meta-val" id="activeTime">10:45</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boshqaruv Tugmalari -->
+      <div class="actions-box">
+        <!-- Chaqirilmagan bo'lsa -->
+        <button class="btn-call-big" id="btnCallNext">
+          <i class="fa-solid fa-bell"></i> KEYINGISINI CHAQIRISH (TV)
+        </button>
+
+        <!-- Qabulda bo'lsa -->
+        <div class="in-call-group" id="inCallGroup" style="display: none;">
+          <button class="btn-action btn-recall" id="btnRecall" title="TV da qayta e'lon qilish">
+            <i class="fa-solid fa-volume-high"></i> Qayta chaqirish
+          </button>
+          <button class="btn-action btn-start" id="btnStartExam">
+            <i class="fa-solid fa-play"></i> Qabul boshlandi
+          </button>
+          <button class="btn-action btn-finish" id="btnFinishExam">
+            <i class="fa-solid fa-check-double"></i> QABULNI YAKUNLASH
+          </button>
+          <button class="btn-action btn-skip" id="btnSkipPatient">
+            <i class="fa-solid fa-user-xmark"></i> Kelmadi
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. KUTAYOTGAN BEMORLAR NAVBATI -->
+    <section class="queue-section">
+      <div class="section-title">
+        <span><i class="fa-solid fa-users"></i> Navbatdagilar:</span>
+        <span class="count-pill" id="waitingCount">0 nafar</span>
+      </div>
+
+      <div class="queue-list" id="queueList">
+        <div class="loading-text">Bemorlar ro'yxati yuklanmoqda...</div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

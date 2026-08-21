@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRT & MSKT Navbat Paneli</title>
+  <link rel="stylesheet" href="popup.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="popup-container">
+    
+    <!-- 1. LOGIN BO'LMAGAN HOLAT -->
+    <div id="loginView" style="display: none;">
+      <div class="popup-header">
+        <div class="popup-title">
+          <h3>🔒 Tizimga Kirish</h3>
+          <p>MRT & MSKT Navbat Tizimi</p>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <div class="form-row">
+          <label for="loginOperatorSelect">Operator:</label>
+          <select id="loginOperatorSelect">
+            <option value="TB1">TB1 — Turatov Hojiakbar</option>
+            <option value="TB2">TB2 — Saida'loxon Saidaxmadxonov</option>
+            <option value="TB3">TB3 — Isfandiyor Xaydaraliyev</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="loginPassword">Parol:</label>
+          <input type="password" id="loginPassword" placeholder="Parol (standart: 15420)">
+        </div>
+
+        <div id="popupLoginError" class="error-msg" style="display: none;">
+          ❌ Parol noto'g'ri!
+        </div>
+
+        <button type="button" class="btn-primary" id="btnDoPopupLogin">
+          <i class="fa-solid fa-right-to-bracket"></i> Kirish
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. LOGIN QILINGAN HOLAT (PROFIL & TEZKOR BOSHQARUV) -->
+    <div id="mainView" style="display: none;">
+      <!-- Operator Header -->
+      <div class="operator-bar">
+        <div class="op-left">
+          <div class="op-avatar" id="opAvatar">TB1</div>
+          <div>
+            <div class="op-name" id="opName">Turatov Hojiakbar</div>
+            <div class="op-badge" id="opBadge">Operator (TB1)</div>
+          </div>
+        </div>
+        <button class="btn-logout-icon" id="btnPopupLogout" title="Tizimdan chiqish">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+
+      <!-- Bugungi Statistika -->
+      <div class="stat-box">
+        <span><i class="fa-solid fa-clipboard-check"></i> Bugun yuborilgan bemorlar:</span>
+        <strong id="opTodayCount">0 nafar</strong>
+      </div>
+
+      <!-- Tezkor Qo'lda Yuborish -->
+      <div class="card-box">
+        <h4><i class="fa-solid fa-user-plus"></i> Qo'lda Bemor Yuborish</h4>
+        <div class="form-row">
+          <label>Bemor ID:</label>
+          <input type="text" id="quickId" placeholder="Masalan: 5245">
+        </div>
+        <div class="form-row">
+          <label>Bemor F.I.Sh:</label>
+          <input type="text" id="quickName" placeholder="Familiya Ismi">
+        </div>
+        <div class="form-row">
+          <label>Tekshiruv:</label>
+          <input type="text" id="quickService" placeholder="Bosh Miya MRT / MSKT">
+        </div>
+        <div class="form-row">
+          <label>Qurilma / Xona:</label>
+          <select id="quickDevice">
+            <option value="mrt1">MRT 1 (1-MRT Xonasi)</option>
+            <option value="mrt2">MRT 2 (2-MRT Xonasi)</option>
+            <option value="mskt1">MSKT 1 (1-MSKT Xonasi)</option>
+            <option value="mskt2">MSKT 2 (2-MSKT Xonasi)</option>
+          </select>
+        </div>
+        <button type="button" class="btn-primary" id="btnQuickSend">
+          <i class="fa-solid fa-paper-plane"></i> Navbatga Qo'shish
+        </button>
+      </div>
+
+      <!-- Parolni o'zgartirish tugmasi / akkordeon -->
+      <div class="card-box">
+        <details>
+          <summary style="cursor: pointer; font-weight: 700; font-size: 12px; color: #0284c7;">
+            <i class="fa-solid fa-key"></i> Parolni O'zgartirish
+          </summary>
+          <div style="margin-top: 10px;">
+            <div class="form-row">
+              <label>Eski parol:</label>
+              <input type="password" id="popOldPwd" placeholder="Hozirgi parol">
+            </div>
+            <div class="form-row">
+              <label>Yangi parol:</label>
+              <input type="password" id="popNewPwd" placeholder="Yangi parol">
+            </div>
+            <div id="popPwdMsg" class="error-msg" style="display: none;"></div>
+            <button type="button" class="btn-secondary" id="btnPopSavePwd">Saqlash</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+/* === Vrach Floating Widget Stili (Sahifaga Joylashuvchi) === */
+
+.utt-doc-widget {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0284c7 !important;
+  border-radius: 16px !important;
+  padding: 12px 18px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  z-index: 9999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  animation: uttDocSlideUp 0.3s ease-out !important;
+}
+
+@keyframes uttDocSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.utt-doc-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.utt-doc-header-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.utt-doc-room {
+  background: #0284c7 !important;
+  color: #fff !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.utt-doc-wait-badge {
+  background: #f59e0b !important;
+  color: #0f172a !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.utt-doc-patient-name {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #38bdf8 !important;
+  max-width: 260px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.utt-doc-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.utt-doc-btn {
+  border: none !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.15s !important;
+}
+
+.utt-doc-btn-call {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  color: #fff !important;
+}
+.utt-doc-btn-call:hover { background: #0369a1 !important; transform: scale(1.03) !important; }
+
+.utt-doc-btn-finish {
+  background: #10b981 !important;
+  color: #fff !important;
+}
+.utt-doc-btn-finish:hover { background: #059669 !important; }
+
+.utt-doc-minimize {
+  background: none !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  padding: 2px !important;
+}

@@ -1,0 +1,518 @@
+/* === Vrach Xonasi Stili === */
+:root {
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-light: #e0f2fe;
+  --success: #10b981;
+  --success-hover: #059669;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --bg-main: #f1f5f9;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #cbd5e1;
+  --radius: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* === LOGIN SCREEN === */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.login-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px auto;
+}
+
+.login-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.login-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.form-group select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+/* === WORKSPACE === */
+.workspace-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.doctor-header {
+  background: #fff;
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.doc-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.doc-avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.doc-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-info h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.room-pill {
+  background: var(--primary);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.specialty-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot.connected { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.status-dot.disconnected { background: #ef4444; }
+
+/* Grid Layout */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+  padding: 24px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Chap Ustun: Hozirgi Bemor */
+.active-patient-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title h3 {
+  font-size: 1.15rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-patient-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 28px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px 20px;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  color: #94a3b8;
+}
+
+.empty-state h4 {
+  font-size: 1.2rem;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.patient-active-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticket-big-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #0f172a;
+  color: #38bdf8;
+  font-family: monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  padding: 6px 18px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+}
+
+.patient-name {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.patient-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.notes-box {
+  background: #fffbeb;
+  border-left: 4px solid var(--warning);
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.notes-box p {
+  font-size: 0.85rem;
+  color: #92400e;
+  margin-top: 4px;
+}
+
+/* Boshqaruv Tugmalari */
+.control-actions-panel {
+  margin-top: auto;
+}
+
+.btn-call-big {
+  width: 100%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #fff;
+  border: none;
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-call-big:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(2, 132, 199, 0.5);
+}
+
+.btn-call-big small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.in-call-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+.btn-outline:hover { background: #f8fafc; }
+.btn-block { width: 100%; }
+
+.btn-recall {
+  background: #f59e0b;
+  color: #fff;
+}
+.btn-recall:hover { background: #d97706; }
+
+.btn-start {
+  background: #3b82f6;
+  color: #fff;
+}
+.btn-start:hover { background: #2563eb; }
+
+.btn-finish {
+  background: var(--success);
+  color: #fff;
+  grid-column: span 2;
+  padding: 16px;
+  font-size: 1.1rem;
+}
+.btn-finish:hover { background: var(--success-hover); }
+
+.btn-skip {
+  background: #fee2e2;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  grid-column: span 2;
+}
+.btn-skip:hover { background: #fecaca; }
+
+/* O'ng Ustun: Navbat Ro'yxati */
+.queue-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.count-badge {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.queue-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.queue-item-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.queue-item-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.queue-item-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.queue-ticket-num {
+  background: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-family: monospace;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.queue-patient-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.queue-patient-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge-waiting { background: #fef3c7; color: #b45309; }
+.badge-calling { background: #fce7f3; color: #be185d; animation: pulse 1.5s infinite; }
+.badge-in_progress { background: #dbeafe; color: #1e40af; }
+.badge-completed { background: #dcfce7; color: #166534; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Completed History */
+.completed-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  margin-top: auto;
+}
+
+.toggle-title {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-title h4 {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.completed-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.completed-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+}
