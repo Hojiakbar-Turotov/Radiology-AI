@@ -56,12 +56,23 @@
           <h1 id="pageTitle">Bugungi Navbat Ro'yxati</h1>
           <span class="today-date" id="currentDate"></span>
         </div>
-        <div class="header-right">
+        <div class="header-right" style="display:flex; align-items:center; gap:8px;">
+          <div class="lang-selector-box" style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+            <i class="fa-solid fa-globe" style="color:#0284c7; font-size:14px;"></i>
+            <select id="globalLangSelector" onchange="changeSystemLanguage(this.value)" style="border:none; outline:none; font-weight:700; font-size:12.5px; background:transparent; cursor:pointer; color:#0f172a;">
+              <option value="uz">🇺🇿 O'zbekcha</option>
+              <option value="ru">🇷🇺 Русский</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="kk">🇰🇿 Қазақша</option>
+              <option value="tg">🇹🇯 Тоҷикӣ</option>
+              <option value="tr">🇹🇷 Türkçe</option>
+            </select>
+          </div>
           <button class="btn btn-primary" onclick="openNewPatientModal()">
-            <i class="fa-solid fa-plus"></i> Yangi Navbat Berish
+            <i class="fa-solid fa-plus"></i> <span id="btnTxtNewPatient">Yangi Navbat Berish</span>
           </button>
           <button class="btn btn-secondary" onclick="exportToCSV()">
-            <i class="fa-solid fa-file-excel"></i> Excelga Yuklash
+            <i class="fa-solid fa-file-excel"></i> <span id="btnTxtExportExcel">Excelga Yuklash</span>
           </button>
         </div>
       </header>
@@ -633,10 +644,19 @@
   <!-- Talon Chop Etish Modali (POS Printer formatida) -->
   <div class="modal" id="ticketModal">
     <div class="modal-content ticket-box">
+      <!-- 6 ta Tilda Chop Etish Bar -->
+      <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; flex-wrap:wrap; padding-bottom:8px; border-bottom:1px solid #e2e8f0;">
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('uz')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #0284c7; background:#e0f2fe; color:#0369a1;">🇺🇿 UZ</button>
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('ru')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇷🇺 RU</button>
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('en')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇬🇧 EN</button>
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('kk')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇰🇿 KK</button>
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('tg')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇯 TG</button>
+        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('tr')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇷 TR</button>
+      </div>
       <div class="ticket-printable" id="printableTicket">
         <div class="ticket-header">
-          <h3>ONKOLOGIYA VA RADIOLOGIYA MARKAZI</h3>
-          <p>Elektron Navbat Taloni</p>
+          <h3 id="ticketPrintHeaderCenter">ONKOLOGIYA VA RADIOLOGIYA MARKAZI</h3>
+          <p id="ticketPrintHeaderSub">Elektron Navbat Taloni</p>
           <div class="ticket-divider"></div>
         </div>
         <div class="ticket-body">
@@ -1161,6 +1181,7 @@
   </div>
 
   <script src="./logos.js"></script>
+  <script src="./i18n.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

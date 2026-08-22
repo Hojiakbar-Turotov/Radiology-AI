@@ -1354,21 +1354,86 @@ async function handlePatientSubmit(event) {
   });
 }
 
-// 7. TALONNI CHOP ETISH
-function openPrintModal(patientDbId) {
+let currentPrintPatient = null;
+let currentTicketLang = "uz";
+
+// 13.9 SAVOLLARNI KO'P TILLI TARJIMA QILISH YORDAMCHISI
+function translateQuestionsList(questions, lang) {
+  if (!questions || !Array.isArray(questions)) return [];
+  if (!lang || lang === 'uz') return questions;
+
+  const qMap = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.questions) ? I18N_TRANSLATIONS.questions : {};
+
+  return questions.map(q => {
+    const qLower = q.toLowerCase();
+    if (qLower.includes("kardiostimulyator") || qLower.includes("yurak stimulyatori") || qLower.includes("defibrillyator")) {
+      return (qMap.pacemaker && qMap.pacemaker[lang]) ? qMap.pacemaker[lang] : q;
+    }
+    if (qLower.includes("metall implant") || qLower.includes("sun‘iy bo‘g‘im") || qLower.includes("plastinka") || qLower.includes("vint")) {
+      return (qMap.metalImplants && qMap.metalImplants[lang]) ? qMap.metalImplants[lang] : q;
+    }
+    if (qLower.includes("klavstrofobiya") || qLower.includes("yopiq fazo")) {
+      return (qMap.claustrophobia && qMap.claustrophobia[lang]) ? qMap.claustrophobia[lang] : q;
+    }
+    if (qLower.includes("homiladorlik") || qLower.includes("emizikli")) {
+      return (qMap.pregnancy && qMap.pregnancy[lang]) ? qMap.pregnancy[lang] : q;
+    }
+    if (qLower.includes("allergiya") || qLower.includes("yodga") || qLower.includes("kontrast modda")) {
+      return (qMap.allergy && qMap.allergy[lang]) ? qMap.allergy[lang] : q;
+    }
+    if (qLower.includes("buyrak yetishmovchiligi") || qLower.includes("gemodializ")) {
+      return (qMap.kidney && qMap.kidney[lang]) ? qMap.kidney[lang] : q;
+    }
+    if (qLower.includes("astma") || qLower.includes("diabet") || qLower.includes("qalqonsimon bez")) {
+      return (qMap.asthmaDiabetes && qMap.asthmaDiabetes[lang]) ? qMap.asthmaDiabetes[lang] : q;
+    }
+    if (qLower.includes("eshitish apparati") || qLower.includes("tish protez") || qLower.includes("tatuirovka")) {
+      return (qMap.hearingDental && qMap.hearingDental[lang]) ? qMap.hearingDental[lang] : q;
+    }
+    if (qLower.includes("och qol") || qLower.includes("och qorin")) {
+      return (qMap.abdominalFasting && qMap.abdominalFasting[lang]) ? qMap.abdominalFasting[lang] : q;
+    }
+    if (qLower.includes("qovuq") || qLower.includes("suv ich")) {
+      return (qMap.pelvicBladder && qMap.pelvicBladder[lang]) ? qMap.pelvicBladder[lang] : q;
+    }
+    return q;
+  });
+}
+
+// 7. TALONNI CHOP ETISH (KO'P TILLI)
+function openPrintModal(patientDbId, lang = null) {
   const patient = patientsList.find(p => p.id === patientDbId);
   if (patient) {
-    openPrintModalDirect(patient, true);
+    openPrintModalDirect(patient, false, lang || getI18nLanguage());
   }
 }
 
-function openPrintModalDirect(patient, autoTriggerPrint = false) {
+function reprintTicketWithLang(lang) {
+  if (currentPrintPatient) {
+    openPrintModalDirect(currentPrintPatient, false, lang);
+  }
+}
+
+function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
+  currentPrintPatient = patient;
+  currentTicketLang = lang || getI18nLanguage();
+
+  const L = currentTicketLang;
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[L]) 
+    ? I18N_TRANSLATIONS.ticket[L] 
+    : (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket ? I18N_TRANSLATIONS.ticket['uz'] : null);
+
+  const headerCenter = document.getElementById("ticketPrintHeaderCenter");
+  const headerSub = document.getElementById("ticketPrintHeaderSub");
+  if (headerCenter && dict) headerCenter.innerText = dict.centerName;
+  if (headerSub && dict) headerSub.innerText = dict.ticketTitle;
+
   document.getElementById("ticketPrintNum").innerText = patient.ticketId || "ID";
   document.getElementById("ticketPrintName").innerText = patient.name || "-";
   
   const typeText = patient.patientType === "Bo'limda yotibdi"
-    ? `🏥 Bo'limda yotibdi ${patient.department ? `(${patient.department})` : ''}`
-    : "🏠 Uyidan qatnaydi";
+    ? `${dict ? dict.stationary : "🏥 Bo'limda yotibdi"} ${patient.department ? `(${patient.department})` : ''}`
+    : (dict ? dict.ambulatory : "🏠 Uyidan qatnaydi");
   const typeEl = document.getElementById("ticketPrintPatientType");
   if (typeEl) typeEl.innerText = typeText;
 
@@ -1385,7 +1450,7 @@ function openPrintModalDirect(patient, autoTriggerPrint = false) {
 
   document.getElementById("ticketPrintRoom").innerText = patient.room || "-";
   document.getElementById("ticketPrintDoctor").innerText = patient.doctorName || "-";
-  document.getElementById("ticketPrintService").innerText = (patient.service || "Tomografiya") + (patient.isContrast ? " [KONTRASTLI]" : "");
+  document.getElementById("ticketPrintService").innerText = (patient.service || "Tomografiya") + (patient.isContrast ? ` ${dict ? dict.contrastBadge : '[KONTRASTLI]'}` : "");
   document.getElementById("ticketPrintTimeSlot").innerText = patient.timeSlot || patient.scheduledTime || (patient.time || "-");
   document.getElementById("ticketPrintRegistrar").innerText = patient.registeredBy || (patient.operatorLogin ? `${patient.operatorLogin} - ${patient.operatorName || ''}` : "TB1 - Turatov Hojiakbar");
   const appDateDisplay = patient.appointmentDate || selectedQueueDate || todayDateStr;
@@ -1436,15 +1501,20 @@ function toggleArrivedStatus(patientDbId) {
   });
 }
 
-function printConsentForm(patientDbId) {
+function printConsentForm(patientDbId, lang = null) {
   const patient = patientsList.find(p => p.id === patientDbId);
   if (patient) {
-    printConsentFormDirect(patient);
+    printConsentFormDirect(patient, lang || getI18nLanguage());
   }
 }
 
-function printConsentFormDirect(payload) {
+function printConsentFormDirect(payload, lang = null) {
   try {
+    const L = lang || payload.printLang || getI18nLanguage() || 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.consent && I18N_TRANSLATIONS.consent[L])
+      ? I18N_TRANSLATIONS.consent[L]
+      : (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.consent ? I18N_TRANSLATIONS.consent['uz'] : null);
+
     const oldIframe = document.getElementById("uttConsentPrintIframe");
     if (oldIframe) oldIframe.remove();
 
@@ -1478,13 +1548,14 @@ function printConsentFormDirect(payload) {
       examType = "MRT";
     }
 
-    // Tekshiruv uchun maxsus savolnomani aniqlash (Har bir tekshiruv uchun alohida savolnoma)
-    const customQuestionsList = consolidateQuestionsForServices(
+    // Savolnomani ko'p tilli tarjima qilish
+    const rawQuestions = consolidateQuestionsForServices(
       payload.servicesList,
       examType,
       payload.isContrast,
       payload.questions
     );
+    const customQuestionsList = translateQuestionsList(rawQuestions, L);
 
     const questionsRowsHtml = customQuestionsList.map((qText, idx) => {
       const cleanQ = qText.replace(/^\d+[\.\)\-]\s*/, '').trim();
@@ -1499,10 +1570,10 @@ function printConsentFormDirect(payload) {
     }).join("");
 
     const typeText = payload.patientType === "Bo'limda yotibdi"
-      ? `Bo'limda yotibdi ${payload.department ? `(${payload.department})` : ''}`
-      : "Uyidan qatnaydi (Ambulator)";
+      ? `${dict ? dict.stationary : "Bo'limda yotibdi"} ${payload.department ? `(${payload.department})` : ''}`
+      : (dict ? dict.ambulatory : "Uyidan qatnaydi (Ambulator)");
 
-    // 1. Nashr sanasi (Navbatga qo'yilgan sana)
+    // 1. Nashr sanasi
     let rawQueueDate = payload.appointmentDate || payload.date || (typeof selectedQueueDate !== 'undefined' ? selectedQueueDate : '') || (typeof todayDateStr !== 'undefined' ? todayDateStr : '') || '';
     let nashrSanasi = "09.04.2026";
     if (rawQueueDate) {
@@ -1517,11 +1588,11 @@ function printConsentFormDirect(payload) {
       }
     }
 
-    // 2. Ko'rib chiqish sanasi (Bugungi printerdan chop etilgan kundagi sana)
+    // 2. Ko'rib chiqish sanasi
     const nowPrint = new Date();
     const koribChiqishSanasi = `${String(nowPrint.getDate()).padStart(2, '0')}.${String(nowPrint.getMonth() + 1).padStart(2, '0')}.${nowPrint.getFullYear()}`;
 
-    // 3. Kod No dinamik raqami (HD.RB.[Kod raqami])
+    // 3. Kod No dinamik raqami
     let kodDigits = "";
     if (payload.servicesList && payload.servicesList.length > 0) {
       const extracted = payload.servicesList.map(s => {
@@ -1542,6 +1613,10 @@ function printConsentFormDirect(payload) {
     }
     const kodNo = `HD.RB.${kodDigits || '292'}`;
 
+    const ministryTitle = dict ? dict.ministryTitle.replace(/\\n/g, '<br>') : "RESPUBLIKA IXTISOSLASHTIRILGAN<br>ONKOLOGIYA VA RADIOLOGIYA<br>ILMIY-AMALIY TIBBIYOT MARKAZI";
+    const docTitle = dict ? dict.docTitle.replace('{examType}', examType) : `${examType} TEKSHIRUVINI O‘TKAZISHGA ROZILIK HUJJATI`;
+    const declarationText = dict ? dict.declaration.replace(/{examType}/g, examType) : "";
+
     doc.write(`
       <!DOCTYPE html>
       <html>
@@ -1552,13 +1627,12 @@ function printConsentFormDirect(payload) {
           * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
           body { color: #000; padding: 4px; font-size: 12px; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           
-          /* Rasmiy Titul Box */
           .titul-box { border: 1.5px solid #000; margin-bottom: 8px; }
           .titul-grid { display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding: 6px 10px; }
           .titul-logo-box { width: 75px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .titul-text { text-align: center; flex-grow: 1; padding: 0 10px; }
-          .titul-text h2 { font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.25; margin-bottom: 3px; }
-          .titul-text h1 { font-size: 14.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+          .titul-text h2 { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.25; margin-bottom: 3px; }
+          .titul-text h1 { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
           
           .titul-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; }
           .titul-table td { border-right: 1.5px solid #000; padding: 4px 4px; line-height: 1.2; }
@@ -1590,89 +1664,89 @@ function printConsentFormDirect(payload) {
         </style>
       </head>
       <body>
-        <!-- 1. RASMIY INSTITUTSIONAL TITUL (Rasmga mos) -->
+        <!-- 1. RASMIY INSTITUTSIONAL TITUL -->
         <div class="titul-box">
           <div class="titul-grid">
             <div class="titul-logo-box">
-              <img src="${LOGO_ONKOLOGIYA}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="Onkologiya Markazi">
+              <img src="${typeof LOGO_ONKOLOGIYA !== 'undefined' ? LOGO_ONKOLOGIYA : ''}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="Logo">
             </div>
             <div class="titul-text">
-              <h2>RESPUBLIKA IXTISOSLASHTIRILGAN<br>ONKOLOGIYA VA RADIOLOGIYA<br>ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
-              <h1>${examType} TEKSHIRUVINI O‘TKAZISHGA ROZILIK HUJJATI</h1>
+              <h2>${ministryTitle}</h2>
+              <h1>${escapeHtml(docTitle)}</h1>
             </div>
             <div class="titul-logo-box">
-              <img src="${LOGO_SSV}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="SSV Logosi">
+              <img src="${typeof LOGO_SSV !== 'undefined' ? LOGO_SSV : ''}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="Logo">
             </div>
           </div>
           <table class="titul-table">
             <tr>
-              <td style="width:20%;"><strong>Kod No:</strong><br><strong>${escapeHtml(kodNo)}</strong></td>
-              <td style="width:20%;"><strong>Nashr sanasi:</strong><br>${escapeHtml(nashrSanasi)}</td>
-              <td style="width:20%;"><strong>Ko‘rib chiqish sanasi:</strong><br>${escapeHtml(koribChiqishSanasi)}</td>
-              <td style="width:20%;"><strong>Tekshiruv raqami:</strong><br><strong>${escapeHtml(payload.ticketId || '00000')}</strong></td>
-              <td style="width:20%;"><strong>Sahifa/Sahifalar soni:</strong><br>1 / 1</td>
+              <td style="width:20%;"><strong>${escapeHtml(dict ? dict.codeNo : "Kod No:")}</strong><br><strong>${escapeHtml(kodNo)}</strong></td>
+              <td style="width:20%;"><strong>${escapeHtml(dict ? dict.publishDate : "Nashr sanasi:")}</strong><br>${escapeHtml(nashrSanasi)}</td>
+              <td style="width:20%;"><strong>${escapeHtml(dict ? dict.reviewDate : "Ko‘rib chiqish sanasi:")}</strong><br>${escapeHtml(koribChiqishSanasi)}</td>
+              <td style="width:20%;"><strong>${escapeHtml(dict ? dict.examNum : "Tekshiruv raqami:")}</strong><br><strong>${escapeHtml(payload.ticketId || '00000')}</strong></td>
+              <td style="width:20%;"><strong>${escapeHtml(dict ? dict.pageCount : "Sahifa/Sahifalar soni:")}</strong><br>1 / 1</td>
             </tr>
           </table>
         </div>
 
-        <!-- 2. BEMOR VA TEKSHIRUV PARAMETRLARI (Bo'yi va Vazni bilan) -->
+        <!-- 2. BEMOR VA TEKSHIRUV PARAMETRLARI -->
         <table class="patient-table">
           <tr>
-            <td class="lbl">Bemor F.I.Sh:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.patientName : "Bemor F.I.Sh:")}</td>
             <td class="val" colspan="3" style="font-size:13px; font-weight:900;">${escapeHtml(payload.name)}</td>
           </tr>
           <tr>
-            <td class="lbl">Bemor ID:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.patientId : "Bemor ID:")}</td>
             <td class="val"><strong>${escapeHtml(payload.ticketId || '-')}</strong></td>
-            <td class="lbl">Qabul Sanasi & Vaqti:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.appTime : "Qabul Sanasi & Vaqti:")}</td>
             <td class="val"><strong>${escapeHtml(payload.appointmentDate || '')} | ${escapeHtml(payload.timeSlot || payload.scheduledTime || payload.time || '-')}</strong></td>
           </tr>
           <tr>
-            <td class="lbl">Bemor Toifasi:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.patientCategory : "Bemor Toifasi:")}</td>
             <td class="val">${escapeHtml(typeText)}</td>
-            <td class="lbl">Fayl / Yo‘naltirgan shifokor:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.referringDoc : "Fayl / Yo‘naltirgan shifokor:")}</td>
             <td class="val">${escapeHtml(payload.referringDoctor || '-')}</td>
           </tr>
           <tr>
-            <td class="lbl">Qurilma / Xona:</td>
+            <td class="lbl">${escapeHtml(dict ? dict.deviceRoom : "Qurilma / Xona:")}</td>
             <td class="val">${escapeHtml(payload.room || '-')} (${escapeHtml(payload.doctorName || '-')})</td>
-            <td class="lbl">Tekshiruv Nomi:</td>
-            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? '<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">KONTRASTLI</span>' : ''}</td>
+            <td class="lbl">${escapeHtml(dict ? dict.serviceName : "Tekshiruv Nomi:")}</td>
+            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? `<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">${escapeHtml(dict ? dict.contrastTag : "KONTRASTLI")}</span>` : ''}</td>
           </tr>
           <tr>
-            <td class="lbl" style="background:#f1f5f9;">Bemor Bo‘yi:</td>
+            <td class="lbl" style="background:#f1f5f9;">${escapeHtml(dict ? dict.height : "Bemor Bo‘yi:")}</td>
             <td class="val" style="font-size:12px;"><strong>________ sm</strong></td>
-            <td class="lbl" style="background:#f1f5f9;">Bemor Vazni:</td>
+            <td class="lbl" style="background:#f1f5f9;">${escapeHtml(dict ? dict.weight : "Bemor Vazni:")}</td>
             <td class="val" style="font-size:12px;"><strong>________ kg</strong></td>
           </tr>
         </table>
 
-        <!-- 3. KONTRASTLI TEKSHIRUVLAR UCHUN LABORATORIYA TAHLILLARI (Kreatinin & Mochevina) -->
+        <!-- 3. KONTRASTLI TEKSHIRUVLAR UCHUN LABORATORIYA TAHLILLARI -->
         <div class="section-title" style="background:#f8fafc; border:1.5px solid #000;">
-          💉 LABORATORIYA TAHLILLARI (KONTRASTLI TEKSHIRUVLAR UCHUN MAJBURIY):
+          ${escapeHtml(dict ? dict.labTitle : "💉 LABORATORIYA TAHLILLARI (KONTRASTLI TEKSHIRUVLAR UCHUN MAJBURIY):")}
         </div>
         <table class="lab-table">
           <tr>
-            <td style="width:34%;"><strong>Qonda Kreatinin miqdori:</strong><br><span style="font-size:12.5px; font-weight:900;">________ mkmol/l</span></td>
-            <td style="width:33%;"><strong>Qonda Mochevina (Urea):</strong><br><span style="font-size:12.5px; font-weight:900;">________ mmol/l</span></td>
-            <td style="width:33%;"><strong>Tahlil topshirilgan sana:</strong><br><span style="font-size:11.5px; font-weight:700;">«____» ____________ 202__ y.</span></td>
+            <td style="width:34%;"><strong>${escapeHtml(dict ? dict.creatinine : "Qonda Kreatinin miqdori:")}</strong><br><span style="font-size:12.5px; font-weight:900;">________ mkmol/l</span></td>
+            <td style="width:33%;"><strong>${escapeHtml(dict ? dict.urea : "Qonda Mochevina (Urea):")}</strong><br><span style="font-size:12.5px; font-weight:900;">________ mmol/l</span></td>
+            <td style="width:33%;"><strong>${escapeHtml(dict ? dict.labDate : "Tahlil topshirilgan sana:")}</strong><br><span style="font-size:11.5px; font-weight:700;">«____» ____________ 202__ y.</span></td>
           </tr>
           <tr>
             <td colspan="3" style="font-size:10px; background:#fafafa; line-height:1.25;">
-              <em>* Kreatinin normasi: Ayollarda 44–80 mkmol/l, Erkaklarda 62–106 mkmol/l. Qandli diabet bo‘yicha Metformin (Glyukofaj) qabul qiluvchi bemorlar preparatni tekshiruvdan 48 soat oldin to‘xtatishi shart.</em>
+              <em>${escapeHtml(dict ? dict.labNotice : "* Kreatinin normasi: Ayollarda 44–80 mkmol/l, Erkaklarda 62–106 mkmol/l. Qandli diabet bo‘yicha Metformin (Glyukofaj) qabul qiluvchi bemorlar preparatni tekshiruvdan 48 soat oldin to‘xtatishi shart.")}</em>
             </td>
           </tr>
         </table>
 
         <!-- 4. TIBBIY XAVFSIZLIK SAVOLNOMASI -->
-        <div class="section-title">I. TIBBIY XAVFSIZLIK VA QARSHI KO‘RSATMALAR SAVOLNOMASI</div>
+        <div class="section-title">${escapeHtml(dict ? dict.section1 : "I. TIBBIY XAVFSIZLIK VA QARSHI KO‘RSATMALAR SAVOLNOMASI")}</div>
         <table class="checklist-table">
           <thead>
             <tr>
               <th style="width:24px; text-align:center;">№</th>
-              <th>Xavfsizlik va tibbiy qarshi ko‘rsatmalar mezoni</th>
-              <th class="check-col">HA</th>
-              <th class="check-col">YO‘Q</th>
+              <th>${escapeHtml(dict ? dict.criteriaHeader : "Xavfsizlik va tibbiy qarshi ko‘rsatmalar mezoni")}</th>
+              <th class="check-col">${escapeHtml(dict ? dict.yes : "HA")}</th>
+              <th class="check-col">${escapeHtml(dict ? dict.no : "YO‘Q")}</th>
             </tr>
           </thead>
           <tbody>
@@ -1681,38 +1755,36 @@ function printConsentFormDirect(payload) {
         </table>
 
         <!-- 5. ROZILIK DEKLARATSIYASI -->
-        <div class="section-title">II. BEMORNING (YOKI QONUNIY VAKILINING) XABARDOR QILINGAN ROZILIGI</div>
+        <div class="section-title">${escapeHtml(dict ? dict.section2 : "II. BEMORNING (YOKI QONUNIY VAKILINING) XABARDOR QILINGAN ROZILIGI")}</div>
         <div class="declaration-text">
-          Men, ushbu anketada ko‘rsatilgan barcha ma‘lumotlarni to‘liq va haqqoniy taqdim etganimni tasdiqlayman. Menga o‘tkaziladigan ${examType} tekshiruvining maqsadi, o‘tkazilish tartibi, xavfsizlik talablari (shu jumladan barcha metall buyumlar, soat, telefon, bank kartalari, kamar, sirg‘a va kiyimdagi temir detallarni yechish zarurligi) hamda kontrast modda yuborilganda ehtimoliy individual reaksiyalar haqida to‘liq tushuntirildi.<br>
-          Shifokor va operator ko‘rsatmalariga rioya qilishga roziman va tekshiruv o‘tkazilishiga o‘z ixtiyoriy roziligimni bildiraman.<br>
-          <strong>* DIQQAT: Agar tekshiruv vaqtida bemor tomonidan (yoki bemor sababli) tekshiruv to‘xtatilsa, tekshiruv uchun navbat qaytadan qo‘yiladi.</strong>
+          ${declarationText}
         </div>
 
-        <!-- 6. IMZOLAR VA TASDIQLASH (Bemor, Registrator, Laborant, Shifokor) -->
-        <div class="section-title">III. TASDIQLASH VA IMZOLAR</div>
+        <!-- 6. IMZOLAR VA TASDIQLASH -->
+        <div class="section-title">${escapeHtml(dict ? dict.section3 : "III. TASDIQLASH VA IMZOLAR")}</div>
         <table class="signatures-table" style="width:100%; border-collapse:collapse; margin-top:4px; font-size:11px;">
           <tr>
             <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
-              <strong>1. Bemor (yoki qonuniy vakili):</strong><br>
-              F.I.Sh: <strong>${escapeHtml(payload.name)}</strong><br><br>
-              Imzo: _____________________ Sana: ______________
+              <strong>${escapeHtml(dict ? dict.sigPatient : "1. Bemor (yoki qonuniy vakili):")}</strong><br>
+              ${escapeHtml(dict ? dict.fullName : "F.I.Sh:")} <strong>${escapeHtml(payload.name)}</strong><br><br>
+              ${escapeHtml(dict ? dict.signature : "Imzo:")} _____________________ ${escapeHtml(dict ? dict.date : "Sana:")} ______________
             </td>
             <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
-              <strong>2. Ro‘yxatga oluvchi (Registrator):</strong><br>
-              F.I.Sh: <strong>${escapeHtml(payload.registeredBy || payload.operatorLogin || 'Operator')}</strong><br><br>
-              Imzo: _____________________ Sana: ______________
+              <strong>${escapeHtml(dict ? dict.sigRegistrar : "2. Ro‘yxatga oluvchi (Registrator):")}</strong><br>
+              ${escapeHtml(dict ? dict.fullName : "F.I.Sh:")} <strong>${escapeHtml(payload.registeredBy || payload.operatorLogin || 'Operator')}</strong><br><br>
+              ${escapeHtml(dict ? dict.signature : "Imzo:")} _____________________ ${escapeHtml(dict ? dict.date : "Sana:")} ______________
             </td>
           </tr>
           <tr>
             <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
-              <strong>3. Rentgen-laborant (Operator):</strong><br>
-              F.I.Sh: _________________________________________<br><br>
-              Imzo: _____________________ Sana: ______________
+              <strong>${escapeHtml(dict ? dict.sigLaborant : "3. Rentgen-laborant (Operator):")}</strong><br>
+              ${escapeHtml(dict ? dict.fullName : "F.I.Sh:")} _________________________________________<br><br>
+              ${escapeHtml(dict ? dict.signature : "Imzo:")} _____________________ ${escapeHtml(dict ? dict.date : "Sana:")} ______________
             </td>
             <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
-              <strong>4. Shifokor (Vrach-radiolog):</strong><br>
-              F.I.Sh: _________________________________________<br><br>
-              Imzo: _____________________ Sana: ______________
+              <strong>${escapeHtml(dict ? dict.sigDoctor : "4. Shifokor (Vrach-radiolog):")}</strong><br>
+              ${escapeHtml(dict ? dict.fullName : "F.I.Sh:")} _________________________________________<br><br>
+              ${escapeHtml(dict ? dict.signature : "Imzo:")} _____________________ ${escapeHtml(dict ? dict.date : "Sana:")} ______________
             </td>
           </tr>
         </table>
@@ -1731,8 +1803,18 @@ function printConsentFormDirect(payload) {
     }, 350);
   } catch (err) {
     console.error("Consent print error:", err);
-    alert("⚠️ Anketa chop etishda xatolik: " + err.message);
+    alert("Anketa chop etishda xatolik: " + err.message);
   }
+}
+
+function changeSystemLanguage(langCode) {
+  if (typeof setI18nLanguage === 'function') {
+    setI18nLanguage(langCode);
+  }
+  const sel = document.getElementById("globalLangSelector");
+  if (sel) sel.value = langCode;
+
+  renderQueueTable();
 }
 
 function deletePatient(patientDbId) {

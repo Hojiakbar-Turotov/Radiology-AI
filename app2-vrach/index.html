@@ -22,6 +22,20 @@
       <h2>VRACH - LABORANT XONASI</h2>
       <p class="login-desc">Ishni boshlash uchun Login, Parol va ish xonangizni kiriting</p>
 
+      <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 10px;">
+          <i class="fa-solid fa-globe" style="color: #0284c7;"></i>
+          <select id="loginLangSelector" onchange="changeLaborantLang(this.value)" style="border: none; background: transparent; font-weight: 700; font-size: 0.9rem; outline: none; cursor: pointer; color: #0f172a;">
+            <option value="uz">🇺🇿 O'zbekcha</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="kk">🇰🇿 Қазақша</option>
+            <option value="tg">🇹🇯 Тоҷикӣ</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+          </select>
+        </div>
+      </div>
+
       <form id="loginForm" onsubmit="handleLaborantLogin(event)">
         <div class="form-group">
           <label for="loginUsername"><i class="fa-solid fa-user"></i> Login:</label>
@@ -77,15 +91,26 @@
       </div>
 
       <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 8px;">
+          <i class="fa-solid fa-globe" style="color: #0284c7;"></i>
+          <select id="workspaceLangSelector" onchange="changeLaborantLang(this.value)" style="border: none; background: transparent; font-weight: 700; font-size: 0.85rem; outline: none; cursor: pointer; color: #0f172a;">
+            <option value="uz">🇺🇿 O'zbekcha</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="kk">🇰🇿 Қазақша</option>
+            <option value="tg">🇹🇯 Тоҷикӣ</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+          </select>
+        </div>
         <div class="connection-status">
           <span class="status-dot connected" id="connDot"></span>
           <span id="connText">Firebase: Ulangan</span>
         </div>
         <button class="btn btn-secondary" onclick="openProfileModal()" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: bold;">
-          <i class="fa-solid fa-user-gear"></i> Profil / Parol
+          <i class="fa-solid fa-user-gear"></i> <span id="btnTxtProfile">Profil / Parol</span>
         </button>
         <button class="btn btn-outline" onclick="logoutLaborant()" style="color: #ef4444; border-color: #fca5a5;">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> Chiqish
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> <span id="btnTxtLogout">Chiqish</span>
         </button>
       </div>
     </header>
@@ -247,6 +272,7 @@
     </div>
   </div>
 
+  <script src="./i18n.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

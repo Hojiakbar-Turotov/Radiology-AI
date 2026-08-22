@@ -41,7 +41,7 @@
         "https://213.230.91.59/*"
       ],
       "all_frames": false,
-      "js": ["logos.js", "content.js"],
+      "js": ["logos.js", "i18n.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }

@@ -34,12 +34,31 @@ function initApp() {
   setTodayDate();
   db = initFirebase();
 
+  const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const l1 = document.getElementById("loginLangSelector");
+  const l2 = document.getElementById("workspaceLangSelector");
+  if (l1) l1.value = currentLang;
+  if (l2) l2.value = currentLang;
+
   if (db) {
     setupConnectionMonitor();
     listenToLaborants();
     listenToDoctors();
     checkSavedSession();
   }
+}
+
+function changeLaborantLang(langCode) {
+  if (typeof setI18nLanguage === 'function') {
+    setI18nLanguage(langCode);
+  }
+  const l1 = document.getElementById("loginLangSelector");
+  const l2 = document.getElementById("workspaceLangSelector");
+  if (l1) l1.value = langCode;
+  if (l2) l2.value = langCode;
+
+  renderActivePatientCard();
+  renderQueueList();
 }
 
 function setTodayDate() {
