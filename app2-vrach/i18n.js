@@ -18,16 +18,16 @@ const I18N_TRANSLATIONS = {
     uz: {
       centerName: "ONKOLOGIYA VA RADIOLOGIYA MARKAZI",
       ticketTitle: "Elektron Navbat Taloni",
-      patient: "Bemor",
-      patientType: "Bemor Toifasi",
+      patient: "Bemor:",
+      patientType: "Bemor toifasi:",
       stationary: "🏥 Bo'limda yotibdi",
       ambulatory: "🏠 Uyidan qatnaydi",
-      referringDoctor: "Fayl Shifokori",
-      roomDevice: "Qurilma / Xona",
-      service: "Tekshiruv",
+      referringDoctor: "Fayl shifokori:",
+      roomDevice: "Xona / Qurilma:",
+      service: "Tekshiruv:",
       bookedTime: "BAND QILINGAN QABUL VAQTI:",
-      appointmentDate: "Qabul Sanasi",
-      operator: "Ro'yxatga oluvchi",
+      appointmentDate: "Qabul Sanasi:",
+      operator: "Ro'yxatga oluvchi:",
       reasonLabel: "Sabab:",
       timeNotice: "* Iltimos, belgilangan vaqtdan 15 daqiqa oldin xona oldida bo'ling!",
       footerThanks: "Salomatligingiz biz uchun muhim!",
@@ -36,17 +36,17 @@ const I18N_TRANSLATIONS = {
     ru: {
       centerName: "ЦЕНТР ОНКОЛОГИИ И РАДИОЛОГИИ",
       ticketTitle: "Электронный талон очереди",
-      patient: "Пациент",
-      patientType: "Категория",
+      patient: "Пациент:",
+      patientType: "Категория пациента:",
       stationary: "🏥 Стационар",
       ambulatory: "🏠 Амбулаторный",
-      referringDoctor: "Врач направления",
-      roomDevice: "Кабинет / Аппарат",
-      service: "Исследование",
-      bookedTime: "ЗАБРОНИРОВАННОЕ ВРЕМЯ:",
-      appointmentDate: "Дата приёма",
-      operator: "Регистратор",
-      reasonLabel: "Причина:",
+      referringDoctor: "Направивший врач:",
+      roomDevice: "Кабинет / Аппарат:",
+      service: "Исследование:",
+      bookedTime: "ЗАБРОНИРОВАННОЕ ВРЕМЯ ПРИЁМА:",
+      appointmentDate: "Дата приёма:",
+      operator: "Регистратор:",
+      reasonLabel: "Причина переноса:",
       timeNotice: "* Пожалуйста, будьте у кабинета за 15 минут до назначенного времени!",
       footerThanks: "Ваше здоровье — наша главная ценность!",
       contrastBadge: "[С КОНТРАСТОМ]"
@@ -54,17 +54,17 @@ const I18N_TRANSLATIONS = {
     en: {
       centerName: "ONCOLOGY & RADIOLOGY CENTER",
       ticketTitle: "Electronic Queue Ticket",
-      patient: "Patient",
-      patientType: "Patient Category",
+      patient: "Patient:",
+      patientType: "Patient Category:",
       stationary: "🏥 Inpatient (Ward)",
       ambulatory: "🏠 Outpatient (Ambulatory)",
-      referringDoctor: "Referring Doctor",
-      roomDevice: "Room / Device",
-      service: "Examination",
+      referringDoctor: "Referring Doctor:",
+      roomDevice: "Room / Device:",
+      service: "Examination:",
       bookedTime: "BOOKED APPOINTMENT TIME:",
-      appointmentDate: "Appointment Date",
-      operator: "Registrar",
-      reasonLabel: "Reason:",
+      appointmentDate: "Appointment Date:",
+      operator: "Registrar:",
+      reasonLabel: "Reason for Reschedule:",
       timeNotice: "* Please arrive 15 minutes before your scheduled appointment!",
       footerThanks: "Your health is our greatest priority!",
       contrastBadge: "[WITH CONTRAST]"
@@ -72,16 +72,16 @@ const I18N_TRANSLATIONS = {
     kk: {
       centerName: "ОНКОЛОГИЯ ЖӘНЕ РАДИОЛОГИЯ ОРТАЛЫҒЫ",
       ticketTitle: "Электронды кезек талоны",
-      patient: "Науқас",
-      patientType: "Науқас санаты",
+      patient: "Науқас:",
+      patientType: "Науқас санаты:",
       stationary: "🏥 Бөлімшеде (Стационар)",
       ambulatory: "🏠 Үйінен келуші (Амбулаториялық)",
-      referringDoctor: "Жолдаған дәрігер",
-      roomDevice: "Бөлме / Құрылғы",
-      service: "Зерттеу",
+      referringDoctor: "Жолдаған дәрігер:",
+      roomDevice: "Бөлме / Құрылғы:",
+      service: "Зерттеу:",
       bookedTime: "БРОНДАЛҒАН ҚАБЫЛДАУ УАҚЫТЫ:",
-      appointmentDate: "Қабылдау күні",
-      operator: "Тіркеуші",
+      appointmentDate: "Қабылдау күні:",
+      operator: "Тіркеуші:",
       reasonLabel: "Себебі:",
       timeNotice: "* Белгіленген уақыттан 15 минут бұрын келіп күтуіңізді сұраймыз!",
       footerThanks: "Денсаулығыңыз біз үшін маңызды!",
@@ -90,17 +90,17 @@ const I18N_TRANSLATIONS = {
     tg: {
       centerName: "МАРКАЗИ ОНКОЛОГИЯ ВА РАДИОЛОГИЯ",
       ticketTitle: "Талони электронии навбат",
-      patient: "Бемор",
-      patientType: "Гурӯҳи бемор",
+      patient: "Бемор:",
+      patientType: "Гурӯҳи бемор:",
       stationary: "🏥 Дар шуъба (Статсионар)",
       ambulatory: "🏠 Аз хона (Амбулаторӣ)",
-      referringDoctor: "Духтури роҳхатдиҳанда",
-      roomDevice: "Ҳуҷра / Дастгоҳ",
-      service: "Ташхис",
+      referringDoctor: "Духтури роҳхатдиҳанда:",
+      roomDevice: "Ҳуҷра / Дастгоҳ:",
+      service: "Ташхис:",
       bookedTime: "ВАҚТИ ҚАБУЛИ БАНДШУДА:",
-      appointmentDate: "Санаи қабул",
-      operator: "Бақайдгиранда",
-      reasonLabel: "Сабаб:",
+      appointmentDate: "Санаи қабул:",
+      operator: "Бақайдгиранда:",
+      reasonLabel: "Сабаби гузаронидан:",
       timeNotice: "* Лутфан 15 дақиқа пеш аз вақти муайяншуда дар назди ҳуҷра бошед!",
       footerThanks: "Саломатии шумо барои мо муҳим аст!",
       contrastBadge: "[БО КОНТРАСТ]"
@@ -108,17 +108,17 @@ const I18N_TRANSLATIONS = {
     tr: {
       centerName: "ONKOLOJİ VE RADYOLOJİ MERKEZİ",
       ticketTitle: "Elektronik Sıra Bileti",
-      patient: "Hasta",
-      patientType: "Hasta Kategorisi",
+      patient: "Hasta:",
+      patientType: "Hasta Kategorisi:",
       stationary: "🏥 Yatan Hasta (Servis)",
       ambulatory: "🏠 Ayaktan Hasta",
-      referringDoctor: "Yönlendiren Doktor",
-      roomDevice: "Oda / Cihaz",
-      service: "Tetkik",
+      referringDoctor: "Yönlendiren Hekim:",
+      roomDevice: "Oda / Cihaz:",
+      service: "Tetkik:",
       bookedTime: "RANDEVU SAATİ:",
-      appointmentDate: "Randevu Tarihi",
-      operator: "Kayıt Görevlisi",
-      reasonLabel: "Gerekçe:",
+      appointmentDate: "Randevu Tarihi:",
+      operator: "Kayıt Görevlisi:",
+      reasonLabel: "Erteleme Gerekçesi:",
       timeNotice: "* Lütfen randevu saatinizden 15 dakika önce bekleme alanında olunuz!",
       footerThanks: "Sağlığınız bizim için değerlidir!",
       contrastBadge: "[KONTRASTLI]"
@@ -130,6 +130,7 @@ const I18N_TRANSLATIONS = {
     uz: {
       boxTitle: "TIBBIY KO'RSATMALAR VA ESLATMA",
       generalPrepTitle: "📌 Umumiy Tayyorgarlik (Barcha tekshiruvlar uchun):",
+      singlePrepTitle: "📋 Tayyorgarlik:",
       specificPrepTitle: "🔍 Har Bir Tekshiruv Uchun Alohida Tayyorgarlik:",
       contraTitle: "🚫 Qarshi ko'rsatmalar:",
       noSpecificPrep: "- Alohida maxsus tayyorgarlik talab etilmaydi (Umumiy qoidalarga amal qiling).",
@@ -148,6 +149,7 @@ const I18N_TRANSLATIONS = {
     ru: {
       boxTitle: "МЕДИЦИНСКИЕ УКАЗАНИЯ И ПАМЯТКА",
       generalPrepTitle: "📌 Общая подготовка (для всех исследований):",
+      singlePrepTitle: "📋 Подготовка к исследованию:",
       specificPrepTitle: "🔍 Индивидуальная подготовка к каждому исследованию:",
       contraTitle: "🚫 Противопоказания:",
       noSpecificPrep: "- Специальной подготовки не требуется (соблюдайте общие правила).",
@@ -166,6 +168,7 @@ const I18N_TRANSLATIONS = {
     en: {
       boxTitle: "MEDICAL INSTRUCTIONS & GUIDELINES",
       generalPrepTitle: "📌 General Preparation (For all exams):",
+      singlePrepTitle: "📋 Preparation Instructions:",
       specificPrepTitle: "🔍 Specific Preparation for Each Procedure:",
       contraTitle: "🚫 Contraindications:",
       noSpecificPrep: "- No special preparation required (please follow general guidelines).",
@@ -184,6 +187,7 @@ const I18N_TRANSLATIONS = {
     kk: {
       boxTitle: "МЕДИЦИНАЛЫҚ НҰСҚАУЛЫҚТАР ЖӘНЕ ЕСКЕРТПЕ",
       generalPrepTitle: "📌 Жалпы дайындық (Барлық зерттеулер үшін):",
+      singlePrepTitle: "📋 Зерттеуге дайындық:",
       specificPrepTitle: "🔍 Әрбір зерттеу үшін жеке дайындық:",
       contraTitle: "🚫 Қарсы көрсетілімдер:",
       noSpecificPrep: "- Арнайы дайындық талап етілмейді (Жалпы ережелерді сақтаңыз).",
@@ -202,6 +206,7 @@ const I18N_TRANSLATIONS = {
     tg: {
       boxTitle: "ДАСТУРҲОИ ТИББӢ ВА ЁДДОШТ",
       generalPrepTitle: "📌 Омодагии умумӣ (Барои ҳамаи ташхисҳо):",
+      singlePrepTitle: "📋 Омодагӣ ба ташхис:",
       specificPrepTitle: "🔍 Омодагии инфиродӣ ба ҳар як ташхис:",
       contraTitle: "🚫 Нишондодҳои манъшуда:",
       noSpecificPrep: "- Омодагии махсус талаб карда намешавад (қоидаҳои умумиро риоя намоед).",
@@ -220,6 +225,7 @@ const I18N_TRANSLATIONS = {
     tr: {
       boxTitle: "TIBBİ TALİMATLAR VE BİLGİLENDİRME",
       generalPrepTitle: "📌 Genel Hazırlık (Tüm tetkikler için):",
+      singlePrepTitle: "📋 Tetkik Hazırlığı:",
       specificPrepTitle: "🔍 Her Tetkik İçin Özel Hazırlık:",
       contraTitle: "🚫 Kontrendikasyonlar:",
       noSpecificPrep: "- Özel bir hazırlık gerekmemektedir (Genel kurallara uyunuz).",
@@ -601,19 +607,35 @@ const I18N_TRANSLATIONS = {
     }
   },
 
-  // 6. TEKSHIRUVLAR LUG'ATI (Service anatomical names translation)
+  // 6. TEKSHIRUVLAR VA ANATOMIK SOHALAR LUG'ATI (Service anatomical names translation)
   services: {
     "bosh miya": { ru: "Головной мозг", en: "Brain / Head", kk: "Бас миы", tg: "Мағзи сар", tr: "Beyin" },
-    "bosh": { ru: "Голова", en: "Head", kk: "Бас", tg: "Сар", tr: "Baş" },
-    "bo'yin": { ru: "Шея / Шейный отдел", en: "Neck / Cervical", kk: "Мойын", tg: "Гардан", tr: "Boyun" },
+    "bosh": { ru: "Голова / Головной мозг", en: "Head / Brain", kk: "Бас", tg: "Сар", tr: "Baş" },
+    "gipofiz": { ru: "Гипофиз", en: "Pituitary Gland", kk: "Гипофиз", tg: "Гипофиз", tr: "Hipofiz" },
+    "orbit": { ru: "Орбиты и глазницы", en: "Orbits & Eyes", kk: "Көз шарасы", tg: "Косахонаи чашм", tr: "Göz Çukuru (Orbita)" },
+    "ko'z": { ru: "Глазницы / Орбиты", en: "Orbits", kk: "Көз", tg: "Чашм", tr: "Göz" },
+    "yuz-jag'": { ru: "Лицевой скелет и челюсти", en: "Maxillofacial Region", kk: "Бет-жақ сүйектері", tg: "Ҷоғ ва рӯй", tr: "Maksillofasiyal" },
+    "bo'yin umurtqa": { ru: "Шейный отдел позвоночника", en: "Cervical Spine", kk: "Мойын омыртқасы", tg: "Сутунмӯҳраи гардан", tr: "Boyun Omurgası (Servikal)" },
+    "bo'yin": { ru: "Шея / Шейный отдел", en: "Neck / Cervical Spine", kk: "Мойын", tg: "Гардан", tr: "Boyun" },
+    "ko'krak umurtqa": { ru: "Грудной отдел позвоночника", en: "Thoracic Spine", kk: "Көкірек омыртқасы", tg: "Сутунмӯҳраи қафаси сина", tr: "Sırt Omurgası (Torakal)" },
+    "bel-dumg'aza": { ru: "Пояснично-крестцовый отдел позвоночника", en: "Lumbar-Sacral Spine", kk: "Бел-сегізкөз омыртқасы", tg: "Камару думғоза", tr: "Bel Omurgası (Lomber-Sakral)" },
+    "bel": { ru: "Поясничный отдел", en: "Lumbar Spine", kk: "Бел", tg: "Камар", tr: "Bel" },
+    "dumg'aza": { ru: "Крестец и копчик", en: "Sacrum & Coccyx", kk: "Сегізкөз", tg: "Думғоза", tr: "Sakrum" },
     "umurtqa": { ru: "Позвоночник", en: "Spine", kk: "Омыртқа", tg: "Сутунмӯҳра", tr: "Omurga" },
-    "bel-dumg'aza": { ru: "Пояснично-крестцовый отдел", en: "Lumbar-Sacral Spine", kk: "Бел-сегізкөз", tg: "Камару думғоза", tr: "Lomber-Sakral" },
-    "ko'krak": { ru: "Грудная клетка", en: "Chest / Thoracic", kk: "Көкірек қуысы", tg: "Қафаси сина", tr: "Göğüs" },
-    "qorin bo'shlig'i": { ru: "Брюшная полость", en: "Abdomen", kk: "Құрсақ қуысы", tg: "Шикам", tr: "Karın" },
-    "kichik chanoq": { ru: "Малый таз", en: "Pelvis", kk: "Кіші жамбас", tg: "Коси хурд", tr: "Pelvis" },
-    "tizza bo'g'imi": { ru: "Коленный сустав", en: "Knee Joint", kk: "Тізе буыны", tg: "Буғуми зону", tr: "Diz Eklemi" },
-    "chanoq-son bo'g'imi": { ru: "Тазобедренный сустав", en: "Hip Joint", kk: "Ұршық буыны", tg: "Буғуми рон", tr: "Kalça Eklemi" },
-    "yelka bo'g'imi": { ru: "Плечевой сустав", en: "Shoulder Joint", kk: "Иық буыны", tg: "Буғуми китф", tr: "Omuz Eklemi" }
+    "ko'krak qafasi": { ru: "Органы грудной клетки", en: "Chest Organs / Thorax", kk: "Көкірек қуысы ағзалары", tg: "Узвҳои қафаси сина", tr: "Göğüs Kafesi (Toraks)" },
+    "ko'krak": { ru: "Грудная клетка", en: "Chest", kk: "Көкірек", tg: "Қафаси сина", tr: "Göğüs" },
+    "o'pka": { ru: "Лёгкие и средостение", en: "Lungs & Mediastinum", kk: "Өкпе", tg: "Шушҳо", tr: "Akciğer" },
+    "qorin bo'shlig'i va retroperitoneal": { ru: "Брюшная полость и забрюшинное пространство", en: "Abdomen & Retroperitoneal Space", kk: "Құрсақ қуысы және ретроперитонеальді кеңістік", tg: "Шикам ва фазои паси шикам", tr: "Karın ve Retroperitoneal Bölge" },
+    "qorin bo'shlig'i": { ru: "Органы брюшной полости", en: "Abdominal Organs", kk: "Құрсақ қуысы", tg: "Узвҳои шикам", tr: "Karın Bölgesi (Abdomen)" },
+    "kichik chanoq": { ru: "Органы малого таза", en: "Pelvic Organs", kk: "Кіші жамбас ағзалары", tg: "Узвҳои коси хурд", tr: "Pelvis (Küçük Çanak)" },
+    "chanoq-son": { ru: "Тазобедренный сустав", en: "Hip Joint", kk: "Ұршық буыны", tg: "Буғуми рон", tr: "Kalça Eklemi" },
+    "tizza": { ru: "Коленный сустав", en: "Knee Joint", kk: "Тізе буыны", tg: "Буғуми зону", tr: "Diz Eklemi" },
+    "yelka": { ru: "Плечевой сустав", en: "Shoulder Joint", kk: "Иық буыны", tg: "Буғуми китф", tr: "Omuz Eklemi" },
+    "tirsak": { ru: "Локтевой сустав", en: "Elbow Joint", kk: "Шынтақ буыны", tg: "Буғуми оринҷ", tr: "Dirsek Eklemi" },
+    "boldir": { ru: "Голень и кости голени", en: "Shin / Lower Leg", kk: "Сирақ", tg: "Соқ", tr: "Kaval Kemiği" },
+    "to'piq": { ru: "Голеностопный сустав", en: "Ankle Joint", kk: "Тобық буыны", tg: "Буғуми пой", tr: "Ayak Bileği" },
+    "oyoq panja": { ru: "Стопа", en: "Foot", kk: "Аяқ басы", tg: "Кафи пой", tr: "Ayak" },
+    "qo'l panja": { ru: "Кисть руки", en: "Hand / Wrist", kk: "Қол басы", tg: "Даст", tr: "El" }
   },
 
   // 7. XONALAR LUG'ATI (Room / Device translation)
@@ -750,23 +772,30 @@ function formatServiceNameWithOriginal(rawServiceName, lang = 'uz') {
   let translated = rawServiceName;
   const lower = rawServiceName.toLowerCase();
 
-  const svcMap = I18N_TRANSLATIONS.services;
+  const svcMap = I18N_TRANSLATIONS.services || {};
+  let bestMatchKey = "";
+
   for (const key of Object.keys(svcMap)) {
-    if (lower.includes(key) && svcMap[key][lang]) {
-      let tName = svcMap[key][lang];
-      if (lower.includes("mskt") || lower.includes("msct") || lower.includes("kt") || lower.includes("ct")) {
-        tName = (lang === 'ru' ? "КТ / МСКТ " : (lang === 'en' ? "CT / MSCT " : (lang === 'tr' ? "BT / MSBT " : "МСКТ "))) + tName;
-      } else if (lower.includes("mrt") || lower.includes("mri") || lower.includes("mr")) {
-        tName = (lang === 'ru' ? "МРТ " : (lang === 'en' ? "MRI " : (lang === 'tr' ? "MR " : "МРТ "))) + tName;
+    if (lower.includes(key)) {
+      if (!bestMatchKey || key.length > bestMatchKey.length) {
+        bestMatchKey = key;
       }
-      if (lower.includes("kontrastli") || lower.includes("kontrast bilan")) {
-        tName += (lang === 'ru' ? " (С контрастом)" : (lang === 'en' ? " (With contrast)" : " [Kontrastli]"));
-      } else if (lower.includes("kontrastsiz") || lower.includes("oddiy")) {
-        tName += (lang === 'ru' ? " (Без контраста)" : (lang === 'en' ? " (Without contrast)" : ""));
-      }
-      translated = tName;
-      break;
     }
+  }
+
+  if (bestMatchKey && svcMap[bestMatchKey][lang]) {
+    let tName = svcMap[bestMatchKey][lang];
+    if (lower.includes("mskt") || lower.includes("msct") || lower.includes("kt") || lower.includes("ct")) {
+      tName = (lang === 'ru' ? "КТ / МСКТ " : (lang === 'en' ? "CT / MSCT " : (lang === 'tr' ? "BT / MSBT " : (lang === 'tg' ? "МСКТ " : "МСКТ ")))) + tName;
+    } else if (lower.includes("mrt") || lower.includes("mri") || lower.includes("mr")) {
+      tName = (lang === 'ru' ? "МРТ " : (lang === 'en' ? "MRI " : (lang === 'tr' ? "MR " : "МРТ "))) + tName;
+    }
+    if (lower.includes("kontrastli") || lower.includes("kontrast bilan")) {
+      tName += (lang === 'ru' ? " (С контрастом)" : (lang === 'en' ? " (With contrast)" : (lang === 'tr' ? " (Kontrastlı)" : (lang === 'kk' ? " (Контрастпен)" : (lang === 'tg' ? " (Бо контраст)" : " (Kontrastli)")))));
+    } else if (lower.includes("kontrastsiz") || lower.includes("oddiy")) {
+      tName += (lang === 'ru' ? " (Без контраста)" : (lang === 'en' ? " (Without contrast)" : (lang === 'tr' ? " (Kontrastsız)" : (lang === 'kk' ? " (Контрастсыз)" : (lang === 'tg' ? " (Бе контраст)" : " (Kontrastsiz)")))));
+    }
+    translated = tName;
   }
 
   // Asl o'zbekcha nomini qavsda [ ... ] ko'rsatish
@@ -781,7 +810,7 @@ function formatRoomWithOriginal(rawRoom, doctorName = "", lang = 'uz') {
   const combined = (rawRoom || "") + (doctorName ? ` (${doctorName})` : "");
   if (!lang || lang === 'uz') return combined;
 
-  const roomMap = I18N_TRANSLATIONS.rooms;
+  const roomMap = I18N_TRANSLATIONS.rooms || {};
   for (const key of Object.keys(roomMap)) {
     if (rawRoom && rawRoom.includes(key) && roomMap[key][lang]) {
       const tRoom = roomMap[key][lang];
@@ -795,7 +824,7 @@ function translateDeferReason(rawReason, lang = 'uz') {
   if (!rawReason) return "";
   if (!lang || lang === 'uz') return rawReason;
 
-  const reasonMap = I18N_TRANSLATIONS.deferReasons;
+  const reasonMap = I18N_TRANSLATIONS.deferReasons || {};
   for (const key of Object.keys(reasonMap)) {
     if (rawReason.includes(key) && reasonMap[key][lang]) {
       return `${reasonMap[key][lang]} [${rawReason}]`;
@@ -819,7 +848,7 @@ function translateQuestionsList(questions, lang = 'uz') {
     if (qLower.includes("metall implant") || qLower.includes("sun‘iy bo‘g‘im") || qLower.includes("plastinka") || qLower.includes("vint")) {
       return (qMap.metalImplants && qMap.metalImplants[lang]) ? qMap.metalImplants[lang] : q;
     }
-    if (qLower.includes("klavstrofobiya") || qLower.includes("yopiq fazo")) {
+    if (qLower.includes("klavstrofobiya") || qLower.includes("yopiq fazo") || qLower.includes("yopiq yoki tor")) {
       return (qMap.claustrophobia && qMap.claustrophobia[lang]) ? qMap.claustrophobia[lang] : q;
     }
     if (qLower.includes("homiladorlik") || qLower.includes("emizikli")) {
@@ -828,19 +857,19 @@ function translateQuestionsList(questions, lang = 'uz') {
     if (qLower.includes("allergiya") || qLower.includes("yodga") || qLower.includes("kontrast modda")) {
       return (qMap.allergy && qMap.allergy[lang]) ? qMap.allergy[lang] : q;
     }
-    if (qLower.includes("buyrak yetishmovchiligi") || qLower.includes("gemodializ")) {
+    if (qLower.includes("buyrak yetishmovchiligi") || qLower.includes("gemodializ") || qLower.includes("buyrak kasalliklari")) {
       return (qMap.kidney && qMap.kidney[lang]) ? qMap.kidney[lang] : q;
     }
     if (qLower.includes("astma") || qLower.includes("diabet") || qLower.includes("qalqonsimon bez")) {
       return (qMap.asthmaDiabetes && qMap.asthmaDiabetes[lang]) ? qMap.asthmaDiabetes[lang] : q;
     }
-    if (qLower.includes("eshitish apparati") || qLower.includes("tish protez") || qLower.includes("tatuirovka")) {
+    if (qLower.includes("eshitish apparati") || qLower.includes("tish protez") || qLower.includes("tatuirovka") || qLower.includes("pirsing")) {
       return (qMap.hearingDental && qMap.hearingDental[lang]) ? qMap.hearingDental[lang] : q;
     }
-    if (qLower.includes("och qol") || qLower.includes("och qorin")) {
+    if (qLower.includes("och qol") || qLower.includes("och qorin") || qLower.includes("ochlik")) {
       return (qMap.abdominalFasting && qMap.abdominalFasting[lang]) ? qMap.abdominalFasting[lang] : q;
     }
-    if (qLower.includes("qovuq") || qLower.includes("suv ich")) {
+    if (qLower.includes("qovuq") || qLower.includes("suv ich") || qLower.includes("kichik chanoq")) {
       return (qMap.pelvicBladder && qMap.pelvicBladder[lang]) ? qMap.pelvicBladder[lang] : q;
     }
     return q;
@@ -866,45 +895,65 @@ function formatConsolidatedGuidelinesHtml(payload, lang = 'uz', customConfig = n
 
   const combinedText = (prep + " " + contra + " " + sList.map(s => (s.preparation || '') + ' ' + (s.contraindications || '')).join(' ')).toLowerCase();
 
-  if (combinedText.includes("och qorin") || combinedText.includes("och qol") || combinedText.includes("натощак") || combinedText.includes("fasting")) {
-    const match = combinedText.match(/(d+)s*[-–—to]?s*(d+)?s*soat/i) || combinedText.match(/(d+)s*часов/i) || combinedText.match(/(d+)s*hours/i);
+  // 1. Och qorin tekshiruvi
+  if (combinedText.includes("och qorin") || combinedText.includes("och qol") || combinedText.includes("натощак") || combinedText.includes("fasting") || combinedText.includes("ochlik") || combinedText.includes("ovqatlanmasdan")) {
+    const match = combinedText.match(/(\d+)\s*[-–—to]?\s*(\d+)?\s*soat/i) || combinedText.match(/(\d+)\s*часов/i) || combinedText.match(/(\d+)\s*hours/i);
     if (match) {
       fastingHours = parseInt(match[2] || match[1], 10) || 6;
     }
     generalPrepList.push(gDict.fasting.replace('{H}', fastingHours));
   }
 
-  if (combinedText.includes("kreatinin") || combinedText.includes("mochevina") || combinedText.includes("креатинин") || combinedText.includes("creatinine") || payload.isContrast) {
+  // 2. Qon tahlillari va Metformin
+  if (combinedText.includes("kreatinin") || combinedText.includes("mochevina") || combinedText.includes("креатинин") || combinedText.includes("creatinine") || payload.isContrast || combinedText.includes("kontrast")) {
     generalPrepList.push(gDict.bloodTest);
     generalPrepList.push(gDict.metformin);
     generalPrepList.push(gDict.postHydration);
   }
 
-  if (combinedText.includes("metall") || combinedText.includes("металл") || combinedText.includes("metal")) {
+  // 3. Metall buyumlar
+  if (combinedText.includes("metall") || combinedText.includes("металл") || combinedText.includes("metal") || combinedText.includes("implant") || combinedText.includes("soat")) {
     generalPrepList.push(gDict.metalWarning);
   }
 
-  if (combinedText.includes("yod") || combinedText.includes("kontrast") || combinedText.includes("йод") || combinedText.includes("contrast") || payload.isContrast) {
+  // 4. Qarshi ko'rsatmalar
+  if (combinedText.includes("yod") || combinedText.includes("kontrast") || combinedText.includes("йод") || combinedText.includes("contrast") || payload.isContrast || combinedText.includes("allergiya")) {
     contraList.push(gDict.allergy);
     contraList.push(gDict.kidney);
     contraList.push(gDict.hyperthyroidism);
     contraList.push(gDict.pregnancy);
   }
 
+  // 5. Kardiostimulyator
   if (combinedText.includes("kardiostimulyator") || combinedText.includes("stimulyator") || combinedText.includes("кардиостимулятор") || combinedText.includes("pacemaker")) {
     contraList.push(gDict.pacemaker);
   }
 
+  // Fallback if none matched
   if (generalPrepList.length === 0 && prep) {
-    generalPrepList.push(prep);
+    if (L === 'uz') {
+      generalPrepList.push(prep);
+    } else {
+      generalPrepList.push(gDict.fasting.replace('{H}', '6'));
+      if (payload.isContrast) generalPrepList.push(gDict.bloodTest);
+    }
   }
   if (contraList.length === 0 && contra) {
-    contraList.push(contra);
+    if (L === 'uz') {
+      contraList.push(contra);
+    } else {
+      if (payload.isContrast) contraList.push(gDict.allergy);
+      contraList.push(gDict.pregnancy);
+    }
   }
 
   if (generalPrepList.length === 0 && contraList.length === 0) {
     return "";
   }
+
+  // Unikallashtirish
+  generalPrepList = [...new Set(generalPrepList)];
+  contraList = [...new Set(contraList)];
 
   return `
     <div class="guide-box" style="border: 2px solid #000; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 12px; line-height: 1.35; text-align: left; color: #000 !important;">
@@ -913,7 +962,7 @@ function formatConsolidatedGuidelinesHtml(payload, lang = 'uz', customConfig = n
       </div>
       ${generalPrepList.length > 0 ? `
         <div style="margin-top: 4px; font-size: 12px;">
-          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${isMultiple ? gDict.generalPrepTitle : '📋 ' + (L === 'ru' ? 'Подготовка:' : (L === 'en' ? 'Preparation:' : "Tayyorgarlik:"))}</div>
+          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${isMultiple ? gDict.generalPrepTitle : (gDict.singlePrepTitle || '📋 Tayyorgarlik:')}</div>
           <div style="padding-left: 2px; line-height: 1.35;">
             ${generalPrepList.map(g => `<div style="margin-top:2px;">• ${g}</div>`).join('')}
           </div>

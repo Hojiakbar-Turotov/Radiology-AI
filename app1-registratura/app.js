@@ -1417,17 +1417,44 @@ function reprintTicketWithLang(lang) {
 
 function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   currentPrintPatient = patient;
-  currentTicketLang = lang || getI18nLanguage();
+  currentTicketLang = lang || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
 
   const L = currentTicketLang;
   const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[L]) 
     ? I18N_TRANSLATIONS.ticket[L] 
     : (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket ? I18N_TRANSLATIONS.ticket['uz'] : null);
 
+  // Til tugmalarining faol holatini yangilash
+  document.querySelectorAll("#ticketModal .btn-lang-choice").forEach(btn => {
+    if (btn.getAttribute("data-lang") === L) {
+      btn.style.border = "1.5px solid #0284c7";
+      btn.style.background = "#e0f2fe";
+      btn.style.color = "#0369a1";
+    } else {
+      btn.style.border = "1px solid #cbd5e1";
+      btn.style.background = "#ffffff";
+      btn.style.color = "#334155";
+    }
+  });
+
+  // Titul va sarlavhalar
   const headerCenter = document.getElementById("ticketPrintHeaderCenter");
   const headerSub = document.getElementById("ticketPrintHeaderSub");
   if (headerCenter && dict) headerCenter.innerText = dict.centerName;
   if (headerSub && dict) headerSub.innerText = dict.ticketTitle;
+
+  // Statik yorliqlar (Labels)
+  if (document.getElementById("ticketPrintLblPatient") && dict) document.getElementById("ticketPrintLblPatient").innerText = dict.patient;
+  if (document.getElementById("ticketPrintLblPatientType") && dict) document.getElementById("ticketPrintLblPatientType").innerText = dict.patientType;
+  if (document.getElementById("ticketPrintLblReferringDoctor") && dict) document.getElementById("ticketPrintLblReferringDoctor").innerText = dict.referringDoctor;
+  if (document.getElementById("ticketPrintLblRoom") && dict) document.getElementById("ticketPrintLblRoom").innerText = dict.roomDevice ? dict.roomDevice.split('/')[0].trim() + ":" : "Xona:";
+  if (document.getElementById("ticketPrintLblDoctor") && dict) document.getElementById("ticketPrintLblDoctor").innerText = dict.roomDevice ? (dict.roomDevice.split('/')[1] || dict.roomDevice).trim() + ":" : "Qurilma:";
+  if (document.getElementById("ticketPrintLblService") && dict) document.getElementById("ticketPrintLblService").innerText = dict.service;
+  if (document.getElementById("ticketPrintLblBookedTime") && dict) document.getElementById("ticketPrintLblBookedTime").innerText = dict.bookedTime;
+  if (document.getElementById("ticketPrintLblRegistrar") && dict) document.getElementById("ticketPrintLblRegistrar").innerText = dict.operator;
+  if (document.getElementById("ticketPrintLblTime") && dict) document.getElementById("ticketPrintLblTime").innerText = dict.appointmentDate;
+  if (document.getElementById("ticketPrintFooterNotice") && dict) document.getElementById("ticketPrintFooterNotice").innerText = dict.timeNotice;
+  if (document.getElementById("ticketPrintFooterThanks") && dict) document.getElementById("ticketPrintFooterThanks").innerText = dict.footerThanks;
 
   document.getElementById("ticketPrintNum").innerText = patient.ticketId || "ID";
   document.getElementById("ticketPrintName").innerText = patient.name || "-";

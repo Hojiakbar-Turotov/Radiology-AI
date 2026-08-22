@@ -889,12 +889,12 @@
     <div class="modal-content ticket-box">
       <!-- 6 ta Tilda Chop Etish Bar -->
       <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; flex-wrap:wrap; padding-bottom:8px; border-bottom:1px solid #e2e8f0;">
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('uz')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #0284c7; background:#e0f2fe; color:#0369a1;">🇺🇿 UZ</button>
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('ru')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇷🇺 RU</button>
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('en')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇬🇧 EN</button>
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('kk')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇰🇿 KK</button>
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('tg')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇯 TG</button>
-        <button type="button" class="btn-lang-choice" onclick="reprintTicketWithLang('tr')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇷 TR</button>
+        <button type="button" class="btn-lang-choice" data-lang="uz" onclick="reprintTicketWithLang('uz')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #0284c7; background:#e0f2fe; color:#0369a1;">🇺🇿 UZ</button>
+        <button type="button" class="btn-lang-choice" data-lang="ru" onclick="reprintTicketWithLang('ru')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇷🇺 RU</button>
+        <button type="button" class="btn-lang-choice" data-lang="en" onclick="reprintTicketWithLang('en')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇬🇧 EN</button>
+        <button type="button" class="btn-lang-choice" data-lang="kk" onclick="reprintTicketWithLang('kk')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇰🇿 KK</button>
+        <button type="button" class="btn-lang-choice" data-lang="tg" onclick="reprintTicketWithLang('tg')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇯 TG</button>
+        <button type="button" class="btn-lang-choice" data-lang="tr" onclick="reprintTicketWithLang('tr')" style="padding:4px 9px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155;">🇹🇷 TR</button>
       </div>
       <div class="ticket-printable" id="printableTicket">
         <div class="ticket-header">
@@ -905,39 +905,39 @@
         <div class="ticket-body">
           <div class="ticket-number" id="ticketPrintNum">U-001</div>
           <div class="ticket-info-row">
-            <span>Bemor:</span>
+            <span id="ticketPrintLblPatient">Bemor:</span>
             <strong id="ticketPrintName">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Bemor toifasi:</span>
+            <span id="ticketPrintLblPatientType">Bemor toifasi:</span>
             <strong id="ticketPrintPatientType">-</strong>
           </div>
           <div class="ticket-info-row" id="ticketPrintDocRow" style="display:none;">
-            <span>Fayl shifokori:</span>
+            <span id="ticketPrintLblReferringDoctor">Fayl shifokori:</span>
             <strong id="ticketPrintReferringDoctor">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Xona:</span>
+            <span id="ticketPrintLblRoom">Xona:</span>
             <strong id="ticketPrintRoom">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Qurilma:</span>
+            <span id="ticketPrintLblDoctor">Qurilma:</span>
             <strong id="ticketPrintDoctor">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Tekshiruv:</span>
+            <span id="ticketPrintLblService">Tekshiruv:</span>
             <strong id="ticketPrintService">-</strong>
           </div>
           <div class="ticket-slot-box">
-            <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#000; letter-spacing:0.5px;">BAND QILINGAN QABUL VAQTI:</div>
+            <div id="ticketPrintLblBookedTime" style="font-size:12px; font-weight:800; text-transform:uppercase; color:#000; letter-spacing:0.5px;">BAND QILINGAN QABUL VAQTI:</div>
             <strong id="ticketPrintTimeSlot" style="font-size:1.45rem; font-weight:900; color:#000; display:block; margin-top:3px;">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Ro'yxatga oluvchi:</span>
+            <span id="ticketPrintLblRegistrar">Ro'yxatga oluvchi:</span>
             <strong id="ticketPrintRegistrar">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Rasmiylashtirilgan vaqt:</span>
+            <span id="ticketPrintLblTime">Rasmiylashtirilgan vaqt:</span>
             <strong id="ticketPrintTime">-</strong>
           </div>
 
@@ -947,8 +947,8 @@
         </div>
         <div class="ticket-footer">
           <div class="ticket-divider"></div>
-          <p>Iltimos, 30-40 minut oldin MRT & MSKT kutish joyida bo'ling va kelganingiz haqida ro'yxatchilardan birini ogohlantiring!</p>
-          <p style="font-weight:900; margin-top:4px;">Salomat bo'ling!</p>
+          <p id="ticketPrintFooterNotice">Iltimos, 30-40 minut oldin MRT & MSKT kutish joyida bo'ling va kelganingiz haqida ro'yxatchilardan birini ogohlantiring!</p>
+          <p id="ticketPrintFooterThanks" style="font-weight:900; margin-top:4px;">Salomat bo'ling!</p>
         </div>
       </div>
 

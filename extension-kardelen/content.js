@@ -2859,7 +2859,7 @@ async function openSendModal(patientData) {
               <input type="checkbox" id="uttCheckAutoTicket" checked> 🎫 Talon (80mm)
             </label>
             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-              <input type="checkbox" id="uttCheckAutoConsent" checked> 📋 Rozilik anketasi (A4)
+              <input type="checkbox" id="uttCheckAutoConsent"> 📋 Rozilik anketasi (A4)
             </label>
           </div>
         </div>
@@ -3256,7 +3256,7 @@ async function openSendModal(patientData) {
           };
 
           const autoTicket = document.getElementById("uttCheckAutoTicket") ? document.getElementById("uttCheckAutoTicket").checked : true;
-          const autoConsent = document.getElementById("uttCheckAutoConsent") ? document.getElementById("uttCheckAutoConsent").checked : true;
+          const autoConsent = document.getElementById("uttCheckAutoConsent") ? document.getElementById("uttCheckAutoConsent").checked : false;
 
           sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason, chosenDocLang, autoTicket, autoConsent);
           closeModal();
@@ -3446,7 +3446,7 @@ function timeToMinutes(tStr) {
 }
 
 // 13. FIREBASE GA YUBORISH
-async function sendPatientToFirebase(patientData, device, timeSlot, targetDate = null, deferReason = "", printLang = "uz", autoTicket = true, autoConsent = true) {
+async function sendPatientToFirebase(patientData, device, timeSlot, targetDate = null, deferReason = "", printLang = "uz", autoTicket = true, autoConsent = false) {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
