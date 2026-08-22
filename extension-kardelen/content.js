@@ -354,15 +354,35 @@ function updateFloatingBar() {
     const bar = document.getElementById("uttFloatingBar");
     if (!bar) return;
 
+    const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+
     if (!currentUser) {
       bar.innerHTML = `
         <span class="utt-floating-brand">⚡ MRT & MSKT:</span>
         <button class="utt-floating-login-btn" id="uttBtnOpenLogin">
           🔒 Tizimga Kirish (TB1 / TB2 / TB3)
         </button>
+        <div style="display:inline-flex; align-items:center; gap:4px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px; margin-left:6px;">
+          <span style="font-size:12px;">🌐</span>
+          <select id="uttFloatingLangSelector" style="border:none; outline:none; font-weight:700; font-size:11.5px; background:transparent; cursor:pointer; color:#0f172a;">
+            <option value="uz" ${currentLang === 'uz' ? 'selected' : ''}>🇺🇿 UZ</option>
+            <option value="ru" ${currentLang === 'ru' ? 'selected' : ''}>🇷🇺 RU</option>
+            <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+            <option value="kk" ${currentLang === 'kk' ? 'selected' : ''}>🇰🇿 KK</option>
+            <option value="tg" ${currentLang === 'tg' ? 'selected' : ''}>🇹🇯 TG</option>
+            <option value="tr" ${currentLang === 'tr' ? 'selected' : ''}>🇹🇷 TR</option>
+          </select>
+        </div>
       `;
       const btn = document.getElementById("uttBtnOpenLogin");
       if (btn) btn.onclick = () => openLoginModal();
+      const langSel = document.getElementById("uttFloatingLangSelector");
+      if (langSel) {
+        langSel.onchange = (e) => {
+          if (typeof setI18nLanguage === 'function') setI18nLanguage(e.target.value);
+          showToast("🌐 Til tanlandi: " + e.target.value.toUpperCase());
+        };
+      }
       return;
     }
 
@@ -376,6 +396,17 @@ function updateFloatingBar() {
       <button class="utt-floating-queue-btn" id="uttBtnOpenQueueList" title="Bugungi va ertangi navbatdagi bemorlar ro'yxatini ko'rish">
         📋 Navbatlar Ro'yxati
       </button>
+      <div style="display:inline-flex; align-items:center; gap:4px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
+        <span style="font-size:12px;">🌐</span>
+        <select id="uttFloatingLangSelector" style="border:none; outline:none; font-weight:700; font-size:11.5px; background:transparent; cursor:pointer; color:#0f172a;">
+          <option value="uz" ${currentLang === 'uz' ? 'selected' : ''}>🇺🇿 UZ</option>
+          <option value="ru" ${currentLang === 'ru' ? 'selected' : ''}>🇷🇺 RU</option>
+          <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+          <option value="kk" ${currentLang === 'kk' ? 'selected' : ''}>🇰🇿 KK</option>
+          <option value="tg" ${currentLang === 'tg' ? 'selected' : ''}>🇹🇯 TG</option>
+          <option value="tr" ${currentLang === 'tr' ? 'selected' : ''}>🇹🇷 TR</option>
+        </select>
+      </div>
       <span class="utt-floating-brand">⚡ MRT & MSKT:</span>
       <span class="utt-floating-patient" id="uttFloatingPatientText">Jadvaldan bemor qatorini bosing</span>
       <button class="utt-floating-btn" id="uttFloatingSendBtn" disabled>➕ Navbatga Yozish</button>
@@ -386,6 +417,14 @@ function updateFloatingBar() {
 
     const queueListBtn = document.getElementById("uttBtnOpenQueueList");
     if (queueListBtn) queueListBtn.onclick = () => openQueueListModal();
+
+    const langSel = document.getElementById("uttFloatingLangSelector");
+    if (langSel) {
+      langSel.onchange = (e) => {
+        if (typeof setI18nLanguage === 'function') setI18nLanguage(e.target.value);
+        showToast("🌐 Til tanlandi: " + e.target.value.toUpperCase());
+      };
+    }
 
     const sendBtn = document.getElementById("uttFloatingSendBtn");
     if (sendBtn) {
@@ -1982,8 +2021,20 @@ async function openQueueListModal() {
       <div class="utt-queue-modal-box" id="uttQueueModalBox">
         <!-- Modal Header -->
         <div class="utt-modal-header" style="margin-bottom:10px; padding-bottom:8px;">
-          <div style="display:flex; align-items:center; gap:12px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <h3>📋 MRT & MSKT Navbatdagi Bemorlar Ro'yxati</h3>
+            <div style="display:flex; align-items:center; gap:5px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:3px 8px;">
+              <span style="font-size:12px;">🌐</span>
+              <span style="font-size:11px; font-weight:bold; color:#475569;">Chop etish:</span>
+              <select id="uttQLPrintLangSelect" style="border:none; background:transparent; font-size:11.5px; font-weight:bold; cursor:pointer; outline:none; color:#0f172a;">
+                <option value="uz" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'uz') ? 'selected' : ''}>🇺🇿 UZ</option>
+                <option value="ru" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'ru') ? 'selected' : ''}>🇷🇺 RU</option>
+                <option value="en" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'en') ? 'selected' : ''}>🇬🇧 EN</option>
+                <option value="kk" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'kk') ? 'selected' : ''}>🇰🇿 KK</option>
+                <option value="tg" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'tg') ? 'selected' : ''}>🇹🇯 TG</option>
+                <option value="tr" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'tr') ? 'selected' : ''}>🇹🇷 TR</option>
+              </select>
+            </div>
             <button type="button" id="uttBtnRefreshQueue" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; color:#334155; display:inline-flex; align-items:center; gap:4px;">
               🔄 Yangilash
             </button>
@@ -2295,7 +2346,19 @@ async function openQueueListModal() {
         btn.onclick = () => {
           const pId = btn.getAttribute("data-id");
           const pat = cachedPatients.find(p => p.id === pId);
-          if (pat) printThermalTicketDirect(pat);
+          const chosenLang = document.getElementById("uttQLPrintLangSelect")?.value || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz');
+          if (pat) printThermalTicketDirect(pat, chosenLang);
+        };
+      });
+
+      // Tezkor til bo'yicha talon chop etish (1 click flag)
+      wrapper.querySelectorAll(".utt-quick-print-ticket").forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const pId = btn.getAttribute("data-id");
+          const lang = btn.getAttribute("data-lang");
+          const pat = cachedPatients.find(p => p.id === pId);
+          if (pat) printThermalTicketDirect(pat, lang);
         };
       });
 
@@ -2304,7 +2367,19 @@ async function openQueueListModal() {
         btn.onclick = () => {
           const pId = btn.getAttribute("data-id");
           const pat = cachedPatients.find(p => p.id === pId);
-          if (pat) printConsentFormDirect(pat);
+          const chosenLang = document.getElementById("uttQLPrintLangSelect")?.value || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz');
+          if (pat) printConsentFormDirect(pat, chosenLang);
+        };
+      });
+
+      // Tezkor til bo'yicha rozilik anketasini chop etish (1 click flag)
+      wrapper.querySelectorAll(".utt-quick-print-consent").forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const pId = btn.getAttribute("data-id");
+          const lang = btn.getAttribute("data-lang");
+          const pat = cachedPatients.find(p => p.id === pId);
+          if (pat) printConsentFormDirect(pat, lang);
         };
       });
 
@@ -2425,14 +2500,34 @@ async function openQueueListModal() {
                   </td>
                   <td>${statusBadge}</td>
                   <td style="text-align:center;">
-                    <button type="button" class="utt-btn-print-ticket" data-id="${p.id}" title="Talonni chop etish" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:13px;">
-                      🖨️
-                    </button>
+                    <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+                      <button type="button" class="utt-btn-print-ticket" data-id="${p.id}" title="Talonni chop etish (Tanlangan tilda)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11.5px; font-weight:bold; color:#0369a1; width:100%;">
+                        🖨️ Talon
+                      </button>
+                      <div style="display:flex; gap:2px; justify-content:center;">
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="uz" title="O'zbekcha Talon" style="cursor:pointer; font-size:10px;">🇺🇿</span>
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="ru" title="Русский Талон" style="cursor:pointer; font-size:10px;">🇷🇺</span>
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="en" title="English Ticket" style="cursor:pointer; font-size:10px;">🇬🇧</span>
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="kk" title="Қазақша Талон" style="cursor:pointer; font-size:10px;">🇰🇿</span>
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="tg" title="Тоҷикӣ Талон" style="cursor:pointer; font-size:10px;">🇹🇯</span>
+                        <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="tr" title="Türkçe Bilet" style="cursor:pointer; font-size:10px;">🇹🇷</span>
+                      </div>
+                    </div>
                   </td>
                   <td style="text-align:center;">
-                    <button type="button" class="utt-btn-print-consent" data-id="${p.id}" title="Rozilik anketasini chop etish" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
-                      📋 Anketa
-                    </button>
+                    <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+                      <button type="button" class="utt-btn-print-consent" data-id="${p.id}" title="Rozilik anketasini chop etish (Tanlangan tilda)" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:800; width:100%;">
+                        📋 Anketa
+                      </button>
+                      <div style="display:flex; gap:2px; justify-content:center;">
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="uz" title="O'zbekcha Anketa" style="cursor:pointer; font-size:10px;">🇺🇿</span>
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="ru" title="Русская Анкета" style="cursor:pointer; font-size:10px;">🇷🇺</span>
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="en" title="English Consent" style="cursor:pointer; font-size:10px;">🇬🇧</span>
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="kk" title="Қазақша Сауалнама" style="cursor:pointer; font-size:10px;">🇰🇿</span>
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="tg" title="Тоҷикӣ Саволнома" style="cursor:pointer; font-size:10px;">🇹🇯</span>
+                        <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="tr" title="Türkçe Onam" style="cursor:pointer; font-size:10px;">🇹🇷</span>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -2742,10 +2837,37 @@ async function openSendModal(patientData) {
           </div>
         </div>
 
+        <!-- Hujjat va Chop Etish Tili Tanlash (6 ta Til) -->
+        <div style="background:#f0f9ff; border:1.5px solid #0284c7; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:12px; font-weight:800; color:#0369a1; display:flex; align-items:center; gap:6px;">
+              🌐 Hujjat / Chop Etish Tili (Language):
+            </span>
+            <span id="uttSendSelectedLangLabel" style="font-size:11.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:10px;">🇺🇿 O'zbekcha</span>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
+            <button type="button" class="utt-btn-send-lang" data-lang="uz" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1.5px solid #0284c7; background:#0284c7; color:#fff; text-align:center;">🇺🇿 O'zbekcha</button>
+            <button type="button" class="utt-btn-send-lang" data-lang="ru" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155; text-align:center;">🇷🇺 Русский</button>
+            <button type="button" class="utt-btn-send-lang" data-lang="en" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155; text-align:center;">🇬🇧 English</button>
+            <button type="button" class="utt-btn-send-lang" data-lang="kk" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155; text-align:center;">🇰🇿 Қазақша</button>
+            <button type="button" class="utt-btn-send-lang" data-lang="tg" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155; text-align:center;">🇹🇯 Тоҷикӣ</button>
+            <button type="button" class="utt-btn-send-lang" data-lang="tr" style="padding:6px; font-size:11.5px; font-weight:bold; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; background:#fff; color:#334155; text-align:center;">🇹🇷 Türkçe</button>
+          </div>
+          
+          <div style="display:flex; gap:16px; margin-top:8px; padding-top:8px; border-top:1px dashed #bae6fd; font-size:11.5px; font-weight:700; color:#0f172a;">
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+              <input type="checkbox" id="uttCheckAutoTicket" checked> 🎫 Talon (80mm)
+            </label>
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+              <input type="checkbox" id="uttCheckAutoConsent" checked> 📋 Rozilik anketasi (A4)
+            </label>
+          </div>
+        </div>
+
         <div class="utt-modal-actions">
           <button type="button" class="utt-btn-cancel" id="uttBtnCancel">Bekor qilish</button>
           <button type="button" class="utt-btn-submit" id="uttBtnSend">
-            Navbatga Yozish (OK)
+            Navbatga Yozish & Chop Etish
           </button>
         </div>
       </div>
@@ -2769,6 +2891,35 @@ async function openSendModal(patientData) {
     const deferReasonBox = document.getElementById("uttDeferReasonBox");
     const deferReasonSelect = document.getElementById("uttDeferReasonSelect");
     const deferReasonOther = document.getElementById("uttDeferReasonOther");
+
+    let chosenDocLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const langNames = { uz: "🇺🇿 O'zbekcha", ru: "🇷🇺 Русский", en: "🇬🇧 English", kk: "🇰🇿 Қазақша", tg: "🇹🇯 Тоҷикӣ", tr: "🇹🇷 Türkçe" };
+
+    // Dastlabki tanlangan tilni belgilash
+    overlay.querySelectorAll(".utt-btn-send-lang").forEach(b => {
+      if (b.getAttribute("data-lang") === chosenDocLang) {
+        b.style.background = "#0284c7";
+        b.style.color = "#fff";
+        b.style.borderColor = "#0284c7";
+      } else {
+        b.style.background = "#fff";
+        b.style.color = "#334155";
+        b.style.borderColor = "#cbd5e1";
+      }
+      b.onclick = () => {
+        chosenDocLang = b.getAttribute("data-lang");
+        overlay.querySelectorAll(".utt-btn-send-lang").forEach(other => {
+          other.style.background = "#fff";
+          other.style.color = "#334155";
+          other.style.borderColor = "#cbd5e1";
+        });
+        b.style.background = "#0284c7";
+        b.style.color = "#fff";
+        b.style.borderColor = "#0284c7";
+        const lbl = document.getElementById("uttSendSelectedLangLabel");
+        if (lbl) lbl.innerText = langNames[chosenDocLang] || chosenDocLang;
+      };
+    });
 
     // Modalni yopish funksiyasi (barcha joyda bir xil ishlaydi)
     function closeModal() {
@@ -3104,7 +3255,10 @@ async function openSendModal(patientData) {
             servicesCount: activeServiceInfo.servicesCount
           };
 
-          sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason);
+          const autoTicket = document.getElementById("uttCheckAutoTicket") ? document.getElementById("uttCheckAutoTicket").checked : true;
+          const autoConsent = document.getElementById("uttCheckAutoConsent") ? document.getElementById("uttCheckAutoConsent").checked : true;
+
+          sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason, chosenDocLang, autoTicket, autoConsent);
           closeModal();
         } catch (e) {
           console.error("send error:", e);
@@ -3292,13 +3446,14 @@ function timeToMinutes(tStr) {
 }
 
 // 13. FIREBASE GA YUBORISH
-async function sendPatientToFirebase(patientData, device, timeSlot, targetDate = null, deferReason = "") {
+async function sendPatientToFirebase(patientData, device, timeSlot, targetDate = null, deferReason = "", printLang = "uz", autoTicket = true, autoConsent = true) {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
   const saveDate = targetDate || todayStr;
+  const chosenLang = printLang || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
 
   const slot = timeSlot || await calculateNextAvailableTimeSlot(device.id, patientData.duration || 30);
 
@@ -3329,6 +3484,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     endTime: slot.endTime,
     timeSlot: slot.slotString,
     rescheduleReason: deferReason || "",
+    printLang: chosenLang,
     operatorLogin: currentUser ? currentUser.login : "TB1",
     operatorName: currentUser ? currentUser.name : "Operator",
     registeredBy: currentUser ? `${currentUser.login} - ${currentUser.name}` : "TB1 - Turatov Hojiakbar",
@@ -3350,10 +3506,17 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
       showToast(`✅ ${patientData.name} ${device.name}ga soat ${slot.slotString} (${saveDate}) vaqtiga yozildi!`);
       fetchDeviceQueueCounts().catch(() => {});
       calculateTodayOperatorStats().catch(() => {});
-      printThermalTicketDirect(payload);
+      if (autoTicket) {
+        printThermalTicketDirect(payload, chosenLang);
+      }
+      if (autoConsent) {
+        setTimeout(() => {
+          printConsentFormDirect(payload, chosenLang);
+        }, autoTicket ? 900 : 100);
+      }
     } else {
       showToast("⚠️ Bemor navbatga olindi.");
-      printThermalTicketDirect(payload);
+      if (autoTicket) printThermalTicketDirect(payload, chosenLang);
     }
   } catch (err) {
     showToast("⚠️ Xatolik yuz berdi: " + err.message);

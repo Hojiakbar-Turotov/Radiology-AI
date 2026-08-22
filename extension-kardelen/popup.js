@@ -41,6 +41,10 @@ async function loadCurrentUser() {
     }
   }
 
+  const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const sel = document.getElementById("popupLangSelector");
+  if (sel) sel.value = curLang;
+
   renderView();
   if (currentUser) fetchTodayStats();
 }
@@ -67,6 +71,13 @@ function setupEvents() {
   document.getElementById("btnPopupLogout").onclick = doLogout;
   document.getElementById("btnQuickSend").onclick = doQuickSend;
   document.getElementById("btnPopSavePwd").onclick = doChangePassword;
+
+  const sel = document.getElementById("popupLangSelector");
+  if (sel) {
+    sel.onchange = (e) => {
+      if (typeof setI18nLanguage === 'function') setI18nLanguage(e.target.value);
+    };
+  }
 }
 
 async function doLogin() {
@@ -150,6 +161,8 @@ async function doQuickSend() {
 
   const timeSlot = await calculatePopupTimeSlot(deviceId, 30);
 
+  const printLang = (document.getElementById("popupLangSelector")?.value) || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz');
+
   const payload = {
     ticketId: id,
     name: name,
@@ -162,6 +175,7 @@ async function doQuickSend() {
     scheduledTime: timeSlot.startTime,
     endTime: timeSlot.endTime,
     timeSlot: timeSlot.slotString,
+    printLang: printLang,
     operatorLogin: currentUser.login,
     operatorName: currentUser.name,
     registeredBy: `${currentUser.login} - ${currentUser.name}`,
