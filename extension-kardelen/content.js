@@ -355,12 +355,15 @@ function updateFloatingBar() {
     if (!bar) return;
 
     const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+      ? I18N_TRANSLATIONS.ext[currentLang] 
+      : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
 
     if (!currentUser) {
       bar.innerHTML = `
-        <span class="utt-floating-brand">⚡ MRT & MSKT:</span>
+        <span class="utt-floating-brand">${dict.mrtMsktBrand || '⚡ MRT & MSKT:'}</span>
         <button class="utt-floating-login-btn" id="uttBtnOpenLogin">
-          🔒 Tizimga Kirish (TB1 / TB2 / TB3)
+          🔒 ${dict.loginRequired || 'Tizimga Kirish'} (TB1 / TB2 / TB3)
         </button>
         <div style="display:inline-flex; align-items:center; gap:4px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px; margin-left:6px;">
           <span style="font-size:12px;">🌐</span>
@@ -379,8 +382,11 @@ function updateFloatingBar() {
       const langSel = document.getElementById("uttFloatingLangSelector");
       if (langSel) {
         langSel.onchange = (e) => {
-          if (typeof setI18nLanguage === 'function') setI18nLanguage(e.target.value);
-          showToast("🌐 Til tanlandi: " + e.target.value.toUpperCase());
+          const newLang = e.target.value;
+          if (typeof setI18nLanguage === 'function') setI18nLanguage(newLang);
+          updateFloatingBar();
+          const d = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[newLang]) ? I18N_TRANSLATIONS.ext[newLang] : null;
+          showToast(d ? d.langSwitched.replace('{lang}', newLang.toUpperCase()) : ("🌐 " + newLang.toUpperCase()));
         };
       }
       return;
@@ -389,12 +395,20 @@ function updateFloatingBar() {
     const nameParts = currentUser.name.split(" ");
     const shortName = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1][0]}.` : currentUser.name;
 
+    let patientHtml = dict.clickPatientRow || "Jadvaldan bemor qatorini bosing";
+    if (selectedPatient) {
+      const sName = (typeof formatServiceNameWithOriginal === 'function') 
+        ? formatServiceNameWithOriginal(selectedPatient.service, currentLang) 
+        : selectedPatient.service;
+      patientHtml = `<strong>${escapeHtml(selectedPatient.name)}</strong> (${escapeHtml(sName)}) ${selectedPatient.isContrast ? '💉' : ''}`;
+    }
+
     bar.innerHTML = `
-      <button class="utt-floating-user-btn" id="uttBtnOpenProfile" title="Ro'yxatchi profili">
+      <button class="utt-floating-user-btn" id="uttBtnOpenProfile" title="${dict.userProfile || "Ro'yxatchi profili"}">
         👤 <strong>${currentUser.login}</strong>: ${shortName} ⚙️
       </button>
-      <button class="utt-floating-queue-btn" id="uttBtnOpenQueueList" title="Bugungi va ertangi navbatdagi bemorlar ro'yxatini ko'rish">
-        📋 Navbatlar Ro'yxati
+      <button class="utt-floating-queue-btn" id="uttBtnOpenQueueList" title="${dict.queueListTitle || "Navbatlar ro'yxati"}">
+        ${dict.queueListBtn || "📋 Navbatlar Ro'yxati"}
       </button>
       <div style="display:inline-flex; align-items:center; gap:4px; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
         <span style="font-size:12px;">🌐</span>
@@ -407,9 +421,9 @@ function updateFloatingBar() {
           <option value="tr" ${currentLang === 'tr' ? 'selected' : ''}>🇹🇷 TR</option>
         </select>
       </div>
-      <span class="utt-floating-brand">⚡ MRT & MSKT:</span>
-      <span class="utt-floating-patient" id="uttFloatingPatientText">Jadvaldan bemor qatorini bosing</span>
-      <button class="utt-floating-btn" id="uttFloatingSendBtn" disabled>➕ Navbatga Yozish</button>
+      <span class="utt-floating-brand">${dict.mrtMsktBrand || '⚡ MRT & MSKT:'}</span>
+      <span class="utt-floating-patient" id="uttFloatingPatientText">${patientHtml}</span>
+      <button class="utt-floating-btn" id="uttFloatingSendBtn" ${selectedPatient ? '' : 'disabled'}>${dict.bookQueueBtn || '➕ Navbatga Yozish'}</button>
     `;
 
     const profBtn = document.getElementById("uttBtnOpenProfile");
@@ -421,8 +435,15 @@ function updateFloatingBar() {
     const langSel = document.getElementById("uttFloatingLangSelector");
     if (langSel) {
       langSel.onchange = (e) => {
-        if (typeof setI18nLanguage === 'function') setI18nLanguage(e.target.value);
-        showToast("🌐 Til tanlandi: " + e.target.value.toUpperCase());
+        const newLang = e.target.value;
+        if (typeof setI18nLanguage === 'function') setI18nLanguage(newLang);
+        updateFloatingBar();
+        // If queue list drawer is open, re-render it
+        if (document.getElementById("uttQueueModalBox")) {
+          openQueueListModal();
+        }
+        const d = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[newLang]) ? I18N_TRANSLATIONS.ext[newLang] : null;
+        showToast(d ? d.langSwitched.replace('{lang}', newLang.toUpperCase()) : ("🌐 " + newLang.toUpperCase()));
       };
     }
 
@@ -722,16 +743,34 @@ function updateFloatingBarPatientDisplay() {
   const btn = document.getElementById("uttFloatingSendBtn");
   if (!txt || !btn || !selectedPatient) return;
 
+  const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+    ? I18N_TRANSLATIONS.ext[currentLang] 
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+
+  const tDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[currentLang]) 
+    ? I18N_TRANSLATIONS.ticket[currentLang] 
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket) ? I18N_TRANSLATIONS.ticket['uz'] : {});
+
   const multiBadge = (selectedPatient.servicesCount > 1) 
-    ? ` <span style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${selectedPatient.servicesCount} ta tekshiruv</span>` 
-    : (selectedPatient.userSelectedSpecific ? ` <span style="background:#10b981; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">Tanlangan tekshiruv</span>` : "");
+    ? ` <span style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${selectedPatient.servicesCount} ${dict.patientsCount || 'ta tekshiruv'}</span>` 
+    : (selectedPatient.userSelectedSpecific ? ` <span style="background:#10b981; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${dict.singleService || 'Tanlangan tekshiruv'}</span>` : "");
 
   const typeBadge = selectedPatient.isStationary
-    ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏥 Bo'limda: ${escapeHtml(selectedPatient.department || 'Statsionar')}</span>`
-    : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🏠 Uyidan qatnaydi</span>`;
+    ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.stationary || "🏥 Bo'limda"}: ${escapeHtml(selectedPatient.department || '')}</span>`
+    : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
 
-  txt.innerHTML = `<strong>${selectedPatient.id} - ${selectedPatient.name}</strong>${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(selectedPatient.service)}</span>${multiBadge} <span style="color:#f59e0b;">(${selectedPatient.autoDeviceName} | ⏱ ${selectedPatient.duration} daq | ${selectedPatient.contrastLabel})</span>`;
+  const sName = (typeof formatServiceNameWithOriginal === 'function') 
+    ? formatServiceNameWithOriginal(selectedPatient.service, currentLang) 
+    : selectedPatient.service;
+
+  const roomName = (typeof formatRoomWithOriginal === 'function') 
+    ? formatRoomWithOriginal(selectedPatient.autoDeviceRoom, selectedPatient.autoDeviceName, currentLang) 
+    : (selectedPatient.autoDeviceName || "");
+
+  txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(sName)}</span>${multiBadge} <span style="color:#f59e0b;">(${escapeHtml(roomName)} | ⏱ ${selectedPatient.duration} ${dict.durationMin || 'daq'} ${selectedPatient.isContrast ? '💉' : ''})</span>`;
   btn.disabled = false;
+  btn.innerText = dict.bookQueueBtn || '➕ Navbatga Yozish';
 }
 
 // 2.2 BEMOR QATORIDAN ANIQ MA'LUMOTLARNI AJRATIB OLISH
@@ -1753,6 +1792,11 @@ function openLoginModal() {
     const oldModal = document.getElementById("uttLoginModal");
     if (oldModal) oldModal.remove();
 
+    const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+      ? I18N_TRANSLATIONS.ext[currentLang] 
+      : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+
     const overlay = document.createElement("div");
     overlay.id = "uttLoginModal";
     overlay.className = "utt-modal-overlay";
@@ -1760,13 +1804,13 @@ function openLoginModal() {
     overlay.innerHTML = `
       <div class="utt-modal-box">
         <div class="utt-modal-header">
-          <h3>🔒 Tizimga Kirish (Tibbiy Ro'yxatchi)</h3>
+          <h3>🔒 ${dict.loginModalTitle || "Tizimga Kirish (Tibbiy Ro'yxatchi)"}</h3>
           ${currentUser ? '<button class="utt-modal-close" id="uttLoginClose">&times;</button>' : ''}
         </div>
 
         <form id="uttLoginForm" onsubmit="return false;">
           <div class="utt-form-group">
-            <label for="uttLoginSelect">Tibbiy Ro'yxatchi:</label>
+            <label for="uttLoginSelect">${dict.userProfile || "Tibbiy Ro'yxatchi"}:</label>
             <select id="uttLoginSelect" required>
               ${operatorsList.map(op => `
                 <option value="${op.login}">${op.login} — ${op.name}</option>
@@ -1775,18 +1819,18 @@ function openLoginModal() {
           </div>
 
           <div class="utt-form-group">
-            <label for="uttPasswordInput">Parol:</label>
-            <input type="password" id="uttPasswordInput" placeholder="Parol (standart: 15420)" required autofocus>
+            <label for="uttPasswordInput">${dict.passwordLabel || 'Parol:'}</label>
+            <input type="password" id="uttPasswordInput" placeholder="${dict.passwordLabel || 'Parol'} (standart: 15420)" required autofocus>
           </div>
 
           <div id="uttLoginError" style="color:#ef4444; font-size:13px; font-weight:700; margin-bottom:12px; display:none;">
-            ❌ Parol noto'g'ri! Iltimos, qayta urinib ko'ring.
+            ${dict.loginError || "❌ Parol noto'g'ri! Iltimos, qayta urinib ko'ring."}
           </div>
 
           <div class="utt-modal-actions" style="margin-top:20px;">
-            ${currentUser ? '<button type="button" class="utt-btn-cancel" id="uttLoginCancel">Bekor qilish</button>' : ''}
+            ${currentUser ? `<button type="button" class="utt-btn-cancel" id="uttLoginCancel">${dict.cancelBtn || 'Bekor qilish'}</button>` : ''}
             <button type="button" class="utt-btn-submit" id="uttBtnDoLogin" style="width:100%;">
-              Tizimga Kirish 🚀
+              ${dict.enterBtn || 'Tizimga Kirish'} 🚀
             </button>
           </div>
         </form>
@@ -1825,7 +1869,8 @@ function openLoginModal() {
           if (errEl) errEl.style.display = "none";
           await saveUserAuth(foundOp);
           overlay.remove();
-          showToast(`👋 Xush kelibsiz, ${foundOp.name} (${foundOp.login})!`);
+          const welcomeMsg = dict.loginSuccess ? dict.loginSuccess.replace('{name}', foundOp.name) : `👋 Xush kelibsiz, ${foundOp.name} (${foundOp.login})!`;
+          showToast(welcomeMsg);
         } else {
           if (errEl) errEl.style.display = "block";
           const pInput = document.getElementById("uttPasswordInput");
@@ -1847,6 +1892,11 @@ function openProfileModal() {
     const oldModal = document.getElementById("uttProfileModal");
     if (oldModal) oldModal.remove();
 
+    const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+      ? I18N_TRANSLATIONS.ext[currentLang] 
+      : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+
     const overlay = document.createElement("div");
     overlay.id = "uttProfileModal";
     overlay.className = "utt-modal-overlay";
@@ -1854,7 +1904,7 @@ function openProfileModal() {
     overlay.innerHTML = `
       <div class="utt-modal-box">
         <div class="utt-modal-header">
-          <h3>👤 Tibbiy Ro'yxatchi Profili</h3>
+          <h3>👤 ${dict.profileTitle || "Ro'yxatchi Profili"}</h3>
           <button class="utt-modal-close" id="uttProfileClose">&times;</button>
         </div>
 
@@ -1862,46 +1912,46 @@ function openProfileModal() {
           <div class="utt-profile-avatar">${currentUser.login}</div>
           <div>
             <div class="utt-profile-name">${escapeHtml(currentUser.name)}</div>
-            <div class="utt-profile-sub">Logini: <strong>${currentUser.login}</strong> | Lavozim: ${currentUser.role || 'Tibbiy Ro\'yxatchi'}</div>
+            <div class="utt-profile-sub">${dict.loginLabel || 'Login:'} <strong>${currentUser.login}</strong> | ${dict.userProfile || 'Lavozim'}: ${currentUser.role || 'Ro\'yxatchi'}</div>
           </div>
         </div>
 
         <div class="utt-stat-pill">
-          <span>Bugun navbatga yozgan bemorlaringiz:</span>
-          <strong id="uttStatCount">${todayOperatorQueueCount} nafar</strong>
+          <span>${dict.todayBtn || 'Bugun'} ${dict.bookQueueBtn || 'navbatga yozgan bemorlaringiz'}:</span>
+          <strong id="uttStatCount">${todayOperatorQueueCount} ${dict.patientsCount || 'nafar'}</strong>
         </div>
 
         <div style="border-top:1px solid #e2e8f0; padding-top:14px; margin-top:10px;">
-          <h4 style="font-size:14px; margin-bottom:10px; color:#0f172a;">🔑 Parolni O'zgartirish</h4>
+          <h4 style="font-size:14px; margin-bottom:10px; color:#0f172a;">🔑 ${dict.newPasswordLabel || "Parolni O'zgartirish"}</h4>
           
           <div class="utt-form-group">
-            <label for="uttOldPwd">Eski parol:</label>
+            <label for="uttOldPwd">${dict.passwordLabel || 'Eski parol:'}</label>
             <input type="password" id="uttOldPwd" placeholder="Hozirgi parol (15420)">
           </div>
 
           <div class="utt-form-group">
-            <label for="uttNewPwd">Yangi parol:</label>
-            <input type="password" id="uttNewPwd" placeholder="Yangi parol">
+            <label for="uttNewPwd">${dict.newPasswordLabel || 'Yangi parol:'}</label>
+            <input type="password" id="uttNewPwd" placeholder="${dict.newPasswordLabel || 'Yangi parol'}">
           </div>
 
           <div class="utt-form-group">
-            <label for="uttNewPwd2">Yangi parolni takrorlang:</label>
-            <input type="password" id="uttNewPwd2" placeholder="Yangi parolni tasdiqlang">
+            <label for="uttNewPwd2">${dict.newPasswordLabel || 'Yangi parolni takrorlang:'}</label>
+            <input type="password" id="uttNewPwd2" placeholder="${dict.newPasswordLabel || 'Yangi parolni tasdiqlang'}">
           </div>
 
           <div id="uttPwdMsg" style="font-size:12px; font-weight:700; margin-bottom:10px; display:none;"></div>
 
           <button type="button" class="utt-btn-submit" id="uttBtnSavePwd" style="width:100%; margin-bottom:14px;">
-            Yangi Parolni Saqlash
+            ${dict.saveBtn || 'Yangi Parolni Saqlash'}
           </button>
         </div>
 
         <div style="border-top:1px solid #e2e8f0; padding-top:14px; display:flex; justify-content:space-between; align-items:center;">
           <button type="button" class="utt-btn-danger" id="uttBtnLogout">
-            🚪 Tizimdan Chiqish (Log out)
+            🚪 ${dict.logoutBtn || 'Tizimdan Chiqish (Log out)'}
           </button>
           <button type="button" class="utt-btn-cancel" id="uttProfileCancel">
-            Yopish
+            ${dict.cancelBtn || 'Yopish'}
           </button>
         </div>
       </div>
@@ -2004,6 +2054,14 @@ async function openQueueListModal() {
     const oldModal = document.getElementById("uttQueueListModal");
     if (oldModal) oldModal.remove();
 
+    const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+      ? I18N_TRANSLATIONS.ext[currentLang] 
+      : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+    const tDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[currentLang]) 
+      ? I18N_TRANSLATIONS.ticket[currentLang] 
+      : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket) ? I18N_TRANSLATIONS.ticket['uz'] : {});
+
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     let selectedDate = todayStr;
@@ -2022,24 +2080,24 @@ async function openQueueListModal() {
         <!-- Modal Header -->
         <div class="utt-modal-header" style="margin-bottom:10px; padding-bottom:8px;">
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <h3>📋 MRT & MSKT Navbatdagi Bemorlar Ro'yxati</h3>
+            <h3>${dict.drawerTitle || "📋 MRT & MSKT Navbatdagi Bemorlar Ro'yxati"}</h3>
             <div style="display:flex; align-items:center; gap:5px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:3px 8px;">
               <span style="font-size:12px;">🌐</span>
-              <span style="font-size:11px; font-weight:bold; color:#475569;">Chop etish:</span>
+              <span style="font-size:11px; font-weight:bold; color:#475569;">${dict.docLangTitle ? dict.docLangTitle.replace(/[\(\):]/g, '').trim() : 'Til'}:</span>
               <select id="uttQLPrintLangSelect" style="border:none; background:transparent; font-size:11.5px; font-weight:bold; cursor:pointer; outline:none; color:#0f172a;">
-                <option value="uz" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'uz') ? 'selected' : ''}>🇺🇿 UZ</option>
-                <option value="ru" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'ru') ? 'selected' : ''}>🇷🇺 RU</option>
-                <option value="en" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'en') ? 'selected' : ''}>🇬🇧 EN</option>
-                <option value="kk" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'kk') ? 'selected' : ''}>🇰🇿 KK</option>
-                <option value="tg" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'tg') ? 'selected' : ''}>🇹🇯 TG</option>
-                <option value="tr" ${(typeof getI18nLanguage === 'function' && getI18nLanguage() === 'tr') ? 'selected' : ''}>🇹🇷 TR</option>
+                <option value="uz" ${currentLang === 'uz' ? 'selected' : ''}>🇺🇿 UZ</option>
+                <option value="ru" ${currentLang === 'ru' ? 'selected' : ''}>🇷🇺 RU</option>
+                <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+                <option value="kk" ${currentLang === 'kk' ? 'selected' : ''}>🇰🇿 KK</option>
+                <option value="tg" ${currentLang === 'tg' ? 'selected' : ''}>🇹🇯 TG</option>
+                <option value="tr" ${currentLang === 'tr' ? 'selected' : ''}>🇹🇷 TR</option>
               </select>
             </div>
             <button type="button" id="uttBtnRefreshQueue" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; color:#334155; display:inline-flex; align-items:center; gap:4px;">
-              🔄 Yangilash
+              🔄 ${currentLang === 'ru' ? 'Обновить' : (currentLang === 'en' ? 'Refresh' : (currentLang === 'tr' ? 'Yenile' : (currentLang === 'kk' ? 'Жаңарту' : (currentLang === 'tg' ? 'Навсозӣ' : 'Yangilash'))))}
             </button>
             <button type="button" id="uttBtnToggleFullscreen" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; color:#0284c7; display:inline-flex; align-items:center; gap:4px;">
-              ⛶ Katta Ekran
+              ⛶ ${currentLang === 'ru' ? 'Полный экран' : (currentLang === 'en' ? 'Fullscreen' : (currentLang === 'tr' ? 'Tam Ekran' : (currentLang === 'kk' ? 'Толық экран' : (currentLang === 'tg' ? 'Экрани пурра' : 'Katta Ekran'))))}
             </button>
           </div>
           <button class="utt-modal-close" id="uttQueueListClose" style="font-size:26px;">&times;</button>
@@ -2049,24 +2107,24 @@ async function openQueueListModal() {
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
           <!-- Sana Filtrlari -->
           <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:12px; font-weight:700; color:#475569;">📅 Sana:</span>
-            <button type="button" class="utt-btn-date" id="uttQLBtnToday" style="padding:5px 12px; border-radius:6px; border:1px solid #0284c7; background:#0284c7; color:#fff; cursor:pointer; font-weight:bold; font-size:12px;">Bugun</button>
-            <button type="button" class="utt-btn-date" id="uttQLBtnTomorrow" style="padding:5px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; color:#334155; cursor:pointer; font-weight:bold; font-size:12px;">Ertaga</button>
+            <span style="font-size:12px; font-weight:700; color:#475569;">📅 ${dict.dateTitle ? dict.dateTitle.replace('📅', '').trim() : 'Sana:'}</span>
+            <button type="button" class="utt-btn-date" id="uttQLBtnToday" style="padding:5px 12px; border-radius:6px; border:1px solid #0284c7; background:#0284c7; color:#fff; cursor:pointer; font-weight:bold; font-size:12px;">${dict.todayBtn || 'Bugun'}</button>
+            <button type="button" class="utt-btn-date" id="uttQLBtnTomorrow" style="padding:5px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; color:#334155; cursor:pointer; font-weight:bold; font-size:12px;">${dict.tomorrowBtn || 'Ertaga'}</button>
             <input type="date" id="uttQLDateInput" value="${todayStr}" style="padding:5px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
           </div>
 
           <!-- Qator Balandligi (Density) & Qidiruv -->
           <div style="display:flex; gap:10px; align-items:center;">
             <div style="display:flex; align-items:center; gap:4px; font-size:12px; background:#f8fafc; border:1px solid #cbd5e1; padding:2px 6px; border-radius:6px;">
-              <span style="font-size:11px; color:#64748b; font-weight:bold;">Qator:</span>
-              <button type="button" id="uttBtnDensStandard" style="padding:3px 8px; border:none; background:#0284c7; color:#fff; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">Standart</button>
-              <button type="button" id="uttBtnDensSpacious" style="padding:3px 8px; border:none; background:transparent; color:#334155; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">Keng</button>
-              <button type="button" id="uttBtnDensCompact" style="padding:3px 8px; border:none; background:transparent; color:#334155; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">Zich</button>
+              <span style="font-size:11px; color:#64748b; font-weight:bold;">${currentLang === 'ru' ? 'Строка:' : (currentLang === 'en' ? 'Row:' : (currentLang === 'tr' ? 'Satır:' : (currentLang === 'kk' ? 'Қатар:' : (currentLang === 'tg' ? 'Сатр:' : 'Qator:'))))}</span>
+              <button type="button" id="uttBtnDensStandard" style="padding:3px 8px; border:none; background:#0284c7; color:#fff; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">${currentLang === 'ru' ? 'Стандарт' : (currentLang === 'en' ? 'Standard' : (currentLang === 'tr' ? 'Standart' : (currentLang === 'kk' ? 'Стандарт' : (currentLang === 'tg' ? 'Стандартӣ' : 'Standart'))))}</button>
+              <button type="button" id="uttBtnDensSpacious" style="padding:3px 8px; border:none; background:transparent; color:#334155; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">${currentLang === 'ru' ? 'Просторный' : (currentLang === 'en' ? 'Spacious' : (currentLang === 'tr' ? 'Geniş' : (currentLang === 'kk' ? 'Кең' : (currentLang === 'tg' ? 'Васеъ' : 'Keng'))))}</button>
+              <button type="button" id="uttBtnDensCompact" style="padding:3px 8px; border:none; background:transparent; color:#334155; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">${currentLang === 'ru' ? 'Компактный' : (currentLang === 'en' ? 'Compact' : (currentLang === 'tr' ? 'Kompakt' : (currentLang === 'kk' ? 'Ықшам' : (currentLang === 'tg' ? 'Фишурда' : 'Zich'))))}</button>
             </div>
 
             <!-- Qidiruv Box -->
             <div style="width:280px;">
-              <input type="text" id="uttQLSearchInput" placeholder="🔍 ID, F.I.Sh, Bo'lim yoki Shifokor..." style="width:100%; padding:6px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; outline:none;">
+              <input type="text" id="uttQLSearchInput" placeholder="${dict.searchDrawerPlaceholder || '🔍 ID, F.I.Sh, Bo\'lim yoki Shifokor...'}" style="width:100%; padding:6px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; outline:none;">
             </div>
           </div>
         </div>
@@ -2078,16 +2136,15 @@ async function openQueueListModal() {
 
         <!-- Bemorlar Jadvali / Ro'yxati Container -->
         <div id="uttQueueTableWrapper" style="flex-grow:1; overflow-y:auto; overflow-x:auto; border:1px solid #cbd5e1; border-radius:8px; background:#fff;">
-          <div style="padding:30px; text-align:center; color:#94a3b8; font-size:13px;">Bemorlar yuklanmoqda...</div>
+          <div style="padding:30px; text-align:center; color:#94a3b8; font-size:13px;">${dict.calculatingSlot || 'Bemorlar yuklanmoqda...'}</div>
         </div>
 
         <!-- Modal Footer Info -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; color:#64748b;">
-          <div id="uttQLSummaryText">Jami: 0 nafar bemor</div>
+          <div id="uttQLSummaryText">...</div>
           <div style="display:flex; gap:8px; align-items:center;">
-            <span style="font-size:11px; color:#94a3b8;">💡 Ustun chegarasini sichqoncha bilan tortib kengaytirishingiz mumkin</span>
             <button type="button" id="uttQLCloseBtn" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 18px; border-radius:8px; font-weight:700; cursor:pointer; color:#334155;">
-              Yopish
+              ${dict.cancelBtn || 'Yopish'}
             </button>
           </div>
         </div>
@@ -2100,20 +2157,30 @@ async function openQueueListModal() {
     const closeBtn = document.getElementById("uttQueueListClose");
     const bottomCloseBtn = document.getElementById("uttQLCloseBtn");
     const toggleFsBtn = document.getElementById("uttBtnToggleFullscreen");
+    const printLangSel = document.getElementById("uttQLPrintLangSelect");
 
     if (closeBtn) closeBtn.onclick = () => overlay.remove();
     if (bottomCloseBtn) bottomCloseBtn.onclick = () => overlay.remove();
     overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    if (printLangSel) {
+      printLangSel.onchange = (e) => {
+        const newLang = e.target.value;
+        setI18nLanguage(newLang);
+        updateFloatingBar();
+        openQueueListModal();
+      };
+    }
 
     if (toggleFsBtn) {
       toggleFsBtn.onclick = () => {
         isFullscreen = !isFullscreen;
         if (isFullscreen) {
           modalBox.classList.add("utt-fullscreen");
-          toggleFsBtn.innerText = "🗗 Kichraytirish";
+          toggleFsBtn.innerText = "🗗 " + (currentLang === 'ru' ? 'Свернуть' : (currentLang === 'en' ? 'Restore' : (currentLang === 'tr' ? 'Küçült' : (currentLang === 'kk' ? 'Кішірейту' : (currentLang === 'tg' ? 'Хурд кардан' : 'Kichraytirish')))));
         } else {
           modalBox.classList.remove("utt-fullscreen");
-          toggleFsBtn.innerText = "⛶ Katta Ekran";
+          toggleFsBtn.innerText = "⛶ " + (currentLang === 'ru' ? 'Полный экран' : (currentLang === 'en' ? 'Fullscreen' : (currentLang === 'tr' ? 'Tam Ekran' : (currentLang === 'kk' ? 'Толық экран' : (currentLang === 'tg' ? 'Экрани пурра' : 'Katta Ekran')))));
         }
       };
     }
@@ -2193,7 +2260,7 @@ async function openQueueListModal() {
 
     async function loadAndRenderQueueData() {
       const wrapper = document.getElementById("uttQueueTableWrapper");
-      if (wrapper) wrapper.innerHTML = `<div style="padding:30px; text-align:center; color:#94a3b8; font-size:13px;">${selectedDate} sanasi bo'yicha ma'lumotlar yuklanmoqda...</div>`;
+      if (wrapper) wrapper.innerHTML = `<div style="padding:30px; text-align:center; color:#94a3b8; font-size:13px;">${selectedDate} ...</div>`;
 
       try {
         const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${selectedDate}.json`);
@@ -2226,16 +2293,19 @@ async function openQueueListModal() {
 
       let html = `
         <button type="button" class="utt-dev-tab-btn ${selectedDevFilter === 'all' ? 'active' : ''}" data-dev="all">
-          <span style="font-size:14px;">🌐</span> <span>Barchasi</span> <span class="tab-badge">${totalCount}</span>
+          <span style="font-size:14px;">🌐</span> <span>${dict.tabAll || 'Barchasi'}</span> <span class="tab-badge">${totalCount}</span>
         </button>
       `;
 
       dynamicDevices.forEach(d => {
         const devCount = cachedPatients.filter(p => p.doctorId === d.id && p.status !== "cancelled").length;
         const icon = (d.type === "MSKT") ? "⚡" : "🧲";
+        const translatedRoom = (typeof formatRoomWithOriginal === 'function') 
+          ? formatRoomWithOriginal(d.room || d.name, d.name, currentLang) 
+          : (d.room || d.name);
         html += `
           <button type="button" class="utt-dev-tab-btn ${selectedDevFilter === d.id ? 'active' : ''}" data-dev="${d.id}">
-            <span style="font-size:14px;">${icon}</span> <span>${escapeHtml(d.room || d.name)}</span> <span class="tab-badge">${devCount}</span>
+            <span style="font-size:14px;">${icon}</span> <span>${escapeHtml(translatedRoom)}</span> <span class="tab-badge">${devCount}</span>
           </button>
         `;
       });
@@ -2279,15 +2349,19 @@ async function openQueueListModal() {
 
       if (summaryEl) {
         const activeCount = filtered.filter(p => p.status !== "cancelled").length;
-        summaryEl.innerText = `Ko'rsatilmoqda: ${filtered.length} nafar (Faol navbat: ${activeCount} nafar) | Sana: ${selectedDate}`;
+        if (dict.showingSummary) {
+          summaryEl.innerText = dict.showingSummary.replace('{total}', filtered.length).replace('{active}', activeCount).replace('{date}', selectedDate);
+        } else {
+          summaryEl.innerText = `Ko'rsatilmoqda: ${filtered.length} nafar (Faol navbat: ${activeCount} nafar) | Sana: ${selectedDate}`;
+        }
       }
 
       if (filtered.length === 0) {
         wrapper.innerHTML = `
           <div style="padding:40px 20px; text-align:center; color:#94a3b8;">
             <div style="font-size:32px; margin-bottom:8px;">📭</div>
-            <div style="font-size:14px; font-weight:700; color:#475569;">${selectedDate} sanasi uchun bemorlar topilmadi</div>
-            <div style="font-size:12px; margin-top:4px;">Ushbu kunga hali hech qanday bemor yozilmagan yoki qidiruvga mos kelmadi.</div>
+            <div style="font-size:14px; font-weight:700; color:#475569;">${dict.noPatientsFound || 'Bemorlar topilmadi'} (${selectedDate})</div>
+            <div style="font-size:12px; margin-top:4px;">${dict.noPatientsSubtitle || 'Ushbu kunga hali hech qanday bemor yozilmagan yoki qidiruvga mos kelmadi.'}</div>
           </div>
         `;
         return;
@@ -2302,15 +2376,17 @@ async function openQueueListModal() {
           if (devList.length === 0) return;
           const icon = (dev.type === "MSKT") ? "⚡" : "🧲";
           const devColor = dev.color || (dev.type === "MSKT" ? "#10b981" : "#0284c7");
+          const translatedRoom = (typeof formatRoomWithOriginal === 'function') 
+            ? formatRoomWithOriginal(dev.room || dev.name, dev.name, currentLang) 
+            : (dev.room || dev.name);
           contentHtml += `
             <div class="utt-room-group-banner" style="border-top-color:${devColor};">
               <div style="display:flex; align-items:center; gap:10px;">
                 <span style="font-size:16px;">${icon}</span>
-                <span style="font-size:14px; font-weight:900; color:#0369a1; letter-spacing:0.3px;">${escapeHtml(dev.room || dev.name)}</span>
-                <span style="background:#e2e8f0; color:#334155; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;">${escapeHtml(dev.name)}</span>
+                <span style="font-size:14px; font-weight:900; color:#0369a1; letter-spacing:0.3px;">${escapeHtml(translatedRoom)}</span>
               </div>
               <span style="background:#0284c7; color:#ffffff; padding:3px 12px; border-radius:14px; font-size:12px; font-weight:800; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-                ${devList.length} ta bemor
+                ${devList.length} ${dict.patientsCount || 'ta bemor'}
               </span>
             </div>
             ${renderPatientsTableHtml(devList)}
@@ -2323,10 +2399,10 @@ async function openQueueListModal() {
             <div class="utt-room-group-banner" style="border-top-color:#64748b;">
               <div style="display:flex; align-items:center; gap:10px;">
                 <span style="font-size:16px;">🏢</span>
-                <span style="font-size:14px; font-weight:900; color:#334155;">Boshqa qurilmalar</span>
+                <span style="font-size:14px; font-weight:900; color:#334155;">${dict.otherDevices || 'Boshqa qurilmalar'}</span>
               </div>
               <span style="background:#64748b; color:#ffffff; padding:3px 12px; border-radius:14px; font-size:12px; font-weight:800;">
-                ${unknownList.length} ta bemor
+                ${unknownList.length} ${dict.patientsCount || 'ta bemor'}
               </span>
             </div>
             ${renderPatientsTableHtml(unknownList)}
@@ -2399,15 +2475,15 @@ async function openQueueListModal() {
             btn.style.background = "#dcfce7";
             btn.style.color = "#15803d";
             btn.style.borderColor = "#86efac";
-            btn.innerHTML = "🟢 Zalda";
-            btn.title = "Bemor kutish zalida o'tiribdi (O'zgartirish uchun bosing)";
+            btn.innerHTML = dict.btnMarkArrived || "🟢 Zalda";
+            btn.title = dict.btnMarkArrivedTitle || "Bemor kutish zalida o'tiribdi (O'zgartirish uchun bosing)";
           } else {
             btn.className = "utt-btn-toggle-arrived not-arrived";
             btn.style.background = "#f1f5f9";
             btn.style.color = "#64748b";
             btn.style.borderColor = "#cbd5e1";
-            btn.innerHTML = "⏳ Hali kelmadi";
-            btn.title = "Bemor hali kelmadi (Kelganini belgilash uchun bosing)";
+            btn.innerHTML = dict.btnMarkNotArrived || "⏳ Hali kelmadi";
+            btn.title = dict.btnMarkNotArrivedTitle || "Bemor hali kelmadi (Kelganini belgilash uchun bosing)";
           }
 
           try {
@@ -2416,7 +2492,7 @@ async function openQueueListModal() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ arrived: newStatus, arrivedAt: pat.arrivedAt })
             });
-            showToast(newStatus ? `🟢 ${pat.name} kutish zalida deb belgilandi` : `⏳ ${pat.name} hali kelmadi deb belgilandi`);
+            showToast(newStatus ? `🟢 ${pat.name} (${dict.btnMarkArrived || 'Zalda'})` : `⏳ ${pat.name} (${dict.btnMarkNotArrived || 'Hali kelmadi'})`);
           } catch (e) {}
         };
       });
@@ -2428,17 +2504,17 @@ async function openQueueListModal() {
         <table class="utt-queue-table ${densityClass}">
           <thead>
             <tr>
-              <th style="width:100px; min-width:90px;">Vaqt</th>
-              <th style="width:60px; min-width:50px;">ID</th>
-              <th style="width:150px; min-width:130px;">Bemor F.I.Sh</th>
-              <th style="width:135px; min-width:120px;">Toifasi / Bo'lim</th>
-              <th style="min-width:300px;">Tekshiruv Nomi</th>
-              <th style="width:140px; min-width:120px;">Fayl Shifokori</th>
-              <th style="width:110px; min-width:100px;">Ro'yxatchi</th>
-              <th style="width:110px; min-width:100px; text-align:center;">Kutish Zalida</th>
-              <th style="width:85px; min-width:75px;">Holat</th>
-              <th style="text-align:center; width:45px; min-width:40px;">Talon</th>
-              <th style="text-align:center; width:75px; min-width:65px;">Rozilik</th>
+              <th style="width:100px; min-width:90px;">${dict.colTime || 'Vaqt'}</th>
+              <th style="width:60px; min-width:50px;">${dict.colId || 'ID'}</th>
+              <th style="width:150px; min-width:130px;">${dict.colPatient || 'Bemor F.I.Sh'}</th>
+              <th style="width:135px; min-width:120px;">${dict.colCategory || 'Toifasi / Bo\'lim'}</th>
+              <th style="min-width:300px;">${dict.colService || 'Tekshiruv Nomi'}</th>
+              <th style="width:140px; min-width:120px;">${dict.colReferring || 'Fayl Shifokori'}</th>
+              <th style="width:110px; min-width:100px;">${dict.colOperator || 'Ro\'yxatchi'}</th>
+              <th style="width:110px; min-width:100px; text-align:center;">${dict.colWaitingRoom || 'Kutish Zalida'}</th>
+              <th style="width:85px; min-width:75px;">${dict.colStatus || 'Holat'}</th>
+              <th style="text-align:center; width:45px; min-width:40px;">${dict.colTicket || 'Talon'}</th>
+              <th style="text-align:center; width:75px; min-width:65px;">${dict.colConsent || 'Rozilik'}</th>
             </tr>
           </thead>
           <tbody>
@@ -2446,37 +2522,47 @@ async function openQueueListModal() {
               const isCancelled = p.status === "cancelled";
               const oldSlot = p.cancelledSlot || p.timeSlot || p.scheduledTime || "-";
               const timeDisplay = isCancelled
-                ? `<div style="color:#94a3b8; font-size:11px; text-decoration:line-through;">${escapeHtml(oldSlot)}</div><span style="color:#15803d; font-size:9px; font-weight:bold;">🟢 Bo'shatilgan</span>`
+                ? `<div style="color:#94a3b8; font-size:11px; text-decoration:line-through;">${escapeHtml(oldSlot)}</div><span style="color:#15803d; font-size:9px; font-weight:bold;">🟢 ${dict.statusCancelled || 'Bo\'shatilgan'}</span>`
                 : `<strong style="color:#0284c7; font-size:12px;">${escapeHtml(p.timeSlot || p.scheduledTime || p.time || '-')}</strong>`;
 
               const typeBadge = p.patientType === "Bo'limda yotibdi"
-                ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">🏥 Bo'limda ${p.department ? `(${escapeHtml(p.department)})` : ''}</span>`
-                : `<span style="background:#e0f2fe; color:#0284c7; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">🏠 Uyidan qatnaydi</span>`;
+                ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">${tDict.stationary || "🏥 Bo'limda"} ${p.department ? `(${escapeHtml(p.department)})` : ''}</span>`
+                : `<span style="background:#e0f2fe; color:#0284c7; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
 
-              let statusBadge = `<span style="background:#fef3c7; color:#b45309; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">Kutmoqda</span>`;
-              if (p.status === "calling") statusBadge = `<span style="background:#fce7f3; color:#be185d; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">Chaqirilmoqda</span>`;
-              if (p.status === "in_progress") statusBadge = `<span style="background:#e0e7ff; color:#4338ca; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">Qabulda</span>`;
-              if (p.status === "completed") statusBadge = `<span style="background:#dcfce7; color:#15803d; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">Yakunlandi</span>`;
-              if (isCancelled) statusBadge = `<span style="background:#fee2e2; color:#dc2626; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">O'chirilgan</span>`;
+              let statusBadge = `<span style="background:#fef3c7; color:#b45309; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusWaiting || 'Kutmoqda'}</span>`;
+              if (p.status === "calling") statusBadge = `<span style="background:#fce7f3; color:#be185d; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusCalling || 'Chaqirilmoqda'}</span>`;
+              if (p.status === "in_progress") statusBadge = `<span style="background:#e0e7ff; color:#4338ca; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusInProgress || 'Qabulda'}</span>`;
+              if (p.status === "completed") statusBadge = `<span style="background:#dcfce7; color:#15803d; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusCompleted || 'Yakunlandi'}</span>`;
+              if (isCancelled) statusBadge = `<span style="background:#fee2e2; color:#dc2626; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusCancelled || 'O\'chirilgan'}</span>`;
 
               // Tekshiruvlarni chiroyli kartochka ko'rinishida formatlash
               let servicesDisplayHtml = "";
               if (p.servicesList && p.servicesList.length > 0) {
-                servicesDisplayHtml = p.servicesList.map(s => `
-                  <div class="utt-svc-item ${s.isContrast ? 'contrast' : ''}">
-                    <strong style="color:${s.isContrast ? '#b91c1c' : '#0369a1'};">${s.code ? escapeHtml(s.code) + ' - ' : ''}</strong>${escapeHtml(s.name || s.fullName)}
-                    ${s.isContrast ? '<span style="background:#fee2e2; color:#b91c1c; font-size:9px; font-weight:800; padding:1px 5px; border-radius:3px; margin-left:4px;">KONTRAST</span>' : ''}
-                    <span style="color:#64748b; font-size:10px; margin-left:4px;">(⏱ ${s.duration || 30} daq)</span>
-                  </div>
-                `).join("");
+                servicesDisplayHtml = p.servicesList.map(s => {
+                  const sTrans = (typeof formatServiceNameWithOriginal === 'function') 
+                    ? formatServiceNameWithOriginal(s.name || s.fullName, currentLang) 
+                    : (s.name || s.fullName);
+                  return `
+                    <div class="utt-svc-item ${s.isContrast ? 'contrast' : ''}">
+                      <strong style="color:${s.isContrast ? '#b91c1c' : '#0369a1'};">${s.code ? escapeHtml(s.code) + ' - ' : ''}</strong>${escapeHtml(sTrans)}
+                      ${s.isContrast ? `<span style="background:#fee2e2; color:#b91c1c; font-size:9px; font-weight:800; padding:1px 5px; border-radius:3px; margin-left:4px;">${tDict.contrastBadge || 'KONTRAST'}</span>` : ''}
+                      <span style="color:#64748b; font-size:10px; margin-left:4px;">(⏱ ${s.duration || 30} ${dict.durationMin || 'daq'})</span>
+                    </div>
+                  `;
+                }).join("");
               } else {
                 const parts = (p.service || "-").split(" + ");
-                servicesDisplayHtml = parts.map(part => `
-                  <div class="utt-svc-item ${p.isContrast ? 'contrast' : ''}">
-                    ${escapeHtml(part)}
-                    ${p.isContrast ? '<span style="background:#fee2e2; color:#b91c1c; font-size:9px; font-weight:800; padding:1px 5px; border-radius:3px; margin-left:4px;">KONTRAST</span>' : ''}
-                  </div>
-                `).join("");
+                servicesDisplayHtml = parts.map(part => {
+                  const sTrans = (typeof formatServiceNameWithOriginal === 'function') 
+                    ? formatServiceNameWithOriginal(part, currentLang) 
+                    : part;
+                  return `
+                    <div class="utt-svc-item ${p.isContrast ? 'contrast' : ''}">
+                      ${escapeHtml(sTrans)}
+                      ${p.isContrast ? `<span style="background:#fee2e2; color:#b91c1c; font-size:9px; font-weight:800; padding:1px 5px; border-radius:3px; margin-left:4px;">${tDict.contrastBadge || 'KONTRAST'}</span>` : ''}
+                    </div>
+                  `;
+                }).join("");
               }
 
               return `
@@ -2485,7 +2571,7 @@ async function openQueueListModal() {
                   <td><span style="background:#f1f5f9; padding:3px 6px; border-radius:4px; font-weight:800; font-size:11px;">${escapeHtml(p.ticketId)}</span></td>
                   <td>
                     <strong style="color:#0f172a; font-size:13px;">${escapeHtml(p.name)}</strong>
-                    ${p.rescheduleReason ? `<div style="font-size:10.5px; color:#b45309; margin-top:2px;">⚠️ ${escapeHtml(p.rescheduleReason)}</div>` : ''}
+                    ${p.rescheduleReason ? `<div style="font-size:10.5px; color:#b45309; margin-top:2px;">⚠️ ${escapeHtml(translateDeferReason(p.rescheduleReason, currentLang))}</div>` : ''}
                   </td>
                   <td>${typeBadge}</td>
                   <td style="padding:6px 10px;">
@@ -2494,15 +2580,15 @@ async function openQueueListModal() {
                   <td style="color:#334155; font-size:11.5px;">${p.referringDoctor ? `👨‍⚕️ <strong>${escapeHtml(p.referringDoctor)}</strong>` : '-'}</td>
                   <td style="color:#64748b; font-size:11px;">${escapeHtml(p.registeredBy || p.operatorLogin || '-')}</td>
                   <td style="text-align:center;">
-                    <button type="button" class="utt-btn-toggle-arrived ${p.arrived ? 'arrived' : 'not-arrived'}" data-id="${p.id}" title="${p.arrived ? 'Bemor kutish zalida o\'tiribdi (O\'zgartirish uchun bosing)' : 'Bemor hali kelmadi (Kelganini belgilash uchun bosing)'}" style="background:${p.arrived ? '#dcfce7' : '#f1f5f9'}; color:${p.arrived ? '#15803d' : '#64748b'}; border:1px solid ${p.arrived ? '#86efac' : '#cbd5e1'}; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:4px; width:94px; justify-content:center;">
-                      ${p.arrived ? '🟢 Zalda' : '⏳ Hali kelmadi'}
+                    <button type="button" class="utt-btn-toggle-arrived ${p.arrived ? 'arrived' : 'not-arrived'}" data-id="${p.id}" title="${p.arrived ? (dict.btnMarkArrivedTitle || 'Bemor kutish zalida o\'tiribdi') : (dict.btnMarkNotArrivedTitle || 'Bemor hali kelmadi')}" style="background:${p.arrived ? '#dcfce7' : '#f1f5f9'}; color:${p.arrived ? '#15803d' : '#64748b'}; border:1px solid ${p.arrived ? '#86efac' : '#cbd5e1'}; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:4px; width:94px; justify-content:center;">
+                      ${p.arrived ? (dict.btnMarkArrived || '🟢 Zalda') : (dict.btnMarkNotArrived || '⏳ Hali kelmadi')}
                     </button>
                   </td>
                   <td>${statusBadge}</td>
                   <td style="text-align:center;">
                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-                      <button type="button" class="utt-btn-print-ticket" data-id="${p.id}" title="Talonni chop etish (Tanlangan tilda)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11.5px; font-weight:bold; color:#0369a1; width:100%;">
-                        🖨️ Talon
+                      <button type="button" class="utt-btn-print-ticket" data-id="${p.id}" title="${dict.btnReprintTicket || 'Talonni chop etish'}" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11.5px; font-weight:bold; color:#0369a1; width:100%;">
+                        🖨️ ${dict.colTicket || 'Talon'}
                       </button>
                       <div style="display:flex; gap:2px; justify-content:center;">
                         <span class="utt-quick-print-ticket" data-id="${p.id}" data-lang="uz" title="O'zbekcha Talon" style="cursor:pointer; font-size:10px;">🇺🇿</span>
@@ -2516,8 +2602,8 @@ async function openQueueListModal() {
                   </td>
                   <td style="text-align:center;">
                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-                      <button type="button" class="utt-btn-print-consent" data-id="${p.id}" title="Rozilik anketasini chop etish (Tanlangan tilda)" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:800; width:100%;">
-                        📋 Anketa
+                      <button type="button" class="utt-btn-print-consent" data-id="${p.id}" title="${dict.btnReprintConsent || 'Rozilik anketasini chop etish'}" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; padding:3px 6px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:800; width:100%;">
+                        📋 ${dict.colConsent || 'Anketa'}
                       </button>
                       <div style="display:flex; gap:2px; justify-content:center;">
                         <span class="utt-quick-print-consent" data-id="${p.id}" data-lang="uz" title="O'zbekcha Anketa" style="cursor:pointer; font-size:10px;">🇺🇿</span>
@@ -2664,6 +2750,9 @@ async function openSendModal(patientData) {
     let isModalSlotValid = true;
     let currentSlotData = await calculateNextAvailableTimeSlot(activeServiceInfo.autoDeviceId, activeServiceInfo.duration);
 
+    let chosenDocLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const langNames = { uz: "🇺🇿 O'zbekcha", ru: "🇷🇺 Русский", en: "🇬🇧 English", kk: "🇰🇿 Қазақша", tg: "🇹🇯 Тоҷикӣ", tr: "🇹🇷 Türkçe" };
+
     const overlay = document.createElement("div");
     overlay.id = "uttSendModal";
     overlay.className = "utt-modal-overlay";
@@ -2676,13 +2765,13 @@ async function openSendModal(patientData) {
 
       serviceSelectorHtml = `
         <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px; margin:10px 0;">
-          <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px;">
+          <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px;" id="uttModalLblSvcChoice">
             📋 Navbatga qo'yiladigan tekshiruvni tanlang:
           </div>
           <label style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px; cursor:pointer; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;">
             <input type="radio" name="uttModalSvcChoice" value="all" ${!isSpecific ? 'checked' : ''}>
             <div>
-              <strong style="color:#0284c7;">Barcha tekshiruvlarni birga navbatga qo'yish (Kombinatsiya)</strong>
+              <strong style="color:#0284c7;" id="uttModalLblSvcAll">Barcha tekshiruvlarni birga navbatga qo'yish (Kombinatsiya)</strong>
               <div style="color:#64748b; font-size:11px;">Jami ${allAvailableServices.length} ta tekshiruv</div>
             </div>
           </label>
@@ -2702,46 +2791,46 @@ async function openSendModal(patientData) {
     overlay.innerHTML = `
       <div class="utt-modal-box" style="max-height:92vh; overflow-y:auto; max-width:540px;">
         <div class="utt-modal-header">
-          <h3>⚡ MRT & MSKT Navbatiga Yozish</h3>
+          <h3 id="uttModalHeaderTitle">⚡ MRT & MSKT Navbatiga Yozish</h3>
           <button class="utt-modal-close" id="uttModalClose">&times;</button>
         </div>
 
         <div class="utt-patient-info-box">
           <div class="utt-info-row">
-            <span class="utt-info-label">Yo'naltirgan Ro'yxatchi:</span>
+            <span class="utt-info-label" id="uttModalLblOperator">Yo'naltirgan Ro'yxatchi:</span>
             <span class="utt-info-val" style="color:#0284c7;">
               👤 <strong>${currentUser.login}</strong> — ${escapeHtml(currentUser.name)}
             </span>
           </div>
           <div class="utt-info-row">
-            <span class="utt-info-label">Bemor ID:</span>
+            <span class="utt-info-label" id="uttModalLblPatId">Bemor ID:</span>
             <span class="utt-info-val">${escapeHtml(patientData.id)}</span>
           </div>
           <div class="utt-info-row">
-            <span class="utt-info-label">Bemor F.I.Sh:</span>
+            <span class="utt-info-label" id="uttModalLblPatName">Bemor F.I.Sh:</span>
             <span class="utt-info-val">${escapeHtml(patientData.name)}</span>
           </div>
 
           ${serviceSelectorHtml}
 
           <div class="utt-info-row" id="uttModalServiceRow">
-            <span class="utt-info-label">Tanlangan Tekshiruv:</span>
+            <span class="utt-info-label" id="uttModalLblSvcSelected">Tanlangan Tekshiruv:</span>
             <span class="utt-info-val" id="uttModalServiceTitle" style="color:#0284c7; font-weight:700;">${escapeHtml(activeServiceInfo.service)}</span>
           </div>
 
           <div id="uttModalPrepBox" style="${activeServiceInfo.preparation ? '' : 'display:none;'} background:#f0fdf4; border-left:3px solid #10b981; padding:6px 10px; border-radius:4px; margin-top:6px;">
-            <span class="utt-info-label" style="color:#059669; font-weight:700;">📋 Tayyorgarlik:</span>
+            <span class="utt-info-label" id="uttModalLblPrep" style="color:#059669; font-weight:700;">📋 Tayyorgarlik:</span>
             <span class="utt-info-val" id="uttModalPrepText" style="color:#065f46; font-size:12px; font-weight:600;">${escapeHtml(activeServiceInfo.preparation)}</span>
           </div>
 
           <div id="uttModalContraBox" style="${activeServiceInfo.contraindications ? '' : 'display:none;'} background:#fef2f2; border-left:3px solid #ef4444; padding:6px 10px; border-radius:4px; margin-top:6px;">
-            <span class="utt-info-label" style="color:#dc2626; font-weight:700;">🚫 Qarshi ko'rsatmalar:</span>
+            <span class="utt-info-label" id="uttModalLblContra" style="color:#dc2626; font-weight:700;">🚫 Qarshi ko'rsatmalar:</span>
             <span class="utt-info-val" id="uttModalContraText" style="color:#991b1b; font-size:12px; font-weight:700;">${escapeHtml(activeServiceInfo.contraindications)}</span>
           </div>
 
           <div class="utt-info-row">
-            <span class="utt-info-label">Bemor Toifasi:</span>
-            <span class="utt-info-val">
+            <span class="utt-info-label" id="uttModalLblPatType">Bemor Toifasi:</span>
+            <span class="utt-info-val" id="uttModalValPatType">
               ${patientData.isStationary ? `
                 <span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">
                   🏥 Bo'limda yotibdi ${patientData.department ? `(${escapeHtml(patientData.department)})` : ''}
@@ -2756,7 +2845,7 @@ async function openSendModal(patientData) {
 
           ${patientData.referringDoctor ? `
             <div class="utt-info-row">
-              <span class="utt-info-label">Fayl Shifokori:</span>
+              <span class="utt-info-label" id="uttModalLblRefDoc">Fayl Shifokori:</span>
               <span class="utt-info-val" style="color:#0f172a; font-weight:bold;">
                 👨‍⚕️ ${escapeHtml(patientData.referringDoctor)}
               </span>
@@ -2764,7 +2853,7 @@ async function openSendModal(patientData) {
           ` : ''}
 
           <div class="utt-info-row" style="margin-top:6px;">
-            <span class="utt-info-label">Ketadigan Vaqt:</span>
+            <span class="utt-info-label" id="uttModalLblDuration">Ketadigan Vaqt:</span>
             <span class="utt-info-val" id="uttModalDurationVal" style="color:#10b981; font-weight:800;">
               ⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small id="uttModalCalcMethod" style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>
             </span>
@@ -2773,7 +2862,7 @@ async function openSendModal(patientData) {
 
         <!-- Sana va Qurilma Tanlash -->
         <div class="utt-form-group" style="margin-top:10px;">
-          <label style="font-weight:700;">📅 Qabul Sanasi:</label>
+          <label style="font-weight:700;" id="uttModalLblDate">📅 Qabul Sanasi:</label>
           <div style="display:flex; gap:6px; align-items:center;">
             <button type="button" class="utt-btn-date" id="uttBtnDateToday" style="padding:6px 12px; border-radius:6px; border:1px solid #0284c7; background:#0284c7; color:#fff; cursor:pointer; font-weight:bold;">Bugun</button>
             <button type="button" class="utt-btn-date" id="uttBtnDateTomorrow" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; color:#334155; cursor:pointer; font-weight:bold;">Ertaga</button>
@@ -2782,7 +2871,7 @@ async function openSendModal(patientData) {
         </div>
 
         <div class="utt-form-group">
-          <label for="uttDeviceSelect">Qurilma / Xonani tanlang:</label>
+          <label for="uttDeviceSelect" id="uttModalLblDevice">Qurilma / Xonani tanlang:</label>
           <select id="uttDeviceSelect">
             ${dynamicDevices.map(d => `
               <option value="${d.id}" ${d.id === activeServiceInfo.autoDeviceId ? 'selected' : ''}>
@@ -2794,26 +2883,26 @@ async function openSendModal(patientData) {
 
         <!-- Vaqt Rejimi va Tekshiruvi -->
         <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:bold; color:#0f172a; display:block; margin-bottom:8px;">
+          <label style="font-size:12px; font-weight:bold; color:#0f172a; display:block; margin-bottom:8px;" id="uttModalLblTimeMode">
             ⏰ Qabul Vaqtini Belgilash:
           </label>
           
           <div style="display:flex; gap:12px; margin-bottom:8px; font-size:12px;">
             <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-weight:600;">
               <input type="radio" name="uttTimeMode" value="auto" checked id="uttModeAuto">
-              <span>⚡ Eng yaqin avtomatik vaqt</span>
+              <span id="uttModalLblModeAuto">⚡ Eng yaqin avtomatik vaqt</span>
             </label>
             <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-weight:600;">
               <input type="radio" name="uttTimeMode" value="custom" id="uttModeCustom">
-              <span>🕒 Ixtiyoriy vaqt (Bemor iltimosiga ko'ra)</span>
+              <span id="uttModalLblModeCustom">🕒 Ixtiyoriy vaqt (Bemor iltimosiga ko'ra)</span>
             </label>
           </div>
 
           <div id="uttCustomTimeContainer" style="display:none; margin-bottom:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:11px; font-weight:bold;">Boshlanish vaqti:</span>
+              <span style="font-size:11px; font-weight:bold;" id="uttModalLblStartTime">Boshlanish vaqti:</span>
               <input type="time" id="uttCustomStartTime" value="08:00" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px;">
-              <span style="font-size:11px; color:#64748b;">Oraliq: <strong id="uttCustomCalcSlot" style="color:#0284c7;">08:00 - 08:30</strong></span>
+              <span style="font-size:11px; color:#64748b;"><span id="uttModalLblInterval">Oraliq:</span> <strong id="uttCustomCalcSlot" style="color:#0284c7;">08:00 - 08:30</strong></span>
             </div>
           </div>
 
@@ -2823,7 +2912,7 @@ async function openSendModal(patientData) {
 
           <!-- Voz kechish sababi -->
           <div id="uttDeferReasonBox" style="display:none; margin-top:10px; padding-top:8px; border-top:1px dashed #cbd5e1;">
-            <label style="font-weight:bold; color:#b45309; font-size:11px; display:block; margin-bottom:4px;">
+            <label style="font-weight:bold; color:#b45309; font-size:11px; display:block; margin-bottom:4px;" id="uttModalLblDefer">
               ⚠️ Eng yaqin vaqtdan vos kechish sababi:
             </label>
             <select id="uttDeferReasonSelect" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; margin-bottom:4px;">
@@ -2840,7 +2929,7 @@ async function openSendModal(patientData) {
         <!-- Hujjat va Chop Etish Tili Tanlash (6 ta Til) -->
         <div style="background:#f0f9ff; border:1.5px solid #0284c7; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:12px; font-weight:800; color:#0369a1; display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; font-weight:800; color:#0369a1; display:flex; align-items:center; gap:6px;" id="uttModalLblDocLang">
               🌐 Hujjat / Chop Etish Tili (Language):
             </span>
             <span id="uttSendSelectedLangLabel" style="font-size:11.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:10px;">🇺🇿 O'zbekcha</span>
@@ -2856,10 +2945,10 @@ async function openSendModal(patientData) {
           
           <div style="display:flex; gap:16px; margin-top:8px; padding-top:8px; border-top:1px dashed #bae6fd; font-size:11.5px; font-weight:700; color:#0f172a;">
             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-              <input type="checkbox" id="uttCheckAutoTicket" checked> 🎫 Talon (80mm)
+              <input type="checkbox" id="uttCheckAutoTicket" checked> <span id="uttModalLblTicket">🎫 Talon (80mm)</span>
             </label>
             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-              <input type="checkbox" id="uttCheckAutoConsent"> 📋 Rozilik anketasi (A4)
+              <input type="checkbox" id="uttCheckAutoConsent"> <span id="uttModalLblConsent">📋 Rozilik anketasi (A4)</span>
             </label>
           </div>
         </div>
@@ -2892,10 +2981,145 @@ async function openSendModal(patientData) {
     const deferReasonSelect = document.getElementById("uttDeferReasonSelect");
     const deferReasonOther = document.getElementById("uttDeferReasonOther");
 
-    let chosenDocLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
-    const langNames = { uz: "🇺🇿 O'zbekcha", ru: "🇷🇺 Русский", en: "🇬🇧 English", kk: "🇰🇿 Қазақша", tg: "🇹🇯 Тоҷикӣ", tr: "🇹🇷 Türkçe" };
+    function updateSendModalI18nLabels(lang) {
+      const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[lang]) 
+        ? I18N_TRANSLATIONS.ext[lang] 
+        : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+      const tDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[lang]) 
+        ? I18N_TRANSLATIONS.ticket[lang] 
+        : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket) ? I18N_TRANSLATIONS.ticket['uz'] : {});
 
-    // Dastlabki tanlangan tilni belgilash
+      const lblHeader = document.getElementById("uttModalHeaderTitle");
+      if (lblHeader) lblHeader.innerText = "⚡ " + (dict.sendModalTitle || "MRT & MSKT Navbatiga Yozish");
+
+      const lblOp = document.getElementById("uttModalLblOperator");
+      if (lblOp) lblOp.innerText = dict.operator || "Yo'naltirgan Ro'yxatchi:";
+
+      const lblPatId = document.getElementById("uttModalLblPatId");
+      if (lblPatId) lblPatId.innerText = (dict.colId || "Bemor ID") + ":";
+
+      const lblPatName = document.getElementById("uttModalLblPatName");
+      if (lblPatName) lblPatName.innerText = dict.patientName || "Bemor F.I.Sh:";
+
+      const lblSvcChoice = document.getElementById("uttModalLblSvcChoice");
+      if (lblSvcChoice) lblSvcChoice.innerText = "📋 " + (dict.serviceChoiceTitle || "Navbatga qo'yiladigan tekshiruvni tanlang:");
+
+      const lblSvcAll = document.getElementById("uttModalLblSvcAll");
+      if (lblSvcAll) lblSvcAll.innerText = dict.allServicesTogether || "Barcha tekshiruvlarni birga navbatga qo'yish (Kombinatsiya)";
+
+      const lblSvcSelected = document.getElementById("uttModalLblSvcSelected");
+      if (lblSvcSelected) lblSvcSelected.innerText = (dict.colService || "Tanlangan Tekshiruv") + ":";
+
+      const sTitle = document.getElementById("uttModalServiceTitle");
+      if (sTitle && activeServiceInfo) {
+        sTitle.innerText = (typeof formatServiceNameWithOriginal === 'function') 
+          ? formatServiceNameWithOriginal(activeServiceInfo.service, lang) 
+          : activeServiceInfo.service;
+      }
+
+      const lblPrep = document.getElementById("uttModalLblPrep");
+      if (lblPrep) lblPrep.innerText = "📋 " + (dict.singlePrepTitle || "Tayyorgarlik:");
+
+      const lblContra = document.getElementById("uttModalLblContra");
+      if (lblContra) lblContra.innerText = "🚫 " + (dict.contraTitle || "Qarshi ko'rsatmalar:");
+
+      const lblPatType = document.getElementById("uttModalLblPatType");
+      if (lblPatType) lblPatType.innerText = dict.patientType || "Bemor Toifasi:";
+
+      const valPatType = document.getElementById("uttModalValPatType");
+      if (valPatType) {
+        valPatType.innerHTML = patientData.isStationary 
+          ? `<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${tDict.stationary || "🏥 Bo'limda yotibdi"} ${patientData.department ? `(${escapeHtml(patientData.department)})` : ''}</span>`
+          : `<span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
+      }
+
+      const lblRefDoc = document.getElementById("uttModalLblRefDoc");
+      if (lblRefDoc) lblRefDoc.innerText = dict.referringDoc || "Fayl Shifokori:";
+
+      const lblDur = document.getElementById("uttModalLblDuration");
+      if (lblDur) lblDur.innerText = dict.durationTime || "Ketadigan Vaqt:";
+
+      const durVal = document.getElementById("uttModalDurationVal");
+      if (durVal && activeServiceInfo) {
+        durVal.innerHTML = `⏱ ${activeServiceInfo.duration} ${dict.durationMin || 'daqiqa'} (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
+      }
+
+      const lblDate = document.getElementById("uttModalLblDate");
+      if (lblDate) lblDate.innerText = "📅 " + (dict.dateTitle || "Qabul Sanasi:");
+
+      const bToday = document.getElementById("uttBtnDateToday");
+      if (bToday) bToday.innerText = dict.todayBtn || "Bugun";
+
+      const bTomorrow = document.getElementById("uttBtnDateTomorrow");
+      if (bTomorrow) bTomorrow.innerText = dict.tomorrowBtn || "Ertaga";
+
+      const lblDevice = document.getElementById("uttModalLblDevice");
+      if (lblDevice) lblDevice.innerText = dict.deviceTargetTitle || "Qurilma / Xonani tanlang:";
+
+      if (devSelect) {
+        const curVal = devSelect.value;
+        devSelect.innerHTML = dynamicDevices.map(d => {
+          const tRoom = (typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(d.room || d.name, d.name, lang) : (d.room || d.name);
+          return `<option value="${d.id}" ${d.id === curVal ? 'selected' : ''}>${escapeHtml(tRoom)} - [${dict.statusWaiting || 'Navbatda'}: ${deviceQueues[d.id] || 0}]</option>`;
+        }).join("");
+      }
+
+      const lblTimeMode = document.getElementById("uttModalLblTimeMode");
+      if (lblTimeMode) lblTimeMode.innerText = "⏰ " + (dict.timeModeTitle || "Qabul Vaqtini Belgilash:");
+
+      const lblModeAuto = document.getElementById("uttModalLblModeAuto");
+      if (lblModeAuto) lblModeAuto.innerText = dict.modeAuto || "⚡ Eng yaqin avtomatik vaqt";
+
+      const lblModeCustom = document.getElementById("uttModalLblModeCustom");
+      if (lblModeCustom) lblModeCustom.innerText = dict.modeCustom || "🕒 Ixtiyoriy vaqt (Bemor iltimosiga ko'ra)";
+
+      const lblStartTime = document.getElementById("uttModalLblStartTime");
+      if (lblStartTime) lblStartTime.innerText = dict.customStartTime || "Boshlanish vaqti:";
+
+      const lblInterval = document.getElementById("uttModalLblInterval");
+      if (lblInterval) lblInterval.innerText = dict.customEndTime || "Oraliq:";
+
+      const lblDefer = document.getElementById("uttModalLblDefer");
+      if (lblDefer) lblDefer.innerText = dict.deferReasonTitle || "⚠️ Eng yaqin vaqtdan vos kechish sababi:";
+
+      const deferSel = document.getElementById("uttDeferReasonSelect");
+      if (deferSel) {
+        const curDefer = deferSel.value;
+        const origReasons = [
+          "Bemorning shaxsiy iltimosi / Vaqti to'g'ri kelmadi",
+          "Bemor tayyorgarlik ko'rishga ulgurmaydi (och qorin / tahlillar topshirish)",
+          "Uzoqdan / viloyatdan yo'lda kelmoqda",
+          "Boshqa shifokor ko'rigi yoki boshqa muolajasi bor",
+          "Boshqa sabab"
+        ];
+        deferSel.innerHTML = origReasons.map(r => {
+          const trans = (r === "Boshqa sabab") ? (lang === 'ru' ? 'Другая причина (вручную)...' : (lang === 'en' ? 'Other reason (manual)...' : (lang === 'tr' ? 'Diğer gerekçe (elle)...' : (lang === 'kk' ? 'Басқа себеп...' : (lang === 'tg' ? 'Сабаби дигар...' : "Boshqa sabab (qo'lda yozish)..."))))) : translateDeferReason(r, lang);
+          return `<option value="${r}" ${r === curDefer ? 'selected' : ''}>${escapeHtml(trans)}</option>`;
+        }).join("");
+      }
+
+      const deferOther = document.getElementById("uttDeferReasonOther");
+      if (deferOther) deferOther.placeholder = dict.deferReasonOtherPlaceholder || "Sababni batafsil yozing...";
+
+      const lblDocLang = document.getElementById("uttModalLblDocLang");
+      if (lblDocLang) lblDocLang.innerText = dict.docLangTitle || "🌐 Hujjat / Chop Etish Tili (Language):";
+
+      const lblTicket = document.getElementById("uttModalLblTicket");
+      if (lblTicket) lblTicket.innerText = dict.ticket80mm || "🎫 Talon (80mm)";
+
+      const lblConsent = document.getElementById("uttModalLblConsent");
+      if (lblConsent) lblConsent.innerText = dict.consentA4 || "📋 Rozilik anketasi (A4)";
+
+      const bCancel = document.getElementById("uttBtnCancel");
+      if (bCancel) bCancel.innerText = dict.cancelBtn || "Bekor qilish";
+
+      const bSend = document.getElementById("uttBtnSend");
+      if (bSend) bSend.innerText = dict.submitBtn || "Navbatga Yozish & Chop Etish";
+    }
+
+    // Dastlabki tanlangan tilni belgilash va tarjima qilish
+    updateSendModalI18nLabels(chosenDocLang);
+
     overlay.querySelectorAll(".utt-btn-send-lang").forEach(b => {
       if (b.getAttribute("data-lang") === chosenDocLang) {
         b.style.background = "#0284c7";
@@ -2918,6 +3142,7 @@ async function openSendModal(patientData) {
         b.style.borderColor = "#0284c7";
         const lbl = document.getElementById("uttSendSelectedLangLabel");
         if (lbl) lbl.innerText = langNames[chosenDocLang] || chosenDocLang;
+        updateSendModalI18nLabels(chosenDocLang);
       };
     });
 
@@ -2958,10 +3183,15 @@ async function openSendModal(patientData) {
 
         // Modal matnlarini yangilash
         const sTitle = document.getElementById("uttModalServiceTitle");
-        if (sTitle) sTitle.innerText = activeServiceInfo.service;
+        if (sTitle) {
+          sTitle.innerText = (typeof formatServiceNameWithOriginal === 'function')
+            ? formatServiceNameWithOriginal(activeServiceInfo.service, chosenDocLang)
+            : activeServiceInfo.service;
+        }
         const durVal = document.getElementById("uttModalDurationVal");
         if (durVal) {
-          durVal.innerHTML = `⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
+          const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[chosenDocLang]) ? I18N_TRANSLATIONS.ext[chosenDocLang] : {};
+          durVal.innerHTML = `⏱ ${activeServiceInfo.duration} ${dict.durationMin || 'daqiqa'} (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
         }
 
         const prepBox = document.getElementById("uttModalPrepBox");
@@ -3503,7 +3733,15 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     }, 4000);
 
     if (response && response.ok) {
-      showToast(`✅ ${patientData.name} ${device.name}ga soat ${slot.slotString} (${saveDate}) vaqtiga yozildi!`);
+      const extDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[chosenLang]) 
+        ? I18N_TRANSLATIONS.ext[chosenLang] 
+        : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
+      const toastMsg = (extDict.bookingSuccess || "✅ {name} {device}ga soat {slot} ({date}) vaqtiga yozildi!")
+        .replace('{name}', patientData.name)
+        .replace('{device}', device.name)
+        .replace('{slot}', slot.slotString)
+        .replace('{date}', saveDate);
+      showToast(toastMsg);
       fetchDeviceQueueCounts().catch(() => {});
       calculateTodayOperatorStats().catch(() => {});
       if (autoTicket) {
