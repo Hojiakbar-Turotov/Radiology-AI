@@ -1,13 +1,145 @@
-/**
- * Registratura - Asosiy JavaScript Mantiqi
- */
-
 let db = null;
 let patientsList = [];
 let doctorsList = [];
 let todayDateStr = "";
 let selectedQueueDate = "";
 let currentPatientsRef = null;
+
+// 📌 UMUMIY TIBBIY QOIDALAR, QARSHI KO'RSATMALAR VA SAVOLNOMA SHABLONLARI
+const DEFAULT_GLOBAL_GUIDELINES = {
+  prepTemplates: {
+    fasting_4_6: "Kamida 4-6 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    fasting_6_8: "Kamida 6-8 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    fasting_8_10: "Kamida 8-10 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    bloodTest: "Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida).",
+    metformin: "Qandli diabet bo'lsa: Metformin (Glyukofaj, Siofor v.b.) dori vositasini 48 soat oldin to'xtatish.",
+    metalFree: "Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.",
+    hydration: "Tekshiruvdan so'ng ko'p miqdorda suyuqlik (suv) ichish."
+  },
+  contraTemplates: {
+    mrt: "Kardiostimulyator (EKSM), ferromagnit metall implantlar, koxlear implantlar, klavstrofobiya (yopiq joydan qo'rqish).",
+    mskt: "Homiladorlik holati (nisbiy), o'ta yuqori tana vazni (150 kg dan ortiq).",
+    contrast: "Yodli/gadoliniyli kontrast moddasiga allergiya, og'ir buyrak yetishmovchiligi (kreatinin yuqori), gipertireoz (bo'qoq)."
+  },
+  questionTemplates: {
+    universal: [
+      "Tanangizda kardiostimulyator (EKSM), sun'iy yurak klapani, koxlear implant yoki neyrostimulyator bormi?",
+      "Tanangizda metall parchalar, ilonlar, temir plastina, klipsa yoki ferromagnit metall implant bormi?",
+      "Homiladorlik holati bormi yoki ko'krak suti bilan emizasizmi?",
+      "Dori vositalariga, yod preparatlariga yoki kontrast moddalarga allergik reaksiyangiz bo'lganmi?",
+      "Surunkali buyrak, jigar yoki yurak-qon tomir kasalliklari mavjudmi?"
+    ],
+    contrast: [
+      "Buyrak yetishmovchiligi, qonda kreatinin yoki mochevina miqdori oshishi kuzatilganmi?",
+      "Qandli diabet kasalligi bo'yicha Metformin (Glyukofaj, Siofor v.b.) dori vositasini qabul qilasizmi?",
+      "Qalqonsimon bez kasalliklari (toksik bo'qoq / gipertireoz) mavjudmi?"
+    ],
+    mrt: [
+      "Yopiq joydan qo'rqish (klavstrofobiya), hushdan ketish yoki tutqanoq holatlari bo'ladimi?"
+    ],
+    mskt: [
+      "Oldin nur bilan davolanish (radioterapiya) yoki tez-tez rentgen tekshiruvlaridan o'tganmisiz?"
+    ]
+  },
+  referralRules: {
+    maxReferralAgeDays: 10,
+    expiredReferralMessage: "Sizni qaytadan yo'naltirish kerak, eski so'rov bilan navbatga qo'yib bo'lmaydi. Yangi so'rovni vrachingiz kiritib bersin.",
+    blockedKeywords: [
+      "ultratovush", "utt", "uzi", "ehokg", "exo", "ekg", "elektrokardiogramma",
+      "endoskopiya", "gastroskopiya", "kolonoskopiya", "fgs", "fgds", "bronxoskopiya",
+      "mammografiya", "mammograf",
+      "rentgen", "rentgenografiya", "rentgenoskopiya", "rentgen scopi", "rentgenskopi", "flyurografiya",
+      "laboratoriya", "qon tahlili", "klinik tahlil", "bioximik", "gistologiya", "sitologiya",
+      "fizioterapiya", "massaj", "operatsiya", "muolaja"
+    ],
+    nonMrtMsktMessage: "Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).",
+    completedRowMessage: "Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi."
+  }
+};
+
+let globalGuidelines = JSON.parse(JSON.stringify(DEFAULT_GLOBAL_GUIDELINES));
+
+function listenToGeneralGuidelines() {
+  db.ref("settings/general_guidelines").on("value", snapshot => {
+    const val = snapshot.val();
+    if (val) {
+      globalGuidelines = {
+        prepTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.prepTemplates, val.prepTemplates || {}),
+        contraTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.contraTemplates, val.contraTemplates || {}),
+        questionTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.questionTemplates, val.questionTemplates || {}),
+        referralRules: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.referralRules, val.referralRules || {})
+      };
+    } else {
+      globalGuidelines = JSON.parse(JSON.stringify(DEFAULT_GLOBAL_GUIDELINES));
+      db.ref("settings/general_guidelines").set(DEFAULT_GLOBAL_GUIDELINES);
+    }
+  });
+}
+
+const DEFAULT_WORK_SCHEDULE = {
+  days: {
+    1: { enabled: true, name: "Dushanba", start: "08:00", end: "19:30" },
+    2: { enabled: true, name: "Seshanba", start: "08:00", end: "19:30" },
+    3: { enabled: true, name: "Chorshanba", start: "08:00", end: "19:30" },
+    4: { enabled: true, name: "Payshanba", start: "08:00", end: "19:30" },
+    5: { enabled: true, name: "Juma", start: "08:00", end: "19:30" },
+    6: { enabled: true, name: "Shanba", start: "08:00", end: "14:00" },
+    0: { enabled: false, name: "Yakshanba", start: "08:00", end: "14:00" }
+  }
+};
+let currentWorkSchedule = JSON.parse(JSON.stringify(DEFAULT_WORK_SCHEDULE));
+
+function getDaySchedule(schedule, dayOfWeek) {
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
+  if (cfg && cfg.days && cfg.days[dayOfWeek]) {
+    return cfg.days[dayOfWeek];
+  }
+  const isEnabled = cfg && cfg.workDays ? cfg.workDays.includes(dayOfWeek) : (dayOfWeek !== 0);
+  const start = cfg && cfg.workStart ? cfg.workStart : "08:00";
+  const end = (dayOfWeek === 6) ? "14:00" : (cfg && cfg.workEnd ? cfg.workEnd : "19:30");
+  const names = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+  return { enabled: isEnabled, name: names[dayOfWeek], start, end };
+}
+
+let calendarExceptions = {};
+let calCurrentMonth = new Date().getMonth();
+let calCurrentYear = new Date().getFullYear();
+
+function getDayEffectiveSchedule(targetDate, schedule = null, exceptions = null) {
+  const excMap = exceptions || calendarExceptions || {};
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
+  const dateObj = new Date(targetDate + "T00:00:00");
+  const dayOfWeek = dateObj.getDay();
+  const baseDayCfg = getDaySchedule(cfg, dayOfWeek);
+
+  // Aniq sana uchun istisno (bayram yoki maxsus ish soati) bormi?
+  if (excMap && excMap[targetDate]) {
+    const ex = excMap[targetDate];
+    if (!ex.isWorking) {
+      return {
+        enabled: false,
+        name: baseDayCfg.name,
+        title: ex.title || "Bayram / Dam olish kuni",
+        isException: true,
+        isHoliday: true,
+        start: baseDayCfg.start,
+        end: baseDayCfg.end
+      };
+    } else {
+      return {
+        enabled: true,
+        name: baseDayCfg.name,
+        title: ex.title || "Maxsus ish kuni",
+        isException: true,
+        isSpecialHours: true,
+        start: ex.workStart || "08:00",
+        end: ex.workEnd || (dayOfWeek === 6 ? "14:00" : "19:30")
+      };
+    }
+  }
+
+  return Object.assign({ title: baseDayCfg.name, isException: false }, baseDayCfg);
+}
 
 // Boshlang'ich yuklash
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,6 +157,9 @@ function initApp() {
     listenToDoctors();
     listenToPatients(todayDateStr);
     listenToServices();
+    listenToGeneralGuidelines();
+    listenToWorkSchedule();
+    listenToCalendarExceptions();
 
     // Dastlabki sana qiymatlari
     const qDateEl = document.getElementById("queueDateFilter");
@@ -33,6 +168,395 @@ function initApp() {
     if (pDateEl) pDateEl.value = todayDateStr;
   } else {
     updateConnStatus(false, "Firebase sozlanmagan!");
+  }
+}
+
+function listenToWorkSchedule() {
+  db.ref("settings/schedule").on("value", snapshot => {
+    const val = snapshot.val();
+    if (val) {
+      currentWorkSchedule = val;
+      updateScheduleUI();
+      renderCalendarGrid();
+    } else {
+      db.ref("settings/schedule").set(DEFAULT_WORK_SCHEDULE);
+    }
+  });
+}
+
+function listenToCalendarExceptions() {
+  db.ref("settings/calendar_exceptions").on("value", snapshot => {
+    calendarExceptions = snapshot.val() || {};
+    renderCalendarGrid();
+    renderExceptionsTable();
+  });
+}
+
+function updateScheduleUI() {
+  for (let i = 0; i <= 6; i++) {
+    const dayCfg = getDaySchedule(currentWorkSchedule, i);
+    const chk = document.getElementById(`workDay${i}`);
+    if (chk) chk.checked = dayCfg.enabled;
+    const sInput = document.getElementById(`workStart${i}`);
+    if (sInput) sInput.value = dayCfg.start || "08:00";
+    const eInput = document.getElementById(`workEnd${i}`);
+    if (eInput) eInput.value = dayCfg.end || (i === 6 ? "14:00" : "19:30");
+    toggleDayRow(i, dayCfg.enabled);
+  }
+}
+
+function toggleDayRow(dayIdx, isEnabled) {
+  const badge = document.getElementById(`badgeDay${dayIdx}`);
+  const sInput = document.getElementById(`workStart${dayIdx}`);
+  const eInput = document.getElementById(`workEnd${dayIdx}`);
+  const row = document.getElementById(`rowDay${dayIdx}`);
+
+  if (badge) {
+    badge.style.background = isEnabled ? "#dcfce7" : "#fee2e2";
+    badge.style.color = isEnabled ? "#15803d" : "#b91c1c";
+    badge.innerHTML = isEnabled ? "🟢 Ish kuni" : "🔴 Dam olish";
+  }
+  if (sInput) {
+    sInput.disabled = !isEnabled;
+    sInput.style.opacity = isEnabled ? "1" : "0.5";
+  }
+  if (eInput) {
+    eInput.disabled = !isEnabled;
+    eInput.style.opacity = isEnabled ? "1" : "0.5";
+  }
+  if (row) {
+    row.style.background = isEnabled ? "" : "#fef2f2";
+  }
+}
+
+function applyDefaultSchedulePreset() {
+  for (let i = 0; i <= 6; i++) {
+    const chk = document.getElementById(`workDay${i}`);
+    const sInput = document.getElementById(`workStart${i}`);
+    const eInput = document.getElementById(`workEnd${i}`);
+
+    if (i >= 1 && i <= 5) {
+      if (chk) chk.checked = true;
+      if (sInput) sInput.value = "08:00";
+      if (eInput) eInput.value = "19:30";
+      toggleDayRow(i, true);
+    } else if (i === 6) {
+      if (chk) chk.checked = true;
+      if (sInput) sInput.value = "08:00";
+      if (eInput) eInput.value = "14:00";
+      toggleDayRow(i, true);
+    } else {
+      if (chk) chk.checked = false;
+      if (sInput) sInput.value = "08:00";
+      if (eInput) eInput.value = "14:00";
+      toggleDayRow(i, false);
+    }
+  }
+}
+
+function saveWorkScheduleSettings() {
+  const daysObj = {};
+  const names = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+  let hasAnyWorkingDay = false;
+
+  for (let i = 0; i <= 6; i++) {
+    const chk = document.getElementById(`workDay${i}`);
+    const isChecked = chk ? chk.checked : false;
+    if (isChecked) hasAnyWorkingDay = true;
+
+    const sInput = document.getElementById(`workStart${i}`);
+    const eInput = document.getElementById(`workEnd${i}`);
+
+    daysObj[i] = {
+      enabled: isChecked,
+      name: names[i],
+      start: sInput ? sInput.value : "08:00",
+      end: eInput ? eInput.value : (i === 6 ? "14:00" : "19:30")
+    };
+  }
+
+  if (!hasAnyWorkingDay) {
+    alert("⚠️ Kamida 1 ta ish kunini belgilashingiz kerak!");
+    return;
+  }
+
+  const newConfig = {
+    days: daysObj,
+    updatedAt: new Date().toISOString()
+  };
+
+  db.ref("settings/schedule").set(newConfig).then(() => {
+    alert("✅ Markaz ish kunlari va soatlari muvaffaqiyatli saqlandi!");
+  }).catch(err => {
+    alert("Xatolik yuz berdi: " + err.message);
+  });
+}
+
+// === TAQVIM & BAYRAMLAR VIZUAL BOSHQARUVI ===
+function renderCalendarGrid() {
+  const mSelect = document.getElementById("calMonthSelect");
+  const ySelect = document.getElementById("calYearSelect");
+  if (mSelect) mSelect.value = calCurrentMonth;
+  if (ySelect) ySelect.value = calCurrentYear;
+
+  const container = document.getElementById("calGridDays");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1);
+  const lastDayOfMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0);
+  const totalDays = lastDayOfMonth.getDate();
+
+  // Dushanbadan boshlash: 1=Mon..7=Sun
+  let firstDayIndex = firstDayOfMonth.getDay();
+  let paddingDays = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+  // Oldingi oy kunlari
+  const prevMonthLastDay = new Date(calCurrentYear, calCurrentMonth, 0).getDate();
+  for (let i = paddingDays; i > 0; i--) {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "cal-day-cell other-month";
+    dayDiv.innerHTML = `<span class="cal-day-num" style="opacity:0.4;">${prevMonthLastDay - i + 1}</span>`;
+    container.appendChild(dayDiv);
+  }
+
+  // Joriy oy kunlari
+  const today = new Date();
+  const todayY = today.getFullYear();
+  const todayM = today.getMonth();
+  const todayD = today.getDate();
+
+  for (let d = 1; d <= totalDays; d++) {
+    const dStr = String(d).padStart(2, "0");
+    const mStr = String(calCurrentMonth + 1).padStart(2, "0");
+    const dateKey = `${calCurrentYear}-${mStr}-${dStr}`;
+
+    const eff = getDayEffectiveSchedule(dateKey);
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "cal-day-cell";
+
+    if (calCurrentYear === todayY && calCurrentMonth === todayM && d === todayD) {
+      dayDiv.classList.add("today");
+    }
+
+    let tagHtml = "";
+    if (eff.isHoliday) {
+      dayDiv.classList.add("holiday");
+      tagHtml = `<div class="cal-day-tag" style="background:#fee2e2; color:#b91c1c;">🎉 ${escapeHtml(eff.title)} (Dam)</div>`;
+    } else if (eff.isSpecialHours) {
+      dayDiv.classList.add("special-hours");
+      tagHtml = `<div class="cal-day-tag" style="background:#fef9c3; color:#854d0e;">⏱ ${eff.start}-${eff.end}</div>`;
+    } else if (!eff.enabled) {
+      dayDiv.classList.add("weekend-off");
+      tagHtml = `<div class="cal-day-tag" style="background:#f1f5f9; color:#64748b;">🔴 Dam olish</div>`;
+    } else {
+      tagHtml = `<div class="cal-day-tag" style="background:#f0fdf4; color:#15803d;">⏱ ${eff.start}-${eff.end}</div>`;
+    }
+
+    dayDiv.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="cal-day-num">${d}</span>
+        ${eff.isException ? '<span style="font-size:10px; font-weight:800; color:#0284c7;">⚡ Maxsus</span>' : ''}
+      </div>
+      ${tagHtml}
+    `;
+
+    dayDiv.onclick = () => openCalendarExceptionModal(dateKey);
+    container.appendChild(dayDiv);
+  }
+}
+
+function prevCalendarMonth() {
+  if (calCurrentMonth === 0) {
+    calCurrentMonth = 11;
+    calCurrentYear--;
+  } else {
+    calCurrentMonth--;
+  }
+  renderCalendarGrid();
+}
+
+function nextCalendarMonth() {
+  if (calCurrentMonth === 11) {
+    calCurrentMonth = 0;
+    calCurrentYear++;
+  } else {
+    calCurrentMonth++;
+  }
+  renderCalendarGrid();
+}
+
+function onCalendarMonthYearChange() {
+  const mSelect = document.getElementById("calMonthSelect");
+  const ySelect = document.getElementById("calYearSelect");
+  if (mSelect) calCurrentMonth = parseInt(mSelect.value, 10);
+  if (ySelect) calCurrentYear = parseInt(ySelect.value, 10);
+  renderCalendarGrid();
+}
+
+function renderExceptionsTable() {
+  const tbody = document.getElementById("exceptionsTableBody");
+  if (!tbody) return;
+
+  const keys = Object.keys(calendarExceptions || {}).sort();
+  if (keys.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:16px;">Hozircha maxsus sana yoki bayramlar kiritilmagan. Yuqoridagi taqvimdan istalgan sanani tanlab kiritishingiz mumkin.</td></tr>`;
+    return;
+  }
+
+  const names = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+
+  tbody.innerHTML = keys.map(k => {
+    const ex = calendarExceptions[k];
+    const dObj = new Date(k + "T00:00:00");
+    const dayName = names[dObj.getDay()] || "";
+    const isHoliday = !ex.isWorking;
+    const hours = isHoliday ? "—" : `${ex.workStart || '08:00'} - ${ex.workEnd || '14:00'}`;
+
+    return `
+      <tr>
+        <td><strong>${k}</strong> <small style="color:#64748b;">(${dayName})</small></td>
+        <td><strong>${escapeHtml(ex.title || ex.reason || 'Maxsus sana')}</strong></td>
+        <td>
+          ${isHoliday 
+            ? '<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px;">🎉 Bayram / Dam</span>' 
+            : '<span style="background:#f0f9ff; color:#0369a1; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px;">⏱ Maxsus Ish Soati</span>'}
+        </td>
+        <td style="font-weight:700;">${hours}</td>
+        <td style="text-align:center;">
+          <div style="display:flex; gap:6px; justify-content:center;">
+            <button class="btn btn-secondary btn-small" onclick="openCalendarExceptionModal('${k}')" title="Tahrirlash">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn btn-danger btn-small" onclick="deleteCalendarExceptionByDate('${k}')" title="O'chirish">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function openCalendarExceptionModal(dateStr = null) {
+  const modal = document.getElementById("calendarExceptionModal");
+  if (!modal) return;
+
+  const dateInput = document.getElementById("calModalDate");
+  const reasonInput = document.getElementById("calModalReason");
+  const startInput = document.getElementById("calModalStart");
+  const endInput = document.getElementById("calModalEnd");
+  const btnDelete = document.getElementById("btnDeleteCalException");
+  const form = document.getElementById("calendarExceptionForm");
+  form.reset();
+
+  const targetDate = dateStr || todayDateStr;
+  if (dateInput) dateInput.value = targetDate;
+
+  if (calendarExceptions && calendarExceptions[targetDate]) {
+    const ex = calendarExceptions[targetDate];
+    if (reasonInput) reasonInput.value = ex.title || ex.reason || "";
+    if (ex.isWorking) {
+      document.querySelector('input[name="calModalType"][value="custom_hours"]').checked = true;
+      toggleCalModalTypeFields("custom_hours");
+      if (startInput) startInput.value = ex.workStart || "08:00";
+      if (endInput) endInput.value = ex.workEnd || "14:00";
+    } else {
+      document.querySelector('input[name="calModalType"][value="holiday"]').checked = true;
+      toggleCalModalTypeFields("holiday");
+    }
+    if (btnDelete) btnDelete.style.display = "inline-block";
+  } else {
+    document.querySelector('input[name="calModalType"][value="holiday"]').checked = true;
+    toggleCalModalTypeFields("holiday");
+    if (reasonInput) reasonInput.value = "";
+    if (startInput) startInput.value = "08:00";
+    if (endInput) endInput.value = "14:00";
+    if (btnDelete) btnDelete.style.display = "none";
+  }
+
+  modal.classList.add("open");
+}
+
+function closeCalendarExceptionModal() {
+  const modal = document.getElementById("calendarExceptionModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function toggleCalModalTypeFields(type) {
+  const box = document.getElementById("calModalHoursBox");
+  if (box) {
+    box.style.display = type === "custom_hours" ? "block" : "none";
+  }
+}
+
+function handleCalendarExceptionSubmit(e) {
+  e.preventDefault();
+  const date = document.getElementById("calModalDate").value;
+  if (!date) return;
+
+  const type = document.querySelector('input[name="calModalType"]:checked').value;
+  const title = document.getElementById("calModalReason").value.trim();
+  const isWorking = type === "custom_hours";
+  const workStart = isWorking ? (document.getElementById("calModalStart").value || "08:00") : "";
+  const workEnd = isWorking ? (document.getElementById("calModalEnd").value || "14:00") : "";
+
+  const payload = {
+    date,
+    title,
+    isWorking,
+    workStart,
+    workEnd,
+    updatedAt: new Date().toISOString()
+  };
+
+  db.ref(`settings/calendar_exceptions/${date}`).set(payload).then(() => {
+    closeCalendarExceptionModal();
+  }).catch(err => {
+    alert("Xatolik: " + err.message);
+  });
+}
+
+function deleteCurrentCalendarException() {
+  const date = document.getElementById("calModalDate").value;
+  if (!date) return;
+  deleteCalendarExceptionByDate(date);
+}
+
+function deleteCalendarExceptionByDate(dateStr) {
+  if (confirm(`Haqiqatdan ham ${dateStr} sanasidagi maxsus sozlamani o'chirmoqchimisiz? (Standart grafik tiklanadi)`)) {
+    db.ref(`settings/calendar_exceptions/${dateStr}`).remove().then(() => {
+      closeCalendarExceptionModal();
+    });
+  }
+}
+
+function populateUzbekistanHolidays() {
+  const curY = new Date().getFullYear();
+  const years = [curY, curY + 1];
+  const updates = {};
+
+  years.forEach(y => {
+    const list = [
+      { date: `${y}-01-01`, title: "Yangi yil bayrami", isWorking: false },
+      { date: `${y}-03-08`, title: "Xalqaro xotin-qizlar kuni", isWorking: false },
+      { date: `${y}-03-21`, title: "Navro'z umumxalq bayrami", isWorking: false },
+      { date: `${y}-05-09`, title: "Xotira va qadrlash kuni", isWorking: false },
+      { date: `${y}-09-01`, title: "O'zbekiston Respublikasi Mustaqillik kuni", isWorking: false },
+      { date: `${y}-10-01`, title: "O'qituvchi va murabbiylar kuni", isWorking: false },
+      { date: `${y}-12-08`, title: "Konstitutsiya kuni", isWorking: false },
+      { date: `${y}-12-31`, title: "Yangi yil arafasi (qisqartirilgan ish soatlari)", isWorking: true, workStart: "08:00", workEnd: "14:00" }
+    ];
+
+    list.forEach(h => {
+      updates[h.date] = h;
+    });
+  });
+
+  if (confirm(`O'zbekiston rasmiy bayram sanalari (${curY} va ${curY + 1} yillar uchun) taqvimga kiritilsinmi?`)) {
+    db.ref("settings/calendar_exceptions").update(updates).then(() => {
+      alert("✅ Rasmiy bayram sanalari taqvimga muvaffaqiyatli kiritildi!");
+    });
   }
 }
 
@@ -307,7 +831,10 @@ function renderQueueTable() {
         <button class="btn btn-secondary btn-small" title="Talonni chop etish" onclick="openPrintModal('${p.id}')">
           <i class="fa-solid fa-print"></i>
         </button>
-        <span style="background:#fee2e2; color:#dc2626; font-size:11px; padding:4px 8px; border-radius:6px; font-weight:bold; display:inline-flex; align-items:center; gap:4px;" title="Bemor navbati o'chirilgan">
+        <button class="btn btn-secondary btn-small" title="Rozilik anketasini chop etish" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
+          <i class="fa-solid fa-file-contract"></i> Anketa
+        </button>
+        <span style="background:#fee2e2; color:#dc2626; font-size:11px; padding:4px 8px; border-radius:6px; font-weight:bold; display:inline-flex; align-items:center; gap:4px; margin-left:3px;" title="Bemor navbati o'chirilgan">
           <i class="fa-solid fa-ban"></i> O'chirilgan
         </span>
         <button class="btn btn-secondary btn-small" title="Qayta tiklash" style="color:#0284c7; margin-left:4px;" onclick="restorePatient('${p.id}')">
@@ -319,11 +846,20 @@ function renderQueueTable() {
         <button class="btn btn-secondary btn-small" title="Talonni chop etish" onclick="openPrintModal('${p.id}')">
           <i class="fa-solid fa-print"></i>
         </button>
-        <button class="btn btn-secondary btn-small" title="Navbatdan o'chirish / Bekor qilish" style="color:var(--danger);" onclick="deletePatient('${p.id}')">
+        <button class="btn btn-secondary btn-small" title="Rozilik anketasini chop etish" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
+          <i class="fa-solid fa-file-contract"></i> Anketa
+        </button>
+        <button class="btn btn-secondary btn-small" title="Navbatdan o'chirish / Bekor qilish" style="color:var(--danger); margin-left:3px;" onclick="deletePatient('${p.id}')">
           <i class="fa-solid fa-trash"></i>
         </button>
       `;
     }
+
+    const arrivedBtnHtml = `
+      <button type="button" class="btn btn-small" onclick="toggleArrivedStatus('${p.id}')" title="${p.arrived ? 'Bemor kutish zalida o\'tiribdi (O\'zgartirish uchun bosing)' : 'Bemor hali kelmadi (Kelganini belgilash uchun bosing)'}" style="background:${p.arrived ? '#dcfce7' : '#f1f5f9'}; color:${p.arrived ? '#15803d' : '#64748b'}; border:1px solid ${p.arrived ? '#86efac' : '#cbd5e1'}; font-weight:800; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; min-width:86px; display:inline-flex; align-items:center; justify-content:center; gap:4px;">
+        ${p.arrived ? '🟢 Zalda' : '⏳ Hali kelmadi'}
+      </button>
+    `;
 
     return `
       <tr ${isCancelled ? 'class="row-cancelled"' : ''}>
@@ -340,7 +876,15 @@ function renderQueueTable() {
         <td>${timeDisplay}</td>
         <td>${docDisplay}</td>
         <td><span style="background:#f1f5f9; padding:3px 8px; border-radius:6px; font-size:11.5px; font-weight:600; color:#334155;">👤 ${escapeHtml(operatorDisplay)}</span></td>
-        <td><span class="badge ${statusInfo.cls}">${statusInfo.label}</span></td>
+        <td>
+          <span class="badge ${statusInfo.cls}">${statusInfo.label}</span>
+          ${(p.laborantName || p.calledByLaborant) ? `
+            <div style="font-size:11px; color:#0284c7; font-weight:700; margin-top:3px; display:flex; align-items:center; gap:4px;" title="Chaqirgan laborant">
+              <i class="fa-solid fa-user-doctor" style="font-size:10px;"></i>
+              <span>${escapeHtml(p.calledByLaborant || p.laborantName)}</span>
+            </div>
+          ` : ''}
+        </td>
         <td style="white-space: nowrap; text-align: center;">${actionsHtml}</td>
       </tr>
     `;
@@ -424,21 +968,58 @@ async function onDateOrDoctorOrTimeChanged() {
 
   const devPatients = targetPatients.filter(p => p.doctorId === docId && p.status !== "cancelled");
 
+  // 1. Dam olish kuni yoki bayram tekshiruvi
+  const effDay = getDayEffectiveSchedule(appDate, currentWorkSchedule, calendarExceptions);
+  if (!effDay.enabled) {
+    isCurrentSlotValid = false;
+    if (alertEl) {
+      alertEl.style.background = "#fee2e2";
+      alertEl.style.color = "#b91c1c";
+      alertEl.innerHTML = `❌ <strong>Dam olish kuni / Bayram!</strong> Tanlangan sana (${appDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`;
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    return;
+  }
+
+  // 2. O'tgan sana tekshiruvi
+  if (appDate < todayDateStr) {
+    isCurrentSlotValid = false;
+    if (alertEl) {
+      alertEl.style.background = "#fee2e2";
+      alertEl.style.color = "#b91c1c";
+      alertEl.innerHTML = `❌ <strong>O'tgan sana!</strong> O'tib ketgan kunga (${appDate}) navbat yozish mumkin emas!`;
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    return;
+  }
+
   if (mode === "auto") {
-    // Eng yaqin bo'sh slotni hisoblash
-    const slot = calculateSlotFromPatientsList(devPatients, duration);
+    // Eng yaqin bo'sh slotni hisoblash (hozirgi vaqtdan boshlab va o'sha kunning ish soatlari doirasida)
+    const slot = calculateSlotFromPatientsList(devPatients, duration, appDate, currentWorkSchedule);
+    
+    if (slot.error) {
+      isCurrentSlotValid = false;
+      lastCalculatedSlot = null;
+      if (alertEl) {
+        alertEl.style.background = "#fee2e2";
+        alertEl.style.color = "#b91c1c";
+        alertEl.innerHTML = `❌ <strong>DIQQAT:</strong> ${escapeHtml(slot.error)}`;
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
+
     lastCalculatedSlot = slot;
     isCurrentSlotValid = true;
 
     if (alertEl) {
       alertEl.style.background = "#dcfce7";
       alertEl.style.color = "#15803d";
-      alertEl.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${slot.slotString} (${appDate === todayDateStr ? 'Bugun' : appDate})`;
+      alertEl.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${slot.slotString} (${appDate === todayDateStr ? 'Bugun' : appDate} - ${effDay.title || effDay.name})`;
     }
 
     if (submitBtn) submitBtn.disabled = false;
 
-    // Agar bugungi kundan boshqa sana tanlangan bo'lsa, sabab so'raymiz
     if (deferContainer) {
       deferContainer.style.display = (appDate !== todayDateStr) ? "block" : "none";
     }
@@ -451,6 +1032,36 @@ async function onDateOrDoctorOrTimeChanged() {
 
     const slotCalcEl = document.getElementById("customCalculatedSlot");
     if (slotCalcEl) slotCalcEl.innerText = slotStr;
+
+    // Bugun bo'lsa -> o'tgan vaqt tekshiruvi
+    if (appDate === todayDateStr) {
+      const now = new Date();
+      const curMin = now.getHours() * 60 + now.getMinutes();
+      if (startMin < curMin) {
+        isCurrentSlotValid = false;
+        if (alertEl) {
+          alertEl.style.background = "#fee2e2";
+          alertEl.style.color = "#b91c1c";
+          alertEl.innerHTML = `❌ <strong>O'tib ketgan vaqt!</strong> Tanlangan vaqt (${customStartTime}) joriy vaqtdan (${minutesToTime(curMin)}) oldinda. O'tgan soatlarga navbat yozib bo'lmaydi!`;
+        }
+        if (submitBtn) submitBtn.disabled = true;
+        return;
+      }
+    }
+
+    // Tanlangan kundagi ish vaqti chegaralari tekshiruvi
+    const startWorkMin = timeToMinutes(effDay.start || "08:00");
+    const endWorkMin = timeToMinutes(effDay.end || "19:30");
+    if (startMin < startWorkMin || endMin > endWorkMin) {
+      isCurrentSlotValid = false;
+      if (alertEl) {
+        alertEl.style.background = "#fee2e2";
+        alertEl.style.color = "#b91c1c";
+        alertEl.innerHTML = `❌ <strong>Ish vaqtidan tashqari!</strong> ${effDay.title || effDay.name} kunida qabul faqat ish soatlari (${effDay.start || '08:00'} - ${effDay.end || '19:30'}) orasida bo'lishi shart!`;
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
 
     // To'qnashuv (Overlap) tekshiruvi
     const conflict = checkSlotConflict(devPatients, startMin, endMin);
@@ -469,12 +1080,11 @@ async function onDateOrDoctorOrTimeChanged() {
       if (alertEl) {
         alertEl.style.background = "#dcfce7";
         alertEl.style.color = "#15803d";
-        alertEl.innerHTML = `✅ <strong>Ushbu vaqt BO'SH!</strong> Qabul vaqti: <strong>${slotStr}</strong> (${appDate === todayDateStr ? 'Bugun' : appDate})`;
+        alertEl.innerHTML = `✅ <strong>Ushbu vaqt BO'SH!</strong> Qabul vaqti: <strong>${slotStr}</strong> (${appDate === todayDateStr ? 'Bugun' : appDate} - ${effDay.title || effDay.name})`;
       }
       if (submitBtn) submitBtn.disabled = false;
     }
 
-    // Ixtiyoriy vaqt tanlanganda har doim sabab maydonini ko'rsatamiz
     if (deferContainer) {
       deferContainer.style.display = "block";
     }
@@ -504,16 +1114,60 @@ function checkSlotConflict(devPatients, newStartMin, newEndMin, excludeTicketId 
   return { hasConflict: false };
 }
 
-function calculateSlotFromPatientsList(devPatients, duration) {
-  return findEarliestFreeSlot(devPatients, duration);
+function calculateSlotFromPatientsList(devPatients, duration, targetDate = null, schedule = null) {
+  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule);
 }
 
 // OCHIQ VAQTLAR (GAP) NI TEKSHIRIB ENG YAQUIN BO'SH VAQTNI TOPISH
-function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
+function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null) {
   const dur = parseInt(duration, 10) || 30;
-  const startWorkMin = timeToMinutes(workDayStart); // 480 (08:00)
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
 
-  // 1. Faol bemorlarning vaqt oraliqlarini olish
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+  const checkDate = targetDate || todayStr;
+
+  // 1. Tanlangan sananing aniq va amaldagi ish grafigini aniqlash (bayram / maxsus kunlarni hisobga olgan holda)
+  const effDay = getDayEffectiveSchedule(checkDate, cfg, calendarExceptions);
+
+  // Dam olish kuni yoki bayram tekshiruvi
+  if (!effDay.enabled) {
+    return {
+      error: `Tanlangan sana (${checkDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
+      isOffDay: true
+    };
+  }
+
+  // 2. O'tgan sana tekshiruvi
+  if (checkDate < todayStr) {
+    return {
+      error: `O'tib ketgan kunga (${checkDate}) navbat yozish mumkin emas!`,
+      isPastDate: true
+    };
+  }
+
+  const startWorkMin = timeToMinutes(effDay.start || "08:00");
+  const endWorkMin = timeToMinutes(effDay.end || "19:30");
+
+  // 3. Bugungi kun bo'lsa -> Hozirgi vaqtdan boshlab qidirish
+  let searchStartMin = startWorkMin;
+  if (checkDate === todayStr) {
+    const curNowMin = now.getHours() * 60 + now.getMinutes();
+    const roundedNowMin = Math.ceil(curNowMin / 5) * 5;
+    searchStartMin = Math.max(startWorkMin, roundedNowMin);
+  }
+
+  if (searchStartMin + dur > endWorkMin) {
+    return {
+      error: `Bugungi ish vaqti (${effDay.title || effDay.name}: ${effDay.end || "19:30"}) tugagan yoki qolgan vaqt tekshiruv uchun yetarli emas! Keyingi ish kunini tanlang.`,
+      isWorkEnded: true
+    };
+  }
+
+  // 4. Faol bemorlarning vaqt oraliqlarini olish
   const activeIntervals = [];
   for (const p of (devPatients || [])) {
     if (p.status === "cancelled") continue;
@@ -529,13 +1183,13 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
     }
   }
 
-  // Agar navbatda bemor bo'lmasa -> 08:00 dan boshlanadi
+  // Agar navbatda bemor bo'lmasa -> searchStartMin dan boshlanadi
   if (activeIntervals.length === 0) {
-    const endMin = startWorkMin + dur;
+    const endMin = searchStartMin + dur;
     return {
-      startTime: minutesToTime(startWorkMin),
+      startTime: minutesToTime(searchStartMin),
       endTime: minutesToTime(endMin),
-      slotString: `${minutesToTime(startWorkMin)} - ${minutesToTime(endMin)}`
+      slotString: `${minutesToTime(searchStartMin)} - ${minutesToTime(endMin)}`
     };
   }
 
@@ -557,21 +1211,21 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
   }
   busyBlocks.push(currentBlock);
 
-  // 2. 08:00 dan birinchi band bemorgacha bo'sh oraliqqa sig'adimi?
-  if (busyBlocks[0].start - startWorkMin >= dur) {
-    const endMin = startWorkMin + dur;
+  // 5. searchStartMin dan birinchi band bemorgacha bo'sh oraliqqa sig'adimi?
+  if (busyBlocks[0].start - searchStartMin >= dur) {
+    const endMin = searchStartMin + dur;
     return {
-      startTime: minutesToTime(startWorkMin),
+      startTime: minutesToTime(searchStartMin),
       endTime: minutesToTime(endMin),
-      slotString: `${minutesToTime(startWorkMin)} - ${minutesToTime(endMin)}`
+      slotString: `${minutesToTime(searchStartMin)} - ${minutesToTime(endMin)}`
     };
   }
 
-  // 3. Oraliqlarda ochiq qolgan (bo'sh) vaqtlarga sig'adimi?
+  // 6. Oraliqlarda ochiq qolgan (bo'sh) vaqtlarga sig'adimi?
   for (let i = 0; i < busyBlocks.length - 1; i++) {
-    const gapStart = Math.max(startWorkMin, busyBlocks[i].end);
+    const gapStart = Math.max(searchStartMin, busyBlocks[i].end);
     const gapEnd = busyBlocks[i + 1].start;
-    if (gapEnd - gapStart >= dur) {
+    if (gapEnd - gapStart >= dur && gapStart + dur <= endWorkMin) {
       const endMin = gapStart + dur;
       return {
         startTime: minutesToTime(gapStart),
@@ -581,13 +1235,21 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
     }
   }
 
-  // 4. Agar oraliqlarga sig'masa -> eng oxirgi band oraliqdan keyinga yozish
-  const lastBlockEnd = Math.max(startWorkMin, busyBlocks[busyBlocks.length - 1].end);
+  // 7. Oxirgi band oraliqdan keyinga yozish
+  const lastBlockEnd = Math.max(searchStartMin, busyBlocks[busyBlocks.length - 1].end);
   const finalEnd = lastBlockEnd + dur;
+
+  if (finalEnd <= endWorkMin) {
+    return {
+      startTime: minutesToTime(lastBlockEnd),
+      endTime: minutesToTime(finalEnd),
+      slotString: `${minutesToTime(lastBlockEnd)} - ${minutesToTime(finalEnd)}`
+    };
+  }
+
   return {
-    startTime: minutesToTime(lastBlockEnd),
-    endTime: minutesToTime(finalEnd),
-    slotString: `${minutesToTime(lastBlockEnd)} - ${minutesToTime(finalEnd)}`
+    error: `Ushbu kunga barcha navbatlar to'lgan (${dayCfg.name} ish soatlari: ${dayCfg.start} - ${dayCfg.end}). Keyingi ish kunini tanlang!`,
+    isFull: true
   };
 }
 
@@ -733,18 +1395,11 @@ function openPrintModalDirect(patient, autoTriggerPrint = false) {
   if (guideEl) {
     let guidelinesHtml = "";
     if (patient.rescheduleReason) {
-      guidelinesHtml += `<div style="margin-bottom:4px; font-size:10px; color:#333;"><strong>Eslatma:</strong> ${escapeHtml(patient.rescheduleReason)}</div>`;
+      guidelinesHtml += `<div style="margin-bottom:6px; font-size:12px; font-weight:bold; color:#000;"><strong>Eslatma:</strong> ${escapeHtml(patient.rescheduleReason)}</div>`;
     }
-    if (patient.preparation || patient.contraindications) {
-      guidelinesHtml += `
-        <div style="border:1px solid #000; border-radius:4px; padding:4px 6px; margin-top:4px; line-height:1.25;">
-          <div style="font-weight:bold; border-bottom:1px dashed #000; padding-bottom:2px; margin-bottom:2px; text-align:center;">
-            TIBBIY KO'RSATMALAR
-          </div>
-          ${patient.preparation && patient.preparation !== '—' ? `<div style="margin-top:2px;"><strong>📋 Tayyorgarlik:</strong> ${escapeHtml(patient.preparation)}</div>` : ''}
-          ${patient.contraindications && patient.contraindications !== '—' ? `<div style="margin-top:2px;"><strong>🚫 Qarshi ko'rsatmalar:</strong> ${escapeHtml(patient.contraindications)}</div>` : ''}
-        </div>
-      `;
+    const guideBoxHtml = formatConsolidatedGuidelinesHtml(patient);
+    if (guideBoxHtml) {
+      guidelinesHtml += guideBoxHtml;
     }
 
     if (guidelinesHtml) {
@@ -767,6 +1422,317 @@ function openPrintModalDirect(patient, autoTriggerPrint = false) {
 
 function closeTicketModal() {
   document.getElementById("ticketModal").classList.remove("open");
+}
+
+function toggleArrivedStatus(patientDbId) {
+  const patient = patientsList.find(p => p.id === patientDbId);
+  if (!patient) return;
+  const targetDate = (patient.appointmentDate) ? patient.appointmentDate : (selectedQueueDate || todayDateStr);
+  const newStatus = !patient.arrived;
+  
+  db.ref(`patients/${targetDate}/${patientDbId}`).update({
+    arrived: newStatus,
+    arrivedAt: newStatus ? firebase.database.ServerValue.TIMESTAMP : null
+  });
+}
+
+function printConsentForm(patientDbId) {
+  const patient = patientsList.find(p => p.id === patientDbId);
+  if (patient) {
+    printConsentFormDirect(patient);
+  }
+}
+
+function printConsentFormDirect(payload) {
+  try {
+    const oldIframe = document.getElementById("uttConsentPrintIframe");
+    if (oldIframe) oldIframe.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "uttConsentPrintIframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    
+    let servicesTitle = "";
+    if (payload.servicesList && payload.servicesList.length > 0) {
+      servicesTitle = payload.servicesList.map(s => (s.code ? s.code + ' - ' : '') + (s.name || s.fullName)).join(' + ');
+    } else {
+      servicesTitle = payload.service || 'Tomografiya';
+    }
+
+    let examType = "MSKT / MRT";
+    const svcUpper = (payload.service || "").toUpperCase();
+    const docUpper = (payload.doctorName || payload.room || payload.deviceType || "").toUpperCase();
+    if (svcUpper.includes("MSKT") || docUpper.includes("MSKT") || svcUpper.includes("MSCT") || docUpper.includes("MSCT")) {
+      examType = "MSKT";
+    } else if (svcUpper.includes("MRT") || docUpper.includes("MRT") || svcUpper.includes("MRI") || docUpper.includes("MRI")) {
+      examType = "MRT";
+    }
+
+    // Tekshiruv uchun maxsus savolnomani aniqlash (Har bir tekshiruv uchun alohida savolnoma)
+    const customQuestionsList = consolidateQuestionsForServices(
+      payload.servicesList,
+      examType,
+      payload.isContrast,
+      payload.questions
+    );
+
+    const questionsRowsHtml = customQuestionsList.map((qText, idx) => {
+      const cleanQ = qText.replace(/^\d+[\.\)\-]\s*/, '').trim();
+      return `
+        <tr>
+          <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+          <td>${escapeHtml(cleanQ)}</td>
+          <td class="check-col">[ &nbsp; ]</td>
+          <td class="check-col">[ &nbsp; ]</td>
+        </tr>
+      `;
+    }).join("");
+
+    const typeText = payload.patientType === "Bo'limda yotibdi"
+      ? `Bo'limda yotibdi ${payload.department ? `(${payload.department})` : ''}`
+      : "Uyidan qatnaydi (Ambulator)";
+
+    // 1. Nashr sanasi (Navbatga qo'yilgan sana)
+    let rawQueueDate = payload.appointmentDate || payload.date || (typeof selectedQueueDate !== 'undefined' ? selectedQueueDate : '') || (typeof todayDateStr !== 'undefined' ? todayDateStr : '') || '';
+    let nashrSanasi = "09.04.2026";
+    if (rawQueueDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(rawQueueDate)) {
+        const parts = rawQueueDate.split('-');
+        nashrSanasi = `${parts[2]}.${parts[1]}.${parts[0]}`;
+      } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawQueueDate)) {
+        const parts = rawQueueDate.split('/');
+        nashrSanasi = `${parts[1]}.${parts[0]}.${parts[2]}`;
+      } else if (/^\d{2}\.\d{2}\.\d{4}$/.test(rawQueueDate)) {
+        nashrSanasi = rawQueueDate;
+      }
+    }
+
+    // 2. Ko'rib chiqish sanasi (Bugungi printerdan chop etilgan kundagi sana)
+    const nowPrint = new Date();
+    const koribChiqishSanasi = `${String(nowPrint.getDate()).padStart(2, '0')}.${String(nowPrint.getMonth() + 1).padStart(2, '0')}.${nowPrint.getFullYear()}`;
+
+    // 3. Kod No dinamik raqami (HD.RB.[Kod raqami])
+    let kodDigits = "";
+    if (payload.servicesList && payload.servicesList.length > 0) {
+      const extracted = payload.servicesList.map(s => {
+        const codeStr = s.code || s.fullName || s.name || "";
+        const m = codeStr.match(/R?(\d{2,4})/i);
+        return m ? m[1] : null;
+      }).filter(Boolean);
+      if (extracted.length > 0) {
+        kodDigits = extracted.join('/');
+      }
+    }
+    if (!kodDigits) {
+      const svcString = (payload.service || "") + " " + (payload.code || "");
+      const match = svcString.match(/R?(\d{2,4})/i);
+      if (match) {
+        kodDigits = match[1];
+      }
+    }
+    const kodNo = `HD.RB.${kodDigits || '292'}`;
+
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Rozilik Hujjati - ${escapeHtml(payload.name)}</title>
+        <style>
+          @page { size: A4 portrait; margin: 8mm 12mm; }
+          * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+          body { color: #000; padding: 4px; font-size: 12px; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          
+          /* Rasmiy Titul Box */
+          .titul-box { border: 1.5px solid #000; margin-bottom: 8px; }
+          .titul-grid { display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding: 6px 10px; }
+          .titul-logo-box { width: 75px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .titul-text { text-align: center; flex-grow: 1; padding: 0 10px; }
+          .titul-text h2 { font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.25; margin-bottom: 3px; }
+          .titul-text h1 { font-size: 14.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+          
+          .titul-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; }
+          .titul-table td { border-right: 1.5px solid #000; padding: 4px 4px; line-height: 1.2; }
+          .titul-table td:last-child { border-right: none; }
+          
+          .section-title { font-size: 11.5px; font-weight: 900; text-transform: uppercase; background: #f1f5f9; border: 1px solid #000; padding: 3px 6px; margin: 6px 0 4px 0; }
+          
+          .patient-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11.5px; }
+          .patient-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
+          .patient-table .lbl { font-weight: 700; width: 22%; background: #f8fafc; color: #000; }
+          .patient-table .val { font-weight: 800; width: 28%; color: #000; }
+          
+          .lab-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11.5px; }
+          .lab-table td { border: 1px solid #000; padding: 4px 6px; }
+          
+          .checklist-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11px; }
+          .checklist-table th, .checklist-table td { border: 1px solid #000; padding: 3.5px 6px; }
+          .checklist-table th { background: #f1f5f9; text-align: left; font-weight: 900; }
+          .checklist-table td.check-col { width: 55px; text-align: center; font-weight: 900; font-size: 11.5px; }
+          
+          .declaration-text { font-size: 10.5px; line-height: 1.35; text-align: justify; margin: 5px 0; border: 1px solid #000; padding: 5px 7px; border-radius: 3px; background: #fafafa; }
+          
+          .signatures-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11.5px; }
+          .signatures-table td { border: none; padding: 3px 4px; vertical-align: top; }
+          
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <!-- 1. RASMIY INSTITUTSIONAL TITUL (Rasmga mos) -->
+        <div class="titul-box">
+          <div class="titul-grid">
+            <div class="titul-logo-box">
+              <img src="${LOGO_ONKOLOGIYA}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="Onkologiya Markazi">
+            </div>
+            <div class="titul-text">
+              <h2>RESPUBLIKA IXTISOSLASHTIRILGAN<br>ONKOLOGIYA VA RADIOLOGIYA<br>ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
+              <h1>${examType} TEKSHIRUVINI O‘TKAZISHGA ROZILIK HUJJATI</h1>
+            </div>
+            <div class="titul-logo-box">
+              <img src="${LOGO_SSV}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="SSV Logosi">
+            </div>
+          </div>
+          <table class="titul-table">
+            <tr>
+              <td style="width:20%;"><strong>Kod No:</strong><br><strong>${escapeHtml(kodNo)}</strong></td>
+              <td style="width:20%;"><strong>Nashr sanasi:</strong><br>${escapeHtml(nashrSanasi)}</td>
+              <td style="width:20%;"><strong>Ko‘rib chiqish sanasi:</strong><br>${escapeHtml(koribChiqishSanasi)}</td>
+              <td style="width:20%;"><strong>Tekshiruv raqami:</strong><br><strong>${escapeHtml(payload.ticketId || '00000')}</strong></td>
+              <td style="width:20%;"><strong>Sahifa/Sahifalar soni:</strong><br>1 / 1</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 2. BEMOR VA TEKSHIRUV PARAMETRLARI (Bo'yi va Vazni bilan) -->
+        <table class="patient-table">
+          <tr>
+            <td class="lbl">Bemor F.I.Sh:</td>
+            <td class="val" colspan="3" style="font-size:13px; font-weight:900;">${escapeHtml(payload.name)}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Bemor ID:</td>
+            <td class="val"><strong>${escapeHtml(payload.ticketId || '-')}</strong></td>
+            <td class="lbl">Qabul Sanasi & Vaqti:</td>
+            <td class="val"><strong>${escapeHtml(payload.appointmentDate || '')} | ${escapeHtml(payload.timeSlot || payload.scheduledTime || payload.time || '-')}</strong></td>
+          </tr>
+          <tr>
+            <td class="lbl">Bemor Toifasi:</td>
+            <td class="val">${escapeHtml(typeText)}</td>
+            <td class="lbl">Fayl / Yo‘naltirgan shifokor:</td>
+            <td class="val">${escapeHtml(payload.referringDoctor || '-')}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Qurilma / Xona:</td>
+            <td class="val">${escapeHtml(payload.room || '-')} (${escapeHtml(payload.doctorName || '-')})</td>
+            <td class="lbl">Tekshiruv Nomi:</td>
+            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? '<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">KONTRASTLI</span>' : ''}</td>
+          </tr>
+          <tr>
+            <td class="lbl" style="background:#f1f5f9;">Bemor Bo‘yi:</td>
+            <td class="val" style="font-size:12px;"><strong>________ sm</strong></td>
+            <td class="lbl" style="background:#f1f5f9;">Bemor Vazni:</td>
+            <td class="val" style="font-size:12px;"><strong>________ kg</strong></td>
+          </tr>
+        </table>
+
+        <!-- 3. KONTRASTLI TEKSHIRUVLAR UCHUN LABORATORIYA TAHLILLARI (Kreatinin & Mochevina) -->
+        <div class="section-title" style="background:#f8fafc; border:1.5px solid #000;">
+          💉 LABORATORIYA TAHLILLARI (KONTRASTLI TEKSHIRUVLAR UCHUN MAJBURIY):
+        </div>
+        <table class="lab-table">
+          <tr>
+            <td style="width:34%;"><strong>Qonda Kreatinin miqdori:</strong><br><span style="font-size:12.5px; font-weight:900;">________ mkmol/l</span></td>
+            <td style="width:33%;"><strong>Qonda Mochevina (Urea):</strong><br><span style="font-size:12.5px; font-weight:900;">________ mmol/l</span></td>
+            <td style="width:33%;"><strong>Tahlil topshirilgan sana:</strong><br><span style="font-size:11.5px; font-weight:700;">«____» ____________ 202__ y.</span></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:10px; background:#fafafa; line-height:1.25;">
+              <em>* Kreatinin normasi: Ayollarda 44–80 mkmol/l, Erkaklarda 62–106 mkmol/l. Qandli diabet bo‘yicha Metformin (Glyukofaj) qabul qiluvchi bemorlar preparatni tekshiruvdan 48 soat oldin to‘xtatishi shart.</em>
+            </td>
+          </tr>
+        </table>
+
+        <!-- 4. TIBBIY XAVFSIZLIK SAVOLNOMASI -->
+        <div class="section-title">I. TIBBIY XAVFSIZLIK VA QARSHI KO‘RSATMALAR SAVOLNOMASI</div>
+        <table class="checklist-table">
+          <thead>
+            <tr>
+              <th style="width:24px; text-align:center;">№</th>
+              <th>Xavfsizlik va tibbiy qarshi ko‘rsatmalar mezoni</th>
+              <th class="check-col">HA</th>
+              <th class="check-col">YO‘Q</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${questionsRowsHtml}
+          </tbody>
+        </table>
+
+        <!-- 5. ROZILIK DEKLARATSIYASI -->
+        <div class="section-title">II. BEMORNING (YOKI QONUNIY VAKILINING) XABARDOR QILINGAN ROZILIGI</div>
+        <div class="declaration-text">
+          Men, ushbu anketada ko‘rsatilgan barcha ma‘lumotlarni to‘liq va haqqoniy taqdim etganimni tasdiqlayman. Menga o‘tkaziladigan ${examType} tekshiruvining maqsadi, o‘tkazilish tartibi, xavfsizlik talablari (shu jumladan barcha metall buyumlar, soat, telefon, bank kartalari, kamar, sirg‘a va kiyimdagi temir detallarni yechish zarurligi) hamda kontrast modda yuborilganda ehtimoliy individual reaksiyalar haqida to‘liq tushuntirildi.<br>
+          Shifokor va operator ko‘rsatmalariga rioya qilishga roziman va tekshiruv o‘tkazilishiga o‘z ixtiyoriy roziligimni bildiraman.<br>
+          <strong>* DIQQAT: Agar tekshiruv vaqtida bemor tomonidan (yoki bemor sababli) tekshiruv to‘xtatilsa, tekshiruv uchun navbat qaytadan qo‘yiladi.</strong>
+        </div>
+
+        <!-- 6. IMZOLAR VA TASDIQLASH (Bemor, Registrator, Laborant, Shifokor) -->
+        <div class="section-title">III. TASDIQLASH VA IMZOLAR</div>
+        <table class="signatures-table" style="width:100%; border-collapse:collapse; margin-top:4px; font-size:11px;">
+          <tr>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>1. Bemor (yoki qonuniy vakili):</strong><br>
+              F.I.Sh: <strong>${escapeHtml(payload.name)}</strong><br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>2. Ro‘yxatga oluvchi (Registrator):</strong><br>
+              F.I.Sh: <strong>${escapeHtml(payload.registeredBy || payload.operatorLogin || 'Operator')}</strong><br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+          </tr>
+          <tr>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>3. Rentgen-laborant (Operator):</strong><br>
+              F.I.Sh: _________________________________________<br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>4. Shifokor (Vrach-radiolog):</strong><br>
+              F.I.Sh: _________________________________________<br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        console.error("Iframe print error:", e);
+      }
+    }, 350);
+  } catch (err) {
+    console.error("Consent print error:", err);
+    alert("⚠️ Anketa chop etishda xatolik: " + err.message);
+  }
 }
 
 function deletePatient(patientDbId) {
@@ -1067,7 +2033,7 @@ const RAW_DEFAULT_SERVICES = [
   { code: "R208", name: "Disk nusxasi (yoki qoshimcha)", type: "MRT", isContrast: false, duration: 10 }
 ];
 
-// Standart tibbiy tavsiyalarni yaratish funksiyasi
+// Standart tibbiy tavsiyalar va savolnomalarni yaratish funksiyasi
 function getClinicalGuidelines(s) {
   const name = (s.name || "").toLowerCase();
   const isContrast = s.isContrast === true || name.includes("kontrast") || name.includes("injektor") || name.includes("v/v");
@@ -1075,11 +2041,12 @@ function getClinicalGuidelines(s) {
 
   let preparation = "";
   let contraindications = "";
+  const questionsList = [];
 
   if (name.includes("disk") || name.includes("plyonka")) {
     preparation = "Tayyorgarlik talab etilmaydi.";
     contraindications = "Mavjud emas.";
-    return { preparation, contraindications };
+    return { preparation, contraindications, questions: "" };
   }
 
   if (isMSKT) {
@@ -1095,6 +2062,20 @@ function getClinicalGuidelines(s) {
         contraindications = "Homiladorlik (nisbiy), tana vazni 150 kg dan yuqori bo'lishi.";
       }
     }
+
+    // MSKT Savolnomasi
+    questionsList.push("Tanangizda kardiostimulyator yoki metall implantlar tekshiriladigan sohada mavjudmi?");
+    questionsList.push("Homiladorlik holati bormi yoki homiladorlik ehtimoli mavjudmi?");
+    questionsList.push("Oldin nur bilan davolanish (radioterapiya) yoki tez-tez rentgen tekshiruvlaridan o'tganmisiz?");
+    if (isContrast) {
+      questionsList.push("Dori vositalariga, yod preparatlariga yoki kontrast moddalarga allergik reaksiyangiz bo'lganmi?");
+      questionsList.push("Buyrak yetishmovchiligi, qonda kreatinin yoki mochevina miqdori oshishi kuzatilganmi?");
+      questionsList.push("Qandli diabet kasalligi bo'yicha Metformin (Glyukofaj, Siofor v.b.) dori vositasini qabul qilasizmi?");
+      questionsList.push("Qalqonsimon bez kasalliklari (toksik bo'qoq / gipertireoz) mavjudmi?");
+    } else {
+      questionsList.push("Dori vositalariga yoki oziq-ovqatlarga jiddiy allergiyangiz bormi?");
+      questionsList.push("Surunkali buyrak, jigar yoki yurak-qon tomir kasalliklari mavjudmi?");
+    }
   } else {
     // MRT
     if (isContrast) {
@@ -1109,9 +2090,23 @@ function getClinicalGuidelines(s) {
         contraindications = "Kardiostimulyator (EKSM), ferromagnit metall buyumlar/implantlar, koxlear implantlar, klavstrofobiya (yopiq joydan qo'rqish).";
       }
     }
+
+    // MRT Savolnomasi
+    questionsList.push("Tanangizda kardiostimulyator (EKSM), sun'iy yurak klapani, koxlear implant yoki neyrostimulyator bormi?");
+    questionsList.push("Tanangizda metall parchalar, ilonlar, temir plastina, klipsa yoki ferromagnit metall implant bormi?");
+    questionsList.push("Homiladorlik holati bormi yoki ko'krak suti bilan emizasizmi?");
+    questionsList.push("Yopiq joydan qo'rqish (klavstrofobiya), hushdan ketish, epilepsiya yoki tutqanoq holatlari bo'ladimi?");
+    if (isContrast) {
+      questionsList.push("Dori vositalariga, yod preparatlariga yoki kontrast moddalarga allergik reaksiyangiz bo'lganmi?");
+      questionsList.push("Buyrak yetishmovchiligi, jigar kasalliklari yoki qonda kreatinin/mochevina miqdori oshishi bormi?");
+      questionsList.push("Qandli diabet kasalligi bo'yicha Metformin (Glyukofaj, Siofor v.b.) dori vositasini qabul qilasizmi?");
+    } else {
+      questionsList.push("Dori vositalariga yoki boshqa moddalarga allergiyangiz bormi?");
+      questionsList.push("Buyrak yoki jigar faoliyatida jiddiy yetishmovchiliklar mavjudmi?");
+    }
   }
 
-  return { preparation, contraindications };
+  return { preparation, contraindications, questions: questionsList.join("\n") };
 }
 
 const DEFAULT_SERVICES = RAW_DEFAULT_SERVICES.map(s => {
@@ -1119,7 +2114,8 @@ const DEFAULT_SERVICES = RAW_DEFAULT_SERVICES.map(s => {
   return {
     ...s,
     preparation: s.preparation || g.preparation,
-    contraindications: s.contraindications || g.contraindications
+    contraindications: s.contraindications || g.contraindications,
+    questions: s.questions || g.questions
   };
 });
 
@@ -1152,15 +2148,16 @@ function initDefaultServices() {
 }
 
 function populateAllClinicalGuidelines() {
-  if (confirm("Barcha tekshiruvlarga standart tibbiy tayyorgarlik va qarshi ko'rsatmalarni to'ldirib chiqmoqchimisiz? (Belgilangan daqiqalar o'zgarmasdan saqlanadi)")) {
+  if (confirm("Barcha tekshiruvlarga standart tibbiy tayyorgarlik, qarshi ko'rsatmalar va savolnomalarni to'ldirib chiqmoqchimisiz? (Belgilangan daqiqalar o'zgarmasdan saqlanadi)")) {
     const updates = {};
     servicesList.forEach((s) => {
       const g = getClinicalGuidelines(s);
       updates[`${s.id}/preparation`] = g.preparation;
       updates[`${s.id}/contraindications`] = g.contraindications;
+      updates[`${s.id}/questions`] = g.questions;
     });
     db.ref("services_catalog").update(updates).then(() => {
-      alert("✅ Barcha tekshiruvlarga standart tayyorgarlik va qarshi ko'rsatmalar to'ldirildi!");
+      alert("✅ Barcha tekshiruvlarga standart tayyorgarlik, qarshi ko'rsatmalar va savolnomalar to'ldirildi!");
     });
   }
 }
@@ -1171,7 +2168,60 @@ function resetAllServicesTo30Min() {
   }
 }
 
-// Tekshiruvlar jadvalini chizish
+// Helper: Tayyorgarlik matnidan tuzilmaviy ma'lumotlarni ajratish
+function parseStructuredPreparation(prepText, serviceObj = {}) {
+  const p = prepText || "";
+  let fastingHours = serviceObj.fastingHours || "none";
+  if (!serviceObj.fastingHours) {
+    if (p.includes("8-10")) fastingHours = "8-10";
+    else if (p.includes("6-8")) fastingHours = "6-8";
+    else if (p.includes("4-6")) fastingHours = "4-6";
+    else if (p.toLowerCase().includes("och qorin") || p.toLowerCase().includes("och holda")) fastingHours = "4-6";
+  }
+
+  const needsBloodTest = serviceObj.needsBloodTest !== undefined ? serviceObj.needsBloodTest : /kreatinin|mochevina|mochivina/i.test(p);
+  const needsMetformin = serviceObj.needsMetformin !== undefined ? serviceObj.needsMetformin : /metformin|diabet/i.test(p);
+  const needsMetalFree = serviceObj.needsMetalFree !== undefined ? serviceObj.needsMetalFree : /metall|ferromagnit/i.test(p);
+  const needsHydration = serviceObj.needsHydration !== undefined ? serviceObj.needsHydration : /suyuqlik/i.test(p);
+
+  let specialPrep = serviceObj.specialPreparation || "";
+  if (!specialPrep && p) {
+    const sentences = p.split(/(?:\.(?!\d)|\;|\r?\n)+/).map(s => s.trim().replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
+    const specificParts = sentences.filter(s => {
+      const l = s.toLowerCase();
+      if (l.includes("och qorin") || l.includes("och holda") || l.includes("ovqatlanmasdan")) return false;
+      if (l.includes("kreatinin") || l.includes("mochevina") || l.includes("mochivina")) return false;
+      if (l.includes("metformin") || l.includes("glyukofaj") || l.includes("siofor")) return false;
+      if (l.includes("ko'p suyuqlik") || l.includes("kop suyuqlik")) return false;
+      if ((l.includes("metall") || l.includes("ferromagnit")) && l.includes("yechish")) return false;
+      return true;
+    });
+    specialPrep = specificParts.join(". ");
+  }
+
+  return { fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPrep };
+}
+
+function buildStructuredPreparationString(fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPrep) {
+  const parts = [];
+  if (fastingHours === "8-10") parts.push("Kamida 8-10 soat och qoringa kelish.");
+  else if (fastingHours === "6-8") parts.push("Kamida 6-8 soat och qoringa kelish.");
+  else if (fastingHours === "4-6") parts.push("4-6 soat och qoringa kelish.");
+
+  if (needsBloodTest) parts.push("Qonda Kreatinin va Mochevina tahlili (oxirgi 3 kun).");
+  if (needsMetformin) parts.push("Qandli diabet bo'lsa: Metformin 48 soat oldin to'xtatiladi.");
+  if (needsMetalFree) parts.push("Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.");
+  if (needsHydration) parts.push("Tekshiruvdan so'ng ko'p suyuqlik ichish.");
+
+  if (specialPrep && specialPrep.trim()) {
+    let sp = specialPrep.trim();
+    if (!/[.\?!:;]$/.test(sp)) sp += '.';
+    parts.push(sp);
+  }
+  return parts.join(" ");
+}
+
+// Tekshiruvlar jadvalini chizish (Yangi Tuzilmaviy Tayyorgarlik va Savolnoma bilan)
 function renderServicesTable() {
   const tbody = document.getElementById("servicesTableBody");
   if (!tbody) return;
@@ -1193,13 +2243,48 @@ function renderServicesTable() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4" style="text-align:center; color:#94a3b8;">Tekshiruvlar topilmadi</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4" style="text-align:center; color:#94a3b8;">Tekshiruvlar topilmadi</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(s => {
-    const prepText = s.preparation ? escapeHtml(s.preparation) : '<span style="color:#94a3b8; font-size:12px;">—</span>';
+    const struct = parseStructuredPreparation(s.preparation, s);
     const contraText = s.contraindications ? `<span style="color:#b91c1c; font-weight:600;">${escapeHtml(s.contraindications)}</span>` : '<span style="color:#94a3b8; font-size:12px;">—</span>';
+    
+    // Tuzilmaviy tayyorgarlik vizual ko'rinishi
+    let prepBadges = [];
+    if (struct.fastingHours && struct.fastingHours !== "none") {
+      prepBadges.push(`<span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-weight:800; font-size:11px;">⏳ ${struct.fastingHours}s och</span>`);
+    }
+    if (struct.needsBloodTest) {
+      prepBadges.push(`<span style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">🩸 Kreatinin</span>`);
+    }
+    if (struct.needsMetformin) {
+      prepBadges.push(`<span style="background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">💊 Metformin</span>`);
+    }
+    if (struct.needsMetalFree) {
+      prepBadges.push(`<span style="background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">🧲 Metall</span>`);
+    }
+
+    let prepHtml = "";
+    if (prepBadges.length > 0) {
+      prepHtml += `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">${prepBadges.join("")}</div>`;
+    }
+    if (struct.specialPrep) {
+      prepHtml += `<div style="font-size:11.5px; color:#0f172a; line-height:1.25;"><strong>🔍 Maxsus:</strong> ${escapeHtml(struct.specialPrep)}</div>`;
+    }
+    if (!prepHtml) {
+      prepHtml = '<span style="color:#94a3b8; font-size:12px;">— Maxsus talab yo\'q</span>';
+    }
+
+    // Savolnoma preview
+    let questionsText = '<span style="color:#94a3b8; font-size:12px;">— Standart savollar</span>';
+    if (s.questions && String(s.questions).trim()) {
+      const qLines = String(s.questions).split(/\r?\n/).filter(q => q.trim().length > 0);
+      if (qLines.length > 0) {
+        questionsText = `<span style="color:#0369a1; font-weight:700;">📝 ${qLines.length} ta savol</span><div style="font-size:11px; color:#475569; margin-top:2px; line-height:1.25;">${escapeHtml(qLines[0])}${qLines.length > 1 ? ' ...' : ''}</div>`;
+      }
+    }
 
     return `
       <tr>
@@ -1227,20 +2312,25 @@ function renderServicesTable() {
           </div>
         </td>
         <td onclick="openEditServiceModal('${s.id}')" style="cursor:pointer;" title="Tahrirlash uchun bosing">
-          <div style="font-size:12px; line-height:1.35; max-width:240px;">
-            ${prepText}
+          <div style="font-size:12px; line-height:1.35; max-width:220px;">
+            ${prepHtml}
           </div>
         </td>
         <td onclick="openEditServiceModal('${s.id}')" style="cursor:pointer;" title="Tahrirlash uchun bosing">
-          <div style="font-size:12px; line-height:1.35; max-width:240px;">
+          <div style="font-size:12px; line-height:1.35; max-width:200px;">
             ${contraText}
           </div>
         </td>
-        <td>
-          <button class="btn btn-secondary btn-small" title="Tahrirlash (Vaqti, Tayyorgarlik, Qarshi ko'rsatmalar)" onclick="openEditServiceModal('${s.id}')">
+        <td onclick="openEditServiceModal('${s.id}')" style="cursor:pointer;" title="Savolnomani tahrirlash uchun bosing">
+          <div style="font-size:12px; line-height:1.35; max-width:220px;">
+            ${questionsText}
+          </div>
+        </td>
+        <td style="text-align:center; white-space:nowrap;">
+          <button class="btn btn-secondary btn-small" title="Tahrirlash (Vaqti, Tayyorgarlik, Qarshi ko'rsatmalar, Savolnoma)" onclick="openEditServiceModal('${s.id}')">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button class="btn btn-secondary btn-small" title="O'chirish" style="color:var(--danger);" onclick="deleteService('${s.id}')">
+          <button class="btn btn-secondary btn-small" title="O'chirish" style="color:var(--danger); margin-left:3px;" onclick="deleteService('${s.id}')">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
@@ -1272,8 +2362,16 @@ function openAddServiceModal() {
   document.getElementById("serviceId").value = "";
   document.getElementById("serviceForm").reset();
   document.getElementById("svcDuration").value = "30";
-  document.getElementById("svcPreparation").value = "";
-  document.getElementById("svcContraindications").value = "";
+  document.getElementById("svcFastingHours").value = "none";
+  document.getElementById("svcNeedsBloodTest").checked = false;
+  document.getElementById("svcNeedsMetformin").checked = false;
+  document.getElementById("svcNeedsMetalFree").checked = false;
+  document.getElementById("svcNeedsHydration").checked = false;
+  document.getElementById("svcSpecialPrep").value = "";
+  document.getElementById("svcIncludeGeneralContra").checked = true;
+  document.getElementById("svcSpecialContra").value = "";
+  document.getElementById("svcIncludeGeneralQuestions").checked = true;
+  document.getElementById("svcSpecialQuestions").value = "";
   document.getElementById("serviceModal").classList.add("open");
 }
 
@@ -1288,14 +2386,56 @@ function openEditServiceModal(serviceId) {
   document.getElementById("svcType").value = s.type || "MRT";
   document.getElementById("svcContrast").value = s.isContrast ? "true" : "false";
   document.getElementById("svcDuration").value = s.duration || 30;
-  document.getElementById("svcPreparation").value = s.preparation || "";
-  document.getElementById("svcContraindications").value = s.contraindications || "";
+
+  const struct = parseStructuredPreparation(s.preparation, s);
+  document.getElementById("svcFastingHours").value = struct.fastingHours || "none";
+  document.getElementById("svcNeedsBloodTest").checked = struct.needsBloodTest === true;
+  document.getElementById("svcNeedsMetformin").checked = struct.needsMetformin === true;
+  document.getElementById("svcNeedsMetalFree").checked = struct.needsMetalFree === true;
+  document.getElementById("svcNeedsHydration").checked = struct.needsHydration === true;
+  document.getElementById("svcSpecialPrep").value = struct.specialPrep || "";
+
+  document.getElementById("svcIncludeGeneralContra").checked = s.includeGeneralContra !== false;
+  document.getElementById("svcSpecialContra").value = s.specialContraindications || (s.includeGeneralContra === false ? (s.contraindications || '') : (s.specialContraindications || ''));
+
+  document.getElementById("svcIncludeGeneralQuestions").checked = s.includeGeneralQuestions !== false;
+  document.getElementById("svcSpecialQuestions").value = s.specialQuestions || (s.includeGeneralQuestions === false ? (s.questions || '') : (s.specialQuestions || ''));
 
   document.getElementById("serviceModal").classList.add("open");
 }
 
+function setStandardQuestionsForServiceModal() {
+  const type = document.getElementById("svcType").value;
+  const isContrast = document.getElementById("svcContrast").value === "true";
+  const name = document.getElementById("svcName").value;
+  const g = getClinicalGuidelines({ type, isContrast, name });
+
+  document.getElementById("svcIncludeGeneralContra").checked = true;
+  document.getElementById("svcSpecialContra").value = "";
+  document.getElementById("svcIncludeGeneralQuestions").checked = true;
+  document.getElementById("svcSpecialQuestions").value = "";
+
+  // Standart tuzilmaviy tayyorgarlikni qo'yish
+  if (isContrast) {
+    document.getElementById("svcFastingHours").value = "4-6";
+    document.getElementById("svcNeedsBloodTest").checked = true;
+    document.getElementById("svcNeedsMetformin").checked = true;
+    document.getElementById("svcNeedsHydration").checked = true;
+  } else {
+    document.getElementById("svcFastingHours").value = "none";
+    document.getElementById("svcNeedsBloodTest").checked = false;
+    document.getElementById("svcNeedsMetformin").checked = false;
+    document.getElementById("svcNeedsHydration").checked = false;
+  }
+
+  if (type === "MRT") {
+    document.getElementById("svcNeedsMetalFree").checked = true;
+  }
+}
+
 function closeServiceModal() {
-  document.getElementById("serviceModal").classList.remove("open");
+  const modal = document.getElementById("serviceModal");
+  if (modal) modal.classList.remove("open");
 }
 
 function handleServiceSubmit(e) {
@@ -1306,10 +2446,71 @@ function handleServiceSubmit(e) {
   const type = document.getElementById("svcType").value;
   const isContrast = document.getElementById("svcContrast").value === "true";
   const duration = parseInt(document.getElementById("svcDuration").value, 10) || 30;
-  const preparation = document.getElementById("svcPreparation").value.trim();
-  const contraindications = document.getElementById("svcContraindications").value.trim();
 
-  const data = { code, name, type, isContrast, duration, preparation, contraindications };
+  const fastingHours = document.getElementById("svcFastingHours").value;
+  const needsBloodTest = document.getElementById("svcNeedsBloodTest").checked;
+  const needsMetformin = document.getElementById("svcNeedsMetformin").checked;
+  const needsMetalFree = document.getElementById("svcNeedsMetalFree").checked;
+  const needsHydration = document.getElementById("svcNeedsHydration").checked;
+  const specialPreparation = document.getElementById("svcSpecialPrep").value.trim();
+
+  const preparation = buildStructuredPreparationString(fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPreparation);
+
+  const includeGeneralContra = document.getElementById("svcIncludeGeneralContra").checked;
+  const specialContraindications = document.getElementById("svcSpecialContra").value.trim();
+  
+  // Birlashtirilgan qarshi ko'rsatma matni
+  let fullContra = [];
+  if (includeGeneralContra) {
+    const cGen = (globalGuidelines && globalGuidelines.contraTemplates) ? globalGuidelines.contraTemplates : DEFAULT_GLOBAL_GUIDELINES.contraTemplates;
+    if (type === "MRT" && cGen.mrt) fullContra.push(cGen.mrt);
+    if (type === "MSKT" && cGen.mskt) fullContra.push(cGen.mskt);
+    if (isContrast && cGen.contrast) fullContra.push(cGen.contrast);
+  }
+  if (specialContraindications) {
+    fullContra.push(specialContraindications);
+  }
+  const contraindications = fullContra.join(" ");
+
+  const includeGeneralQuestions = document.getElementById("svcIncludeGeneralQuestions").checked;
+  const specialQuestions = document.getElementById("svcSpecialQuestions").value.trim();
+  
+  // Birlashtirilgan savolnoma matni
+  let fullQuestions = [];
+  if (includeGeneralQuestions) {
+    const qGen = (globalGuidelines && globalGuidelines.questionTemplates) ? globalGuidelines.questionTemplates : DEFAULT_GLOBAL_GUIDELINES.questionTemplates;
+    if (qGen.universal) fullQuestions.push(...qGen.universal);
+    if (isContrast && qGen.contrast) fullQuestions.push(...qGen.contrast);
+    if (type === "MRT" && qGen.mrt) fullQuestions.push(...qGen.mrt);
+    if (type === "MSKT" && qGen.mskt) fullQuestions.push(...qGen.mskt);
+  }
+  if (specialQuestions) {
+    const sLines = specialQuestions.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    fullQuestions.push(...sLines);
+  }
+  const questions = fullQuestions.join("\n");
+
+  const data = {
+    code,
+    name,
+    type,
+    isContrast,
+    duration,
+    fastingHours,
+    needsBloodTest,
+    needsMetformin,
+    needsMetalFree,
+    needsHydration,
+    specialPreparation,
+    preparation,
+    includeGeneralContra,
+    specialContraindications,
+    contraindications,
+    includeGeneralQuestions,
+    specialQuestions,
+    questions,
+    updatedAt: new Date().toISOString()
+  };
 
   if (id) {
     db.ref(`services_catalog/${id}`).update(data).then(() => closeServiceModal());
@@ -1325,7 +2526,152 @@ function deleteService(serviceId) {
   }
 }
 
-// 11. TABLARNI ALMASHTIRISH
+// 10.1 OMMAVIY SOZLASH (GURUHLAB YANGILASH)
+function openBatchSettingsModal() {
+  document.getElementById("batchSettingsForm").reset();
+  document.getElementById("batchApplyFasting").checked = true;
+  document.getElementById("batchApplyGeneralRules").checked = true;
+  document.getElementById("batchApplySpecialPrep").checked = false;
+  document.getElementById("batchApplyContra").checked = true;
+  document.getElementById("batchApplyQuestions").checked = true;
+  document.getElementById("batchApplyDuration").checked = false;
+  
+  toggleBatchField('batchFastingBox', true);
+  toggleBatchField('batchGeneralRulesBox', true);
+  toggleBatchField('batchSpecialPrepBox', false);
+  toggleBatchField('batchContraBox', true);
+  toggleBatchField('batchQuestionsBox', true);
+  toggleBatchField('batchDurationBox', false);
+
+  onBatchGroupChanged();
+  document.getElementById("batchSettingsModal").classList.add("open");
+}
+
+function closeBatchSettingsModal() {
+  const modal = document.getElementById("batchSettingsModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function toggleBatchField(boxId, isChecked) {
+  const el = document.getElementById(boxId);
+  if (el) el.style.display = isChecked ? "block" : "none";
+}
+
+function onBatchGroupChanged() {
+  const group = document.getElementById("batchGroupSelect").value;
+  let sampleType = "MRT";
+  let sampleContrast = false;
+
+  if (group === "all_mrt") { sampleType = "MRT"; sampleContrast = false; }
+  else if (group === "all_mskt") { sampleType = "MSKT"; sampleContrast = false; }
+  else if (group === "all_contrast") { sampleType = "MRT"; sampleContrast = true; }
+  else if (group === "all_non_contrast") { sampleType = "MRT"; sampleContrast = false; }
+  else { sampleType = "MRT"; sampleContrast = false; }
+
+  const g = getClinicalGuidelines({ type: sampleType, isContrast: sampleContrast, name: "" });
+
+  if (sampleContrast) {
+    document.getElementById("batchFastingHours").value = "4-6";
+    document.getElementById("batchNeedsBloodTest").checked = true;
+    document.getElementById("batchNeedsMetformin").checked = true;
+    document.getElementById("batchNeedsHydration").checked = true;
+  } else {
+    document.getElementById("batchFastingHours").value = "none";
+    document.getElementById("batchNeedsBloodTest").checked = false;
+    document.getElementById("batchNeedsMetformin").checked = false;
+    document.getElementById("batchNeedsHydration").checked = false;
+  }
+
+  if (sampleType === "MRT") {
+    document.getElementById("batchNeedsMetalFree").checked = true;
+  } else {
+    document.getElementById("batchNeedsMetalFree").checked = false;
+  }
+
+  document.getElementById("batchContraindications").value = g.contraindications;
+  document.getElementById("batchQuestions").value = g.questions;
+}
+
+async function handleBatchSettingsSubmit(e) {
+  e.preventDefault();
+  const group = document.getElementById("batchGroupSelect").value;
+
+  const applyFasting = document.getElementById("batchApplyFasting").checked;
+  const applyGeneralRules = document.getElementById("batchApplyGeneralRules").checked;
+  const applySpecialPrep = document.getElementById("batchApplySpecialPrep").checked;
+  const applyContra = document.getElementById("batchApplyContra").checked;
+  const applyQuestions = document.getElementById("batchApplyQuestions").checked;
+  const applyDuration = document.getElementById("batchApplyDuration").checked;
+
+  const fastingHoursVal = document.getElementById("batchFastingHours").value;
+  const needsBloodTestVal = document.getElementById("batchNeedsBloodTest").checked;
+  const needsMetforminVal = document.getElementById("batchNeedsMetformin").checked;
+  const needsMetalFreeVal = document.getElementById("batchNeedsMetalFree").checked;
+  const needsHydrationVal = document.getElementById("batchNeedsHydration").checked;
+  const specialPrepVal = document.getElementById("batchSpecialPrep").value.trim();
+
+  const contraVal = document.getElementById("batchContraindications").value.trim();
+  const questionsVal = document.getElementById("batchQuestions").value.trim();
+  const durationVal = parseInt(document.getElementById("batchDuration").value, 10) || 30;
+
+  const targetServices = servicesList.filter(s => {
+    if (group === "all_mrt") return s.type === "MRT";
+    if (group === "all_mskt") return s.type === "MSKT";
+    if (group === "all_contrast") return s.isContrast === true;
+    if (group === "all_non_contrast") return s.isContrast === false;
+    return true; // all_services
+  });
+
+  if (targetServices.length === 0) {
+    alert("Tanlangan guruhda tekshiruvlar topilmadi.");
+    return;
+  }
+
+  if (!confirm(`${targetServices.length} ta tekshiruvga tanlangan ma'lumotlarni ommaviy qo'llamoqchimisiz?`)) {
+    return;
+  }
+
+  const updates = {};
+  targetServices.forEach(s => {
+    const struct = parseStructuredPreparation(s.preparation, s);
+    const finalFasting = applyFasting ? fastingHoursVal : struct.fastingHours;
+    const finalBloodTest = applyGeneralRules ? needsBloodTestVal : struct.needsBloodTest;
+    const finalMetformin = applyGeneralRules ? needsMetforminVal : struct.needsMetformin;
+    const finalMetalFree = applyGeneralRules ? needsMetalFreeVal : struct.needsMetalFree;
+    const finalHydration = applyGeneralRules ? needsHydrationVal : struct.needsHydration;
+    const finalSpecialPrep = applySpecialPrep ? specialPrepVal : struct.specialPrep;
+
+    if (applyFasting || applyGeneralRules || applySpecialPrep) {
+      updates[`${s.id}/fastingHours`] = finalFasting;
+      updates[`${s.id}/needsBloodTest`] = finalBloodTest;
+      updates[`${s.id}/needsMetformin`] = finalMetformin;
+      updates[`${s.id}/needsMetalFree`] = finalMetalFree;
+      updates[`${s.id}/needsHydration`] = finalHydration;
+      updates[`${s.id}/specialPreparation`] = finalSpecialPrep;
+      updates[`${s.id}/preparation`] = buildStructuredPreparationString(finalFasting, finalBloodTest, finalMetformin, finalMetalFree, finalHydration, finalSpecialPrep);
+    }
+
+    if (applyContra) updates[`${s.id}/contraindications`] = contraVal;
+    if (applyQuestions) updates[`${s.id}/questions`] = questionsVal;
+    if (applyDuration) updates[`${s.id}/duration`] = durationVal;
+    updates[`${s.id}/updatedAt`] = new Date().toISOString();
+  });
+
+  try {
+    await db.ref("services_catalog").update(updates);
+    closeBatchSettingsModal();
+    alert(`✅ ${targetServices.length} ta tekshiruv muvaffaqiyatli yangilandi!`);
+  } catch (err) {
+    alert("Xatolik yuz berdi: " + err.message);
+  }
+}
+
+function deleteService(serviceId) {
+  if (confirm("Haqiqatdan ham ushbu tekshiruvni o'chirmoqchimisiz?")) {
+    db.ref(`services_catalog/${serviceId}`).remove();
+  }
+}
+
 function switchTab(tabId) {
   document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
@@ -1333,11 +2679,8 @@ function switchTab(tabId) {
   const targetTab = document.getElementById(tabId);
   if (targetTab) targetTab.classList.add("active");
 
-  const navItems = document.querySelectorAll(".nav-item");
-  if (tabId === "queue-tab") navItems[0].classList.add("active");
-  if (tabId === "new-patient-tab") navItems[1].classList.add("active");
-  if (tabId === "services-tab") navItems[2].classList.add("active");
-  if (tabId === "doctors-tab") navItems[3].classList.add("active");
+  const btn = document.querySelector(`.nav-item[onclick*="${tabId}"]`);
+  if (btn) btn.classList.add("active");
 }
 
 function openNewPatientModal() {
@@ -1353,4 +2696,446 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function formatGuidelineSentencesHtml(rawText) {
+  if (!rawText || String(rawText).trim() === '' || String(rawText).trim() === '—') return '';
+  const text = String(rawText).trim();
+  const rawParts = text.split(/(?:\.(?!\d)|\;|\r?\n)+/);
+  const lines = [];
+  rawParts.forEach(p => {
+    let clean = p.trim().replace(/^[•\-\*]\s*/, '').trim();
+    if (clean.length > 0) {
+      if (!/[.\?!:;]$/.test(clean)) {
+        clean += '.';
+      }
+      lines.push(clean);
+    }
+  });
+  if (lines.length === 0) return '';
+  return lines.map(line => `<div style="margin-top:2px; padding-left:2px;">• ${escapeHtml(line)}</div>`).join('');
+}
+
+// ==========================================
+// 📌 UMUMIY TIBBIY QOIDALAR VA SAVOLNOMA SHABLONLARI BOSHQARUVI
+// ==========================================
+function openGeneralGuidelinesModal() {
+  const gg = (globalGuidelines && globalGuidelines.prepTemplates) ? globalGuidelines : DEFAULT_GLOBAL_GUIDELINES;
+  
+  // 1. Tayyorgarlik matnlari
+  const p = gg.prepTemplates || DEFAULT_GLOBAL_GUIDELINES.prepTemplates;
+  document.getElementById("ggFasting46").value = p.fasting_4_6 || "";
+  document.getElementById("ggFasting68").value = p.fasting_6_8 || "";
+  document.getElementById("ggFasting810").value = p.fasting_8_10 || "";
+  document.getElementById("ggBloodTest").value = p.bloodTest || "";
+  document.getElementById("ggMetformin").value = p.metformin || "";
+  document.getElementById("ggMetalFree").value = p.metalFree || "";
+  document.getElementById("ggHydration").value = p.hydration || "";
+
+  // 2. Qarshi ko'rsatmalar
+  const c = gg.contraTemplates || DEFAULT_GLOBAL_GUIDELINES.contraTemplates;
+  document.getElementById("ggContraMRT").value = c.mrt || "";
+  document.getElementById("ggContraMSKT").value = c.mskt || "";
+  document.getElementById("ggContraContrast").value = c.contrast || "";
+
+  // 3. Savolnomalar
+  const q = gg.questionTemplates || DEFAULT_GLOBAL_GUIDELINES.questionTemplates;
+  document.getElementById("ggQuestionsUniversal").value = (q.universal || []).join("\n");
+  document.getElementById("ggQuestionsContrast").value = (q.contrast || []).join("\n");
+  document.getElementById("ggQuestionsMRT").value = (q.mrt || []).join("\n");
+  document.getElementById("ggQuestionsMSKT").value = (q.mskt || []).join("\n");
+
+  // 4. So'rov muddati va rad etish qoidalari
+  const r = gg.referralRules || DEFAULT_GLOBAL_GUIDELINES.referralRules;
+  document.getElementById("ggMaxReferralAgeDays").value = r.maxReferralAgeDays || 10;
+  document.getElementById("ggExpiredReferralMessage").value = r.expiredReferralMessage || "";
+  document.getElementById("ggBlockedKeywords").value = (r.blockedKeywords || []).join(", ");
+  document.getElementById("ggNonMrtMsktMessage").value = r.nonMrtMsktMessage || "";
+  document.getElementById("ggCompletedRowMessage").value = r.completedRowMessage || "";
+
+  const modal = document.getElementById("generalGuidelinesModal");
+  if (modal) modal.classList.add("open");
+}
+
+function closeGeneralGuidelinesModal() {
+  const modal = document.getElementById("generalGuidelinesModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function resetGeneralGuidelinesToDefaults() {
+  if (confirm("Barcha umumiy tibbiy tayyorgarlik, qarshi ko'rsatmalar, savolnoma va so'rov muddati shablonlarini standart (boshlang'ich) holatga qaytarmoqchimisiz?")) {
+    globalGuidelines = JSON.parse(JSON.stringify(DEFAULT_GLOBAL_GUIDELINES));
+    db.ref("settings/general_guidelines").set(DEFAULT_GLOBAL_GUIDELINES).then(() => {
+      openGeneralGuidelinesModal();
+      alert("✅ Standart shablonlar qayta tiklandi!");
+    });
+  }
+}
+
+async function handleGeneralGuidelinesSubmit(e) {
+  e.preventDefault();
+
+  const parseLines = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return [];
+    return el.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  };
+
+  const parseKeywords = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return [];
+    return el.value.split(/[\r\n,;]+/).map(w => w.trim().toLowerCase()).filter(Boolean);
+  };
+
+  const payload = {
+    prepTemplates: {
+      fasting_4_6: document.getElementById("ggFasting46").value.trim(),
+      fasting_6_8: document.getElementById("ggFasting68").value.trim(),
+      fasting_8_10: document.getElementById("ggFasting810").value.trim(),
+      bloodTest: document.getElementById("ggBloodTest").value.trim(),
+      metformin: document.getElementById("ggMetformin").value.trim(),
+      metalFree: document.getElementById("ggMetalFree").value.trim(),
+      hydration: document.getElementById("ggHydration").value.trim()
+    },
+    contraTemplates: {
+      mrt: document.getElementById("ggContraMRT").value.trim(),
+      mskt: document.getElementById("ggContraMSKT").value.trim(),
+      contrast: document.getElementById("ggContraContrast").value.trim()
+    },
+    questionTemplates: {
+      universal: parseLines("ggQuestionsUniversal"),
+      contrast: parseLines("ggQuestionsContrast"),
+      mrt: parseLines("ggQuestionsMRT"),
+      mskt: parseLines("ggQuestionsMSKT")
+    },
+    referralRules: {
+      maxReferralAgeDays: parseInt(document.getElementById("ggMaxReferralAgeDays").value, 10) || 10,
+      expiredReferralMessage: document.getElementById("ggExpiredReferralMessage").value.trim(),
+      blockedKeywords: parseKeywords("ggBlockedKeywords"),
+      nonMrtMsktMessage: document.getElementById("ggNonMrtMsktMessage").value.trim(),
+      completedRowMessage: document.getElementById("ggCompletedRowMessage").value.trim()
+    },
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    await db.ref("settings/general_guidelines").set(payload);
+    globalGuidelines = payload;
+    closeGeneralGuidelinesModal();
+    renderServicesTable();
+    alert("✅ 📌 Umumiy shablonlar va rad etish qoidalari muvaffaqiyatli saqlandi!");
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
+}
+
+// ❓ TIBBIY SAVOLLARNI BARCHA TEKSHIRUVLAR UCHUN UMUMIY VA MAXSUS QISMLARNI AQLI BIRLASHTIRISH
+function consolidateQuestionsForServices(servicesList, examType = "MSKT", isContrast = false, fallbackQuestions = "") {
+  const gg = (globalGuidelines && globalGuidelines.questionTemplates) ? globalGuidelines.questionTemplates : DEFAULT_GLOBAL_GUIDELINES.questionTemplates;
+  const collected = [];
+  const seen = new Set();
+
+  function addQuestion(q, prefix = "") {
+    if (!q) return;
+    const clean = q.replace(/^\d+[\.\)\-]\s*/, '').trim();
+    if (clean.length < 5) return;
+    const norm = clean.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (!seen.has(norm)) {
+      seen.add(norm);
+      collected.push(prefix ? `${prefix}: ${clean}` : clean);
+    }
+  }
+
+  // 1. UMUMIY BARCHA TEKSHIRUVLAR UCHUN SAVOLLAR
+  (gg.universal || []).forEach(q => addQuestion(q));
+
+  // 2. KONTRASTLI TEKSHIRUVLAR UCHUN SAVOLLAR
+  if (isContrast) {
+    (gg.contrast || []).forEach(q => addQuestion(q));
+  }
+
+  // 3. MRT / MSKT GA XOS UMUMIY SAVOLLAR
+  if (examType === "MRT") {
+    (gg.mrt || []).forEach(q => addQuestion(q));
+  } else {
+    (gg.mskt || []).forEach(q => addQuestion(q));
+  }
+
+  // 4. HAR BIR TEKSHIRUVNING O'ZIGA XOS ALOHIDA SAVOLLARI
+  if (servicesList && servicesList.length > 0) {
+    servicesList.forEach(s => {
+      const sName = s.fullName || s.name || "";
+      const qText = s.specialQuestions || s.questions || "";
+      if (qText) {
+        const lines = String(qText).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        lines.forEach(l => {
+          const norm = l.replace(/^\d+[\.\)\-]\s*/, '').trim().toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+          if (!seen.has(norm)) {
+            addQuestion(l, servicesList.length > 1 ? `[${sName}]` : "");
+          }
+        });
+      }
+    });
+  } else if (fallbackQuestions) {
+    const lines = String(fallbackQuestions).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    lines.forEach(l => addQuestion(l));
+  }
+
+  return collected;
+}
+
+// 📌 BIR NECHTA TEKSHIRUV BO'LGANDA TAYYORGARLIK VA QARSHI KO'RSATMALARNI AQLLI BIRLASHTIRISH
+function consolidatePreparationAndContraindications(servicesList, fallbackPrep = "", fallbackContra = "") {
+  const list = (servicesList && servicesList.length > 0) ? servicesList : [{
+    name: "Tekshiruv",
+    fullName: "Tekshiruv",
+    preparation: fallbackPrep,
+    contraindications: fallbackContra
+  }];
+
+  const prepTpl = (globalGuidelines && globalGuidelines.prepTemplates) ? globalGuidelines.prepTemplates : DEFAULT_GLOBAL_GUIDELINES.prepTemplates;
+
+  if (list.length === 1) {
+    const s = list[0];
+    return {
+      isMultiple: false,
+      singlePrep: s.preparation || fallbackPrep || "",
+      singleContra: s.contraindications || fallbackContra || "",
+      generalPrepList: [],
+      specificServicesPrep: [],
+      consolidatedContraList: []
+    };
+  }
+
+  let maxFastingHours = 0;
+  let hasFasting = false;
+  let hasBloodTest = false;
+  let hasMetformin = false;
+  let hasPostHydration = false;
+  let hasMetalWarning = false;
+
+  const rawContras = [];
+  const specificServicesPrep = [];
+
+  list.forEach((s, idx) => {
+    const pText = s.preparation || "";
+    const cText = s.contraindications || "";
+
+    if (cText) {
+      const parts = cText.split(/[,;\n\r\.]+/);
+      parts.forEach(p => {
+        const clean = p.trim().replace(/^[•\-\*]\s*/, '').trim();
+        if (clean.length > 2 && clean !== '—') {
+          rawContras.push(clean);
+        }
+      });
+    }
+
+    if (!pText || pText.trim() === '' || pText.trim() === '—') {
+      specificServicesPrep.push({
+        index: idx + 1,
+        name: s.fullName || s.name || `Tekshiruv ${idx + 1}`,
+        specificPoints: []
+      });
+      return;
+    }
+
+    // Gaplar bo'yicha ajratish
+    const sentences = pText.split(/(?:\.(?!\d)|\;|\r?\n)+/).map(st => st.trim().replace(/^[•\-\*]\s*/, '').trim()).filter(st => st.length > 0);
+    const procSpecificPoints = [];
+
+    sentences.forEach(st => {
+      const lower = st.toLowerCase();
+
+      // 1. Och qorin tekshiruvi (Och qolish soatlarini solishtirib eng kattasini olish)
+      if (lower.includes("och qorin") || lower.includes("och holda") || lower.includes("ovqatlanmasdan") || lower.includes("och qoringa")) {
+        hasFasting = true;
+        const matchRange = lower.match(/(\d+)\s*[-–—to]\s*(\d+)\s*soat/);
+        const matchSingle = lower.match(/(\d+)\s*soat/);
+        if (matchRange) {
+          const upperHour = parseInt(matchRange[2], 10);
+          if (upperHour > maxFastingHours) maxFastingHours = upperHour;
+        } else if (matchSingle) {
+          const singleHour = parseInt(matchSingle[1], 10);
+          if (singleHour > maxFastingHours) maxFastingHours = singleHour;
+        } else {
+          if (maxFastingHours < 4) maxFastingHours = 4;
+        }
+        return;
+      }
+
+      // 2. Qon tahlillari (Kreatinin va Mochevina)
+      if (lower.includes("kreatinin") || lower.includes("mochevina") || lower.includes("mochivina") || (lower.includes("qon") && lower.includes("tahlil"))) {
+        hasBloodTest = true;
+        return;
+      }
+
+      // 3. Metformin / Diabet
+      if (lower.includes("metformin") || lower.includes("glyukofaj") || lower.includes("siofor") || (lower.includes("qandli diabet") && lower.includes("to'xtatiladi"))) {
+        hasMetformin = true;
+        return;
+      }
+
+      // 4. Tekshiruvdan so'ng ko'p suyuqlik ichish
+      if (lower.includes("ko'p suyuqlik") || lower.includes("kop suyuqlik") || (lower.includes("suyuqlik") && lower.includes("so'ng"))) {
+        hasPostHydration = true;
+        return;
+      }
+
+      // 5. Metall / ferromagnit buyumlarni yechish
+      if ((lower.includes("metall") || lower.includes("ferromagnit") || lower.includes("telefon") || lower.includes("taqinchoq")) && (lower.includes("yechish") || lower.includes("mumkin emas") || lower.includes("olib tashlash"))) {
+        hasMetalWarning = true;
+        return;
+      }
+
+      // Maxsus tekshiruv ko'rsatmasi (Klizma, No-shpa, 1 litr suv ichish va h.k.)
+      let cleanPt = st;
+      if (!/[.\?!:;]$/.test(cleanPt)) cleanPt += '.';
+      procSpecificPoints.push(cleanPt);
+    });
+
+    specificServicesPrep.push({
+      index: idx + 1,
+      name: s.fullName || s.name || `Tekshiruv ${idx + 1}`,
+      specificPoints: procSpecificPoints
+    });
+  });
+
+  // Umumiy tayyorgarlik ro'yxati (Sozlanadigan shablonlardan)
+  const generalPrepList = [];
+  if (hasFasting) {
+    if (maxFastingHours >= 8) {
+      generalPrepList.push(prepTpl.fasting_8_10 || "Kamida 8-10 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    } else if (maxFastingHours >= 6) {
+      generalPrepList.push(prepTpl.fasting_6_8 || "Kamida 6-8 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    } else {
+      generalPrepList.push(prepTpl.fasting_4_6 || "Kamida 4-6 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    }
+  }
+
+  if (hasBloodTest) {
+    generalPrepList.push(prepTpl.bloodTest || "Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida).");
+  }
+
+  if (hasMetformin) {
+    generalPrepList.push(prepTpl.metformin || "Qandli diabet bo'lsa: Metformin (Glyukofaj, Siofor v.b.) dori vositasini 48 soat oldin to'xtatish.");
+  }
+
+  if (hasMetalWarning) {
+    generalPrepList.push(prepTpl.metalFree || "Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.");
+  }
+
+  if (hasPostHydration) {
+    generalPrepList.push(prepTpl.hydration || "Tekshiruvdan so'ng ko'p miqdorda suyuqlik (suv) ichish.");
+  }
+
+  // Qarshi ko'rsatmalarni takrorlarsiz saralash
+  const consolidatedContraList = [];
+  const seenContras = new Set();
+  rawContras.forEach(c => {
+    const norm = c.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (!seenContras.has(norm)) {
+      seenContras.add(norm);
+      let formatted = c.charAt(0).toUpperCase() + c.slice(1);
+      if (!/[.\?!:;]$/.test(formatted)) formatted += '.';
+      consolidatedContraList.push(formatted);
+    }
+  });
+
+  return {
+    isMultiple: true,
+    generalPrepList,
+    specificServicesPrep,
+    consolidatedContraList
+  };
+}
+
+function formatConsolidatedGuidelinesHtml(payload) {
+  const prep = payload.preparation || "";
+  const contra = payload.contraindications || "";
+  const sList = payload.servicesList || [];
+
+  const data = consolidatePreparationAndContraindications(sList, prep, contra);
+
+  if (!data.isMultiple) {
+    const prepHtml = formatGuidelineSentencesHtml(data.singlePrep);
+    const contraHtml = formatGuidelineSentencesHtml(data.singleContra);
+    if (!prepHtml && !contraHtml) return "";
+
+    return `
+      <div class="guide-box">
+        <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000; border-bottom: 2px dashed #000; padding-bottom: 3px;">
+          TIBBIY KO'RSATMALAR VA ESLATMA
+        </div>
+        ${prepHtml ? `
+          <div style="margin-top: 4px; font-size: 12px;">
+            <div style="font-weight: 900; margin-bottom: 2px;">📋 Tayyorgarlik:</div>
+            <div style="padding-left: 2px; line-height: 1.35;">${prepHtml}</div>
+          </div>
+        ` : ''}
+        ${contraHtml ? `
+          <div style="margin-top: 5px; font-size: 12px;">
+            <div style="font-weight: 900; margin-bottom: 2px;">🚫 Qarshi ko'rsatmalar:</div>
+            <div style="padding-left: 2px; line-height: 1.35;">${contraHtml}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  let html = `
+    <div class="guide-box">
+      <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000; border-bottom: 2px dashed #000; padding-bottom: 3px;">
+        TIBBIY KO'RSATMALAR VA ESLATMA
+      </div>
+  `;
+
+  // 1. Umumiy Tayyorgarlik
+  if (data.generalPrepList.length > 0) {
+    html += `
+      <div style="margin-top: 4px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 2px; color:#000;">📌 Umumiy Tayyorgarlik (Barcha tekshiruvlar uchun):</div>
+        <div style="padding-left: 2px; line-height: 1.35;">
+          ${data.generalPrepList.map(g => `<div style="margin-top:2px;">• ${escapeHtml(g)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 2. Har bir tekshiruvning maxsus tayyorgarligi
+  const hasAnySpecific = data.specificServicesPrep.some(s => s.specificPoints.length > 0);
+  if (hasAnySpecific) {
+    html += `
+      <div style="margin-top: 6px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 3px; color:#000;">🔍 Har Bir Tekshiruv Uchun Alohida Tayyorgarlik:</div>
+        ${data.specificServicesPrep.map(s => `
+          <div style="margin-top: 3px; margin-bottom: 4px; padding-left: 4px; border-left: 2px solid #000;">
+            <strong style="font-size:11.5px; color:#000;">${s.index}. ${escapeHtml(s.name)}:</strong>
+            ${s.specificPoints.length > 0 ? `
+              <div style="padding-left: 4px; line-height: 1.35;">
+                ${s.specificPoints.map(pt => `<div style="margin-top:1px;">- ${escapeHtml(pt)}</div>`).join('')}
+              </div>
+            ` : `
+              <div style="padding-left: 4px; font-style:italic; font-size:11px; color:#475569;">- Alohida maxsus tayyorgarlik talab etilmaydi (Umumiy qoidalarga amal qiling).</div>
+            `}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // 3. Qarshi ko'rsatmalar (Birlashtirilgan)
+  if (data.consolidatedContraList.length > 0) {
+    html += `
+      <div style="margin-top: 6px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 2px; color:#000;">🚫 Qarshi ko'rsatmalar:</div>
+        <div style="padding-left: 2px; line-height: 1.35;">
+          ${data.consolidatedContraList.map(c => `<div style="margin-top:2px;">• ${escapeHtml(c)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  return html;
 }

@@ -1,13 +1,29 @@
 /**
- * Vrach Xonasi - Asosiy JavaScript Mantiqi
+ * Vrach - Laborant Xonasi (App2) - Asosiy JavaScript Mantiqi
+ * Avtorizatsiya, Laborantlar ro'yxati, Parol o'zgartirish va Navbatni boshqarish
  */
 
 let db = null;
+let currentLaborant = null;
 let currentDoctor = null;
+let laborantsList = [];
 let doctorsList = [];
 let todayDateStr = "";
 let myPatients = [];
 let activePatient = null;
+
+const DEFAULT_LABORANTS = [
+  { login: "LAB1", name: "Yoqubov Dilmurod", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB2", name: "Isfandiyor Xaydaraliyev", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB3", name: "Shukrullayev Miraziz", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB4", name: "Hojiakbar Turatov", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB5", name: "Gulomov Miraziz", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB6", name: "Irisova Shariat", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB7", name: "Po'latov Akbar", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB8", name: "Abdurashidov Shoxruhbek", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB9", name: "Pazliyev Sardor", password: "15420", role: "Vrach / Laborant-Operator" },
+  { login: "LAB10", name: "To'xtamishov Nodirbek", password: "15420", role: "Vrach / Laborant-Operator" }
+];
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
@@ -20,8 +36,9 @@ function initApp() {
 
   if (db) {
     setupConnectionMonitor();
+    listenToLaborants();
     listenToDoctors();
-    checkSavedDoctor();
+    checkSavedSession();
   }
 }
 
@@ -46,7 +63,27 @@ function setupConnectionMonitor() {
   });
 }
 
-// 1. VRACHLAR RO'YXATINI OLISH VA SELECTGA JOYLASHTIRISH
+// 1. LABORANTLAR RO'YXATINI REALTIME TINGLASH
+function listenToLaborants() {
+  db.ref("laborants").on("value", (snapshot) => {
+    laborantsList = [];
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        laborantsList.push({ login: key, ...data[key] });
+      });
+    } else {
+      laborantsList = [...DEFAULT_LABORANTS];
+    }
+
+    if (currentLaborant) {
+      const fresh = laborantsList.find(l => l.login.toUpperCase() === currentLaborant.login.toUpperCase());
+      if (fresh) currentLaborant = fresh;
+    }
+  });
+}
+
+// 2. QURILMALAR / XONALAR RO'YXATINI TINGLASH
 function listenToDoctors() {
   db.ref("doctors").on("value", (snapshot) => {
     doctorsList = [];
@@ -65,63 +102,204 @@ function renderDoctorSelect() {
   if (!select) return;
 
   if (doctorsList.length === 0) {
-    select.innerHTML = `<option value="">Vrachlar topilmadi</option>`;
+    select.innerHTML = `<option value="">Qurilmalar topilmadi</option>`;
     return;
   }
 
-  select.innerHTML = `<option value="">-- O'z xonangizni tanlang --</option>` + doctorsList.map(d => `
-    <option value="${d.id}">${escapeHtml(d.room)}: ${escapeHtml(d.name)} (${escapeHtml(d.specialty || '')})</option>
+  const currentVal = select.value;
+  select.innerHTML = `<option value="">-- Ish xonasini tanlang --</option>` + doctorsList.map(d => `
+    <option value="${escapeHtml(d.id)}">${escapeHtml(d.room || d.name)}: ${escapeHtml(d.name)} (${escapeHtml(d.specialty || '')})</option>
   `).join("");
+
+  if (currentVal) select.value = currentVal;
 }
 
-// 2. SAQLANGAN VRACHNI TEKSHIRISH
-function checkSavedDoctor() {
-  const savedDocId = localStorage.getItem("utt_active_doctor_id");
-  if (savedDocId) {
-    db.ref(`doctors/${savedDocId}`).once("value", (snap) => {
-      const doc = snap.val();
-      if (doc) {
-        setDoctorLoggedIn({ id: savedDocId, ...doc });
-      }
-    });
+// 3. SAQLANGAN SEANSIYANI TEKSHIRISH (AUTO-LOGIN)
+function checkSavedSession() {
+  try {
+    const savedLaborantJson = localStorage.getItem("utt_active_laborant");
+    const savedDocId = localStorage.getItem("utt_active_doctor_id");
+
+    if (savedLaborantJson && savedDocId) {
+      const savedLab = JSON.parse(savedLaborantJson);
+      db.ref(`doctors/${savedDocId}`).once("value", (snap) => {
+        const doc = snap.val();
+        if (doc && savedLab) {
+          setLaborantLoggedIn(savedLab, { id: savedDocId, ...doc });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("checkSavedSession error:", e);
   }
 }
 
-function handleDoctorLogin(e) {
+// 4. LABORANT TIZIMGA KIRISHI (LOGIN VA PAROLNI TERISH ORQALI)
+async function handleLaborantLogin(e) {
   e.preventDefault();
+  const inputLogin = (document.getElementById("loginUsername")?.value || "").trim().toUpperCase();
+  const inputPwd = (document.getElementById("loginPassword")?.value || "").trim();
   const docId = document.getElementById("doctorSelect").value;
+  const errorMsg = document.getElementById("loginErrorMsg");
+
+  if (!inputLogin) {
+    alert("Iltimos, Loginni kiriting!");
+    return;
+  }
+
+  if (!inputPwd) {
+    alert("Iltimos, Parolni kiriting!");
+    return;
+  }
+
+  if (!docId) {
+    alert("Iltimos, ish xonasini (qurilmani) tanlang!");
+    return;
+  }
+
+  const laborant = laborantsList.find(l => (l.login || "").toUpperCase() === inputLogin);
   const doc = doctorsList.find(d => d.id === docId);
 
   if (!doc) {
-    alert("Iltimos, vrachni tanlang!");
+    alert("Tanlangan ish xonasi topilmadi!");
     return;
   }
 
-  localStorage.setItem("utt_active_doctor_id", doc.id);
-  setDoctorLoggedIn(doc);
+  if (laborant && String(laborant.password) === String(inputPwd)) {
+    if (errorMsg) errorMsg.style.display = "none";
+
+    localStorage.setItem("utt_active_laborant", JSON.stringify(laborant));
+    localStorage.setItem("utt_active_doctor_id", doc.id);
+
+    setLaborantLoggedIn(laborant, doc);
+  } else {
+    if (errorMsg) {
+      errorMsg.style.display = "block";
+      errorMsg.innerText = "❌ Login yoki parol noto'g'ri! Qaytadan tekshirib kiriting.";
+    }
+  }
 }
 
-function setDoctorLoggedIn(doc) {
+function setLaborantLoggedIn(laborant, doc) {
+  currentLaborant = laborant;
   currentDoctor = doc;
+
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("doctorWorkspace").style.display = "flex";
 
-  document.getElementById("headerDocName").innerText = doc.name;
-  document.getElementById("headerDocRoom").innerText = doc.room;
-  document.getElementById("headerDocSpecialty").innerText = doc.specialty || "UTT Shifokori";
+  document.getElementById("headerLaborantName").innerText = laborant.name;
+  document.getElementById("headerLaborantBadge").innerText = laborant.login;
+  document.getElementById("headerDocRoom").innerText = doc.room || doc.name;
+  document.getElementById("headerDocSpecialty").innerText = `${doc.name} (${doc.specialty || 'Tomografiya'})`;
 
   listenToMyPatients();
 }
 
-function logoutDoctor() {
-  localStorage.removeItem("utt_active_doctor_id");
-  currentDoctor = null;
-  activePatient = null;
-  document.getElementById("doctorWorkspace").style.display = "none";
-  document.getElementById("loginScreen").style.display = "flex";
+function logoutLaborant() {
+  if (confirm("Tizimdan chiqmoqchimisiz?")) {
+    localStorage.removeItem("utt_active_laborant");
+    localStorage.removeItem("utt_active_doctor_id");
+    currentLaborant = null;
+    currentDoctor = null;
+    activePatient = null;
+
+    document.getElementById("loginPassword").value = "";
+    document.getElementById("doctorWorkspace").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+  }
 }
 
-// 3. SHU VRACHGA TEGISHLI BEMORLARNI REAL-TIME TINGLASH
+// 5. SHAXSIY PROFIL VA PAROL O'ZGARTIRISH MODALI
+function openProfileModal() {
+  if (!currentLaborant) return;
+
+  document.getElementById("modalLaborantName").innerText = currentLaborant.name;
+  document.getElementById("modalLaborantLogin").innerText = currentLaborant.login;
+  document.getElementById("modalLaborantRole").innerText = currentLaborant.role || "Vrach / Laborant";
+
+  document.getElementById("oldPassword").value = "";
+  document.getElementById("newPassword").value = "";
+  document.getElementById("confirmNewPassword").value = "";
+
+  const statusEl = document.getElementById("pwdChangeStatus");
+  if (statusEl) statusEl.style.display = "none";
+
+  document.getElementById("profileModal").style.display = "flex";
+}
+
+function closeProfileModal() {
+  document.getElementById("profileModal").style.display = "none";
+}
+
+async function handleChangePassword(e) {
+  e.preventDefault();
+  if (!currentLaborant) return;
+
+  const oldPwd = document.getElementById("oldPassword").value.trim();
+  const newPwd = document.getElementById("newPassword").value.trim();
+  const confirmPwd = document.getElementById("confirmNewPassword").value.trim();
+
+  if (String(oldPwd) !== String(currentLaborant.password)) {
+    showPasswordStatus("❌ Amaldagi (eski) parol noto'g'ri!", "error");
+    return;
+  }
+
+  if (newPwd.length < 4) {
+    showPasswordStatus("❌ Yangi parol kamida 4 ta belgidan iborat bo'lishi kerak!", "error");
+    return;
+  }
+
+  if (newPwd !== confirmPwd) {
+    showPasswordStatus("❌ Yangi parollar bir-biriga mos kelmadi!", "error");
+    return;
+  }
+
+  try {
+    // Firebase-da parolni yangilash
+    await db.ref(`laborants/${currentLaborant.login}/password`).set(newPwd);
+
+    currentLaborant.password = newPwd;
+    localStorage.setItem("utt_active_laborant", JSON.stringify(currentLaborant));
+
+    showPasswordStatus("✅ Parol muvaffaqiyatli o'zgartirildi!", "success");
+
+    setTimeout(() => {
+      closeProfileModal();
+    }, 1500);
+  } catch (err) {
+    showPasswordStatus("❌ Xatolik yuz berdi: " + err.message, "error");
+  }
+}
+
+function showPasswordStatus(msg, type) {
+  const el = document.getElementById("pwdChangeStatus");
+  if (!el) return;
+  el.style.display = "block";
+  el.innerText = msg;
+  if (type === "success") {
+    el.style.background = "#dcfce7";
+    el.style.color = "#166534";
+    el.style.border = "1px solid #86efac";
+  } else {
+    el.style.background = "#fee2e2";
+    el.style.color = "#991b1b";
+    el.style.border = "1px solid #fca5a5";
+  }
+}
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i>`;
+  } else {
+    input.type = "password";
+    btn.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+  }
+}
+
+// 6. SHU QURILMA/XONAGA TEGISHLI BEMORLARNI REAL-TIME TINGLASH
 function listenToMyPatients() {
   if (!currentDoctor) return;
 
@@ -137,16 +315,15 @@ function listenToMyPatients() {
       });
     }
 
-    // Saralash: kutayotganlar timestamp bo'yicha birinchi
+    // Saralash: kutayotganlar timestamp / vaqt bo'yicha birinchi
     myPatients.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
     updateWorkspaceState();
   });
 }
 
-// 4. ISH STOLINI YANGILASH
+// 7. ISH STOLINI YANGILASH
 function updateWorkspaceState() {
-  // Hozirgi aktiv bemor (calling yoki in_progress)
   const currentActive = myPatients.find(p => p.status === "calling" || p.status === "in_progress");
   const waitingPatients = myPatients.filter(p => p.status === "waiting");
   const completedPatients = myPatients.filter(p => p.status === "completed" || p.status === "cancelled");
@@ -183,7 +360,7 @@ function renderActivePatientCard(patient) {
   document.getElementById("activePatientName").innerText = patient.name;
   document.getElementById("activePhone").innerText = patient.phone || "-";
   document.getElementById("activeAge").innerText = patient.age || "-";
-  document.getElementById("activeService").innerText = patient.service || "UTT Ko'rik";
+  document.getElementById("activeService").innerText = patient.service || "Tomografiya Ko'rik";
   document.getElementById("activeTime").innerText = patient.time || "-";
 
   if (patient.notes) {
@@ -200,7 +377,7 @@ function renderActivePatientCard(patient) {
   } else if (patient.status === "in_progress") {
     badge.className = "badge badge-in_progress";
     badge.innerText = "Qabul qilinmoqda";
-    btnStartExam.style.display = "none"; // allaqachon boshlangan
+    btnStartExam.style.display = "none";
   }
 
   btnCallNext.style.display = "none";
@@ -218,13 +395,13 @@ function renderWaitingQueue(waitingList) {
     return;
   }
 
-  container.innerHTML = waitingList.map((p, index) => `
+  container.innerHTML = waitingList.map((p) => `
     <div class="queue-item-card">
       <div class="queue-item-left">
         <span class="queue-ticket-num">${p.ticketId}</span>
         <div>
           <div class="queue-patient-title">${escapeHtml(p.name)}</div>
-          <div class="queue-patient-sub">${escapeHtml(p.service || "UTT")} • ${p.time || ''}</div>
+          <div class="queue-patient-sub">${escapeHtml(p.service || "Tomografiya")} • ${p.time || ''}</div>
         </div>
       </div>
       <button class="btn btn-primary btn-small" onclick="callSpecificPatient('${p.id}')">
@@ -250,7 +427,7 @@ function renderCompletedHistory(completedList) {
   `).join("");
 }
 
-// 5. NAVBATNI BOSHQARISH VA TV MONITORGA CHAQIRUV YUBORISH
+// 8. NAVBATNI BOSHQARISH VA TV MONITORGA CHAQIRUV YUBORISH
 function callNextPatient() {
   const waitingPatients = myPatients.filter(p => p.status === "waiting");
   if (waitingPatients.length === 0) {
@@ -270,13 +447,17 @@ function callSpecificPatient(patientId) {
 }
 
 function callPatient(patient) {
-  // 1. Bemor holatini "calling" ga o'tkazish
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+
   db.ref(`patients/${todayDateStr}/${patient.id}`).update({
     status: "calling",
-    callTimestamp: firebase.database.ServerValue.TIMESTAMP
+    callTimestamp: firebase.database.ServerValue.TIMESTAMP,
+    laborantLogin: labLogin,
+    laborantName: labName,
+    calledByLaborant: labName ? `[${labLogin}] ${labName}` : ""
   });
 
-  // 2. TV Monitor uchun maxsus e'lon xabarini yuborish
   broadcastToTV(patient);
 }
 
@@ -285,19 +466,23 @@ function recallCurrentPatient() {
   broadcastToTV(activePatient);
 }
 
-// TV ga audio va animatsiya triggerini yuborish
 function broadcastToTV(patient) {
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+
   const announcement = {
     patientId: patient.id,
     ticketId: patient.ticketId,
     patientName: patient.name,
-    room: currentDoctor.room,
+    room: currentDoctor.room || currentDoctor.name,
     doctorName: currentDoctor.name,
-    specialty: currentDoctor.specialty || "UTT",
+    laborantName: labName,
+    laborantLogin: labLogin,
+    specialty: currentDoctor.specialty || "Tomografiya",
+    isContrast: patient.isContrast || false,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
-  // TV dagi barcha ekranlar ushbu tugunni tinglab turadi
   db.ref("calling_announcement").set(announcement);
 }
 
@@ -326,7 +511,6 @@ function skipPatient() {
   }
 }
 
-// Klaviatura tugmalari (Space yoki Enter - keyingisini chaqirish)
 function setupKeyboardShortcuts() {
   window.addEventListener("keydown", (e) => {
     if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") {
@@ -363,3 +547,4 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+

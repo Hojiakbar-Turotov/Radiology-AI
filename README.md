@@ -127,13 +127,13 @@ npx cap open android
 
 ## 🧩 5-Qadam: Kardelen RIS uchun Chrome Kengaytmasini O'rnatish
 
-Kardelen `http://192.168.150.111:2025` tizimi orqali 1 ta tugma bilan bemorlarni navbatga yuborish:
+Kardelen `http://192.168.150.111:2025` yoki tashqi `http://213.230.91.59:2025` tizimi orqali 1 ta tugma bilan bemorlarni navbatga yuborish:
 
 1. Google Chrome brauzerida yangi tab ochib, manzil satriga: **`chrome://extensions/`** deb yozing va Enter bosing.
 2. O'ng tomondagi yuqori burchakda **"Developer mode" (Dasturchi rejimi)** ni yoqing.
 3. Chap tomonda chiqqan **"Load unpacked" (Paketsiz yuklash)** tugmasini bosing.
-4. Ochilgan oynada loyihangizdagi **`UTT/extension-kardelen`** papkasini tanlang.
-5. Tayyor! Endi Kardelen tizimi (`http://192.168.150.111:2025/Radiology/Rbys.aspx`) sahifasini yangilang (`F5`). Barcha bemorlar qatorida ko'k rangli **"🏥 Navbatga"** tugmasi paydo bo'ladi.
+4. Ochilgan oynada loyihangizdagi **`AI-Randevu/extension-kardelen`** papkasini tanlang.
+5. Tayyor! Endi Kardelen tizimi (`http://192.168.150.111:2025/Radiology/Rbys.aspx` yoki `http://213.230.91.59:2025/Radiology/Rbys.aspx`) sahifasini yangilang (`F5`). Barcha bemorlar qatorida ko'k rangli **"🏥 Navbatga"** tugmasi paydo bo'ladi.
 
 ---
 

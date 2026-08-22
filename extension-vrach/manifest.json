@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "UTT Navbat - Vrach Ish Stoli",
+  "name": "RONS Navbat - Vrach Ish Stoli",
   "version": "1.0.0",
   "description": "Shifokor kompyuterida o'ziga tegishli bemorlar navbatini doimiy ko'rsatib turuvchi va 1 ta tugma bilan TV monitoriga chaqiruvchi kengaytma",
   "permissions": [
@@ -11,6 +11,10 @@
     "https://*.firebaseio.com/*",
     "http://192.168.150.111:2025/*",
     "http://192.168.150.111/*",
+    "http://213.230.91.59:2025/*",
+    "http://213.230.91.59/*",
+    "https://213.230.91.59:2025/*",
+    "https://213.230.91.59/*",
     "http://*/*",
     "https://*/*"
   ],
@@ -28,6 +32,10 @@
       "matches": [
         "http://192.168.150.111:2025/*",
         "http://192.168.150.111/*",
+        "http://213.230.91.59:2025/*",
+        "http://213.230.91.59/*",
+        "https://213.230.91.59:2025/*",
+        "https://213.230.91.59/*",
         "http://*/*",
         "https://*/*"
       ],

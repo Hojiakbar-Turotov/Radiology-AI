@@ -138,8 +138,7 @@ async function doQuickSend() {
   const deviceMap = {
     mrt1: { name: "MRT 1", room: "1-MRT Xonasi", type: "MRT" },
     mrt2: { name: "MRT 2", room: "2-MRT Xonasi", type: "MRT" },
-    mskt1: { name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT" },
-    mskt2: { name: "MSKT 2", room: "2-MSKT Xonasi", type: "MSKT" }
+    mskt1: { name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT" }
   };
 
   const dev = deviceMap[deviceId] || deviceMap.mrt1;

@@ -1,11 +1,3 @@
-/**
- * UTT / MRT & MSKT Navbat Tizimi - Kardelen Read-Only Passive Integration (V12)
- * - Faqat Registratura panelidagi (services_catalog) tekshiruvlargina navbatga qo'yiladi.
- * - ID raqamlar yoki sof sonlar tekshiruv deb olinmaydi.
- * - Yashil rangdagi (ko'rikdan o'tgan) qatorlar qat'iyan navbatga qo'yilmaydi.
- * - MSKT da eng katta vaqt (MAX), MRT da vaqtlar yig'indisi (SUM) hisoblanadi.
- */
-
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 
 // Standart Operatorlar
@@ -15,12 +7,11 @@ const DEFAULT_OPERATORS = [
   { login: "TB3", name: "Isfandiyor Xaydaraliyev", password: "15420", role: "Operator" }
 ];
 
-// Standart Boshlang'ich Qurilmalar
+// Standart Boshlang'ich Qurilmalar (2 ta MRT va 1 ta MSKT)
 const DEFAULT_DEVICES = [
   { id: "mrt1", name: "MRT 1", room: "1-MRT Xonasi", specialty: "Tomografiya (MRT)", type: "MRT", color: "#38bdf8" },
   { id: "mrt2", name: "MRT 2", room: "2-MRT Xonasi", specialty: "Tomografiya (MRT)", type: "MRT", color: "#818cf8" },
-  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", specialty: "Tomografiya (MSKT)", type: "MSKT", color: "#34d399" },
-  { id: "mskt2", name: "MSKT 2", room: "2-MSKT Xonasi", specialty: "Tomografiya (MSKT)", type: "MSKT", color: "#f59e0b" }
+  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", specialty: "Tomografiya (MSKT)", type: "MSKT", color: "#34d399" }
 ];
 
 let dynamicDevices = [...DEFAULT_DEVICES];
@@ -32,6 +23,192 @@ let deviceQueues = {};
 let todayOperatorQueueCount = 0;
 let lastPatientInfo = null; // Oxirgi tanlangan bemor ma'lumotlari (yuqori jadvaldan)
 
+// 📌 UMUMIY TIBBIY QOIDALAR, QARSHI KO'RSATMALAR VA SAVOLNOMA SHABLONLARI
+const DEFAULT_GLOBAL_GUIDELINES = {
+  prepTemplates: {
+    fasting_4_6: "Kamida 4-6 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    fasting_6_8: "Kamida 6-8 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    fasting_8_10: "Kamida 8-10 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).",
+    bloodTest: "Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida).",
+    metformin: "Qandli diabet bo'lsa: Metformin (Glyukofaj, Siofor v.b.) dori vositasini 48 soat oldin to'xtatish.",
+    metalFree: "Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.",
+    hydration: "Tekshiruvdan so'ng ko'p miqdorda suyuqlik (suv) ichish."
+  },
+  contraTemplates: {
+    mrt: "Kardiostimulyator (EKSM), ferromagnit metall implantlar, koxlear implantlar, klavstrofobiya (yopiq joydan qo'rqish).",
+    mskt: "Homiladorlik holati (nisbiy), o'ta yuqori tana vazni (150 kg dan ortiq).",
+    contrast: "Yodli/gadoliniyli kontrast moddasiga allergiya, og'ir buyrak yetishmovchiligi (kreatinin yuqori), gipertireoz (bo'qoq)."
+  },
+  questionTemplates: {
+    universal: [
+      "Tanangizda kardiostimulyator (EKSM), sun'iy yurak klapani, koxlear implant yoki neyrostimulyator bormi?",
+      "Tanangizda metall parchalar, ilonlar, temir plastina, klipsa yoki ferromagnit metall implant bormi?",
+      "Homiladorlik holati bormi yoki ko'krak suti bilan emizasizmi?",
+      "Dori vositalariga, yod preparatlariga yoki kontrast moddalarga allergik reaksiyangiz bo'lganmi?",
+      "Surunkali buyrak, jigar yoki yurak-qon tomir kasalliklari mavjudmi?"
+    ],
+    contrast: [
+      "Buyrak yetishmovchiligi, qonda kreatinin yoki mochevina miqdori oshishi kuzatilganmi?",
+      "Qandli diabet kasalligi bo'yicha Metformin (Glyukofaj, Siofor v.b.) dori vositasini qabul qilasizmi?",
+      "Qalqonsimon bez kasalliklari (toksik bo'qoq / gipertireoz) mavjudmi?"
+    ],
+    mrt: [
+      "Yopiq joydan qo'rqish (klavstrofobiya), hushdan ketish yoki tutqanoq holatlari bo'ladimi?"
+    ],
+    mskt: [
+      "Oldin nur bilan davolanish (radioterapiya) yoki tez-tez rentgen tekshiruvlaridan o'tganmisiz?"
+    ]
+  },
+  referralRules: {
+    maxReferralAgeDays: 10,
+    expiredReferralMessage: "Sizni qaytadan yo'naltirish kerak, eski so'rov bilan navbatga qo'yib bo'lmaydi. Yangi so'rovni vrachingiz kiritib bersin.",
+    blockedKeywords: [
+      "ultratovush", "utt", "uzi", "ehokg", "exo", "ekg", "elektrokardiogramma",
+      "endoskopiya", "gastroskopiya", "kolonoskopiya", "fgs", "fgds", "bronxoskopiya",
+      "mammografiya", "mammograf",
+      "rentgen", "rentgenografiya", "rentgenoskopiya", "rentgen scopi", "rentgenskopi", "flyurografiya",
+      "laboratoriya", "qon tahlili", "klinik tahlil", "bioximik", "gistologiya", "sitologiya",
+      "fizioterapiya", "massaj", "operatsiya", "muolaja"
+    ],
+    nonMrtMsktMessage: "Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).",
+    completedRowMessage: "Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi."
+  }
+};
+
+let globalGuidelines = JSON.parse(JSON.stringify(DEFAULT_GLOBAL_GUIDELINES));
+
+async function loadGeneralGuidelinesFromFirebase() {
+  try {
+    const res = await safeFetch(`${FIREBASE_DB_URL}/settings/general_guidelines.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data) {
+        globalGuidelines = {
+          prepTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.prepTemplates, data.prepTemplates || {}),
+          contraTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.contraTemplates, data.contraTemplates || {}),
+          questionTemplates: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.questionTemplates, data.questionTemplates || {}),
+          referralRules: Object.assign({}, DEFAULT_GLOBAL_GUIDELINES.referralRules, data.referralRules || {})
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("loadGeneralGuidelinesFromFirebase error:", e);
+  }
+}
+
+// 🗓 Sana va so'rov muddatini tekshirish yordamchilari
+function parseDateStringToDate(dateStr) {
+  if (!dateStr) return null;
+  const str = String(dateStr).trim();
+  const dotMatch = str.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+  if (dotMatch) {
+    const day = parseInt(dotMatch[1], 10);
+    const month = parseInt(dotMatch[2], 10) - 1;
+    const year = parseInt(dotMatch[3], 10);
+    return new Date(year, month, day);
+  }
+  const dashMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dashMatch) {
+    const year = parseInt(dashMatch[1], 10);
+    const month = parseInt(dashMatch[2], 10) - 1;
+    const day = parseInt(dashMatch[3], 10);
+    return new Date(year, month, day);
+  }
+  return null;
+}
+
+function checkReferralDateValidity(referralDateStr, targetQueueDateStr = null) {
+  const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
+  const maxDays = (rules && rules.maxReferralAgeDays !== undefined) ? parseInt(rules.maxReferralAgeDays, 10) : 10;
+  if (maxDays <= 0) return { isValid: true, diffDays: 0, maxDays };
+
+  const refDate = parseDateStringToDate(referralDateStr);
+  if (!refDate) return { isValid: true, diffDays: 0, maxDays };
+
+  let queueDate = targetQueueDateStr ? parseDateStringToDate(targetQueueDateStr) : null;
+  if (!queueDate) {
+    const now = new Date();
+    queueDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  const diffTime = queueDate.getTime() - refDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays > maxDays) {
+    const customMsg = rules.expiredReferralMessage || "Sizni qaytadan yo'naltirish kerak, eski so'rov bilan navbatga qo'yib bo'lmaydi. Yangi so'rovni vrachingiz kiritib bersin.";
+    return {
+      isValid: false,
+      diffDays,
+      maxDays,
+      referralDateStr,
+      message: `⚠️ So'rov muddati o'tgan (${diffDays} kun oldin: ${referralDateStr} | Me'yor: ${maxDays} kun). ${customMsg}`
+    };
+  }
+
+  return { isValid: true, diffDays, maxDays };
+}
+
+const DEFAULT_WORK_SCHEDULE = {
+  days: {
+    1: { enabled: true, name: "Dushanba", start: "08:00", end: "19:30" },
+    2: { enabled: true, name: "Seshanba", start: "08:00", end: "19:30" },
+    3: { enabled: true, name: "Chorshanba", start: "08:00", end: "19:30" },
+    4: { enabled: true, name: "Payshanba", start: "08:00", end: "19:30" },
+    5: { enabled: true, name: "Juma", start: "08:00", end: "19:30" },
+    6: { enabled: true, name: "Shanba", start: "08:00", end: "14:00" },
+    0: { enabled: false, name: "Yakshanba", start: "08:00", end: "14:00" }
+  }
+};
+let currentWorkSchedule = JSON.parse(JSON.stringify(DEFAULT_WORK_SCHEDULE));
+let calendarExceptions = {};
+
+function getDaySchedule(schedule, dayOfWeek) {
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
+  if (cfg && cfg.days && cfg.days[dayOfWeek]) {
+    return cfg.days[dayOfWeek];
+  }
+  const isEnabled = cfg && cfg.workDays ? cfg.workDays.includes(dayOfWeek) : (dayOfWeek !== 0);
+  const start = cfg && cfg.workStart ? cfg.workStart : "08:00";
+  const end = (dayOfWeek === 6) ? "14:00" : (cfg && cfg.workEnd ? cfg.workEnd : "19:30");
+  const names = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+  return { enabled: isEnabled, name: names[dayOfWeek], start, end };
+}
+
+function getDayEffectiveSchedule(targetDate, schedule = null, exceptions = null) {
+  const excMap = exceptions || calendarExceptions || {};
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
+  const dateObj = new Date(targetDate + "T00:00:00");
+  const dayOfWeek = dateObj.getDay();
+  const baseDayCfg = getDaySchedule(cfg, dayOfWeek);
+
+  if (excMap && excMap[targetDate]) {
+    const ex = excMap[targetDate];
+    if (!ex.isWorking) {
+      return {
+        enabled: false,
+        name: baseDayCfg.name,
+        title: ex.title || "Bayram / Dam olish kuni",
+        isException: true,
+        isHoliday: true,
+        start: baseDayCfg.start,
+        end: baseDayCfg.end
+      };
+    } else {
+      return {
+        enabled: true,
+        name: baseDayCfg.name,
+        title: ex.title || "Maxsus ish kuni",
+        isException: true,
+        isSpecialHours: true,
+        start: ex.workStart || "08:00",
+        end: ex.workEnd || (dayOfWeek === 6 ? "14:00" : "19:30")
+      };
+    }
+  }
+
+  return Object.assign({ title: baseDayCfg.name, isException: false }, baseDayCfg);
+}
+
 // Faqat asosiy oynada (window === window.top) ishga tushirish
 if (window === window.top) {
   initExtension();
@@ -42,13 +219,17 @@ async function initExtension() {
     await checkUserAuth();
     loadOperatorsFromFirebase().catch(() => {});
     await loadServicesCatalog();
+    await loadGeneralGuidelinesFromFirebase();
     await loadDevicesFromFirebase();
+    await loadWorkScheduleFromFirebase();
+    await loadCalendarExceptionsFromFirebase();
 
     createFloatingBar();
     fetchDeviceQueueCounts().catch(() => {});
 
     // Saytning DOM'iga hech narsa kiritmaymiz, faqat passiv click hodisasini tinglaymiz
     document.addEventListener("click", handlePassiveRowClick, true);
+    setupPeriodicSync();
 
     if (!currentUser) {
       setTimeout(() => {
@@ -56,7 +237,60 @@ async function initExtension() {
       }, 1000);
     }
   } catch (err) {
-    console.warn("UTT Extension init safely caught:", err);
+    console.warn("RONS Extension init safely caught:", err);
+  }
+}
+
+let lastObservedPatientId = "";
+let lastObservedServicesHash = "";
+
+function syncPatientAndServicesFromDom() {
+  try {
+    // Agar modal ochiq bo'lsa yoki foydalanuvchi alohida tekshiruv tanlagan bo'lsa, xalaqit bermaymiz
+    if (document.querySelector(".utt-modal-overlay") || (selectedPatient && selectedPatient.userSelectedSpecific)) return;
+
+    const activePatient = findActivePatientFromTopTable();
+    if (!activePatient) return;
+
+    const currentServices = findAllCurrentServicesPassively();
+    const servicesHash = currentServices.map(s => s.code || s.name).join(",");
+
+    if (activePatient.id !== lastObservedPatientId || servicesHash !== lastObservedServicesHash) {
+      lastObservedPatientId = activePatient.id;
+      lastObservedServicesHash = servicesHash;
+      lastPatientInfo = activePatient;
+      applyServicesToPatient(activePatient, currentServices);
+    }
+  } catch (e) {}
+}
+
+function setupPeriodicSync() {
+  setInterval(syncPatientAndServicesFromDom, 800);
+}
+
+async function loadWorkScheduleFromFirebase() {
+  try {
+    const res = await safeFetch(`${FIREBASE_DB_URL}/settings/schedule.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data) {
+        currentWorkSchedule = data;
+      }
+    }
+  } catch (e) {
+    console.warn("loadWorkScheduleFromFirebase error:", e);
+  }
+}
+
+async function loadCalendarExceptionsFromFirebase() {
+  try {
+    const res = await safeFetch(`${FIREBASE_DB_URL}/settings/calendar_exceptions.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      calendarExceptions = data || {};
+    }
+  } catch (e) {
+    console.warn("loadCalendarExceptionsFromFirebase error:", e);
   }
 }
 
@@ -181,16 +415,14 @@ function handlePassiveRowClick(e) {
     if (!row) return;
 
     const rowText = (row.innerText || "").trim();
-    if (!rowText || isGroupHeaderOrNavigation(rowText)) {
-      return;
-    }
+    if (!rowText) return;
 
     const cells = Array.from(row.querySelectorAll("td"));
     if (cells.length < 3) return;
 
     // A) AGAR FOYDALANUVCHI PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
     const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
-    const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/.test(c.innerText.trim()));
+    const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}/.test(c.innerText.trim()));
     const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
 
     if (hasTransId && (hasTransDate || hasServiceCode)) {
@@ -198,113 +430,39 @@ function handlePassiveRowClick(e) {
       return;
     }
 
-    // B) AGAR YUQORI JADVALDAGI YASHIL (TUGAGAN) QATOR BO'LSA:
-    if (isRowFinishedOrGreen(row, cells)) {
-      selectedPatient = null;
-      const txt = document.getElementById("uttFloatingPatientText");
-      const btn = document.getElementById("uttFloatingSendBtn");
-      if (txt && btn) {
-        txt.innerHTML = `<span style="color:#22c55e; font-weight:700;">🟢 Bemor tekshiruvdan o'tib bo'lgan (Yashil qator) — Navbatga qo'yilmaydi</span>`;
-        btn.disabled = true;
+    // B) AGAR YUQORI JADVALDAGI BEMOR QATORI BO'LSA:
+    const patient = extractPatientFromRow(row);
+    if (patient) {
+      if (patient.isGreen) {
+        selectedPatient = null;
+        const txt = document.getElementById("uttFloatingPatientText");
+        const btn = document.getElementById("uttFloatingSendBtn");
+        if (txt && btn) {
+          txt.innerHTML = `<span style="color:#22c55e; font-weight:700;">🟢 Bemor tekshiruvdan o'tib bo'lgan (Yashil qator) — Navbatga qo'yilmaydi</span>`;
+          btn.disabled = true;
+        }
+        return;
       }
+
+      lastPatientInfo = patient;
+
+      // Pastki jadvaldagi xizmatlarni o'qish va qo'llash
+      const servicesList = findAllCurrentServicesPassively();
+      applyServicesToPatient(patient, servicesList);
+
+      // Kardelen pastki jadvalni AJAX orqali kechroq yuklaganda avtomatik yangilash:
+      [150, 300, 600, 1000].forEach(delay => {
+        setTimeout(() => {
+          if (lastPatientInfo && lastPatientInfo.id === patient.id && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
+            const freshServices = findAllCurrentServicesPassively();
+            if (freshServices.length > 0) {
+              applyServicesToPatient(lastPatientInfo, freshServices);
+            }
+          }
+        }, delay);
+      });
       return;
     }
-
-    // C) Ultratovush, Endoskopiya yoki Rentgen bo'lsa, e'tiborsiz qoldirish
-    const lowerText = rowText.toLowerCase();
-    if (lowerText.includes("ultratovush") || lowerText.includes("endoskopiya") || lowerText.includes("rentgen")) {
-      return;
-    }
-
-    // D) YUQORI JADVALDAN BEMOR MA'LUMOTLARINI ANIKLASH:
-    let idIdx = -1;
-    let patientId = "";
-
-    for (let i = 0; i < cells.length; i++) {
-      const cText = cells[i].innerText.trim();
-      if (/^\d{3,8}$/.test(cText) && !patientId && cText !== "2025" && cText !== "2026" && cText !== "2024") {
-        idIdx = i;
-        patientId = cText;
-        break;
-      }
-    }
-
-    if (idIdx === -1) return;
-
-    let referringDoctor = cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "";
-    let surname = cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "";
-    let name = cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "";
-    let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
-    let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
-
-    // Sarlavhalardan ustun nomlarini aniqroq tekshirish
-    try {
-      const table = row.closest("table");
-      if (table) {
-        const headerRow = table.querySelector("tr");
-        if (headerRow) {
-          const ths = Array.from(headerRow.querySelectorAll("th, td")).map(th => th.innerText.trim().toLowerCase());
-          const docIdx = ths.findIndex(h => h.includes("shifokor") || h.includes("fayl"));
-          const prioIdx = ths.findIndex(h => h.includes("ustuvorlik") || h.includes("ustun"));
-          const deptIdx = ths.findIndex(h => h.includes("bo'lim") || h.includes("bolim") || h.includes("ulangan"));
-
-          if (docIdx !== -1 && cells[docIdx]) referringDoctor = cells[docIdx].innerText.trim();
-          if (prioIdx !== -1 && cells[prioIdx]) priority = cells[prioIdx].innerText.trim();
-          if (deptIdx !== -1 && cells[deptIdx]) department = cells[deptIdx].innerText.trim();
-        }
-      }
-    } catch (e) {}
-
-    const isStationary = priority.toLowerCase().includes("statsionar");
-    const patientType = isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi";
-    const departmentName = isStationary ? department : "";
-
-    if (!surname || /^\d+$/.test(surname) || surname.includes(":")) return;
-
-    const fullName = `${surname} ${name}`.trim();
-
-    // Bemor ma'lumotlarini eslab qolish
-    lastPatientInfo = {
-      id: patientId,
-      name: fullName,
-      referringDoctor: referringDoctor,
-      priority: priority,
-      department: departmentName,
-      patientType: patientType,
-      isStationary: isStationary
-    };
-
-    // Pastki jadvaldagi xizmatlarni o'qish va qo'llash
-    const servicesList = findAllCurrentServicesPassively();
-    applyServicesToPatient(lastPatientInfo, servicesList);
-
-    // Kardelen pastki jadvalni AJAX orqali kechroq yuklashi mumkinligi sababli kechiktirilgan qayta tekshiruvlar:
-    setTimeout(() => {
-      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
-        const freshServices = findAllCurrentServicesPassively();
-        if (freshServices.length > 0) {
-          applyServicesToPatient(lastPatientInfo, freshServices);
-        }
-      }
-    }, 200);
-
-    setTimeout(() => {
-      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
-        const freshServices = findAllCurrentServicesPassively();
-        if (freshServices.length > 0) {
-          applyServicesToPatient(lastPatientInfo, freshServices);
-        }
-      }
-    }, 500);
-
-    setTimeout(() => {
-      if (lastPatientInfo && lastPatientInfo.id === patientId && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
-        const freshServices = findAllCurrentServicesPassively();
-        if (freshServices.length > 0) {
-          applyServicesToPatient(lastPatientInfo, freshServices);
-        }
-      }
-    }, 900);
 
   } catch (err) {
     console.warn("Passive click handler caught:", err);
@@ -329,16 +487,20 @@ function handleSpecificBottomServiceClick(row, cells) {
     let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
     let candidateName = "";
     let serviceDoctor = "";
+    let serviceDate = "";
 
     for (const cell of cells) {
       const c = cell.innerText.trim();
       if (/^\d+$/.test(c)) continue;
-      if (/\d{2}\.\d{2}\.\d{4}/.test(c)) continue;
+      if (/\d{2}\.\d{2}\.\d{4}/.test(c)) {
+        serviceDate = c;
+        continue;
+      }
       if (/^R\d{2,5}$/i.test(c)) continue;
       if (c === "-" || c === "") continue;
       if (c.includes("To'lanmagan") || c.includes("Tolanmagan") || c.includes("To'langan")) continue;
 
-      if (c.includes("Dr.") || c.includes("Shifokor") || c.includes("Muminov") || c.includes("Sobit")) {
+      if (c.includes("Dr.") || c.includes("Shifokor") || c.includes("ova") || c.includes("yev") || c.includes("yeva") || c.includes("qizi") || c.includes("o'g'li") || c.includes("ovich") || c.includes("ovna")) {
         serviceDoctor = c;
         continue;
       }
@@ -346,6 +508,21 @@ function handleSpecificBottomServiceClick(row, cells) {
       if (c.length >= 4 && !candidateName) {
         candidateName = c;
       }
+    }
+
+    // 2. TEKSHIRUV: MRT YOKI MSKT BO'LMASA -> QAT'IYAN RAD ETISH
+    if (!isMrtOrMsktService(candidateCode, candidateName, row.innerText)) {
+      selectedPatient = null;
+      const txt = document.getElementById("uttFloatingPatientText");
+      const btn = document.getElementById("uttFloatingSendBtn");
+      const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
+      const tmpl = rules.nonMrtMsktMessage || "Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).";
+      const msg = tmpl.replace("{service}", candidateName || candidateCode || 'Tekshiruv');
+      if (txt && btn) {
+        txt.innerHTML = `<span style="color:#ef4444; font-weight:800; font-size:13px;">⚠️ ${escapeHtml(msg)}</span>`;
+        btn.disabled = true;
+      }
+      return;
     }
 
     const catalogEntry = getServiceCatalogEntry(candidateCode, candidateName);
@@ -367,11 +544,12 @@ function handleSpecificBottomServiceClick(row, cells) {
       contraindications: catalogEntry.contraindications || "",
       isContrast: isContrast,
       isMSKT: isMSKT,
-      type: isMSKT ? "MSKT" : "MRT"
+      type: isMSKT ? "MSKT" : "MRT",
+      transactionDate: serviceDate
     };
 
-    // Bemor ma'lumotini olish
-    let pInfo = lastPatientInfo || findActivePatientFromTopTable() || selectedPatient;
+    // Bemor ma'lumotini aniq topish (shifokor va sana bo'yicha yuqori jadvaldan moslash)
+    let pInfo = findActivePatientFromTopTable(serviceDoctor, serviceDate) || lastPatientInfo || selectedPatient;
     if (!pInfo) {
       pInfo = {
         id: "—",
@@ -380,7 +558,8 @@ function handleSpecificBottomServiceClick(row, cells) {
         priority: "",
         department: "",
         patientType: "Uyidan qatnaydi",
-        isStationary: false
+        isStationary: false,
+        rowDate: serviceDate
       };
     }
 
@@ -388,11 +567,28 @@ function handleSpecificBottomServiceClick(row, cells) {
       pInfo.referringDoctor = serviceDoctor;
     }
 
+    lastPatientInfo = pInfo;
+
+    // 3. SO'ROV MUDDATINI TEKSHIRISH
+    const refDateStr = pInfo.rowDate || pInfo.referralDate || serviceDate;
+    const validity = checkReferralDateValidity(refDateStr);
+    if (!validity.isValid) {
+      selectedPatient = null;
+      const txt = document.getElementById("uttFloatingPatientText");
+      const btn = document.getElementById("uttFloatingSendBtn");
+      if (txt && btn) {
+        txt.innerHTML = `<strong>${escapeHtml(pInfo.id)} - ${escapeHtml(pInfo.name)}</strong>: <span style="color:#ef4444; font-weight:800; font-size:12.5px;">${escapeHtml(validity.message)}</span>`;
+        btn.disabled = true;
+      }
+      return;
+    }
+
     const combo = calculateCombinedProcedureInfo([specificService]);
     const allServices = findAllCurrentServicesPassively();
 
     selectedPatient = {
       ...pInfo,
+      referralDate: refDateStr,
       service: combo.service,
       serviceCode: combo.serviceCode,
       duration: combo.duration,
@@ -422,14 +618,34 @@ function applyServicesToPatient(patientInfo, servicesList) {
 
   const txt = document.getElementById("uttFloatingPatientText");
   const btn = document.getElementById("uttFloatingSendBtn");
+  const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
+
+  // 1. SO'ROV SANASI VA MUDDATINI TEKSHIRISH (10 KUNLIK VA SOZLANGAN MUDDAT):
+  const refDateStr = patientInfo.rowDate || patientInfo.referralDate || (servicesList && servicesList.foundTransactionDate);
+  const validity = checkReferralDateValidity(refDateStr);
+
+  if (!validity.isValid) {
+    selectedPatient = null;
+    if (txt && btn) {
+      txt.innerHTML = `<strong>${escapeHtml(patientInfo.id)} - ${escapeHtml(patientInfo.name)}</strong>: <span style="color:#ef4444; font-weight:800; font-size:12.5px;">${escapeHtml(validity.message)}</span>`;
+      btn.disabled = true;
+    }
+    return;
+  }
 
   if (!servicesList || servicesList.length === 0) {
     selectedPatient = null;
     if (txt && btn) {
-      if (servicesList && servicesList.totalServiceRows > 0 && servicesList.totalServiceRows === servicesList.greenServiceRows) {
-        txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#22c55e; font-weight:800; font-size:13px;">🟢 Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi</span>`;
+      if (servicesList && servicesList.nonMrtMsktServicesCount > 0) {
+        const names = servicesList.nonMrtMsktNames.slice(0, 2).join(", ");
+        const tmpl = rules.nonMrtMsktMessage || "Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).";
+        const msg = tmpl.replace("{service}", names);
+        txt.innerHTML = `<strong>${escapeHtml(patientInfo.id)} - ${escapeHtml(patientInfo.name)}</strong>: <span style="color:#ef4444; font-weight:800; font-size:12.5px;">⚠️ ${escapeHtml(msg)}</span>`;
+      } else if (servicesList && servicesList.totalServiceRows > 0 && servicesList.totalServiceRows === servicesList.greenServiceRows) {
+        const compMsg = rules.completedRowMessage || "Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi.";
+        txt.innerHTML = `<strong>${escapeHtml(patientInfo.id)} - ${escapeHtml(patientInfo.name)}</strong>: <span style="color:#22c55e; font-weight:800; font-size:13px;">🟢 ${escapeHtml(compMsg)}</span>`;
       } else {
-        txt.innerHTML = `<strong>${patientInfo.id} - ${patientInfo.name}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
+        txt.innerHTML = `<strong>${escapeHtml(patientInfo.id)} - ${escapeHtml(patientInfo.name)}</strong>: <span style="color:#ef4444; font-weight:700;">⚠️ Registrator ro'yxatida bunday tekshiruv topilmadi</span>`;
       }
       btn.disabled = true;
     }
@@ -440,6 +656,7 @@ function applyServicesToPatient(patientInfo, servicesList) {
 
   selectedPatient = {
     ...patientInfo,
+    referralDate: refDateStr,
     service: combo.service,
     serviceCode: combo.serviceCode,
     duration: combo.duration,
@@ -461,8 +678,6 @@ function applyServicesToPatient(patientInfo, servicesList) {
   updateFloatingBarPatientDisplay();
 }
 
-
-
 function updateFloatingBarPatientDisplay() {
   const txt = document.getElementById("uttFloatingPatientText");
   const btn = document.getElementById("uttFloatingSendBtn");
@@ -480,54 +695,189 @@ function updateFloatingBarPatientDisplay() {
   btn.disabled = false;
 }
 
-function findActivePatientFromTopTable() {
+// 2.2 BEMOR QATORIDAN ANIQ MA'LUMOTLARNI AJRATIB OLISH
+function extractPatientFromRow(row) {
   try {
-    const allRows = document.querySelectorAll("tr");
-    for (const r of allRows) {
-      const text = (r.innerText || "").trim();
-      if (!text || isGroupHeaderOrNavigation(text)) continue;
+    if (!row) return null;
+    const cells = Array.from(row.querySelectorAll("td"));
+    if (cells.length < 3) return null;
 
-      const cells = Array.from(r.querySelectorAll("td"));
-      if (cells.length < 3) continue;
+    // Agar pastki tranzaksiya jadvali bo'lsa (R kodli yoki 7 xonali trans ID):
+    const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
+    const hasTransId = cells.some(c => /^\d{7,8}$/.test(c.innerText.trim()));
+    if (hasServiceCode && hasTransId) return null;
 
-      if (isRowFinishedOrGreen(r, cells)) continue;
+    // Bemor ID sini aniqlash (1 dan 8 xonali son, yil emas)
+    let idIdx = -1;
+    let patientId = "";
+    for (let i = 0; i < cells.length; i++) {
+      const txt = cells[i].innerText.trim();
+      if (/^\d{1,8}$/.test(txt) && txt !== "2024" && txt !== "2025" && txt !== "2026") {
+        idIdx = i;
+        patientId = txt;
+        break;
+      }
+    }
 
-      let idIdx = -1;
-      let patientId = "";
+    if (idIdx === -1) return null;
 
-      for (let i = 0; i < cells.length; i++) {
-        const cText = cells[i].innerText.trim();
-        if (/^\d{3,8}$/.test(cText) && cText !== "2024" && cText !== "2025" && cText !== "2026") {
-          idIdx = i;
-          patientId = cText;
-          break;
+    let referringDoctor = cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "";
+    let surname = cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "";
+    let name = cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "";
+    let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
+    let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
+    let rowDate = cells[idIdx + 5] ? cells[idIdx + 5].innerText.trim() : "";
+
+    // Sarlavha ustunlaridan aniqlashga urinish
+    try {
+      const table = row.closest("table");
+      if (table) {
+        const headerRow = table.querySelector("tr");
+        if (headerRow) {
+          const ths = Array.from(headerRow.querySelectorAll("th, td")).map(th => th.innerText.trim().toLowerCase());
+          const docIdx = ths.findIndex(h => h.includes("shifokor") || h.includes("fayl"));
+          const idColIdx = ths.findIndex(h => h.includes("bemor id") || (h.includes("id") && !h.includes("fayl")));
+          const surIdx = ths.findIndex(h => h.includes("familiya"));
+          const nameIdx = ths.findIndex(h => h.includes("ismi") || h.includes("ism"));
+          const prioIdx = ths.findIndex(h => h.includes("ustuvorlik") || h.includes("ustun"));
+          const deptIdx = ths.findIndex(h => h.includes("bo'lim") || h.includes("bolim"));
+          const dateIdx = ths.findIndex(h => h.includes("sana") || h.includes("royxatga"));
+
+          if (idColIdx !== -1 && cells[idColIdx] && /^\d+$/.test(cells[idColIdx].innerText.trim())) {
+            patientId = cells[idColIdx].innerText.trim();
+          }
+          if (docIdx !== -1 && cells[docIdx]) referringDoctor = cells[docIdx].innerText.trim();
+          if (surIdx !== -1 && cells[surIdx]) surname = cells[surIdx].innerText.trim();
+          if (nameIdx !== -1 && cells[nameIdx]) name = cells[nameIdx].innerText.trim();
+          if (prioIdx !== -1 && cells[prioIdx]) priority = cells[prioIdx].innerText.trim();
+          if (deptIdx !== -1 && cells[deptIdx]) department = cells[deptIdx].innerText.trim();
+          if (dateIdx !== -1 && cells[dateIdx]) rowDate = cells[dateIdx].innerText.trim();
         }
       }
+    } catch (e) {}
 
-      if (idIdx === -1) continue;
-
-      let referringDoctor = cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "";
-      let surname = cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "";
-      let name = cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "";
-      let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
-      let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
-
-      if (!surname || /^\d+$/.test(surname) || surname.includes(":")) continue;
-
-      const isStationary = priority.toLowerCase().includes("statsionar");
-      const patientType = isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi";
-
-      return {
-        id: patientId,
-        name: `${surname} ${name}`.trim(),
-        referringDoctor: referringDoctor,
-        priority: priority,
-        department: isStationary ? department : "",
-        patientType: patientType,
-        isStationary: isStationary
-      };
+    if (!surname || /^\d+$/.test(surname) || surname.includes(":") || surname.toLowerCase().includes("tranzaksiya") || surname.toLowerCase().includes("kod")) {
+      return null;
     }
-  } catch (e) {}
+
+    const isStationary = priority.toLowerCase().includes("statsionar");
+    const isGreen = isRowFinishedOrGreen(row, cells);
+
+    return {
+      row: row,
+      id: patientId,
+      name: `${surname} ${name}`.trim(),
+      surname: surname,
+      firstName: name,
+      referringDoctor: referringDoctor,
+      priority: priority,
+      department: isStationary ? department : "",
+      patientType: isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi",
+      isStationary: isStationary,
+      isGreen: isGreen,
+      rowDate: rowDate
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// 2.3 PASTKI JADVALDAN SHIFOKOR VA SANANI O'QISH
+function parseBottomTableDoctorAndDate() {
+  const allRows = Array.from(document.querySelectorAll("tr"));
+  let bottomDoctor = "";
+  let bottomDate = "";
+
+  for (const r of allRows) {
+    const cells = Array.from(r.querySelectorAll("td"));
+    if (cells.length >= 4) {
+      const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
+      const dateCell = cells.find(c => /\d{2}\.\d{2}\.\d{4}/.test(c.innerText.trim()));
+      const codeCell = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
+
+      if (hasTransId && (dateCell || codeCell)) {
+        if (dateCell) bottomDate = dateCell.innerText.trim().substring(0, 16);
+
+        for (const c of cells) {
+          const txt = c.innerText.trim();
+          if (txt.length >= 4 && !/^\d+$/.test(txt) && !txt.includes(":") && !txt.includes("To'lan") && !txt.includes("Tolan") && txt !== "-") {
+            if (txt.includes("Dr.") || txt.includes("Shifokor") || txt.includes("ova") || txt.includes("yev") || txt.includes("yeva") || txt.includes("qizi") || txt.includes("o'g'li") || txt.includes("ovich") || txt.includes("ovna")) {
+              bottomDoctor = txt.replace(/^Dr\.\s*/i, '').trim();
+              break;
+            }
+          }
+        }
+        if (bottomDoctor || bottomDate) break;
+      }
+    }
+  }
+  return { bottomDoctor, bottomDate };
+}
+
+// 2.4 BARCHA YUQORI JADVALDAGI BEMORLAR RO'YXATINI OLISH
+function getAllTopTablePatients() {
+  const allRows = Array.from(document.querySelectorAll("tr"));
+  const patients = [];
+  for (const r of allRows) {
+    const p = extractPatientFromRow(r);
+    if (p) {
+      patients.push(p);
+    }
+  }
+  return patients;
+}
+
+// 2.5 YUQORI JADVALDAN HAQIQIY TANLANGAN VA MOS BEMORNI TOPISH
+function findActivePatientFromTopTable(specificDoctor = "", specificDate = "") {
+  try {
+    const patients = getAllTopTablePatients();
+    if (patients.length === 0) return null;
+
+    const { bottomDoctor, bottomDate } = parseBottomTableDoctorAndDate();
+    const docToMatch = (specificDoctor || bottomDoctor || "").trim();
+    const dateToMatch = (specificDate || bottomDate || "").trim();
+
+    // 1. Pastki jadval shifokori VA sanasi bo'yicha aniq moslash:
+    if (docToMatch || dateToMatch) {
+      if (docToMatch && dateToMatch) {
+        const docSurname = docToMatch.replace(/^Dr\.\s*/i, '').split(" ")[0].toLowerCase();
+        const datePrefix = dateToMatch.substring(0, 10);
+        const matchBoth = patients.find(p => {
+          if (p.isGreen) return false;
+          const pDoc = p.referringDoctor.toLowerCase();
+          const pDate = p.rowDate;
+          return pDoc.includes(docSurname) && pDate.includes(datePrefix);
+        });
+        if (matchBoth) return matchBoth;
+      }
+
+      if (docToMatch) {
+        const docSurname = docToMatch.replace(/^Dr\.\s*/i, '').split(" ")[0].toLowerCase();
+        const matchDoc = patients.find(p => !p.isGreen && p.referringDoctor.toLowerCase().includes(docSurname));
+        if (matchDoc) return matchDoc;
+      }
+
+      if (dateToMatch) {
+        const fullDateMatch = patients.find(p => !p.isGreen && p.rowDate.includes(dateToMatch.substring(0, 16)));
+        if (fullDateMatch) return fullDateMatch;
+        const datePrefix = dateToMatch.substring(0, 10);
+        const dayMatch = patients.find(p => !p.isGreen && p.rowDate.includes(datePrefix));
+        if (dayMatch) return dayMatch;
+      }
+    }
+
+    // 2. Foydalanuvchi oxirgi bosgan bemor (agar ro'yxatda mavjud bo'lsa):
+    if (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—") {
+      const matchLast = patients.find(p => p.id === lastPatientInfo.id && !p.isGreen);
+      if (matchLast) return matchLast;
+    }
+
+    // 3. Birinchi yashil bo'lmagan bemor:
+    const nonGreen = patients.filter(p => !p.isGreen);
+    return nonGreen.length > 0 ? nonGreen[0] : patients[0];
+  } catch (e) {
+    console.warn("findActivePatientFromTopTable error:", e);
+  }
   return null;
 }
 
@@ -592,11 +942,56 @@ function isGroupHeaderOrNavigation(text) {
   return false;
 }
 
-// 4. PASTKI JADVALDAN FAQAT REGISTRATOR PANELIDA MAVJUD TEKSHIRUVLARNI ANIQ O'QISH
+// 3.1 FAQAT MRT VA MSKT TEKSHIRUVI EKANLIGINI TEKSHIRISH (BOSHQALARINI RAD ETISH)
+function isMrtOrMsktService(code, name, rawText = "") {
+  const fullText = `${code || ''} ${name || ''} ${rawText || ''}`.toLowerCase();
+
+  const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
+  const nonMrtKeywords = (rules && rules.blockedKeywords && rules.blockedKeywords.length > 0)
+    ? rules.blockedKeywords
+    : DEFAULT_GLOBAL_GUIDELINES.referralRules.blockedKeywords;
+
+  for (const kw of nonMrtKeywords) {
+    const cleanKw = String(kw).trim().toLowerCase();
+    if (cleanKw && fullText.includes(cleanKw)) {
+      // Istisno: agar matnda aniq MRT yoki MSKT bo'lmasa -> MRT/MSKT emas:
+      if (!fullText.includes("mrt") && !fullText.includes("mskt") && !fullText.includes("msct") && !fullText.includes("tomografiya(msct)")) {
+        return false;
+      }
+    }
+  }
+
+  // 2. Agar registratura katalogida (services_catalog) mavjud bo'lsa:
+  const catalogEntry = getServiceCatalogEntry(code, name);
+  if (catalogEntry) {
+    if (catalogEntry.type === "MRT" || catalogEntry.type === "MSKT") {
+      return true;
+    }
+    return false;
+  }
+
+  // 3. Kod yoki nom bo'yicha MRT/MSKT tekshiruvi:
+  const c = (code || "").toUpperCase();
+  const num = parseInt(c.replace(/\D/g, ""), 10);
+  if (!isNaN(num) && ((num >= 134 && num <= 155) || (num >= 157 && num <= 200))) {
+    return true;
+  }
+
+  if (fullText.includes("mrt") || fullText.includes("mri") || fullText.includes("mskt") || fullText.includes("msct") || fullText.includes("tomografiya(msct)")) {
+    return true;
+  }
+
+  return false;
+}
+
+// 4. PASTKI JADVALDAN FAQAT MRT VA MSKT TEKSHIRUVLARINI ANIQ O'QISH
 function findAllCurrentServicesPassively() {
   const foundServices = [];
   let totalServiceRows = 0;
   let greenServiceRows = 0;
+  let nonMrtMsktServicesCount = 0;
+  const nonMrtMsktNames = [];
+  let foundTransactionDate = "";
 
   try {
     const allRows = document.querySelectorAll("tr");
@@ -614,10 +1009,15 @@ function findAllCurrentServicesPassively() {
 
       // Faqat pastki tranzaksiya jadvalidagi qatorlar (7 xonali Navbat raqami VA Tranzaksiya sanasi bo'lishi shart!)
       const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
-      const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/.test(c.innerText.trim()));
+      const transDateCell = cells.find(c => /\d{2}\.\d{2}\.\d{4}/.test(c.innerText.trim()));
 
-      if (!hasTransId || !hasTransDate) {
+      if (!hasTransId || !transDateCell) {
         continue;
+      }
+
+      const candidateTransDate = transDateCell.innerText.trim();
+      if (candidateTransDate && !foundTransactionDate) {
+        foundTransactionDate = candidateTransDate;
       }
 
       totalServiceRows++;
@@ -645,6 +1045,13 @@ function findAllCurrentServicesPassively() {
           candidateName = cText;
           break;
         }
+      }
+
+      // 3. AGAR BU TEKSHIRUV MRT YOKI MSKT BO'LMASA -> QAT'IYAN RAD ETAMIZ!
+      if (!isMrtOrMsktService(candidateCode, candidateName, text)) {
+        nonMrtMsktServicesCount++;
+        if (candidateName) nonMrtMsktNames.push(candidateName);
+        continue; // Faqat MRT va MSKT tekshiruvlarini qabul qilamiz!
       }
 
       if (candidateName || candidateCode) {
@@ -675,7 +1082,8 @@ function findAllCurrentServicesPassively() {
             contraindications: catalogEntry.contraindications || "",
             isContrast: isContrast,
             isMSKT: isMSKT,
-            type: isMSKT ? "MSKT" : "MRT"
+            type: isMSKT ? "MSKT" : "MRT",
+            transactionDate: candidateTransDate
           });
         }
       }
@@ -687,6 +1095,9 @@ function findAllCurrentServicesPassively() {
   // Statistikani biriktirish
   foundServices.totalServiceRows = totalServiceRows;
   foundServices.greenServiceRows = greenServiceRows;
+  foundServices.nonMrtMsktServicesCount = nonMrtMsktServicesCount;
+  foundServices.nonMrtMsktNames = nonMrtMsktNames;
+  foundServices.foundTransactionDate = foundTransactionDate;
   return foundServices;
 }
 
@@ -750,7 +1161,318 @@ function getServiceCatalogEntry(serviceCode, serviceName) {
   return null;
 }
 
+// ❓ TIBBIY SAVOLLARNI BARCHA TEKSHIRUVLAR UCHUN UMUMIY VA MAXSUS QISMLARNI AQLLI BIRLASHTIRISH
+function consolidateQuestionsForServices(servicesList, examType = "MSKT", isContrast = false, fallbackQuestions = "") {
+  const gg = (globalGuidelines && globalGuidelines.questionTemplates) ? globalGuidelines.questionTemplates : DEFAULT_GLOBAL_GUIDELINES.questionTemplates;
+  const collected = [];
+  const seen = new Set();
+
+  function addQuestion(q, prefix = "") {
+    if (!q) return;
+    const clean = q.replace(/^\d+[\.\)\-]\s*/, '').trim();
+    if (clean.length < 5) return;
+    const norm = clean.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (!seen.has(norm)) {
+      seen.add(norm);
+      collected.push(prefix ? `${prefix}: ${clean}` : clean);
+    }
+  }
+
+  // 1. UMUMIY BARCHA TEKSHIRUVLAR UCHUN SAVOLLAR
+  (gg.universal || []).forEach(q => addQuestion(q));
+
+  // 2. KONTRASTLI TEKSHIRUVLAR UCHUN SAVOLLAR
+  if (isContrast) {
+    (gg.contrast || []).forEach(q => addQuestion(q));
+  }
+
+  // 3. MRT / MSKT GA XOS UMUMIY SAVOLLAR
+  if (examType === "MRT") {
+    (gg.mrt || []).forEach(q => addQuestion(q));
+  } else {
+    (gg.mskt || []).forEach(q => addQuestion(q));
+  }
+
+  // 4. HAR BIR TEKSHIRUVNING O'ZIGA XOS ALOHIDA SAVOLLARI
+  if (servicesList && servicesList.length > 0) {
+    servicesList.forEach(s => {
+      const sName = s.fullName || s.name || "";
+      const qText = s.specialQuestions || s.questions || "";
+      if (qText) {
+        const lines = String(qText).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        lines.forEach(l => {
+          const norm = l.replace(/^\d+[\.\)\-]\s*/, '').trim().toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+          if (!seen.has(norm)) {
+            addQuestion(l, servicesList.length > 1 ? `[${sName}]` : "");
+          }
+        });
+      }
+    });
+  } else if (fallbackQuestions) {
+    const lines = String(fallbackQuestions).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    lines.forEach(l => addQuestion(l));
+  }
+
+  return collected;
+}
+
 // 6. BIR NECHTA TEKSHIRUV BO'LGANDA VAQTNI HISOBLASH QOIDASI (MSKT: MAX, MRT: SUM)
+// 6. BIR NECHTA TEKSHIRUV BO'LGANDA TAYYORGARLIK VA QARSHI KO'RSATMALARNI AQLI BIRLASHTIRISH VA TAKRORIYLIKNI YO'QOTISH
+function consolidatePreparationAndContraindications(servicesList, fallbackPrep = "", fallbackContra = "") {
+  const list = (servicesList && servicesList.length > 0) ? servicesList : [{
+    name: "Tekshiruv",
+    fullName: "Tekshiruv",
+    preparation: fallbackPrep,
+    contraindications: fallbackContra
+  }];
+
+  const prepTpl = (globalGuidelines && globalGuidelines.prepTemplates) ? globalGuidelines.prepTemplates : DEFAULT_GLOBAL_GUIDELINES.prepTemplates;
+
+  if (list.length === 1) {
+    const s = list[0];
+    return {
+      isMultiple: false,
+      singlePrep: s.preparation || fallbackPrep || "",
+      singleContra: s.contraindications || fallbackContra || "",
+      generalPrepList: [],
+      specificServicesPrep: [],
+      consolidatedContraList: []
+    };
+  }
+
+  let maxFastingHours = 0;
+  let hasFasting = false;
+  let hasBloodTest = false;
+  let hasMetformin = false;
+  let hasPostHydration = false;
+  let hasMetalWarning = false;
+
+  const rawContras = [];
+  const specificServicesPrep = [];
+
+  list.forEach((s, idx) => {
+    const pText = s.preparation || "";
+    const cText = s.contraindications || "";
+
+    if (cText) {
+      const parts = cText.split(/[,;\n\r\.]+/);
+      parts.forEach(p => {
+        const clean = p.trim().replace(/^[•\-\*]\s*/, '').trim();
+        if (clean.length > 2 && clean !== '—') {
+          rawContras.push(clean);
+        }
+      });
+    }
+
+    if (!pText || pText.trim() === '' || pText.trim() === '—') {
+      specificServicesPrep.push({
+        index: idx + 1,
+        name: s.fullName || s.name || `Tekshiruv ${idx + 1}`,
+        specificPoints: []
+      });
+      return;
+    }
+
+    // Gaplar bo'yicha ajratish
+    const sentences = pText.split(/(?:\.(?!\d)|\;|\r?\n)+/).map(st => st.trim().replace(/^[•\-\*]\s*/, '').trim()).filter(st => st.length > 0);
+    const procSpecificPoints = [];
+
+    sentences.forEach(st => {
+      const lower = st.toLowerCase();
+
+      // 1. Och qorin tekshiruvi (Och qolish soatlarini solishtirib eng kattasini olish)
+      if (lower.includes("och qorin") || lower.includes("och holda") || lower.includes("ovqatlanmasdan") || lower.includes("och qoringa")) {
+        hasFasting = true;
+        const matchRange = lower.match(/(\d+)\s*[-–—to]\s*(\d+)\s*soat/);
+        const matchSingle = lower.match(/(\d+)\s*soat/);
+        if (matchRange) {
+          const upperHour = parseInt(matchRange[2], 10);
+          if (upperHour > maxFastingHours) maxFastingHours = upperHour;
+        } else if (matchSingle) {
+          const singleHour = parseInt(matchSingle[1], 10);
+          if (singleHour > maxFastingHours) maxFastingHours = singleHour;
+        } else {
+          if (maxFastingHours < 4) maxFastingHours = 4;
+        }
+        return; // Umumiy qismga ko'chirildi
+      }
+
+      // 2. Qon tahlillari (Kreatinin va Mochevina)
+      if (lower.includes("kreatinin") || lower.includes("mochevina") || lower.includes("mochivina") || (lower.includes("qon") && lower.includes("tahlil"))) {
+        hasBloodTest = true;
+        return; // Umumiy qismga ko'chirildi
+      }
+
+      // 3. Metformin / Diabet
+      if (lower.includes("metformin") || lower.includes("glyukofaj") || lower.includes("siofor") || (lower.includes("qandli diabet") && lower.includes("to'xtatiladi"))) {
+        hasMetformin = true;
+        return; // Umumiy qismga ko'chirildi
+      }
+
+      // 4. Tekshiruvdan so'ng ko'p suyuqlik ichish
+      if (lower.includes("ko'p suyuqlik") || lower.includes("kop suyuqlik") || (lower.includes("suyuqlik") && lower.includes("so'ng"))) {
+        hasPostHydration = true;
+        return; // Umumiy qismga ko'chirildi
+      }
+
+      // 5. Metall / ferromagnit buyumlarni yechish
+      if ((lower.includes("metall") || lower.includes("ferromagnit") || lower.includes("telefon") || lower.includes("taqinchoq")) && (lower.includes("yechish") || lower.includes("mumkin emas") || lower.includes("olib tashlash"))) {
+        hasMetalWarning = true;
+        return; // Umumiy qismga ko'chirildi
+      }
+
+      // Maxsus tekshiruv ko'rsatmasi (Klizma, No-shpa, 1 litr suv ichish va h.k.)
+      let cleanPt = st;
+      if (!/[.\?!:;]$/.test(cleanPt)) cleanPt += '.';
+      procSpecificPoints.push(cleanPt);
+    });
+
+    specificServicesPrep.push({
+      index: idx + 1,
+      name: s.fullName || s.name || `Tekshiruv ${idx + 1}`,
+      specificPoints: procSpecificPoints
+    });
+  });
+
+  // Umumiy tayyorgarlik ro'yxati (Sozlanadigan shablonlardan)
+  const generalPrepList = [];
+  if (hasFasting) {
+    if (maxFastingHours >= 8) {
+      generalPrepList.push(prepTpl.fasting_8_10 || "Kamida 8-10 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    } else if (maxFastingHours >= 6) {
+      generalPrepList.push(prepTpl.fasting_6_8 || "Kamida 6-8 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    } else {
+      generalPrepList.push(prepTpl.fasting_4_6 || "Kamida 4-6 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).");
+    }
+  }
+
+  if (hasBloodTest) {
+    generalPrepList.push(prepTpl.bloodTest || "Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida).");
+  }
+
+  if (hasMetformin) {
+    generalPrepList.push(prepTpl.metformin || "Qandli diabet bo'lsa: Metformin (Glyukofaj, Siofor v.b.) dori vositasini 48 soat oldin to'xtatish.");
+  }
+
+  if (hasMetalWarning) {
+    generalPrepList.push(prepTpl.metalFree || "Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.");
+  }
+
+  if (hasPostHydration) {
+    generalPrepList.push(prepTpl.hydration || "Tekshiruvdan so'ng ko'p miqdorda suyuqlik (suv) ichish.");
+  }
+
+  // Qarshi ko'rsatmalarni takrorlarsiz saralash
+  const consolidatedContraList = [];
+  const seenContras = new Set();
+  rawContras.forEach(c => {
+    const norm = c.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (!seenContras.has(norm)) {
+      seenContras.add(norm);
+      let formatted = c.charAt(0).toUpperCase() + c.slice(1);
+      if (!/[.\?!:;]$/.test(formatted)) formatted += '.';
+      consolidatedContraList.push(formatted);
+    }
+  });
+
+  return {
+    isMultiple: true,
+    generalPrepList,
+    specificServicesPrep,
+    consolidatedContraList
+  };
+}
+
+function formatConsolidatedGuidelinesHtml(payload) {
+  const prep = payload.preparation || "";
+  const contra = payload.contraindications || "";
+  const sList = payload.servicesList || [];
+
+  const data = consolidatePreparationAndContraindications(sList, prep, contra);
+
+  if (!data.isMultiple) {
+    const prepHtml = formatGuidelineSentencesHtml(data.singlePrep);
+    const contraHtml = formatGuidelineSentencesHtml(data.singleContra);
+    if (!prepHtml && !contraHtml) return "";
+
+    return `
+      <div class="guide-box">
+        <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000; border-bottom: 2px dashed #000; padding-bottom: 3px;">
+          TIBBIY KO'RSATMALAR VA ESLATMA
+        </div>
+        ${prepHtml ? `
+          <div style="margin-top: 4px; font-size: 12px;">
+            <div style="font-weight: 900; margin-bottom: 2px;">📋 Tayyorgarlik:</div>
+            <div style="padding-left: 2px; line-height: 1.35;">${prepHtml}</div>
+          </div>
+        ` : ''}
+        ${contraHtml ? `
+          <div style="margin-top: 5px; font-size: 12px;">
+            <div style="font-weight: 900; margin-bottom: 2px;">🚫 Qarshi ko'rsatmalar:</div>
+            <div style="padding-left: 2px; line-height: 1.35;">${contraHtml}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  let html = `
+    <div class="guide-box">
+      <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000; border-bottom: 2px dashed #000; padding-bottom: 3px;">
+        TIBBIY KO'RSATMALAR VA ESLATMA
+      </div>
+  `;
+
+  // 1. Umumiy Tayyorgarlik
+  if (data.generalPrepList.length > 0) {
+    html += `
+      <div style="margin-top: 4px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 2px; color:#000;">📌 Umumiy Tayyorgarlik (Barcha tekshiruvlar uchun):</div>
+        <div style="padding-left: 2px; line-height: 1.35;">
+          ${data.generalPrepList.map(g => `<div style="margin-top:2px;">• ${escapeHtml(g)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 2. Har bir tekshiruvning maxsus tayyorgarligi
+  const hasAnySpecific = data.specificServicesPrep.some(s => s.specificPoints.length > 0);
+  if (hasAnySpecific) {
+    html += `
+      <div style="margin-top: 6px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 3px; color:#000;">🔍 Har Bir Tekshiruv Uchun Alohida Tayyorgarlik:</div>
+        ${data.specificServicesPrep.map(s => `
+          <div style="margin-top: 3px; margin-bottom: 4px; padding-left: 4px; border-left: 2px solid #000;">
+            <strong style="font-size:11.5px; color:#000;">${s.index}. ${escapeHtml(s.name)}:</strong>
+            ${s.specificPoints.length > 0 ? `
+              <div style="padding-left: 4px; line-height: 1.35;">
+                ${s.specificPoints.map(pt => `<div style="margin-top:1px;">- ${escapeHtml(pt)}</div>`).join('')}
+              </div>
+            ` : `
+              <div style="padding-left: 4px; font-style:italic; font-size:11px; color:#475569;">- Alohida maxsus tayyorgarlik talab etilmaydi (Umumiy qoidalarga amal qiling).</div>
+            `}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // 3. Qarshi ko'rsatmalar (Birlashtirilgan)
+  if (data.consolidatedContraList.length > 0) {
+    html += `
+      <div style="margin-top: 6px; font-size: 12px;">
+        <div style="font-weight: 900; margin-bottom: 2px; color:#000;">🚫 Qarshi ko'rsatmalar:</div>
+        <div style="padding-left: 2px; line-height: 1.35;">
+          ${data.consolidatedContraList.map(c => `<div style="margin-top:2px;">• ${escapeHtml(c)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
 function calculateCombinedProcedureInfo(servicesList) {
   if (!servicesList || servicesList.length === 0) {
     return {
@@ -777,9 +1499,28 @@ function calculateCombinedProcedureInfo(servicesList) {
   const isContrast = servicesList.some(s => s.isContrast);
   const contrastLabel = isContrast ? "💉 Kontrastli" : "Oddiy (Kontrastsiz)";
 
-  // 3. Tayyorgarlik va Qarshi ko'rsatmalarni yig'ish
-  const allPreps = servicesList.map(s => s.preparation).filter(Boolean).join("; ");
-  const allContras = servicesList.map(s => s.contraindications).filter(Boolean).join("; ");
+  // 3. Tayyorgarlik va Qarshi ko'rsatmalarni aqlli birlashtirish
+  const consolidated = consolidatePreparationAndContraindications(servicesList);
+  let combinedPrepString = "";
+  let combinedContraString = "";
+
+  if (consolidated.isMultiple) {
+    const parts = [];
+    if (consolidated.generalPrepList.length > 0) {
+      parts.push(consolidated.generalPrepList.join(" "));
+    }
+    const specParts = consolidated.specificServicesPrep
+      .filter(s => s.specificPoints.length > 0)
+      .map(s => `${s.name}: ${s.specificPoints.join(" ")}`);
+    if (specParts.length > 0) {
+      parts.push(specParts.join(" | "));
+    }
+    combinedPrepString = parts.join(" ");
+    combinedContraString = consolidated.consolidatedContraList.join(" ");
+  } else {
+    combinedPrepString = consolidated.singlePrep || "";
+    combinedContraString = consolidated.singleContra || "";
+  }
 
   // 4. VAQT HISOBLASH (Katalogdagi sozlamalar bo'yicha):
   // - MSKT: Eng kattasi (Math.max)
@@ -821,8 +1562,8 @@ function calculateCombinedProcedureInfo(servicesList) {
     service: serviceTitle,
     serviceCode: serviceCodes,
     duration: finalDuration,
-    preparation: allPreps,
-    contraindications: allContras,
+    preparation: combinedPrepString,
+    contraindications: combinedContraString,
     isContrast: isContrast,
     contrastLabel: contrastLabel,
     recommendedDevice: recommendedDevice,
@@ -857,18 +1598,21 @@ async function loadServicesCatalog() {
   } catch (e) {}
 }
 
-// 8. TIME-SLOT HISOBLASH (08:00 DAN BOSHLAB OCHIQ VAQTLARNI TEKSHIRISH)
-async function calculateNextAvailableTimeSlot(deviceId, durationMinutes) {
+// 8. TIME-SLOT HISOBLASH (ISh SOATLARI VA HOZIRGI VAQTDAN BOSHLAB)
+async function calculateNextAvailableTimeSlot(deviceId, durationMinutes, targetDate = null) {
   const duration = parseInt(durationMinutes, 10) || 30;
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
+  const checkDate = targetDate || todayStr;
+
+  await loadWorkScheduleFromFirebase();
 
   try {
-    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`);
-    if (!res || !res.ok) return findEarliestFreeSlot([], duration);
+    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${checkDate}.json`);
+    if (!res || !res.ok) return findEarliestFreeSlot([], duration, checkDate, currentWorkSchedule);
 
     const data = await res.json();
     let devPatients = [];
@@ -880,9 +1624,9 @@ async function calculateNextAvailableTimeSlot(deviceId, durationMinutes) {
       });
     }
 
-    return findEarliestFreeSlot(devPatients, duration);
+    return findEarliestFreeSlot(devPatients, duration, checkDate, currentWorkSchedule);
   } catch (err) {
-    return findEarliestFreeSlot([], duration);
+    return findEarliestFreeSlot([], duration, checkDate, currentWorkSchedule);
   }
 }
 
@@ -1277,7 +2021,7 @@ async function openQueueListModal() {
         </div>
 
         <!-- Qurilmalar Bo'yicha Saralash Tablari -->
-        <div id="uttDevTabsContainer" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px; border-bottom:1px solid #e2e8f0;">
+        <div id="uttDevTabsContainer" style="display:flex; gap:10px; overflow-x:auto; padding:6px 2px 12px 2px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; align-items:center;">
           <!-- Dynamic Device Tabs -->
         </div>
 
@@ -1431,7 +2175,7 @@ async function openQueueListModal() {
 
       let html = `
         <button type="button" class="utt-dev-tab-btn ${selectedDevFilter === 'all' ? 'active' : ''}" data-dev="all">
-          🌐 Barchasi (${totalCount})
+          <span style="font-size:14px;">🌐</span> <span>Barchasi</span> <span class="tab-badge">${totalCount}</span>
         </button>
       `;
 
@@ -1440,7 +2184,7 @@ async function openQueueListModal() {
         const icon = (d.type === "MSKT") ? "⚡" : "🧲";
         html += `
           <button type="button" class="utt-dev-tab-btn ${selectedDevFilter === d.id ? 'active' : ''}" data-dev="${d.id}">
-            ${icon} ${escapeHtml(d.room || d.name)} (${devCount})
+            <span style="font-size:14px;">${icon}</span> <span>${escapeHtml(d.room || d.name)}</span> <span class="tab-badge">${devCount}</span>
           </button>
         `;
       });
@@ -1505,12 +2249,18 @@ async function openQueueListModal() {
         dynamicDevices.forEach(dev => {
           const devList = filtered.filter(p => p.doctorId === dev.id);
           if (devList.length === 0) return;
-
           const icon = (dev.type === "MSKT") ? "⚡" : "🧲";
+          const devColor = dev.color || (dev.type === "MSKT" ? "#10b981" : "#0284c7");
           contentHtml += `
-            <div style="background:#f8fafc; padding:8px 14px; border-bottom:1px solid #cbd5e1; font-weight:800; font-size:13px; color:#0f172a; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:5;">
-              <span>${icon} ${escapeHtml(dev.room || dev.name)} (${escapeHtml(dev.name)})</span>
-              <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-size:11px;">${devList.length} ta bemor</span>
+            <div class="utt-room-group-banner" style="border-top-color:${devColor};">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:16px;">${icon}</span>
+                <span style="font-size:14px; font-weight:900; color:#0369a1; letter-spacing:0.3px;">${escapeHtml(dev.room || dev.name)}</span>
+                <span style="background:#e2e8f0; color:#334155; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;">${escapeHtml(dev.name)}</span>
+              </div>
+              <span style="background:#0284c7; color:#ffffff; padding:3px 12px; border-radius:14px; font-size:12px; font-weight:800; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                ${devList.length} ta bemor
+              </span>
             </div>
             ${renderPatientsTableHtml(devList)}
           `;
@@ -1519,8 +2269,14 @@ async function openQueueListModal() {
         const unknownList = filtered.filter(p => !dynamicDevices.some(d => d.id === p.doctorId));
         if (unknownList.length > 0) {
           contentHtml += `
-            <div style="background:#f8fafc; padding:8px 14px; border-bottom:1px solid #cbd5e1; font-weight:800; font-size:13px; color:#0f172a; position:sticky; top:0; z-index:5;">
-              Boshqa qurilmalar
+            <div class="utt-room-group-banner" style="border-top-color:#64748b;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:16px;">🏢</span>
+                <span style="font-size:14px; font-weight:900; color:#334155;">Boshqa qurilmalar</span>
+              </div>
+              <span style="background:#64748b; color:#ffffff; padding:3px 12px; border-radius:14px; font-size:12px; font-weight:800;">
+                ${unknownList.length} ta bemor
+              </span>
             </div>
             ${renderPatientsTableHtml(unknownList)}
           `;
@@ -1542,6 +2298,53 @@ async function openQueueListModal() {
           if (pat) printThermalTicketDirect(pat);
         };
       });
+
+      // Rozilik anketasini chop etish tugmalarini ulash
+      wrapper.querySelectorAll(".utt-btn-print-consent").forEach(btn => {
+        btn.onclick = () => {
+          const pId = btn.getAttribute("data-id");
+          const pat = cachedPatients.find(p => p.id === pId);
+          if (pat) printConsentFormDirect(pat);
+        };
+      });
+
+      // Bemor kelganlik / kutish zalidagi holatini o'zgartirish (Toggle Arrived)
+      wrapper.querySelectorAll(".utt-btn-toggle-arrived").forEach(btn => {
+        btn.onclick = async () => {
+          const pId = btn.getAttribute("data-id");
+          const pat = cachedPatients.find(p => p.id === pId);
+          if (!pat) return;
+          const newStatus = !pat.arrived;
+          pat.arrived = newStatus;
+          pat.arrivedAt = newStatus ? Date.now() : null;
+
+          // UI ni darhol yangilash
+          if (newStatus) {
+            btn.className = "utt-btn-toggle-arrived arrived";
+            btn.style.background = "#dcfce7";
+            btn.style.color = "#15803d";
+            btn.style.borderColor = "#86efac";
+            btn.innerHTML = "🟢 Zalda";
+            btn.title = "Bemor kutish zalida o'tiribdi (O'zgartirish uchun bosing)";
+          } else {
+            btn.className = "utt-btn-toggle-arrived not-arrived";
+            btn.style.background = "#f1f5f9";
+            btn.style.color = "#64748b";
+            btn.style.borderColor = "#cbd5e1";
+            btn.innerHTML = "⏳ Hali kelmadi";
+            btn.title = "Bemor hali kelmadi (Kelganini belgilash uchun bosing)";
+          }
+
+          try {
+            await safeFetch(`${FIREBASE_DB_URL}/patients/${selectedDate}/${pId}.json`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ arrived: newStatus, arrivedAt: pat.arrivedAt })
+            });
+            showToast(newStatus ? `🟢 ${pat.name} kutish zalida deb belgilandi` : `⏳ ${pat.name} hali kelmadi deb belgilandi`);
+          } catch (e) {}
+        };
+      });
     }
 
     function renderPatientsTableHtml(list) {
@@ -1550,15 +2353,17 @@ async function openQueueListModal() {
         <table class="utt-queue-table ${densityClass}">
           <thead>
             <tr>
-              <th style="width:105px; min-width:95px;">Vaqt</th>
-              <th style="width:65px; min-width:55px;">ID</th>
-              <th style="width:160px; min-width:140px;">Bemor F.I.Sh</th>
-              <th style="width:145px; min-width:130px;">Toifasi / Bo'lim</th>
-              <th style="min-width:380px;">Tekshiruv Nomi</th>
-              <th style="width:150px; min-width:130px;">Fayl Shifokori</th>
-              <th style="width:120px; min-width:110px;">Ro'yxatchi</th>
-              <th style="width:90px; min-width:80px;">Holat</th>
-              <th style="text-align:center; width:50px; min-width:45px;">Talon</th>
+              <th style="width:100px; min-width:90px;">Vaqt</th>
+              <th style="width:60px; min-width:50px;">ID</th>
+              <th style="width:150px; min-width:130px;">Bemor F.I.Sh</th>
+              <th style="width:135px; min-width:120px;">Toifasi / Bo'lim</th>
+              <th style="min-width:300px;">Tekshiruv Nomi</th>
+              <th style="width:140px; min-width:120px;">Fayl Shifokori</th>
+              <th style="width:110px; min-width:100px;">Ro'yxatchi</th>
+              <th style="width:110px; min-width:100px; text-align:center;">Kutish Zalida</th>
+              <th style="width:85px; min-width:75px;">Holat</th>
+              <th style="text-align:center; width:45px; min-width:40px;">Talon</th>
+              <th style="text-align:center; width:75px; min-width:65px;">Rozilik</th>
             </tr>
           </thead>
           <tbody>
@@ -1613,10 +2418,20 @@ async function openQueueListModal() {
                   </td>
                   <td style="color:#334155; font-size:11.5px;">${p.referringDoctor ? `👨‍⚕️ <strong>${escapeHtml(p.referringDoctor)}</strong>` : '-'}</td>
                   <td style="color:#64748b; font-size:11px;">${escapeHtml(p.registeredBy || p.operatorLogin || '-')}</td>
+                  <td style="text-align:center;">
+                    <button type="button" class="utt-btn-toggle-arrived ${p.arrived ? 'arrived' : 'not-arrived'}" data-id="${p.id}" title="${p.arrived ? 'Bemor kutish zalida o\'tiribdi (O\'zgartirish uchun bosing)' : 'Bemor hali kelmadi (Kelganini belgilash uchun bosing)'}" style="background:${p.arrived ? '#dcfce7' : '#f1f5f9'}; color:${p.arrived ? '#15803d' : '#64748b'}; border:1px solid ${p.arrived ? '#86efac' : '#cbd5e1'}; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:4px; width:94px; justify-content:center;">
+                      ${p.arrived ? '🟢 Zalda' : '⏳ Hali kelmadi'}
+                    </button>
+                  </td>
                   <td>${statusBadge}</td>
                   <td style="text-align:center;">
                     <button type="button" class="utt-btn-print-ticket" data-id="${p.id}" title="Talonni chop etish" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:13px;">
                       🖨️
+                    </button>
+                  </td>
+                  <td style="text-align:center;">
+                    <button type="button" class="utt-btn-print-consent" data-id="${p.id}" title="Rozilik anketasini chop etish" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
+                      📋 Anketa
                     </button>
                   </td>
                 </tr>
@@ -1938,6 +2753,10 @@ async function openSendModal(patientData) {
 
     document.body.appendChild(overlay);
 
+    // Modal elementlari
+    const modalClose = document.getElementById("uttModalClose");
+    const btnCancel = document.getElementById("uttBtnCancel");
+    const btnSend = document.getElementById("uttBtnSend");
     const devSelect = document.getElementById("uttDeviceSelect");
     const dateInput = document.getElementById("uttModalDateInput");
     const btnToday = document.getElementById("uttBtnDateToday");
@@ -1950,7 +2769,28 @@ async function openSendModal(patientData) {
     const deferReasonBox = document.getElementById("uttDeferReasonBox");
     const deferReasonSelect = document.getElementById("uttDeferReasonSelect");
     const deferReasonOther = document.getElementById("uttDeferReasonOther");
-    const btnSend = document.getElementById("uttBtnSend");
+
+    // Modalni yopish funksiyasi (barcha joyda bir xil ishlaydi)
+    function closeModal() {
+      document.removeEventListener("keydown", handleModalKeydown);
+      if (overlay && overlay.parentNode) {
+        overlay.remove();
+      }
+    }
+
+    function handleModalKeydown(e) {
+      if (e.key === "Escape") {
+        closeModal();
+      }
+    }
+
+    document.addEventListener("keydown", handleModalKeydown);
+
+    if (modalClose) modalClose.onclick = closeModal;
+    if (btnCancel) btnCancel.onclick = closeModal;
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closeModal();
+    };
 
     // Xizmat tanlash radio tinglovchilari
     const svcRadios = overlay.querySelectorAll('input[name="uttModalSvcChoice"]');
@@ -1966,30 +2806,38 @@ async function openSendModal(patientData) {
         }
 
         // Modal matnlarini yangilash
-        document.getElementById("uttModalServiceTitle").innerText = activeServiceInfo.service;
-        document.getElementById("uttModalDurationVal").innerHTML = `⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
+        const sTitle = document.getElementById("uttModalServiceTitle");
+        if (sTitle) sTitle.innerText = activeServiceInfo.service;
+        const durVal = document.getElementById("uttModalDurationVal");
+        if (durVal) {
+          durVal.innerHTML = `⏱ ${activeServiceInfo.duration} daqiqa (${activeServiceInfo.contrastLabel}) <small style="color:#64748b; font-size:11px;">[${activeServiceInfo.calcMethod || ''}]</small>`;
+        }
 
         const prepBox = document.getElementById("uttModalPrepBox");
         const prepText = document.getElementById("uttModalPrepText");
-        if (activeServiceInfo.preparation) {
-          prepText.innerText = activeServiceInfo.preparation;
-          prepBox.style.display = "block";
-        } else {
-          prepBox.style.display = "none";
+        if (prepBox && prepText) {
+          if (activeServiceInfo.preparation) {
+            prepText.innerText = activeServiceInfo.preparation;
+            prepBox.style.display = "block";
+          } else {
+            prepBox.style.display = "none";
+          }
         }
 
         const contraBox = document.getElementById("uttModalContraBox");
         const contraText = document.getElementById("uttModalContraText");
-        if (activeServiceInfo.contraindications) {
-          contraText.innerText = activeServiceInfo.contraindications;
-          contraBox.style.display = "block";
-        } else {
-          contraBox.style.display = "none";
+        if (contraBox && contraText) {
+          if (activeServiceInfo.contraindications) {
+            contraText.innerText = activeServiceInfo.contraindications;
+            contraBox.style.display = "block";
+          } else {
+            contraBox.style.display = "none";
+          }
         }
 
         // Qurilma turini moslashtirish (agar MSKT/MRT o'zgarsa)
         const matchingDevices = dynamicDevices.filter(d => d.type === activeServiceInfo.type);
-        if (matchingDevices.length > 0) {
+        if (matchingDevices.length > 0 && devSelect) {
           devSelect.value = activeServiceInfo.recommendedDevice.id;
         }
 
@@ -1999,168 +2847,329 @@ async function openSendModal(patientData) {
 
     async function evaluateModalTimeSlot() {
       try {
-        selectedDate = dateInput.value || todayStr;
-        selectedMode = modeCustom.checked ? "custom" : "auto";
+        selectedDate = dateInput ? (dateInput.value || todayStr) : todayStr;
+        selectedMode = (modeCustom && modeCustom.checked) ? "custom" : "auto";
         const currentDur = activeServiceInfo.duration || 30;
 
-        // 1. Tanlangan sana bo'yicha har bir qurilmadagi bemorlar sonini qayta hisoblash:
-        await fetchDeviceQueueCounts(selectedDate);
+        // 1. Dam olish kuni yoki bayram tekshiruvi
+        const effDay = getDayEffectiveSchedule(selectedDate, currentWorkSchedule, calendarExceptions);
+        if (!effDay.enabled) {
+          isModalSlotValid = false;
+          if (slotAlert) {
+            slotAlert.style.background = "#fee2e2";
+            slotAlert.style.color = "#b91c1c";
+            slotAlert.innerHTML = `❌ <strong>Dam olish kuni / Bayram!</strong> Tanlangan sana (${selectedDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`;
+          }
+          if (btnSend) btnSend.disabled = true;
+          return;
+        }
 
-        // 2. Select option matnlarini yangi sonlar bilan yangilash:
-        const currentDevVal = devSelect.value;
-        devSelect.innerHTML = dynamicDevices.map(d => `
-          <option value="${d.id}" ${d.id === currentDevVal ? 'selected' : ''}>
-            ${escapeHtml(d.room || d.name)} (${escapeHtml(d.name)}) - [Navbatda: ${deviceQueues[d.id] || 0} nafar]
-          </option>
-        `).join("");
+        // 2. O'tgan sana tekshiruvi
+        if (selectedDate < todayStr) {
+          isModalSlotValid = false;
+          if (slotAlert) {
+            slotAlert.style.background = "#fee2e2";
+            slotAlert.style.color = "#b91c1c";
+            slotAlert.innerHTML = `❌ <strong>O'tgan sana!</strong> O'tib ketgan kunga (${selectedDate}) navbat yozish mumkin emas!`;
+          }
+          if (btnSend) btnSend.disabled = true;
+          return;
+        }
 
-        const devId = devSelect.value;
+        // 3. So'rov sanasi va muddati tekshiruvi (10 kunlik / sozlangan muddat)
+        const refDateStr = patientData.referralDate || patientData.rowDate;
+        const refValidity = checkReferralDateValidity(refDateStr, selectedDate);
+        if (!refValidity.isValid) {
+          isModalSlotValid = false;
+          if (slotAlert) {
+            slotAlert.style.background = "#fee2e2";
+            slotAlert.style.color = "#b91c1c";
+            const customExpMsg = (globalGuidelines && globalGuidelines.referralRules && globalGuidelines.referralRules.expiredReferralMessage)
+              ? globalGuidelines.referralRules.expiredReferralMessage
+              : "Sizni qaytadan yo'naltirish kerak, eski so'rov bilan navbatga qo'yib bo'lmaydi. Yangi so'rovni vrachingiz kiritib bersin.";
+            slotAlert.innerHTML = `❌ <strong>So'rov muddati o'tgan!</strong> (${refValidity.diffDays} kun oldin: ${refDateStr} | Me'yor: ${refValidity.maxDays} kun).<br>${escapeHtml(customExpMsg)}`;
+          }
+          if (btnSend) btnSend.disabled = true;
+          return;
+        }
+
+        const devId = devSelect ? devSelect.value : (dynamicDevices[0] ? dynamicDevices[0].id : "");
 
         // Firebase-dan tanlangan sana bemorlarini olish
         let dayPatients = [];
-        const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${selectedDate}.json`);
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data) {
-            dayPatients = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+        try {
+          const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${selectedDate}.json`, {}, 2500);
+          if (res && res.ok) {
+            const data = await res.json();
+            if (data) {
+              dayPatients = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+            }
           }
-        }
+        } catch (e) {}
 
         const devPatients = dayPatients.filter(p => p.doctorId === devId && p.status !== "cancelled");
 
         if (selectedMode === "auto") {
-          customTimeContainer.style.display = "none";
-          currentSlotData = calculateNextAvailableSlotFromList(devPatients, currentDur);
+          if (customTimeContainer) customTimeContainer.style.display = "none";
+          currentSlotData = calculateNextAvailableSlotFromList(devPatients, currentDur, selectedDate, currentWorkSchedule);
+
+          if (currentSlotData.error) {
+            isModalSlotValid = false;
+            if (slotAlert) {
+              slotAlert.style.background = "#fee2e2";
+              slotAlert.style.color = "#b91c1c";
+              slotAlert.innerHTML = `❌ <strong>DIQQAT:</strong> ${escapeHtml(currentSlotData.error)}`;
+            }
+            if (btnSend) btnSend.disabled = true;
+            return;
+          }
+
           isModalSlotValid = true;
 
-          slotAlert.style.background = "#dcfce7";
-          slotAlert.style.color = "#15803d";
-          slotAlert.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${currentSlotData.slotString} (${selectedDate === todayStr ? 'Bugun' : selectedDate})`;
-          btnSend.disabled = false;
+          if (slotAlert) {
+            slotAlert.style.background = "#dcfce7";
+            slotAlert.style.color = "#15803d";
+            slotAlert.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${currentSlotData.slotString} (${selectedDate === todayStr ? 'Bugun' : selectedDate} - ${effDay.title || effDay.name})`;
+          }
+          if (btnSend) btnSend.disabled = false;
 
-          deferReasonBox.style.display = (selectedDate !== todayStr) ? "block" : "none";
+          if (deferReasonBox) {
+            deferReasonBox.style.display = (selectedDate !== todayStr) ? "block" : "none";
+          }
         } else {
-          customTimeContainer.style.display = "block";
-          const startTime = customStartTimeInput.value || "08:00";
+          if (customTimeContainer) customTimeContainer.style.display = "block";
+          const startTime = customStartTimeInput ? (customStartTimeInput.value || "08:00") : "08:00";
           const startMin = timeToMinutes(startTime);
           const endMin = startMin + currentDur;
           const endTime = addMinutesToTime(startTime, currentDur);
           const slotStr = `${startTime} - ${endTime}`;
 
-          document.getElementById("uttCustomCalcSlot").innerText = slotStr;
+          const calcSlotEl = document.getElementById("uttCustomCalcSlot");
+          if (calcSlotEl) calcSlotEl.innerText = slotStr;
+
+          // Bugun bo'lsa -> o'tgan vaqt tekshiruvi
+          if (selectedDate === todayStr) {
+            const now = new Date();
+            const curMin = now.getHours() * 60 + now.getMinutes();
+            if (startMin < curMin) {
+              isModalSlotValid = false;
+              if (slotAlert) {
+                slotAlert.style.background = "#fee2e2";
+                slotAlert.style.color = "#b91c1c";
+                slotAlert.innerHTML = `❌ <strong>O'tib ketgan vaqt!</strong> Tanlangan vaqt (${startTime}) joriy vaqtdan (${minutesToTime(curMin)}) oldinda. O'tgan soatlarga navbat yozib bo'lmaydi!`;
+              }
+              if (btnSend) btnSend.disabled = true;
+              return;
+            }
+          }
+
+          // Ish vaqti doirasi tekshiruvi
+          const startWorkMin = timeToMinutes(effDay.start || "08:00");
+          const endWorkMin = timeToMinutes(effDay.end || "19:30");
+          if (startMin < startWorkMin || endMin > endWorkMin) {
+            isModalSlotValid = false;
+            if (slotAlert) {
+              slotAlert.style.background = "#fee2e2";
+              slotAlert.style.color = "#b91c1c";
+              slotAlert.innerHTML = `❌ <strong>Ish vaqtidan tashqari!</strong> ${effDay.title || effDay.name} kunida qabul faqat ish soatlari (${effDay.start || '08:00'} - ${effDay.end || '19:30'}) orasida bo'lishi shart!`;
+            }
+            if (btnSend) btnSend.disabled = true;
+            return;
+          }
 
           // To'qnashuvni tekshirish
           const conflict = checkSlotConflict(devPatients, startMin, endMin);
           if (conflict.hasConflict) {
             isModalSlotValid = false;
-            slotAlert.style.background = "#fee2e2";
-            slotAlert.style.color = "#b91c1c";
-            slotAlert.innerHTML = `❌ <strong>Bu vaqt BAND:</strong> ${escapeHtml(conflict.conflictingPatient.name || conflict.conflictingPatient.ticketId)} (${escapeHtml(conflict.conflictTime)}). Iltimos, boshqa vaqt tanlang!`;
-            btnSend.disabled = true;
+            if (slotAlert) {
+              slotAlert.style.background = "#fee2e2";
+              slotAlert.style.color = "#b91c1c";
+              slotAlert.innerHTML = `❌ <strong>Bu vaqt BAND:</strong> ${escapeHtml(conflict.conflictingPatient.name || conflict.conflictingPatient.ticketId)} (${escapeHtml(conflict.conflictTime)}). Iltimos, boshqa vaqt tanlang!`;
+            }
+            if (btnSend) btnSend.disabled = true;
           } else {
             isModalSlotValid = true;
             currentSlotData = { startTime, endTime, slotString: slotStr };
-            slotAlert.style.background = "#dcfce7";
-            slotAlert.style.color = "#15803d";
-            slotAlert.innerHTML = `✅ <strong>Ushbu vaqt BO'SH!</strong> (${slotStr})`;
-            btnSend.disabled = false;
+            if (slotAlert) {
+              slotAlert.style.background = "#dcfce7";
+              slotAlert.style.color = "#15803d";
+              slotAlert.innerHTML = `✅ <strong>Ushbu vaqt BO'SH!</strong> (${slotStr} - ${effDay.title || effDay.name})`;
+            }
+            if (btnSend) btnSend.disabled = false;
           }
 
-          deferReasonBox.style.display = "block";
+          if (deferReasonBox) {
+            deferReasonBox.style.display = "block";
+          }
         }
-      } catch (e) {}
+      } catch (err) {
+        console.error("evaluateModalTimeSlot error:", err);
+        if (slotAlert) {
+          slotAlert.style.background = "#fee2e2";
+          slotAlert.style.color = "#b91c1c";
+          slotAlert.innerHTML = `⚠️ Vaqtni hisoblashda xatolik: ${escapeHtml(err.message || String(err))}`;
+        }
+      }
     }
 
-    btnToday.onclick = () => {
-      dateInput.value = todayStr;
-      btnToday.style.background = "#0284c7";
-      btnToday.style.color = "#fff";
-      btnTomorrow.style.background = "#fff";
-      btnTomorrow.style.color = "#334155";
-      evaluateModalTimeSlot();
-    };
+    if (btnToday) {
+      btnToday.onclick = () => {
+        if (dateInput) dateInput.value = todayStr;
+        btnToday.style.background = "#0284c7";
+        btnToday.style.color = "#fff";
+        if (btnTomorrow) {
+          btnTomorrow.style.background = "#fff";
+          btnTomorrow.style.color = "#334155";
+        }
+        evaluateModalTimeSlot();
+      };
+    }
 
-    btnTomorrow.onclick = () => {
-      dateInput.value = tomorrowStr;
-      btnTomorrow.style.background = "#0284c7";
-      btnTomorrow.style.color = "#fff";
-      btnToday.style.background = "#fff";
-      btnToday.style.color = "#334155";
-      evaluateModalTimeSlot();
-    };
+    if (btnTomorrow) {
+      btnTomorrow.onclick = () => {
+        if (dateInput) dateInput.value = tomorrowStr;
+        btnTomorrow.style.background = "#0284c7";
+        btnTomorrow.style.color = "#fff";
+        if (btnToday) {
+          btnToday.style.background = "#fff";
+          btnToday.style.color = "#334155";
+        }
+        evaluateModalTimeSlot();
+      };
+    }
 
-    dateInput.onchange = () => {
-      btnToday.style.background = dateInput.value === todayStr ? "#0284c7" : "#fff";
-      btnToday.style.color = dateInput.value === todayStr ? "#fff" : "#334155";
-      btnTomorrow.style.background = dateInput.value === tomorrowStr ? "#0284c7" : "#fff";
-      btnTomorrow.style.color = dateInput.value === tomorrowStr ? "#fff" : "#334155";
-      evaluateModalTimeSlot();
-    };
+    if (dateInput) {
+      dateInput.onchange = () => {
+        if (btnToday) {
+          btnToday.style.background = dateInput.value === todayStr ? "#0284c7" : "#fff";
+          btnToday.style.color = dateInput.value === todayStr ? "#fff" : "#334155";
+        }
+        if (btnTomorrow) {
+          btnTomorrow.style.background = dateInput.value === tomorrowStr ? "#0284c7" : "#fff";
+          btnTomorrow.style.color = dateInput.value === tomorrowStr ? "#fff" : "#334155";
+        }
+        evaluateModalTimeSlot();
+      };
+    }
 
-    devSelect.onchange = evaluateModalTimeSlot;
-    modeAuto.onchange = evaluateModalTimeSlot;
-    modeCustom.onchange = evaluateModalTimeSlot;
-    customStartTimeInput.onchange = evaluateModalTimeSlot;
+    if (devSelect) devSelect.onchange = () => evaluateModalTimeSlot();
+    if (modeAuto) modeAuto.onchange = () => evaluateModalTimeSlot();
+    if (modeCustom) modeCustom.onchange = () => evaluateModalTimeSlot();
+    if (customStartTimeInput) customStartTimeInput.oninput = () => evaluateModalTimeSlot();
 
-    deferReasonSelect.onchange = () => {
-      deferReasonOther.style.display = deferReasonSelect.value === "Boshqa sabab" ? "block" : "none";
-      if (deferReasonSelect.value === "Boshqa sabab") deferReasonOther.focus();
-    };
+    if (deferReasonSelect) {
+      deferReasonSelect.onchange = function() {
+        if (deferReasonOther) {
+          if (this.value === "Boshqa sabab") {
+            deferReasonOther.style.display = "block";
+            deferReasonOther.focus();
+          } else {
+            deferReasonOther.style.display = "none";
+          }
+        }
+      };
+    }
 
     // Dastlabki hisoblash
     evaluateModalTimeSlot();
 
-    document.getElementById("uttModalClose").onclick = () => overlay.remove();
-    document.getElementById("uttBtnCancel").onclick = () => overlay.remove();
-    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    if (btnSend) {
+      btnSend.onclick = () => {
+        try {
+          if (!isModalSlotValid || !currentSlotData) {
+            alert("⚠️ Iltimos, bo'sh va qoidaga mos vaqtni tanlang!");
+            return;
+          }
 
-    btnSend.onclick = () => {
-      try {
-        if (!isModalSlotValid || !currentSlotData) {
-          alert("⚠️ Tanlangan vaqt band yoki xato! Iltimos, boshqa bo'sh vaqtni tanlang.");
-          return;
+          const selectedDevId = devSelect ? devSelect.value : "";
+          const selectedDev = dynamicDevices.find(d => d.id === selectedDevId) || dynamicDevices[0] || DEFAULT_DEVICES[0];
+
+          let deferReason = "";
+          if (selectedDate !== todayStr || selectedMode === "custom") {
+            const rSel = deferReasonSelect ? deferReasonSelect.value : "";
+            const rOth = deferReasonOther ? deferReasonOther.value.trim() : "";
+            deferReason = (rSel === "Boshqa sabab" ? (rOth || "Boshqa sabab") : rSel);
+          }
+
+          const finalPatientPayload = {
+            ...patientData,
+            service: activeServiceInfo.service,
+            serviceCode: activeServiceInfo.serviceCode,
+            duration: activeServiceInfo.duration,
+            preparation: activeServiceInfo.preparation,
+            contraindications: activeServiceInfo.contraindications,
+            isContrast: activeServiceInfo.isContrast,
+            contrastLabel: activeServiceInfo.contrastLabel,
+            servicesList: activeServiceInfo.servicesList,
+            servicesCount: activeServiceInfo.servicesCount
+          };
+
+          sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason);
+          closeModal();
+        } catch (e) {
+          console.error("send error:", e);
         }
-
-        const selectedDevId = devSelect.value;
-        const selectedDev = dynamicDevices.find(d => d.id === selectedDevId) || dynamicDevices[0] || DEFAULT_DEVICES[0];
-
-        let deferReason = "";
-        if (selectedDate !== todayStr || selectedMode === "custom") {
-          const rSel = deferReasonSelect.value;
-          const rOth = deferReasonOther.value.trim();
-          deferReason = (rSel === "Boshqa sabab" ? (rOth || "Boshqa sabab") : rSel);
-        }
-
-        const finalPatientPayload = {
-          ...patientData,
-          service: activeServiceInfo.service,
-          serviceCode: activeServiceInfo.serviceCode,
-          duration: activeServiceInfo.duration,
-          preparation: activeServiceInfo.preparation,
-          contraindications: activeServiceInfo.contraindications,
-          isContrast: activeServiceInfo.isContrast,
-          contrastLabel: activeServiceInfo.contrastLabel,
-          servicesList: activeServiceInfo.servicesList,
-          servicesCount: activeServiceInfo.servicesCount
-        };
-
-        sendPatientToFirebase(finalPatientPayload, selectedDev, currentSlotData, selectedDate, deferReason);
-        overlay.remove();
-      } catch (e) {}
-    };
-  } catch (e) {}
+      };
+    }
+  } catch (e) {
+    console.error("openSendModal top error:", e);
+  }
 }
 
-function calculateNextAvailableSlotFromList(devPatients, duration) {
-  return findEarliestFreeSlot(devPatients, duration);
+function calculateNextAvailableSlotFromList(devPatients, duration, targetDate = null, schedule = null) {
+  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule);
 }
 
 // OCHIQ VAQTLAR (GAP) NI TEKSHIRIB ENG YAQUIN BO'SH VAQTNI TOPISH
-function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
+function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null) {
   const dur = parseInt(duration, 10) || 30;
-  const startWorkMin = timeToMinutes(workDayStart); // 480 (08:00)
+  const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
 
-  // 1. Faol bemorlarning vaqt oraliqlarini olish
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+  const checkDate = targetDate || todayStr;
+
+  // 1. Tanlangan sananing aniq va amaldagi ish grafigini aniqlash (bayram / maxsus kunlarni hisobga olgan holda)
+  const effDay = getDayEffectiveSchedule(checkDate, cfg, calendarExceptions);
+
+  // Dam olish kuni yoki bayram tekshiruvi
+  if (!effDay.enabled) {
+    return {
+      error: `Tanlangan sana (${checkDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
+      isOffDay: true
+    };
+  }
+
+  // 2. O'tgan sana tekshiruvi
+  if (checkDate < todayStr) {
+    return {
+      error: `O'tib ketgan kunga (${checkDate}) navbat yozish mumkin emas!`,
+      isPastDate: true
+    };
+  }
+
+  const startWorkMin = timeToMinutes(effDay.start || "08:00");
+  const endWorkMin = timeToMinutes(effDay.end || "19:30");
+
+  // 3. Bugungi kun bo'lsa -> Hozirgi vaqtdan boshlab qidirish
+  let searchStartMin = startWorkMin;
+  if (checkDate === todayStr) {
+    const curNowMin = now.getHours() * 60 + now.getMinutes();
+    const roundedNowMin = Math.ceil(curNowMin / 5) * 5;
+    searchStartMin = Math.max(startWorkMin, roundedNowMin);
+  }
+
+  if (searchStartMin + dur > endWorkMin) {
+    return {
+      error: `Bugungi ish vaqti (${effDay.title || effDay.name}: ${effDay.end || "19:30"}) tugagan yoki qolgan vaqt yetarli emas! Keyingi ish kunini tanlang.`,
+      isWorkEnded: true
+    };
+  }
+
+  // 4. Faol bemorlarning vaqt oraliqlarini olish
   const activeIntervals = [];
   for (const p of (devPatients || [])) {
     if (p.status === "cancelled") continue;
@@ -2176,13 +3185,13 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
     }
   }
 
-  // Agar navbatda bemor bo'lmasa -> 08:00 dan boshlanadi
+  // Agar navbatda bemor bo'lmasa -> searchStartMin dan boshlanadi
   if (activeIntervals.length === 0) {
-    const endMin = startWorkMin + dur;
+    const endMin = searchStartMin + dur;
     return {
-      startTime: minutesToTime(startWorkMin),
+      startTime: minutesToTime(searchStartMin),
       endTime: minutesToTime(endMin),
-      slotString: `${minutesToTime(startWorkMin)} - ${minutesToTime(endMin)}`
+      slotString: `${minutesToTime(searchStartMin)} - ${minutesToTime(endMin)}`
     };
   }
 
@@ -2204,21 +3213,21 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
   }
   busyBlocks.push(currentBlock);
 
-  // 2. 08:00 dan birinchi band bemorgacha bo'sh oraliqqa sig'adimi?
-  if (busyBlocks[0].start - startWorkMin >= dur) {
-    const endMin = startWorkMin + dur;
+  // 5. searchStartMin dan birinchi band bemorgacha bo'sh oraliqqa sig'adimi?
+  if (busyBlocks[0].start - searchStartMin >= dur) {
+    const endMin = searchStartMin + dur;
     return {
-      startTime: minutesToTime(startWorkMin),
+      startTime: minutesToTime(searchStartMin),
       endTime: minutesToTime(endMin),
-      slotString: `${minutesToTime(startWorkMin)} - ${minutesToTime(endMin)}`
+      slotString: `${minutesToTime(searchStartMin)} - ${minutesToTime(endMin)}`
     };
   }
 
-  // 3. Oraliqlarda ochiq qolgan (bo'sh) vaqtlarga sig'adimi?
+  // 6. Oraliqlarda ochiq qolgan (bo'sh) vaqtlarga sig'adimi?
   for (let i = 0; i < busyBlocks.length - 1; i++) {
-    const gapStart = Math.max(startWorkMin, busyBlocks[i].end);
+    const gapStart = Math.max(searchStartMin, busyBlocks[i].end);
     const gapEnd = busyBlocks[i + 1].start;
-    if (gapEnd - gapStart >= dur) {
+    if (gapEnd - gapStart >= dur && gapStart + dur <= endWorkMin) {
       const endMin = gapStart + dur;
       return {
         startTime: minutesToTime(gapStart),
@@ -2228,13 +3237,21 @@ function findEarliestFreeSlot(devPatients, duration, workDayStart = "08:00") {
     }
   }
 
-  // 4. Agar oraliqlarga sig'masa -> eng oxirgi band oraliqdan keyinga yozish
-  const lastBlockEnd = Math.max(startWorkMin, busyBlocks[busyBlocks.length - 1].end);
+  // 7. Oxirgi band oraliqdan keyinga yozish
+  const lastBlockEnd = Math.max(searchStartMin, busyBlocks[busyBlocks.length - 1].end);
   const finalEnd = lastBlockEnd + dur;
+
+  if (finalEnd <= endWorkMin) {
+    return {
+      startTime: minutesToTime(lastBlockEnd),
+      endTime: minutesToTime(finalEnd),
+      slotString: `${minutesToTime(lastBlockEnd)} - ${minutesToTime(finalEnd)}`
+    };
+  }
+
   return {
-    startTime: minutesToTime(lastBlockEnd),
-    endTime: minutesToTime(finalEnd),
-    slotString: `${minutesToTime(lastBlockEnd)} - ${minutesToTime(finalEnd)}`
+    error: `Ushbu kunga barcha navbatlar to'lgan (${dayCfg.name} ish soatlari: ${dayCfg.start} - ${dayCfg.end}). Keyingi ish kunini tanlang!`,
+    isFull: true
   };
 }
 
@@ -2370,49 +3387,56 @@ function printThermalTicketDirect(payload) {
         <style>
           @page { size: 80mm auto; margin: 0; }
           body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            width: 74mm;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Roboto, sans-serif;
+            width: 76mm;
             margin: 0 auto;
             padding: 8px 4px;
-            color: #000;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           .center { text-align: center; }
-          .header { font-size: 15px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
-          .sub-header { font-size: 11px; margin-bottom: 6px; }
-          .divider { border-top: 1px dashed #000; margin: 6px 0; }
-          .ticket-id { font-size: 32px; font-weight: 900; letter-spacing: 1px; margin: 6px 0; }
-          .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; line-height: 1.2; }
-          .label { color: #333; font-size: 11px; }
-          .val { font-weight: bold; text-align: right; max-width: 65%; }
+          .header { font-size: 17px; font-weight: 900; text-transform: uppercase; margin-bottom: 2px; color: #000 !important; letter-spacing: 0.5px; }
+          .sub-header { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #000 !important; }
+          .divider { border-top: 2px dashed #000; margin: 8px 0; }
+          .ticket-id { font-size: 38px; font-weight: 900; letter-spacing: 2px; margin: 6px 0; color: #000 !important; border: 2px solid #000; border-radius: 8px; padding: 4px 8px; }
+          .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 700; margin-bottom: 5px; line-height: 1.3; color: #000 !important; }
+          .label { color: #000 !important; font-size: 13px; font-weight: 700; }
+          .val { font-weight: 900; text-align: right; max-width: 65%; color: #000 !important; word-break: break-word; }
           .slot-box {
             border: 2px solid #000;
             border-radius: 6px;
-            padding: 6px;
+            padding: 8px 6px;
             margin: 8px 0;
             text-align: center;
+            background: #fff;
           }
-          .slot-title { font-size: 10px; font-weight: bold; letter-spacing: 0.5px; }
-          .slot-time { font-size: 20px; font-weight: 900; margin-top: 2px; }
+          .slot-title { font-size: 12px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #000 !important; }
+          .slot-time { font-size: 24px; font-weight: 900; margin-top: 3px; color: #000 !important; }
           .guide-box {
-            border: 1px solid #000;
+            border: 2px solid #000;
             border-radius: 4px;
-            padding: 4px 6px;
-            margin-bottom: 4px;
-            font-size: 11px;
-            line-height: 1.25;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.3;
             text-align: left;
+            color: #000 !important;
           }
           .guide-svc-title {
-            font-weight: 800;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2px;
-            margin-bottom: 2px;
+            font-weight: 900;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 3px;
+            margin-bottom: 3px;
+            font-size: 12px;
+            color: #000 !important;
           }
-          .footer { font-size: 10px; text-align: center; margin-top: 8px; }
+          .footer { font-size: 12px; font-weight: 700; text-align: center; margin-top: 8px; line-height: 1.35; color: #000 !important; }
         </style>
       </head>
       <body>
-        <div class="center header">MRT & MSKT MARKAZI</div>
+        <div class="center header">ONKOLOGIYA VA RADIOLOGIYA MARKAZI</div>
         <div class="center sub-header">Elektron Navbat Taloni</div>
         <div class="divider"></div>
 
@@ -2420,12 +3444,12 @@ function printThermalTicketDirect(payload) {
 
         <div class="row">
           <span class="label">Bemor:</span>
-          <span class="val">${escapeHtml(payload.name)}</span>
+          <span class="val" style="font-size:15px;">${escapeHtml(payload.name)}</span>
         </div>
 
         <div class="row">
           <span class="label">Bemor Toifasi:</span>
-          <span class="val" style="font-weight:bold;">
+          <span class="val">
             ${payload.patientType === "Bo'limda yotibdi" ? `🏥 Bo'limda yotibdi ${payload.department ? `(${escapeHtml(payload.department)})` : ''}` : '🏠 Uyidan qatnaydi'}
           </span>
         </div>
@@ -2454,7 +3478,7 @@ function printThermalTicketDirect(payload) {
 
         <div class="row">
           <span class="label">Qabul Sanasi:</span>
-          <span class="val" style="color:#000; font-weight:900; font-size:13px;">${escapeHtml(payload.appointmentDate || '')}</span>
+          <span class="val" style="color:#000; font-weight:900; font-size:14px;">${escapeHtml(payload.appointmentDate || '')}</span>
         </div>
 
         <div class="row">
@@ -2468,56 +3492,22 @@ function printThermalTicketDirect(payload) {
         </div>
 
         ${payload.rescheduleReason ? `
-          <div class="row" style="font-size:10px; color:#333;">
+          <div class="row" style="font-size:12px; font-weight:bold; color:#000;">
             <span class="label">Eslatma / Sabab:</span>
-            <span class="val" style="font-weight:bold;">${escapeHtml(payload.rescheduleReason)}</span>
+            <span class="val">${escapeHtml(payload.rescheduleReason)}</span>
           </div>
         ` : ''}
 
-        <!-- TEKSHIRUVLAR UCHUN TAYYORGARLIK VA QARSHI KO'RSATMALAR -->
-        ${payload.servicesList && payload.servicesList.length > 0 ? `
+        <!-- TEKSHIRUVLAR UCHUN TAYYORGARLIK VA QARSHI KO'RSATMALAR (Aqlli birlashtirilgan) -->
+        ${formatConsolidatedGuidelinesHtml(payload) ? `
           <div class="divider"></div>
-          <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; margin: 4px 0; text-align: center;">
-            TIBBIY KO'RSATMALAR VA ESLATMA
-          </div>
-          ${payload.servicesList.map((s, idx) => {
-            const hasPrep = (s.preparation && s.preparation.trim().length > 0 && s.preparation.trim() !== '—');
-            const hasContra = (s.contraindications && s.contraindications.trim().length > 0 && s.contraindications.trim() !== '—');
-            if (!hasPrep && !hasContra) return '';
-
-            return `
-              <div class="guide-box">
-                <div class="guide-svc-title">
-                  ${payload.servicesList.length > 1 ? (idx + 1) + '. ' : ''}${escapeHtml(s.fullName || s.name)}
-                </div>
-                ${hasPrep ? `
-                  <div style="margin-top: 2px;">
-                    <strong>📋 Tayyorgarlik:</strong> ${escapeHtml(s.preparation)}
-                  </div>
-                ` : ''}
-                ${hasContra ? `
-                  <div style="margin-top: 2px;">
-                    <strong>🚫 Qarshi ko'rsatmalar:</strong> ${escapeHtml(s.contraindications)}
-                  </div>
-                ` : ''}
-              </div>
-            `;
-          }).join('')}
-        ` : (payload.preparation || payload.contraindications ? `
-          <div class="divider"></div>
-          <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; margin: 4px 0; text-align: center;">
-            TIBBIY KO'RSATMALAR VA ESLATMA
-          </div>
-          <div class="guide-box">
-            ${payload.preparation && payload.preparation !== '—' ? `<div><strong>📋 Tayyorgarlik:</strong> ${escapeHtml(payload.preparation)}</div>` : ''}
-            ${payload.contraindications && payload.contraindications !== '—' ? `<div style="margin-top: 2px;"><strong>🚫 Qarshi ko'rsatmalar:</strong> ${escapeHtml(payload.contraindications)}</div>` : ''}
-          </div>
-        ` : '')}
+          ${formatConsolidatedGuidelinesHtml(payload)}
+        ` : ''}
 
         <div class="divider"></div>
         <div class="footer">
           Iltimos, 30-40 minut oldin MRT & MSKT kutish joyida bo'ling va kelganingiz haqida ro'yxatchilardan birini ogohlantiring!<br>
-          Salomat bo'ling!
+          <strong style="font-size:13px; margin-top:4px; display:inline-block;">Salomat bo'ling!</strong>
         </div>
       </body>
       </html>
@@ -2531,6 +3521,298 @@ function printThermalTicketDirect(payload) {
       } catch (e) {}
     }, 350);
   } catch (e) {}
+}
+
+// 14.1 ROZILIK ANKETASINI CHOP ETISH (A4 FORMATDA)
+function printConsentFormDirect(payload) {
+  try {
+    const oldIframe = document.getElementById("uttConsentPrintIframe");
+    if (oldIframe) oldIframe.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "uttConsentPrintIframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    
+    let servicesTitle = "";
+    if (payload.servicesList && payload.servicesList.length > 0) {
+      servicesTitle = payload.servicesList.map(s => (s.code ? s.code + ' - ' : '') + (s.name || s.fullName)).join(' + ');
+    } else {
+      servicesTitle = payload.service || 'Tomografiya';
+    }
+
+    let examType = "MSKT / MRT";
+    const svcUpper = (payload.service || "").toUpperCase();
+    const docUpper = (payload.doctorName || payload.room || payload.deviceType || "").toUpperCase();
+    if (svcUpper.includes("MSKT") || docUpper.includes("MSKT") || svcUpper.includes("MSCT") || docUpper.includes("MSCT")) {
+      examType = "MSKT";
+    } else if (svcUpper.includes("MRT") || docUpper.includes("MRT") || svcUpper.includes("MRI") || docUpper.includes("MRI")) {
+      examType = "MRT";
+    }
+
+    // Tekshiruv uchun maxsus savolnomani aniqlash (Barcha tekshiruvlar uchun umumiy va maxsus savollarni aqlli birlashtirish)
+    const customQuestionsList = consolidateQuestionsForServices(
+      payload.servicesList,
+      examType,
+      payload.isContrast,
+      payload.questions
+    );
+    const questionsRowsHtml = customQuestionsList.map((qText, idx) => {
+      const cleanQ = qText.replace(/^\d+[\.\)\-]\s*/, '').trim();
+      return `
+        <tr>
+          <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+          <td>${escapeHtml(cleanQ)}</td>
+          <td class="check-col">[ &nbsp; ]</td>
+          <td class="check-col">[ &nbsp; ]</td>
+        </tr>
+      `;
+    }).join("");
+
+    const typeText = payload.patientType === "Bo'limda yotibdi"
+      ? `Bo'limda yotibdi ${payload.department ? `(${payload.department})` : ''}`
+      : "Uyidan qatnaydi (Ambulator)";
+
+    // 1. Nashr sanasi (Navbatga qo'yilgan sana)
+    let rawQueueDate = payload.appointmentDate || payload.date || (typeof selectedDate !== 'undefined' ? selectedDate : '') || '';
+    let nashrSanasi = "09.04.2026";
+    if (rawQueueDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(rawQueueDate)) {
+        const parts = rawQueueDate.split('-');
+        nashrSanasi = `${parts[2]}.${parts[1]}.${parts[0]}`;
+      } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawQueueDate)) {
+        const parts = rawQueueDate.split('/');
+        nashrSanasi = `${parts[1]}.${parts[0]}.${parts[2]}`;
+      } else if (/^\d{2}\.\d{2}\.\d{4}$/.test(rawQueueDate)) {
+        nashrSanasi = rawQueueDate;
+      }
+    }
+
+    // 2. Ko'rib chiqish sanasi (Bugungi printerdan chop etilgan kundagi sana)
+    const nowPrint = new Date();
+    const koribChiqishSanasi = `${String(nowPrint.getDate()).padStart(2, '0')}.${String(nowPrint.getMonth() + 1).padStart(2, '0')}.${nowPrint.getFullYear()}`;
+
+    // 3. Kod No dinamik raqami (HD.RB.[Kod raqami])
+    let kodDigits = "";
+    if (payload.servicesList && payload.servicesList.length > 0) {
+      const extracted = payload.servicesList.map(s => {
+        const codeStr = s.code || s.fullName || s.name || "";
+        const m = codeStr.match(/R?(\d{2,4})/i);
+        return m ? m[1] : null;
+      }).filter(Boolean);
+      if (extracted.length > 0) {
+        kodDigits = extracted.join('/');
+      }
+    }
+    if (!kodDigits) {
+      const svcString = (payload.service || "") + " " + (payload.code || "");
+      const match = svcString.match(/R?(\d{2,4})/i);
+      if (match) {
+        kodDigits = match[1];
+      }
+    }
+    const kodNo = `HD.RB.${kodDigits || '292'}`;
+
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Rozilik Hujjati - ${escapeHtml(payload.name)}</title>
+        <style>
+          @page { size: A4 portrait; margin: 8mm 12mm; }
+          * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+          body { color: #000; padding: 4px; font-size: 12px; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          
+          /* Rasmiy Titul Box */
+          .titul-box { border: 1.5px solid #000; margin-bottom: 8px; }
+          .titul-grid { display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding: 6px 10px; }
+          .titul-logo-box { width: 75px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .titul-text { text-align: center; flex-grow: 1; padding: 0 10px; }
+          .titul-text h2 { font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.25; margin-bottom: 3px; }
+          .titul-text h1 { font-size: 14.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+          
+          .titul-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; }
+          .titul-table td { border-right: 1.5px solid #000; padding: 4px 4px; line-height: 1.2; }
+          .titul-table td:last-child { border-right: none; }
+          
+          .section-title { font-size: 11.5px; font-weight: 900; text-transform: uppercase; background: #f1f5f9; border: 1px solid #000; padding: 3px 6px; margin: 6px 0 4px 0; }
+          
+          .patient-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11.5px; }
+          .patient-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
+          .patient-table .lbl { font-weight: 700; width: 22%; background: #f8fafc; color: #000; }
+          .patient-table .val { font-weight: 800; width: 28%; color: #000; }
+          
+          .lab-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11.5px; }
+          .lab-table td { border: 1px solid #000; padding: 4px 6px; }
+          
+          .checklist-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 11px; }
+          .checklist-table th, .checklist-table td { border: 1px solid #000; padding: 3.5px 6px; }
+          .checklist-table th { background: #f1f5f9; text-align: left; font-weight: 900; }
+          .checklist-table td.check-col { width: 55px; text-align: center; font-weight: 900; font-size: 11.5px; }
+          
+          .declaration-text { font-size: 10.5px; line-height: 1.35; text-align: justify; margin: 5px 0; border: 1px solid #000; padding: 5px 7px; border-radius: 3px; background: #fafafa; }
+          
+          .signatures-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11.5px; }
+          .signatures-table td { border: none; padding: 3px 4px; vertical-align: top; }
+          
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <!-- 1. RASMIY INSTITUTSIONAL TITUL (Rasmga mos) -->
+        <div class="titul-box">
+          <div class="titul-grid">
+            <div class="titul-logo-box">
+              <img src="${LOGO_ONKOLOGIYA}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="Onkologiya Markazi">
+            </div>
+            <div class="titul-text">
+              <h2>RESPUBLIKA IXTISOSLASHTIRILGAN<br>ONKOLOGIYA VA RADIOLOGIYA<br>ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
+              <h1>${examType} TEKSHIRUVINI O‘TKAZISHGA ROZILIK HUJJATI</h1>
+            </div>
+            <div class="titul-logo-box">
+              <img src="${LOGO_SSV}" style="width:72px; height:auto; max-height:72px; object-fit:contain;" alt="SSV Logosi">
+            </div>
+          </div>
+          <table class="titul-table">
+            <tr>
+              <td style="width:20%;"><strong>Kod No:</strong><br><strong>${escapeHtml(kodNo)}</strong></td>
+              <td style="width:20%;"><strong>Nashr sanasi:</strong><br>${escapeHtml(nashrSanasi)}</td>
+              <td style="width:20%;"><strong>Ko‘rib chiqish sanasi:</strong><br>${escapeHtml(koribChiqishSanasi)}</td>
+              <td style="width:20%;"><strong>Tekshiruv raqami:</strong><br><strong>${escapeHtml(payload.ticketId || '00000')}</strong></td>
+              <td style="width:20%;"><strong>Sahifa/Sahifalar soni:</strong><br>1 / 1</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 2. BEMOR VA TEKSHIRUV PARAMETRLARI (Bo'yi va Vazni bilan) -->
+        <table class="patient-table">
+          <tr>
+            <td class="lbl">Bemor F.I.Sh:</td>
+            <td class="val" colspan="3" style="font-size:13px; font-weight:900;">${escapeHtml(payload.name)}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Bemor ID:</td>
+            <td class="val"><strong>${escapeHtml(payload.ticketId || '-')}</strong></td>
+            <td class="lbl">Qabul Sanasi & Vaqti:</td>
+            <td class="val"><strong>${escapeHtml(payload.appointmentDate || '')} | ${escapeHtml(payload.timeSlot || payload.scheduledTime || payload.time || '-')}</strong></td>
+          </tr>
+          <tr>
+            <td class="lbl">Bemor Toifasi:</td>
+            <td class="val">${escapeHtml(typeText)}</td>
+            <td class="lbl">Fayl / Yo‘naltirgan shifokor:</td>
+            <td class="val">${escapeHtml(payload.referringDoctor || '-')}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Qurilma / Xona:</td>
+            <td class="val">${escapeHtml(payload.room || '-')} (${escapeHtml(payload.doctorName || '-')})</td>
+            <td class="lbl">Tekshiruv Nomi:</td>
+            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? '<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">KONTRASTLI</span>' : ''}</td>
+          </tr>
+          <tr>
+            <td class="lbl" style="background:#f1f5f9;">Bemor Bo‘yi:</td>
+            <td class="val" style="font-size:12px;"><strong>________ sm</strong></td>
+            <td class="lbl" style="background:#f1f5f9;">Bemor Vazni:</td>
+            <td class="val" style="font-size:12px;"><strong>________ kg</strong></td>
+          </tr>
+        </table>
+
+        <!-- 3. KONTRASTLI TEKSHIRUVLAR UCHUN LABORATORIYA TAHLILLARI (Kreatinin & Mochevina) -->
+        <div class="section-title" style="background:#f8fafc; border:1.5px solid #000;">
+          💉 LABORATORIYA TAHLILLARI (KONTRASTLI TEKSHIRUVLAR UCHUN MAJBURIY):
+        </div>
+        <table class="lab-table">
+          <tr>
+            <td style="width:34%;"><strong>Qonda Kreatinin miqdori:</strong><br><span style="font-size:12.5px; font-weight:900;">________ mkmol/l</span></td>
+            <td style="width:33%;"><strong>Qonda Mochevina (Urea):</strong><br><span style="font-size:12.5px; font-weight:900;">________ mmol/l</span></td>
+            <td style="width:33%;"><strong>Tahlil topshirilgan sana:</strong><br><span style="font-size:11.5px; font-weight:700;">«____» ____________ 202__ y.</span></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:10px; background:#fafafa; line-height:1.25;">
+              <em>* Kreatinin normasi: Ayollarda 44–80 mkmol/l, Erkaklarda 62–106 mkmol/l. Qandli diabet bo‘yicha Metformin (Glyukofaj) qabul qiluvchi bemorlar preparatni tekshiruvdan 48 soat oldin to‘xtatishi shart.</em>
+            </td>
+          </tr>
+        </table>
+
+        <!-- 4. TIBBIY XAVFSIZLIK SAVOLNOMASI -->
+        <div class="section-title">I. TIBBIY XAVFSIZLIK VA QARSHI KO‘RSATMALAR SAVOLNOMASI</div>
+        <table class="checklist-table">
+          <thead>
+            <tr>
+              <th style="width:24px; text-align:center;">№</th>
+              <th>Xavfsizlik va tibbiy qarshi ko‘rsatmalar mezoni</th>
+              <th class="check-col">HA</th>
+              <th class="check-col">YO‘Q</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${questionsRowsHtml}
+          </tbody>
+        </table>
+
+        <!-- 5. ROZILIK DEKLARATSIYASI -->
+        <div class="section-title">II. BEMORNING (YOKI QONUNIY VAKILINING) XABARDOR QILINGAN ROZILIGI</div>
+        <div class="declaration-text">
+          Men, ushbu anketada ko‘rsatilgan barcha ma‘lumotlarni to‘liq va haqqoniy taqdim etganimni tasdiqlayman. Menga o‘tkaziladigan ${examType} tekshiruvining maqsadi, o‘tkazilish tartibi, xavfsizlik talablari (shu jumladan barcha metall buyumlar, soat, telefon, bank kartalari, kamar, sirg‘a va kiyimdagi temir detallarni yechish zarurligi) hamda kontrast modda yuborilganda ehtimoliy individual reaksiyalar haqida to‘liq tushuntirildi.<br>
+          Shifokor va operator ko‘rsatmalariga rioya qilishga roziman va tekshiruv o‘tkazilishiga o‘z ixtiyoriy roziligimni bildiraman.<br>
+          <strong>* DIQQAT: Agar tekshiruv vaqtida bemor tomonidan (yoki bemor sababli) tekshiruv to‘xtatilsa, tekshiruv uchun navbat qaytadan qo‘yiladi.</strong>
+        </div>
+
+        <!-- 6. IMZOLAR VA TASDIQLASH (Bemor, Registrator, Laborant, Shifokor) -->
+        <div class="section-title">III. TASDIQLASH VA IMZOLAR</div>
+        <table class="signatures-table" style="width:100%; border-collapse:collapse; margin-top:4px; font-size:11px;">
+          <tr>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>1. Bemor (yoki qonuniy vakili):</strong><br>
+              F.I.Sh: <strong>${escapeHtml(payload.name)}</strong><br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>2. Ro‘yxatga oluvchi (Registrator):</strong><br>
+              F.I.Sh: <strong>${escapeHtml(payload.registeredBy || payload.operatorLogin || 'Operator')}</strong><br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+          </tr>
+          <tr>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>3. Rentgen-laborant (Operator):</strong><br>
+              F.I.Sh: _________________________________________<br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+            <td style="width:50%; border:1px solid #000; padding:4px 6px; vertical-align:top; background:#fff;">
+              <strong>4. Shifokor (Vrach-radiolog):</strong><br>
+              F.I.Sh: _________________________________________<br><br>
+              Imzo: _____________________ Sana: ______________
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        console.error("Iframe print error:", e);
+      }
+    }, 350);
+  } catch (err) {
+    console.error("Consent print error:", err);
+    showToast("⚠️ Anketa chop etishda xatolik: " + err.message);
+  }
 }
 
 // 15. TOAST XABARNOMA
@@ -2563,4 +3845,22 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function formatGuidelineSentencesHtml(rawText) {
+  if (!rawText || String(rawText).trim() === '' || String(rawText).trim() === '—') return '';
+  const text = String(rawText).trim();
+  const rawParts = text.split(/(?:\.(?!\d)|\;|\r?\n)+/);
+  const lines = [];
+  rawParts.forEach(p => {
+    let clean = p.trim().replace(/^[•\-\*]\s*/, '').trim();
+    if (clean.length > 0) {
+      if (!/[.\?!:;]$/.test(clean)) {
+        clean += '.';
+      }
+      lines.push(clean);
+    }
+  });
+  if (lines.length === 0) return '';
+  return lines.map(line => `<div style="margin-top:2px; padding-left:2px;">• ${escapeHtml(line)}</div>`).join('');
 }

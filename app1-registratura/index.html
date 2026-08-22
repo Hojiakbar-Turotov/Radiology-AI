@@ -19,7 +19,7 @@
       <div class="logo">
         <i class="fa-solid fa-hospital-user"></i>
         <div>
-          <h2>UTT KLINIKA</h2>
+          <h2>RONS</h2>
           <p>Registratura Paneli</p>
         </div>
       </div>
@@ -36,6 +36,9 @@
         </button>
         <button class="nav-item" onclick="switchTab('doctors-tab')">
           <i class="fa-solid fa-desktop"></i> Qurilmalar & Xonalar
+        </button>
+        <button class="nav-item" onclick="switchTab('schedule-tab')">
+          <i class="fa-solid fa-business-time"></i> Ish Grafigi & Soatlari
         </button>
       </nav>
 
@@ -135,13 +138,14 @@
                 <th class="sortable sort-active" id="th-scheduledTime" onclick="toggleSort('scheduledTime')" title="Vaqt bo'yicha saralash">Band Qilingan Vaqt <span class="sort-indicator"><i class="fa-solid fa-sort-up"></i></span></th>
                 <th class="sortable" id="th-referringDoctor" onclick="toggleSort('referringDoctor')" title="Fayl shifokori bo'yicha saralash">Fayl Shifokori <span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                 <th class="sortable" id="th-registeredBy" onclick="toggleSort('registeredBy')" title="Ro'yxatchi bo'yicha saralash">Ro'yxatchi <span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                <th class="sortable" id="th-arrived" onclick="toggleSort('arrived')" title="Kutish zalida bo'lishi bo'yicha saralash" style="text-align:center;">Kutish Zalida <span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                 <th class="sortable" id="th-status" onclick="toggleSort('status')" title="Holati bo'yicha saralash">Holat <span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                 <th style="text-align: center;">Amallar</th>
               </tr>
             </thead>
             <tbody id="queueTableBody">
               <tr>
-                <td colspan="10" class="text-center py-4">Bemorlar yuklanmoqda...</td>
+                <td colspan="11" class="text-center py-4">Bemorlar yuklanmoqda...</td>
               </tr>
             </tbody>
           </table>
@@ -290,12 +294,15 @@
       <section id="services-tab" class="tab-content">
         <div class="services-header">
           <div>
-            <h2><i class="fa-solid fa-stopwatch-20"></i> Tekshiruv Vaqtlari (MRT & MSKT)</h2>
+            <h2><i class="fa-solid fa-stopwatch-20"></i> Tekshiruv Vaqtlari & Tibbiy Ko'rsatmalar</h2>
             <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">
-              Har bir tekshiruv uchun sarflanadigan vaqt, tayyorgarlik va qarshi ko'rsatmalarni sozlang. Barcha o'zgarishlar avtomatik Firebase'da saqlanadi.
+              Har bir tekshiruv uchun ketadigan vaqt, tayyorgarlik, qarshi ko'rsatmalar va rozilik anketasi savollarini yakka yoki guruhlab sozlang.
             </p>
           </div>
-          <div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="openBatchSettingsModal()">
+              <i class="fa-solid fa-layer-group"></i> Ommaviy Sozlash (Guruhlab)
+            </button>
             <button class="btn btn-primary" onclick="openAddServiceModal()">
               <i class="fa-solid fa-plus"></i> Yangi Tekshiruv Qo'shish
             </button>
@@ -324,19 +331,20 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th style="width: 80px;">Kod</th>
-                <th style="min-width: 220px;">Tekshiruv Nomi</th>
-                <th style="width: 90px;">Turi</th>
-                <th style="width: 110px;">Kontrast</th>
-                <th style="width: 180px;">Ketadigan Vaqt</th>
-                <th style="min-width: 220px;">📋 Ko'riladigan Tayyorgarlik</th>
-                <th style="min-width: 220px;">🚫 Qarshi Ko'rsatmalar</th>
-                <th style="width: 100px;">Amallar</th>
+                <th style="width: 75px;">Kod</th>
+                <th style="min-width: 200px;">Tekshiruv Nomi</th>
+                <th style="width: 85px;">Turi</th>
+                <th style="width: 105px;">Kontrast</th>
+                <th style="width: 165px;">Ketadigan Vaqt</th>
+                <th style="min-width: 200px;">📋 Ko'riladigan Tayyorgarlik</th>
+                <th style="min-width: 200px;">🚫 Qarshi Ko'rsatmalar</th>
+                <th style="min-width: 220px;">❓ Tibbiy Savolnoma (Anketa)</th>
+                <th style="width: 90px; text-align:center;">Amallar</th>
               </tr>
             </thead>
             <tbody id="servicesTableBody">
               <tr>
-                <td colspan="8" class="text-center py-4">Tekshiruvlar yuklanmoqda...</td>
+                <td colspan="9" class="text-center py-4">Tekshiruvlar yuklanmoqda...</td>
               </tr>
             </tbody>
           </table>
@@ -355,6 +363,270 @@
           <!-- Dinamik qurilmalar kartasi -->
         </div>
       </section>
+
+      <!-- 5-TAB: Ish Grafigi & Soatlari Sozlamalari -->
+      <section id="schedule-tab" class="tab-content">
+        <div class="services-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h2><i class="fa-solid fa-business-time"></i> Markaz Ish Grafigi va Soatlari</h2>
+          <button type="button" class="btn btn-secondary" onclick="applyDefaultSchedulePreset()" style="font-size:12.5px; font-weight:700;">
+            <i class="fa-solid fa-bolt"></i> Standart Grafik (Dush-Juma: 08:00-19:30, Shanba: 08:00-14:00)
+          </button>
+        </div>
+
+        <div style="max-width: 920px; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 15px;">
+          <p style="font-size: 13.5px; color: #475569; margin-bottom: 18px; line-height: 1.5;">
+            💡 Har bir hafta kuni uchun alohida ish boshlanish va tugash soatlarini belgilashingiz mumkin. Belgilanmagan kunlar (masalan, Yakshanba) dam olish kuni sifatida belgilanadi va navbat berish taqiqlanadi.
+          </p>
+
+          <table class="services-table" style="margin-bottom: 24px;">
+            <thead>
+              <tr>
+                <th style="width: 28%;">Hafta Kuni</th>
+                <th style="width: 20%; text-align: center;">Holati</th>
+                <th style="width: 26%;">🌅 Ish Boshlanish</th>
+                <th style="width: 26%;">🌙 Ish Tugash</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dushanba (1) -->
+              <tr id="rowDay1">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay1" value="1" checked onchange="toggleDayRow(1, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Dushanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay1" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart1" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd1" value="19:30" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Seshanba (2) -->
+              <tr id="rowDay2">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay2" value="2" checked onchange="toggleDayRow(2, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Seshanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay2" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart2" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd2" value="19:30" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Chorshanba (3) -->
+              <tr id="rowDay3">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay3" value="3" checked onchange="toggleDayRow(3, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Chorshanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay3" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart3" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd3" value="19:30" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Payshanba (4) -->
+              <tr id="rowDay4">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay4" value="4" checked onchange="toggleDayRow(4, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Payshanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay4" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart4" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd4" value="19:30" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Juma (5) -->
+              <tr id="rowDay5">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay5" value="5" checked onchange="toggleDayRow(5, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Juma</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay5" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart5" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd5" value="19:30" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Shanba (6) -->
+              <tr id="rowDay6">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="workDay6" value="6" checked onchange="toggleDayRow(6, this.checked)" style="width:18px; height:18px; accent-color:#0284c7;">
+                    <span>Shanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay6" style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🟢 Ish kuni</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart6" value="08:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd6" value="14:00" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%;">
+                </td>
+              </tr>
+
+              <!-- Yakshanba (0) -->
+              <tr id="rowDay0" style="background:#fef2f2;">
+                <td>
+                  <label style="display:flex; align-items:center; gap:10px; font-weight:800; cursor:pointer; font-size:14px; color:#b91c1c;">
+                    <input type="checkbox" id="workDay0" value="0" onchange="toggleDayRow(0, this.checked)" style="width:18px; height:18px; accent-color:#ef4444;">
+                    <span>Yakshanba</span>
+                  </label>
+                </td>
+                <td style="text-align:center;">
+                  <span id="badgeDay0" style="background:#fee2e2; color:#b91c1c; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:800;">🔴 Dam olish</span>
+                </td>
+                <td>
+                  <input type="time" id="workStart0" value="08:00" disabled style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%; opacity:0.5;">
+                </td>
+                <td>
+                  <input type="time" id="workEnd0" value="14:00" disabled style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:700; width:100%; opacity:0.5;">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="button" class="btn btn-primary" onclick="saveWorkScheduleSettings()" style="padding:12px 28px; font-size:14px; font-weight:800;">
+              <i class="fa-solid fa-floppy-disk"></i> Barcha Kunlar Grafigini Saqlash
+            </button>
+          </div>
+        </div>
+
+        <!-- Oylik va Yillik Taqvim / Bayramlar Nazorati -->
+        <div style="max-width: 920px; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+            <div>
+              <h3 style="font-size:16px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-calendar-days" style="color:#0284c7;"></i> Oylik & Yillik Taqvim (Bayramlar va Maxsus Sanalar)
+              </h3>
+              <p style="font-size:13px; color:#64748b; margin-top:4px;">
+                Istalgan kunga bosib, uni rasmiy bayram (dam olish) yoki qisqartirilgan ish kuni qilib belgilashingiz mumkin.
+              </p>
+            </div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary" onclick="populateUzbekistanHolidays()" style="font-size:12px; font-weight:700;">
+                <i class="fa-solid fa-flag"></i> O'zbekiston Bayramlarini Kiritish
+              </button>
+              <button type="button" class="btn btn-primary" onclick="openCalendarExceptionModal()" style="font-size:12px; font-weight:700;">
+                <i class="fa-solid fa-plus"></i> Yangi Maxsus Sana
+              </button>
+            </div>
+          </div>
+
+          <!-- Oy va Yil Tanlash boshqaruvi -->
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 16px; margin-bottom:16px;">
+            <button type="button" class="btn btn-secondary" onclick="prevCalendarMonth()" style="padding:6px 12px; font-size:13px;">
+              <i class="fa-solid fa-chevron-left"></i> Oldingi
+            </button>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <select id="calMonthSelect" onchange="onCalendarMonthYearChange()" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; font-weight:800; font-size:14px; color:#0f172a;">
+                <option value="0">Yanvar</option>
+                <option value="1">Fevral</option>
+                <option value="2">Mart</option>
+                <option value="3">Aprel</option>
+                <option value="4">May</option>
+                <option value="5">Iyun</option>
+                <option value="6">Iyul</option>
+                <option value="7">Avgust</option>
+                <option value="8">Sentabr</option>
+                <option value="9">Oktabr</option>
+                <option value="10">Noyabr</option>
+                <option value="11">Dekabr</option>
+              </select>
+
+              <select id="calYearSelect" onchange="onCalendarMonthYearChange()" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; font-weight:800; font-size:14px; color:#0f172a;">
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+              </select>
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="nextCalendarMonth()" style="padding:6px 12px; font-size:13px;">
+              Keyingi <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Interaktiv Taqvim Jadvali -->
+          <div class="cal-grid-header">
+            <div>DUSHANBA</div>
+            <div>SESHANBA</div>
+            <div>CHORSHANBA</div>
+            <div>PAYSHANBA</div>
+            <div>JUMA</div>
+            <div>SHANBA</div>
+            <div style="color:#ef4444;">YAKSHANBA</div>
+          </div>
+          <div id="calGridDays" class="cal-grid-days">
+            <!-- Dinamik generatsiya qilinadi -->
+          </div>
+
+          <!-- Ushbu oy / Yildagi maxsus kunlar ro'yxati -->
+          <div style="margin-top:24px; border-top:1px solid #e2e8f0; padding-top:16px;">
+            <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">
+              📋 Belgilangan Bayramlar va Maxsus Sanalar Ro'yxati:
+            </h4>
+            <div id="exceptionsTableContainer" style="overflow-x:auto;">
+              <table class="services-table" style="font-size:13px;">
+                <thead>
+                  <tr>
+                    <th>Sana</th>
+                    <th>Nomi / Sababi</th>
+                    <th>Holati</th>
+                    <th>Ish Soatlari</th>
+                    <th style="width:100px; text-align:center;">Amal</th>
+                  </tr>
+                </thead>
+                <tbody id="exceptionsTableBody">
+                  <!-- Dinamik ro'yxat -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -363,8 +635,8 @@
     <div class="modal-content ticket-box">
       <div class="ticket-printable" id="printableTicket">
         <div class="ticket-header">
-          <h3>UTT DIAGNOSTIKA MARKAZI</h3>
-          <p>Navbat Taloni</p>
+          <h3>ONKOLOGIYA VA RADIOLOGIYA MARKAZI</h3>
+          <p>Elektron Navbat Taloni</p>
           <div class="ticket-divider"></div>
         </div>
         <div class="ticket-body">
@@ -374,8 +646,8 @@
             <strong id="ticketPrintName">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Toifasi:</span>
-            <strong id="ticketPrintPatientType" style="color:#0284c7;">-</strong>
+            <span>Bemor toifasi:</span>
+            <strong id="ticketPrintPatientType">-</strong>
           </div>
           <div class="ticket-info-row" id="ticketPrintDocRow" style="display:none;">
             <span>Fayl shifokori:</span>
@@ -390,30 +662,30 @@
             <strong id="ticketPrintDoctor">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Xizmat:</span>
-            <span id="ticketPrintService">-</span>
+            <span>Tekshiruv:</span>
+            <strong id="ticketPrintService">-</strong>
           </div>
-          <div class="ticket-info-row">
-            <span>Band qilingan vaqt:</span>
-            <strong id="ticketPrintTimeSlot" style="font-size:1.1rem; color:#0284c7;">-</strong>
+          <div class="ticket-slot-box">
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#000; letter-spacing:0.5px;">BAND QILINGAN QABUL VAQTI:</div>
+            <strong id="ticketPrintTimeSlot" style="font-size:1.45rem; font-weight:900; color:#000; display:block; margin-top:3px;">-</strong>
           </div>
           <div class="ticket-info-row">
             <span>Ro'yxatga oluvchi:</span>
-            <span id="ticketPrintRegistrar">-</span>
+            <strong id="ticketPrintRegistrar">-</strong>
           </div>
           <div class="ticket-info-row">
-            <span>Ro'yxat vaqti:</span>
-            <span id="ticketPrintTime">-</span>
+            <span>Rasmiylashtirilgan vaqt:</span>
+            <strong id="ticketPrintTime">-</strong>
           </div>
 
-          <div id="ticketPrintGuidelines" style="display:none; margin-top:8px; font-size:11px; text-align:left;">
+          <div id="ticketPrintGuidelines" style="display:none; margin-top:8px; font-size:12px; text-align:left;">
             <!-- Tibbiy tayyorgarlik va qarshi ko'rsatmalar -->
           </div>
         </div>
         <div class="ticket-footer">
           <div class="ticket-divider"></div>
           <p>Iltimos, 30-40 minut oldin MRT & MSKT kutish joyida bo'ling va kelganingiz haqida ro'yxatchilardan birini ogohlantiring!</p>
-          <p>Salomat bo'ling!</p>
+          <p style="font-weight:900; margin-top:4px;">Salomat bo'ling!</p>
         </div>
       </div>
 
@@ -490,14 +762,84 @@
           <label for="svcDuration">Sarflanadigan Vaqt (Daqiqada) <span class="required">*</span></label>
           <input type="number" id="svcDuration" value="30" min="1" max="300" step="1" required placeholder="Masalan: 9, 11, 24, 34">
         </div>
-        <div class="form-group">
-          <label for="svcPreparation">📋 Ko'riladigan Tayyorgarlik</label>
-          <textarea id="svcPreparation" rows="2" placeholder="Masalan: 4-6 soat och qoringa kelish, metall buyumlarni yechish, 1 litr suv ichish..."></textarea>
+
+        <!-- Tuzilmaviy Tibbiy Tayyorgarlik Bo'limi -->
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <label style="font-weight:800; font-size:13px; color:#0f172a; display:block; margin-bottom:8px;">
+            📋 Tibbiy Tayyorgarlik Sozlamalari (Aqlli Birlashtirish Uchin):
+          </label>
+
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="svcFastingHours" style="font-size:12px; font-weight:700;">⏳ Och qorin talabi:</label>
+            <select id="svcFastingHours" style="font-weight:700; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;">
+              <option value="none">Och qorin talab etilmaydi (Oddiy ovqatlanish rejimi)</option>
+              <option value="4-6">Kamida 4-6 soat och qorin</option>
+              <option value="6-8">Kamida 6-8 soat och qorin (Kichik chanoq, jigar va h.k.)</option>
+              <option value="8-10">Kamida 8-10 soat och qorin</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">📌 Umumiy ko'rsatkichlar (bir nechta tekshiruvda 1 marta yoziladi):</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="svcNeedsBloodTest" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>🩸 Kreatinin / Mochevina tahlili</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="svcNeedsMetformin" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>💊 Metformin 48s to'xtatiladi</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="svcNeedsMetalFree" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>🧲 Metall buyumlarni yechish</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="svcNeedsHydration" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>💧 Tekshiruvdan so'ng ko'p suv</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label for="svcSpecialPrep" style="font-size:12px; font-weight:700;">🔍 Ushbu tekshiruvning o'ziga xos ALOHIDA tayyorgarligi:</label>
+            <textarea id="svcSpecialPrep" rows="2" placeholder="Masalan: Klizma ikki marta 12 soat va 1-3 soat oldin qilinishi, 0.5 litr suv va 2 ta no-shpa tabletkasi... yoki 1 litr suv ichib kelish..."></textarea>
+            <small style="color:#64748b; font-size:11px;">Faqat ushbu tekshiruvga xos individual talablar. Umumiy och qorin va tahlillar yuqoridan olinadi.</small>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="svcContraindications">🚫 Qarshi Ko'rsatmalar</label>
-          <textarea id="svcContraindications" rows="2" placeholder="Masalan: Kardiostimulyator, homiladorlik (1-trimestr), og'ir buyrak yetishmovchiligi, metall implantlar..."></textarea>
+
+        <!-- 2. Qarshi Ko'rsatmalar Bo'limi -->
+        <div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <label style="font-weight:800; font-size:13px; color:#991b1b; display:block; margin-bottom:8px;">
+            🚫 Qarshi Ko'rsatmalar Sozlamalari:
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#7f1d1d; cursor:pointer; margin-bottom:8px;">
+            <input type="checkbox" id="svcIncludeGeneralContra" checked style="width:16px; height:16px; accent-color:#dc2626;">
+            <span>📌 Umumiy standart qarshi ko'rsatmalar qo'llanilsin (MRT/MSKT/Kontrast)</span>
+          </label>
+          <div>
+            <label for="svcSpecialContra" style="font-size:12px; font-weight:700; color:#991b1b;">🔍 Ushbu tekshiruv uchun ALOHIDA maxsus qarshi ko'rsatmalar:</label>
+            <textarea id="svcSpecialContra" rows="2" placeholder="Masalan: Tana vazni 130 kg dan ortiq bo'lmasligi, og'ir yurak aritmiyasi..."></textarea>
+            <small style="color:#991b1b; font-size:11px;">Agar mavjud bo'lsa, umumiy ko'rsatmalar yoniga qo'shiladi.</small>
+          </div>
         </div>
+
+        <!-- 3. Tibbiy Savolnoma Bo'limi -->
+        <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <label style="font-weight:800; font-size:13px; color:#166534; display:block; margin-bottom:8px;">
+            ❓ Tibbiy Savolnoma (Rozilik Anketasi):
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#14532d; cursor:pointer; margin-bottom:8px;">
+            <input type="checkbox" id="svcIncludeGeneralQuestions" checked style="width:16px; height:16px; accent-color:#16a34a;">
+            <span>📌 Barcha tekshiruvlar uchun UMUMIY standart xavfsizlik savollari qo'shilsin</span>
+          </label>
+          <div>
+            <label for="svcSpecialQuestions" style="font-size:12px; font-weight:700; color:#166534;">🔍 Ushbu tekshiruv uchun ALOHIDA o'ziga xos savollar:</label>
+            <textarea id="svcSpecialQuestions" rows="3" placeholder="Masalan: Oldin ushbu a'zoda jarrohlik amaliyoti o'tkazilganmi?&#10;Epilepsiya yoki tutqanoq bormi?..."></textarea>
+            <small style="color:#14532d; font-size:11px;">Har bir savolni yangi qatorda yozing. Ular umumiy savollar bilan birlashtirilib chiqariladi.</small>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" onclick="closeServiceModal()">Bekor qilish</button>
           <button type="submit" class="btn btn-primary">Saqlash</button>
@@ -506,6 +848,319 @@
     </div>
   </div>
 
+  <!-- Umumiy Shablonlarni Sozlash Modali (Global Guidelines Modal) -->
+  <div class="modal" id="generalGuidelinesModal">
+    <div class="modal-content" style="max-width: 750px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-sliders"></i> 📌 Umumiy Tibbiy Qoidalar, Qarshi Ko'rsatmalar & Savolnoma Shablonlari</h3>
+        <button class="btn-close" onclick="closeGeneralGuidelinesModal()">&times;</button>
+      </div>
+      <form id="generalGuidelinesForm" onsubmit="handleGeneralGuidelinesSubmit(event)">
+        
+        <!-- 1. UMUMIY TAYYORGARLIK MATNLARI -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <h4 style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-clipboard-list" style="color:#0284c7;"></i> 1. 📌 Umumiy Tayyorgarlik Standart Matnlari
+          </h4>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">⏳ 4-6 soat och qorin matni:</label>
+            <input type="text" id="ggFasting46" style="font-size:12px;" value="Kamida 4-6 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">⏳ 6-8 soat och qorin matni:</label>
+            <input type="text" id="ggFasting68" style="font-size:12px;" value="Kamida 6-8 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">⏳ 8-10 soat och qorin matni:</label>
+            <input type="text" id="ggFasting810" style="font-size:12px;" value="Kamida 8-10 soat och qoringa kelish (barcha tekshiruvlar hisobga olingan holda).">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">🩸 Kreatinin va Mochevina tahlili matni:</label>
+            <input type="text" id="ggBloodTest" style="font-size:12px;" value="Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida).">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">💊 Metformin to'xtatish matni:</label>
+            <input type="text" id="ggMetformin" style="font-size:12px;" value="Qandli diabet bo'lsa: Metformin (Glyukofaj, Siofor v.b.) dori vositasini 48 soat oldin to'xtatish.">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700;">🧲 Metall buyumlarni yechish matni:</label>
+            <input type="text" id="ggMetalFree" style="font-size:12px;" value="Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.">
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label style="font-size:11.5px; font-weight:700;">💧 Ko'p suyuqlik ichish matni:</label>
+            <input type="text" id="ggHydration" style="font-size:12px;" value="Tekshiruvdan so'ng ko'p miqdorda suyuqlik (suv) ichish.">
+          </div>
+        </div>
+
+        <!-- 2. UMUMIY QARSHI KO'RSATMALAR -->
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <h4 style="font-size:13px; font-weight:800; color:#991b1b; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-ban" style="color:#dc2626;"></i> 2. 🚫 Umumiy Qarshi Ko'rsatmalar Standart Shablonlari
+          </h4>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#991b1b;">🔵 MRT Umumiy Qarshi Ko'rsatmalari:</label>
+            <textarea id="ggContraMRT" rows="2" style="font-size:12px;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#991b1b;">🟢 MSKT Umumiy Qarshi Ko'rsatmalari:</label>
+            <textarea id="ggContraMSKT" rows="2" style="font-size:12px;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label style="font-size:11.5px; font-weight:700; color:#991b1b;">💉 Kontrastli Tekshiruvlar Qo'shimcha Qarshi Ko'rsatmalari:</label>
+            <textarea id="ggContraContrast" rows="2" style="font-size:12px;"></textarea>
+          </div>
+        </div>
+
+        <!-- 3. UMUMIY TIBBIY SAVOLNOMA -->
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <h4 style="font-size:13px; font-weight:800; color:#166534; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-clipboard-question" style="color:#16a34a;"></i> 3. ❓ Umumiy Tibbiy Savolnoma (Rozilik Anketasi Savollari)
+          </h4>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#166534;">🌐 Barcha tekshiruvlar uchun UMUMIY savollar (Har bir savol yangi qatorda):</label>
+            <textarea id="ggQuestionsUniversal" rows="4" style="font-size:12px;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#166534;">💉 Faqat Kontrastli tekshiruvlarda qo'shiladigan savollar:</label>
+            <textarea id="ggQuestionsContrast" rows="3" style="font-size:12px;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#166534;">🔵 Faqat MRT tekshiruvlarida qo'shiladigan savollar:</label>
+            <textarea id="ggQuestionsMRT" rows="2" style="font-size:12px;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label style="font-size:11.5px; font-weight:700; color:#166534;">🟢 Faqat MSKT tekshiruvlarida qo'shiladigan savollar:</label>
+            <textarea id="ggQuestionsMSKT" rows="2" style="font-size:12px;"></textarea>
+          </div>
+        </div>
+
+        <!-- 4. SO'ROV MUDDATI & TEKSHIRUVLARNI RAD ETISH QOIDALARI -->
+        <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <h4 style="font-size:13px; font-weight:800; color:#92400e; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-clock-rotate-left" style="color:#d97706;"></i> 4. ⏳ So'rov Muddati & Tekshiruvlarni Rad Etish Qoidalari
+          </h4>
+          
+          <div style="display:grid; grid-template-columns: 140px 1fr; gap:10px; margin-bottom:10px; align-items:start;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:#92400e;">⏳ Ruxsat etilgan muddat (kun):</label>
+              <input type="number" id="ggMaxReferralAgeDays" min="1" max="90" value="10" style="font-size:13px; font-weight:bold; width:100%;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:#92400e;">⚠️ Muddati o'tganda chiqadigan tushuntirish xabari:</label>
+              <input type="text" id="ggExpiredReferralMessage" style="font-size:12px;" value="Sizni qaytadan yo'naltirish kerak, eski so'rov bilan navbatga qo'yib bo'lmaydi. Yangi so'rovni vrachingiz kiritib bersin.">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#92400e;">🚫 MRT/MSKT bo'lmagan taqiqlangan kalit so'zlar (Har biri yangi qatorda yoki vergul bilan):</label>
+            <textarea id="ggBlockedKeywords" rows="3" style="font-size:12px;" placeholder="ultratovush, utt, uzi, rentgen, rentgen scopi, mammografiya, ekg, exo, endoskopiya, gastroskopiya, kolonoskopiya, laboratoriya..."></textarea>
+            <small style="color:#78350f; font-size:11px;">Kardelen jadvalida ushbu so'zlar uchrasa, ular MRT/MSKT navbatiga o'tkazilmaydi va rad etiladi.</small>
+          </div>
+
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11.5px; font-weight:700; color:#92400e;">⚠️ Boshqa tekshiruv (MRT/MSKT emas) aniqlanganda chiqadigan xabar:</label>
+            <input type="text" id="ggNonMrtMsktMessage" style="font-size:12px;" value="Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).">
+          </div>
+
+          <div class="form-group" style="margin-bottom:4px;">
+            <label style="font-size:11.5px; font-weight:700; color:#92400e;">🟢 O'tkazilgan (Yashil qator) tekshiruv xabari:</label>
+            <input type="text" id="ggCompletedRowMessage" style="font-size:12px;" value="Ushbu tekshiruv o'tkazilgan (Yashil qator) — Navbatga qo'yilmaydi.">
+          </div>
+        </div>
+
+        <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" class="btn btn-secondary" onclick="resetGeneralGuidelinesToDefaults()" style="color:#b91c1c; border-color:#fca5a5;">
+            <i class="fa-solid fa-rotate-left"></i> Standart Holatga Qaytarish
+          </button>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeGeneralGuidelinesModal()">Bekor qilish</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Barcha Shablonlarni Saqlash
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ommaviy Sozlash Modali (Batch / Bulk Settings) -->
+  <div class="modal" id="batchSettingsModal">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-layer-group"></i> Tekshiruvlarni Ommaviy Sozlash (Guruhlab)</h3>
+        <button class="btn-close" onclick="closeBatchSettingsModal()">&times;</button>
+      </div>
+      <form id="batchSettingsForm" onsubmit="handleBatchSettingsSubmit(event)">
+        <div class="form-group">
+          <label style="font-weight:700;">1. Qaysi tekshiruvlar guruhiga qo'llanilsin? <span class="required">*</span></label>
+          <select id="batchGroupSelect" required onchange="onBatchGroupChanged()" style="font-weight:600; padding:8px 12px;">
+            <option value="all_mrt">🔵 Barcha MRT Tekshiruvlari</option>
+            <option value="all_mskt">🟢 Barcha MSKT Tekshiruvlari</option>
+            <option value="all_contrast">💉 Barcha Kontrastli Tekshiruvlar (MRT + MSKT)</option>
+            <option value="all_non_contrast">⚪ Barcha Oddiy (Kontrastsiz) Tekshiruvlar</option>
+            <option value="all_services">🌐 Barcha Tekshiruvlar (Umumiy Katalog)</option>
+          </select>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <label style="font-weight:700; margin-bottom:8px; display:block; color:#0f172a;">2. Qaysi ma'lumotlarni ommaviy yangilamoqchisiz?</label>
+          
+          <!-- Och qorin talabi -->
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplyFasting" checked onchange="toggleBatchField('batchFastingBox', this.checked)">
+              <span>⏳ Och Qorin Talabi</span>
+            </label>
+            <div id="batchFastingBox" style="margin-top:5px;">
+              <select id="batchFastingHours" style="font-weight:700; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; width:100%;">
+                <option value="none">Och qorin talab etilmaydi</option>
+                <option value="4-6">Kamida 4-6 soat och qorin</option>
+                <option value="6-8">Kamida 6-8 soat och qorin</option>
+                <option value="8-10">Kamida 8-10 soat och qorin</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Umumiy qoidalar -->
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplyGeneralRules" checked onchange="toggleBatchField('batchGeneralRulesBox', this.checked)">
+              <span>📌 Umumiy Tibbiy Ko'rsatmalar</span>
+            </label>
+            <div id="batchGeneralRulesBox" style="margin-top:5px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="batchNeedsBloodTest" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>🩸 Kreatinin / Mochevina</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="batchNeedsMetformin" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>💊 Metformin 48s to'xtatiladi</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="batchNeedsMetalFree" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>🧲 Metall buyumlarni yechish</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="batchNeedsHydration" style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>💧 Ko'p suv ichish</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Alohida maxsus tayyorgarlik -->
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplySpecialPrep" onchange="toggleBatchField('batchSpecialPrepBox', this.checked)">
+              <span>🔍 Alohida Maxsus Tayyorgarlik</span>
+            </label>
+            <div id="batchSpecialPrepBox" style="display:none; margin-top:5px;">
+              <textarea id="batchSpecialPrep" rows="2" placeholder="Tanlangan guruh uchun alohida maxsus tayyorgarlik..."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplyContra" checked onchange="toggleBatchField('batchContraBox', this.checked)">
+              <span>🚫 Qarshi Ko'rsatmalar</span>
+            </label>
+            <div id="batchContraBox" style="margin-top:5px;">
+              <textarea id="batchContraindications" rows="2" placeholder="Tanlangan guruh uchun qarshi ko'rsatmalar..."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplyQuestions" checked onchange="toggleBatchField('batchQuestionsBox', this.checked)">
+              <span>❓ Tibbiy Savolnoma (Anketa Savollari)</span>
+            </label>
+            <div id="batchQuestionsBox" style="margin-top:5px;">
+              <textarea id="batchQuestions" rows="3" placeholder="Har bir savol yangi qatorda yoziladi..."></textarea>
+            </div>
+          </div>
+
+          <div>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="batchApplyDuration" onchange="toggleBatchField('batchDurationBox', this.checked)">
+              <span>⏱ Sarflanadigan Vaqt (Daqiqada)</span>
+            </label>
+            <div id="batchDurationBox" style="display:none; margin-top:5px;">
+              <input type="number" id="batchDuration" value="30" min="1" max="300" placeholder="Masalan: 30">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeBatchSettingsModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check-double"></i> Guruhga Ommaviy Qo'llash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Maxsus Sana / Bayram Tahrirlash Modali -->
+  <div class="modal" id="calendarExceptionModal">
+    <div class="modal-content" style="max-width:480px;">
+      <div class="modal-header">
+        <h3 id="calModalTitle"><i class="fa-solid fa-calendar-check"></i> Maxsus Sana Sozlamalari</h3>
+        <button class="modal-close" onclick="closeCalendarExceptionModal()">&times;</button>
+      </div>
+
+      <form id="calendarExceptionForm" onsubmit="handleCalendarExceptionSubmit(event)">
+        <div class="form-group">
+          <label for="calModalDate">Tanlangan Sana: <span class="required">*</span></label>
+          <input type="date" id="calModalDate" required style="font-weight:700;">
+        </div>
+
+        <div class="form-group">
+          <label>Kun Turi & Holati:</label>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:#fef2f2; border:1px solid #fca5a5; padding:8px 12px; border-radius:6px; font-weight:700; color:#b91c1c;">
+              <input type="radio" name="calModalType" value="holiday" checked onchange="toggleCalModalTypeFields('holiday')" style="accent-color:#ef4444;">
+              <span>🎉 Bayram / Dam olish kuni (Navbat yozish taqiqlanadi)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:#f0f9ff; border:1px solid #bae6fd; padding:8px 12px; border-radius:6px; font-weight:700; color:#0369a1;">
+              <input type="radio" name="calModalType" value="custom_hours" onchange="toggleCalModalTypeFields('custom_hours')" style="accent-color:#0284c7;">
+              <span>⏱ Maxsus ish kuni / Qisqartirilgan ish soatlari</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="calModalReason">Bayram yoki Sabab Nomi: <span class="required">*</span></label>
+          <input type="text" id="calModalReason" placeholder="Masalan: Mustaqillik bayrami, Shanba ko'chirilgan ish kuni..." required>
+        </div>
+
+        <div id="calModalHoursBox" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:16px;">
+          <div style="display:flex; gap:12px;">
+            <div style="flex:1;">
+              <label style="font-size:12px; font-weight:700; margin-bottom:4px; display:block;">🌅 Boshlanish:</label>
+              <input type="time" id="calModalStart" value="08:00" style="width:100%; padding:6px; font-weight:700; border:1px solid #cbd5e1; border-radius:4px;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:12px; font-weight:700; margin-bottom:4px; display:block;">🌙 Tugash:</label>
+              <input type="time" id="calModalEnd" value="14:00" style="width:100%; padding:6px; font-weight:700; border:1px solid #cbd5e1; border-radius:4px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" id="btnDeleteCalException" class="btn btn-danger" onclick="deleteCurrentCalendarException()" style="display:none;">
+            <i class="fa-solid fa-trash"></i> O'chirish
+          </button>
+          <div style="display:flex; gap:8px; margin-left:auto;">
+            <button type="button" class="btn btn-secondary" onclick="closeCalendarExceptionModal()">Bekor qilish</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Saqlash
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./logos.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

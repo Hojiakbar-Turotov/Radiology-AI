@@ -12,8 +12,7 @@ let audioContext = null;
 const DEVICES = [
   { id: "mrt1", name: "MRT 1", room: "1-MRT Xonasi", type: "MRT", icon: "fa-brain", color: "#38bdf8" },
   { id: "mrt2", name: "MRT 2", room: "2-MRT Xonasi", type: "MRT", icon: "fa-brain", color: "#818cf8" },
-  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT", icon: "fa-circle-nodes", color: "#34d399" },
-  { id: "mskt2", name: "MSKT 2", room: "2-MSKT Xonasi", type: "MSKT", icon: "fa-circle-nodes", color: "#f59e0b" }
+  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT", icon: "fa-circle-nodes", color: "#34d399" }
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -113,6 +112,11 @@ function renderDevicesGrid() {
               <div style="overflow:hidden;">
                 <div class="serving-name">${escapeHtml(servingPatient.name)}</div>
                 ${servingPatient.isContrast ? '<span style="background:#ef4444; color:#fff; font-size:9px; padding:1px 5px; border-radius:3px; font-weight:bold;">KONTRAST</span>' : ''}
+                ${(servingPatient.calledByLaborant || servingPatient.laborantName) ? `
+                  <div style="font-size:11px; color:#fbbf24; font-weight:700; margin-top:2px;">
+                    <i class="fa-solid fa-user-doctor" style="font-size:10px;"></i> ${escapeHtml(servingPatient.calledByLaborant || servingPatient.laborantName)}
+                  </div>
+                ` : ''}
               </div>
             ` : `
               <span style="color:#64748b; font-size:0.95rem; font-style:italic;">Navbat kutilmoqda</span>
@@ -154,6 +158,8 @@ function handleNewCall(data) {
   const activeState = document.getElementById("callingActiveState");
   const callingCard = document.getElementById("callingCard");
   const contrastBadge = document.getElementById("heroContrastBadge");
+  const heroLaborant = document.getElementById("heroLaborant");
+  const heroLaborantName = document.getElementById("heroLaborantName");
 
   if (idleState) idleState.style.display = "none";
   if (activeState) activeState.style.display = "flex";
@@ -163,6 +169,15 @@ function handleNewCall(data) {
   document.getElementById("heroRoomNum").innerText = data.room || data.doctorName || "Xona";
   document.getElementById("heroDoctorName").innerText = data.doctorName || "Qurilma";
   document.getElementById("heroService").innerText = data.specialty || "Tomografiya";
+
+  if (heroLaborant && heroLaborantName) {
+    if (data.laborantName) {
+      heroLaborant.style.display = "inline-flex";
+      heroLaborantName.innerText = `Laborant: ${data.laborantName}${data.laborantLogin ? ` (${data.laborantLogin})` : ''}`;
+    } else {
+      heroLaborant.style.display = "none";
+    }
+  }
 
   if (data.isContrast) {
     contrastBadge.style.display = "inline-block";
@@ -228,29 +243,130 @@ function playTone(ctx, freq, startTime, duration) {
   osc.stop(startTime + duration);
 }
 
-// 6. OVOZLI CHAQIRUV (Text-to-Speech)
+// 6. O'ZBEK TILI RAQAMLAR VA XONA NOMLARI KONVERTERI
+function numberToUzbekWords(num) {
+  num = parseInt(num, 10);
+  if (isNaN(num)) return "";
+  if (num === 0) return "nol";
+
+  const ones = ["", "bir", "ikki", "uch", "to'rt", "besh", "olti", "yetti", "sakkiz", "to'qqiz"];
+  const tens = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "yetmish", "sakson", "to'qson"];
+
+  function convertHundreds(n) {
+    let str = "";
+    const h = Math.floor(n / 100);
+    const remainder = n % 100;
+    const t = Math.floor(remainder / 10);
+    const o = remainder % 10;
+
+    if (h > 0) {
+      str += (h === 1 ? "bir yuz " : ones[h] + " yuz ");
+    }
+    if (t > 0) {
+      str += tens[t] + " ";
+    }
+    if (o > 0) {
+      str += ones[o] + " ";
+    }
+    return str.trim();
+  }
+
+  let result = "";
+  const thousands = Math.floor(num / 1000);
+  const remainder = num % 1000;
+
+  if (thousands > 0) {
+    if (thousands === 1) {
+      result += "bir ming ";
+    } else {
+      result += convertHundreds(thousands) + " ming ";
+    }
+  }
+
+  if (remainder > 0) {
+    result += convertHundreds(remainder);
+  }
+
+  return result.trim();
+}
+
+function formatRoomUzbek(roomStr) {
+  if (!roomStr) return "qabul xonasiga";
+  let r = roomStr.trim();
+  r = r.replace(/^1-?MRT\s*Xonasi/i, "birinchi MRT xonasi")
+       .replace(/^2-?MRT\s*Xonasi/i, "ikkinchi MRT xonasi")
+       .replace(/^1-?MSKT\s*Xonasi/i, "birinchi MSKT xonasi")
+       .replace(/^2-?MSKT\s*Xonasi/i, "ikkinchi MSKT xonasi")
+       .replace(/^1-?xona/i, "birinchi xona")
+       .replace(/^2-?xona/i, "ikkinchi xona")
+       .replace(/^3-?xona/i, "uchinchi xona")
+       .replace(/^4-?xona/i, "to'rtinchi xona")
+       .replace(/^101-?xona/i, "bir yuz birinchi xona")
+       .replace(/^102-?xona/i, "bir yuz ikkinchi xona");
+  
+  if (!r.toLowerCase().endsWith("ga") && !r.toLowerCase().endsWith("qa")) {
+    r += "ga";
+  }
+  return r;
+}
+
+function buildUzbekAnnouncement(data) {
+  let ticketText = "";
+  const ticketStr = String(data.ticketId || "").trim();
+  if (/^\d+$/.test(ticketStr)) {
+    ticketText = numberToUzbekWords(ticketStr);
+  } else {
+    ticketText = ticketStr;
+  }
+
+  const patientName = data.patientName ? data.patientName.trim() : "";
+  const roomText = formatRoomUzbek(data.room || data.doctorName);
+  
+  let laborantText = "";
+  if (data.laborantName) {
+    const labName = data.laborantName.trim();
+    laborantText = ` Laborant ${labName}.`;
+  }
+
+  return `Diqqat! Talon raqami ${ticketText}, Bemor ${patientName}, ${roomText} kiring.${laborantText}`;
+}
+
+// 7. OVOZLI CHAQIRUV (To'liq O'zbek tilida Text-to-Speech)
 function speakAnnouncement(data) {
   if (!('speechSynthesis' in window)) return;
 
   setTimeout(() => {
-    window.speechSynthesis.cancel();
+    try {
+      window.speechSynthesis.cancel();
 
-    // Masalan: "Talon 5245, SAYIDOV SHERALI, 1-MRT xonasiga kiring"
-    const textToSpeak = `Talon ${data.ticketId}, ${data.patientName}, ${data.room}ga kiring.`;
+      const textToSpeak = buildUzbekAnnouncement(data);
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.lang = "uz-UZ";
+      utterance.rate = 0.88;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+      const voices = window.speechSynthesis.getVoices();
+      const uzbekVoice = voices.find(v => v.lang === "uz-UZ" || v.lang.startsWith("uz") || (v.name && v.name.toLowerCase().includes("uzbek")));
+      const turkishVoice = voices.find(v => v.lang === "tr-TR" || v.lang.startsWith("tr"));
+      const russianVoice = voices.find(v => v.lang === "ru-RU" || v.lang.startsWith("ru"));
 
-    const voices = window.speechSynthesis.getVoices();
-    const ruOrUzVoice = voices.find(v => v.lang.includes('uz') || v.lang.includes('ru') || v.lang.includes('tr'));
-    if (ruOrUzVoice) {
-      utterance.voice = ruOrUzVoice;
+      if (uzbekVoice) {
+        utterance.voice = uzbekVoice;
+        utterance.lang = uzbekVoice.lang || "uz-UZ";
+      } else if (turkishVoice) {
+        utterance.voice = turkishVoice;
+        utterance.lang = "tr-TR";
+      } else if (russianVoice) {
+        utterance.voice = russianVoice;
+        utterance.lang = "ru-RU";
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("speakAnnouncement error:", err);
     }
-
-    window.speechSynthesis.speak(utterance);
-  }, 1100);
+  }, 1000);
 }
 
 function escapeHtml(str) {

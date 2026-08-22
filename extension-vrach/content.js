@@ -7,8 +7,7 @@ const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const DEVICES = [
   { id: "mrt1", name: "MRT 1", room: "1-MRT Xonasi", type: "MRT" },
   { id: "mrt2", name: "MRT 2", room: "2-MRT Xonasi", type: "MRT" },
-  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT" },
-  { id: "mskt2", name: "MSKT 2", room: "2-MSKT Xonasi", type: "MSKT" }
+  { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT" }
 ];
 
 let myDevice = DEVICES[0]; // Default: MRT 1
