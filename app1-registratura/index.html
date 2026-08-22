@@ -40,6 +40,9 @@
         <button class="nav-item" onclick="switchTab('schedule-tab')">
           <i class="fa-solid fa-business-time"></i> Ish Grafigi & Soatlari
         </button>
+        <button class="nav-item" onclick="switchTab('i18n-settings-tab')">
+          <i class="fa-solid fa-language"></i> Tillar & Savolnomalar
+        </button>
       </nav>
 
       <div class="connection-box">
@@ -636,6 +639,246 @@
               </table>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- 6. TILLAR & SAVOLNOMA SOZLAMALARI BO'LIMI (i18n & Questionnaire Settings) -->
+      <section class="tab-content" id="i18n-settings-tab">
+        <!-- Bo'lim Sarlavhasi -->
+        <div style="background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h2 style="font-size:18px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-language" style="color:#0284c7;"></i> Ko'p Tilli Tibbiy Ko'rsatmalar, Savolnoma & Lug'at Sozlamalari
+              </h2>
+              <p style="font-size:13px; color:#64748b; margin-top:4px;">
+                Talon (80mm) va A4 Rozilik anketasi uchun 6 ta tildagi matnlar, tibbiy tayyorgarlik, qarshi ko'rsatmalar hamda xavfsizlik savolnomasini sozlang va o'ng tomonda jonli tekshiring.
+              </p>
+            </div>
+
+            <!-- Tilni Tanlash Tugmalari (Pill Bar) -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap; background:#f8fafc; padding:4px; border:1px solid #cbd5e1; border-radius:8px;">
+              <button type="button" class="i18n-edit-lang-btn active" data-lang="uz" onclick="switchI18nEditorLang('uz')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:#0284c7; color:#fff;">🇺🇿 O'zbekcha</button>
+              <button type="button" class="i18n-edit-lang-btn" data-lang="ru" onclick="switchI18nEditorLang('ru')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#334155;">🇷🇺 Русский</button>
+              <button type="button" class="i18n-edit-lang-btn" data-lang="en" onclick="switchI18nEditorLang('en')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#334155;">🇬🇧 English</button>
+              <button type="button" class="i18n-edit-lang-btn" data-lang="kk" onclick="switchI18nEditorLang('kk')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#334155;">🇰🇿 Қазақша</button>
+              <button type="button" class="i18n-edit-lang-btn" data-lang="tg" onclick="switchI18nEditorLang('tg')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#334155;">🇹🇯 Тоҷикӣ</button>
+              <button type="button" class="i18n-edit-lang-btn" data-lang="tr" onclick="switchI18nEditorLang('tr')" style="padding:6px 12px; font-size:12px; font-weight:800; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#334155;">🇹🇷 Türkçe</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Ustunli Muhit: Chapda Tahrirlash, O'ngda Jonli Ko'rish (Live Preview) -->
+        <div style="display:grid; grid-template-columns: 1fr 440px; gap: 20px; align-items:start;">
+          
+          <!-- CHAP USTUN: Tahrirlash Formasi -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            
+            <!-- 1. TIBBIY TAYYORGARLIK VA KO'RSATMALAR -->
+            <div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+              <h3 style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-clipboard-list" style="color:#0284c7;"></i> 1. Tibbiy Tayyorgarlik Eslatmalari (<span id="i18nCurLangBadge1">O'zbekcha</span>)
+              </h3>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Blok Asosiy Sarlavhasi (Talon uchun):</label>
+                <input type="text" id="i18n_boxTitle" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Umumiy Tayyorgarlik Sarlavhasi:</label>
+                <input type="text" id="i18n_generalPrepTitle" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Och qorin qoidasi ({H} = soat o'zgaruvchisi):</label>
+                <input type="text" id="i18n_fasting" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Qon tahlillari (Kreatinin va Mochevina):</label>
+                <input type="text" id="i18n_bloodTest" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Qandli diabet (Metformin to'xtatish):</label>
+                <input type="text" id="i18n_metformin" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Tekshiruvdan so'ng suyuqlik ichish tavsiyasi:</label>
+                <input type="text" id="i18n_postHydration" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Metall xavfsizlik ogohlantirishi:</label>
+                <input type="text" id="i18n_metalWarning" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+            </div>
+
+            <!-- 2. TIBBIY QARSHI KO'RSATMALAR -->
+            <div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+              <h3 style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-ban" style="color:#ef4444;"></i> 2. Qarshi Ko'rsatmalar (<span id="i18nCurLangBadge2">O'zbekcha</span>)
+              </h3>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Qarshi Ko'rsatmalar Sarlavhasi:</label>
+                <input type="text" id="i18n_contraTitle" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Yodli / Kontrast moddalarga allergiya:</label>
+                <input type="text" id="i18n_allergy" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Buyrak yetishmovchiligi (kreatinin yuqori):</label>
+                <input type="text" id="i18n_kidney" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Gipertireoz (bo'qoq / qalqonsimon bez):</label>
+                <input type="text" id="i18n_hyperthyroidism" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Homiladorlik va laktatsiya:</label>
+                <input type="text" id="i18n_pregnancy" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-weight:700; font-size:12.5px; color:#334155;">Kardiostimulyator / Ferromagnit implantlar:</label>
+                <input type="text" id="i18n_pacemaker" oninput="updateI18nLivePreview()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; width:100%;">
+              </div>
+            </div>
+
+            <!-- 3. TIBBIY XAVFSIZLIK SAVOLNOMASI (A4 ROZILIK ANKETASI) -->
+            <div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+              <h3 style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-square-check" style="color:#10b981;"></i> 3. A4 Rozilik Savolnomasi Savollari (<span id="i18nCurLangBadge3">O'zbekcha</span>)
+              </h3>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">1. Kardiostimulyator / Defibrillyator:</label>
+                <input type="text" id="i18n_q_pacemaker" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">2. Metall implantlar, sun'iy bo'g'im, vintlar:</label>
+                <input type="text" id="i18n_q_metalImplants" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">3. Klavstrofobiya (yopiq joydan qo'rqish):</label>
+                <input type="text" id="i18n_q_claustrophobia" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">4. Homiladorlik / Emizikli holat:</label>
+                <input type="text" id="i18n_q_pregnancy" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">5. Dori va kontrast moddalar allergiyasi:</label>
+                <input type="text" id="i18n_q_allergy" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">6. Buyrak yetishmovchiligi / Gemodializ:</label>
+                <input type="text" id="i18n_q_kidney" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">7. Bronxial astma, diabet, bo'qoq:</label>
+                <input type="text" id="i18n_q_asthmaDiabetes" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">8. Eshitish apparati, tish protezi, tatuirovka:</label>
+                <input type="text" id="i18n_q_hearingDental" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">9. Qorin bo'shlig'i ochlik qoidasiga amal qilganlik:</label>
+                <input type="text" id="i18n_q_abdominalFasting" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">10. Kichik chanoq qovuqni to'ldirish qoidasi:</label>
+                <input type="text" id="i18n_q_pelvicBladder" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+            </div>
+
+            <!-- 4. QOLDIRISH VA VOS KECHISH SABABLARI (DEFERRAL REASONS) -->
+            <div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+              <h3 style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-clock-rotate-left" style="color:#f59e0b;"></i> 4. Navbatni Qoldirish / Rad Etish Sabablari (<span id="i18nCurLangBadge4">O'zbekcha</span>)
+              </h3>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">1. Bemorning shaxsiy iltimosi / Vaqti to'g'ri kelmadi:</label>
+                <input type="text" id="i18n_r_personal" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">2. Bemor tayyorgarlik ko'rishga ulgurmaydi (och qorin / tahlillar):</label>
+                <input type="text" id="i18n_r_prep" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">3. Uzoqdan / viloyatdan yo'lda kelmoqda:</label>
+                <input type="text" id="i18n_r_travel" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label style="font-weight:700; font-size:12px; color:#475569;">4. Boshqa shifokor ko'rigi yoki boshqa muolajasi bor:</label>
+                <input type="text" id="i18n_r_doctor" oninput="updateI18nLivePreview()" style="padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; width:100%;">
+              </div>
+            </div>
+
+            <!-- Saqlash va Reset Tugmalari -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border-radius:12px; padding:16px 20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+              <button type="button" class="btn btn-secondary" onclick="resetCurrentI18nLangToDefaults()" style="font-size:13px; font-weight:700;">
+                <i class="fa-solid fa-rotate-left"></i> Standart Holatga Qaytarish
+              </button>
+
+              <button type="button" class="btn btn-primary" onclick="saveCurrentI18nLangSettings()" style="padding:10px 24px; font-size:14px; font-weight:800;">
+                <i class="fa-solid fa-floppy-disk"></i> Ushbu Til Sozlamalarini Saqlash
+              </button>
+            </div>
+
+          </div>
+
+          <!-- O'NG USTUN: Jonli Tekshirish & Ko'rish (Live Interactive Preview) -->
+          <div style="position:sticky; top:20px;">
+            <div style="background:#fff; border-radius:12px; padding:18px; box-shadow:0 4px 20px rgba(0,0,0,0.08); border:1px solid #cbd5e1;">
+              
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                <div style="font-size:14px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                  <i class="fa-solid fa-eye" style="color:#0284c7;"></i> Jonli Ko'rinish (Preview)
+                </div>
+
+                <div style="display:flex; gap:4px;">
+                  <button type="button" id="btnPreviewModeTicket" onclick="setI18nPreviewMode('ticket')" style="padding:4px 10px; font-size:11.5px; font-weight:bold; border-radius:5px; border:1px solid #0284c7; background:#0284c7; color:#fff; cursor:pointer;">🎫 Talon</button>
+                  <button type="button" id="btnPreviewModeConsent" onclick="setI18nPreviewMode('consent')" style="padding:4px 10px; font-size:11.5px; font-weight:bold; border-radius:5px; border:1px solid #cbd5e1; background:#f8fafc; color:#334155; cursor:pointer;">📋 Anketa</button>
+                </div>
+              </div>
+
+              <!-- Preview Kontent Maydoni -->
+              <div id="i18nLivePreviewContainer" style="max-height: calc(100vh - 220px); overflow-y:auto; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
+                <!-- Jonli Talon / Anketa render qilinadi -->
+              </div>
+
+              <div style="margin-top:12px; text-align:center;">
+                <button type="button" class="btn btn-secondary" onclick="testPrintCurrentI18nPreview()" style="width:100%; font-size:12.5px; font-weight:700;">
+                  <i class="fa-solid fa-print"></i> Sinov Tariqasida Chop Etish (Test Print)
+                </button>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </section>
     </main>

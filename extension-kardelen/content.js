@@ -3689,12 +3689,12 @@ function printThermalTicketDirect(payload, lang) {
 
         <div class="row">
           <span class="label">${escapeHtml(lblRoomDevice)}:</span>
-          <span class="val">${escapeHtml(payload.room)} (${escapeHtml(payload.doctorName)})</span>
+          <span class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</span>
         </div>
 
         <div class="row">
           <span class="label">${escapeHtml(lblService)}:</span>
-          <span class="val">${escapeHtml(payload.service)} ${payload.isContrast ? (dict ? dict.contrastBadge : '[KONTRASTLI]') : ''}</span>
+          <span class="val">${escapeHtml((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(payload.service, L) : payload.service)} ${payload.isContrast ? (dict ? dict.contrastBadge : '[KONTRASTLI]') : ''}</span>
         </div>
 
         <div class="slot-box">
@@ -3714,15 +3714,15 @@ function printThermalTicketDirect(payload, lang) {
 
         ${payload.rescheduleReason ? `
           <div class="row" style="font-size:12px; font-weight:bold; color:#000;">
-            <span class="label">Sabab:</span>
-            <span class="val">${escapeHtml(payload.rescheduleReason)}</span>
+            <span class="label">${escapeHtml(dict ? dict.reasonLabel : "Sabab:")}</span>
+            <span class="val">${escapeHtml((typeof translateDeferReason === 'function') ? translateDeferReason(payload.rescheduleReason, L) : payload.rescheduleReason)}</span>
           </div>
         ` : ''}
 
         <!-- TEKSHIRUVLAR UCHUN TAYYORGARLIK VA QARSHI KO'RSATMALAR -->
-        ${formatConsolidatedGuidelinesHtml(payload) ? `
+        ${formatConsolidatedGuidelinesHtml(payload, L) ? `
           <div class="divider"></div>
-          ${formatConsolidatedGuidelinesHtml(payload)}
+          ${formatConsolidatedGuidelinesHtml(payload, L)}
         ` : ''}
 
         <div class="divider"></div>
@@ -3949,9 +3949,9 @@ function printConsentFormDirect(payload, lang) {
           </tr>
           <tr>
             <td class="lbl">${escapeHtml(dict ? dict.deviceRoom : "Qurilma / Xona:")}</td>
-            <td class="val">${escapeHtml(payload.room || '-')} (${escapeHtml(payload.doctorName || '-')})</td>
+            <td class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</td>
             <td class="lbl">${escapeHtml(dict ? dict.serviceName : "Tekshiruv Nomi:")}</td>
-            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? `<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">${escapeHtml(dict ? dict.contrastTag : "KONTRASTLI")}</span>` : ''}</td>
+            <td class="val" style="color:#000;"><strong>${escapeHtml((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(servicesTitle, L) : servicesTitle)}</strong> ${payload.isContrast ? `<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">${escapeHtml(dict ? dict.contrastTag : "KONTRASTLI")}</span>` : ''}</td>
           </tr>
           <tr>
             <td class="lbl" style="background:#f1f5f9;">${escapeHtml(dict ? dict.height : "Bemor Bo‘yi:")}</td>

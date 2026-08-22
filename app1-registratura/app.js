@@ -160,6 +160,7 @@ function initApp() {
     listenToGeneralGuidelines();
     listenToWorkSchedule();
     listenToCalendarExceptions();
+    initI18nSettingsModule();
 
     // Dastlabki sana qiymatlari
     const qDateEl = document.getElementById("queueDateFilter");
@@ -1448,9 +1449,9 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
     }
   }
 
-  document.getElementById("ticketPrintRoom").innerText = patient.room || "-";
+  document.getElementById("ticketPrintRoom").innerText = (typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(patient.room, patient.doctorName, L) : (patient.room || "-");
   document.getElementById("ticketPrintDoctor").innerText = patient.doctorName || "-";
-  document.getElementById("ticketPrintService").innerText = (patient.service || "Tomografiya") + (patient.isContrast ? ` ${dict ? dict.contrastBadge : '[KONTRASTLI]'}` : "");
+  document.getElementById("ticketPrintService").innerText = ((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(patient.service, L) : (patient.service || "Tomografiya")) + (patient.isContrast ? ` ${dict ? dict.contrastBadge : '[KONTRASTLI]'}` : "");
   document.getElementById("ticketPrintTimeSlot").innerText = patient.timeSlot || patient.scheduledTime || (patient.time || "-");
   document.getElementById("ticketPrintRegistrar").innerText = patient.registeredBy || (patient.operatorLogin ? `${patient.operatorLogin} - ${patient.operatorName || ''}` : "TB1 - Turatov Hojiakbar");
   const appDateDisplay = patient.appointmentDate || selectedQueueDate || todayDateStr;
@@ -1460,9 +1461,10 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   if (guideEl) {
     let guidelinesHtml = "";
     if (patient.rescheduleReason) {
-      guidelinesHtml += `<div style="margin-bottom:6px; font-size:12px; font-weight:bold; color:#000;"><strong>Eslatma:</strong> ${escapeHtml(patient.rescheduleReason)}</div>`;
+      const translatedReason = (typeof translateDeferReason === 'function') ? translateDeferReason(patient.rescheduleReason, L) : patient.rescheduleReason;
+      guidelinesHtml += `<div style="margin-bottom:6px; font-size:12px; font-weight:bold; color:#000;"><strong>${escapeHtml(dict ? dict.reasonLabel : "Sabab:")}</strong> ${escapeHtml(translatedReason)}</div>`;
     }
-    const guideBoxHtml = formatConsolidatedGuidelinesHtml(patient);
+    const guideBoxHtml = formatConsolidatedGuidelinesHtml(patient, L);
     if (guideBoxHtml) {
       guidelinesHtml += guideBoxHtml;
     }
@@ -1709,9 +1711,9 @@ function printConsentFormDirect(payload, lang = null) {
           </tr>
           <tr>
             <td class="lbl">${escapeHtml(dict ? dict.deviceRoom : "Qurilma / Xona:")}</td>
-            <td class="val">${escapeHtml(payload.room || '-')} (${escapeHtml(payload.doctorName || '-')})</td>
+            <td class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</td>
             <td class="lbl">${escapeHtml(dict ? dict.serviceName : "Tekshiruv Nomi:")}</td>
-            <td class="val" style="color:#000;"><strong>${escapeHtml(servicesTitle)}</strong> ${payload.isContrast ? `<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">${escapeHtml(dict ? dict.contrastTag : "KONTRASTLI")}</span>` : ''}</td>
+            <td class="val" style="color:#000;"><strong>${escapeHtml((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(servicesTitle, L) : servicesTitle)}</strong> ${payload.isContrast ? `<span style="background:#000; color:#fff; padding:1px 4px; font-size:9.5px; border-radius:3px; margin-left:4px;">${escapeHtml(dict ? dict.contrastTag : "KONTRASTLI")}</span>` : ''}</td>
           </tr>
           <tr>
             <td class="lbl" style="background:#f1f5f9;">${escapeHtml(dict ? dict.height : "Bemor Bo‘yi:")}</td>
@@ -3220,4 +3222,405 @@ function formatConsolidatedGuidelinesHtml(payload) {
 
   html += `</div>`;
   return html;
+}
+
+// ==========================================
+// 15. TILLAR VA SAVOLNOMA SOZLAMALARI (i18n Settings & Live Preview)
+// ==========================================
+
+let currentI18nEditorLang = 'uz';
+let currentI18nPreviewMode = 'ticket'; // 'ticket' or 'consent'
+let customI18nSettings = {};
+
+const I18N_LANG_LABELS = {
+  uz: "O'zbekcha",
+  ru: "Русский",
+  en: "English",
+  kk: "Қазақша",
+  tg: "Тоҷикӣ",
+  tr: "Türkçe"
+};
+
+function initI18nSettingsModule() {
+  loadI18nSettingsFromFirebase();
+  populateI18nEditorForm(currentI18nEditorLang);
+}
+
+function loadI18nSettingsFromFirebase() {
+  if (!db) return;
+  db.ref("settings/i18n").on("value", snapshot => {
+    if (snapshot.exists()) {
+      customI18nSettings = snapshot.val() || {};
+    } else {
+      customI18nSettings = {};
+    }
+    populateI18nEditorForm(currentI18nEditorLang);
+  });
+}
+
+function switchI18nEditorLang(langCode) {
+  currentI18nEditorLang = langCode;
+  document.querySelectorAll(".i18n-edit-lang-btn").forEach(btn => {
+    if (btn.getAttribute("data-lang") === langCode) {
+      btn.classList.add("active");
+      btn.style.background = "#0284c7";
+      btn.style.color = "#ffffff";
+    } else {
+      btn.classList.remove("active");
+      btn.style.background = "transparent";
+      btn.style.color = "#334155";
+    }
+  });
+
+  const langLabel = I18N_LANG_LABELS[langCode] || langCode;
+  for (let i = 1; i <= 4; i++) {
+    const badge = document.getElementById(`i18nCurLangBadge${i}`);
+    if (badge) badge.innerText = langLabel;
+  }
+
+  populateI18nEditorForm(langCode);
+}
+
+function populateI18nEditorForm(langCode) {
+  const gDict = (customI18nSettings.guidelines && customI18nSettings.guidelines[langCode]) 
+    ? customI18nSettings.guidelines[langCode]
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.guidelines && I18N_TRANSLATIONS.guidelines[langCode]) ? I18N_TRANSLATIONS.guidelines[langCode] : (typeof I18N_TRANSLATIONS !== 'undefined' ? I18N_TRANSLATIONS.guidelines['uz'] : {}));
+
+  // 1. Guidelines
+  if (document.getElementById("i18n_boxTitle")) document.getElementById("i18n_boxTitle").value = gDict.boxTitle || "";
+  if (document.getElementById("i18n_generalPrepTitle")) document.getElementById("i18n_generalPrepTitle").value = gDict.generalPrepTitle || "";
+  if (document.getElementById("i18n_fasting")) document.getElementById("i18n_fasting").value = gDict.fasting || "";
+  if (document.getElementById("i18n_bloodTest")) document.getElementById("i18n_bloodTest").value = gDict.bloodTest || "";
+  if (document.getElementById("i18n_metformin")) document.getElementById("i18n_metformin").value = gDict.metformin || "";
+  if (document.getElementById("i18n_postHydration")) document.getElementById("i18n_postHydration").value = gDict.postHydration || "";
+  if (document.getElementById("i18n_metalWarning")) document.getElementById("i18n_metalWarning").value = gDict.metalWarning || "";
+
+  // 2. Contras
+  if (document.getElementById("i18n_contraTitle")) document.getElementById("i18n_contraTitle").value = gDict.contraTitle || "";
+  if (document.getElementById("i18n_allergy")) document.getElementById("i18n_allergy").value = gDict.allergy || "";
+  if (document.getElementById("i18n_kidney")) document.getElementById("i18n_kidney").value = gDict.kidney || "";
+  if (document.getElementById("i18n_hyperthyroidism")) document.getElementById("i18n_hyperthyroidism").value = gDict.hyperthyroidism || "";
+  if (document.getElementById("i18n_pregnancy")) document.getElementById("i18n_pregnancy").value = gDict.pregnancy || "";
+  if (document.getElementById("i18n_pacemaker")) document.getElementById("i18n_pacemaker").value = gDict.pacemaker || "";
+
+  // 3. Questions
+  const qMap = (customI18nSettings.questions) ? customI18nSettings.questions : (typeof I18N_TRANSLATIONS !== 'undefined' ? I18N_TRANSLATIONS.questions : {});
+  const qKeys = [
+    "pacemaker", "metalImplants", "claustrophobia", "pregnancy", "allergy",
+    "kidney", "asthmaDiabetes", "hearingDental", "abdominalFasting", "pelvicBladder"
+  ];
+  qKeys.forEach(k => {
+    const inp = document.getElementById(`i18n_q_${k}`);
+    if (inp) {
+      inp.value = (qMap[k] && qMap[k][langCode]) ? qMap[k][langCode] : ((I18N_TRANSLATIONS.questions && I18N_TRANSLATIONS.questions[k] && I18N_TRANSLATIONS.questions[k][langCode]) ? I18N_TRANSLATIONS.questions[k][langCode] : "");
+    }
+  });
+
+  // 4. Deferral Reasons
+  const rMap = (customI18nSettings.deferReasons) ? customI18nSettings.deferReasons : (typeof I18N_TRANSLATIONS !== 'undefined' ? I18N_TRANSLATIONS.deferReasons : {});
+  const r1 = rMap["Bemorning shaxsiy iltimosi / Vaqti to'g'ri kelmadi"];
+  const r2 = rMap["Bemor tayyorgarlik ko'rishga ulgurmaydi (och qorin / tahlillar topshirish)"];
+  const r3 = rMap["Uzoqdan / viloyatdan yo'lda kelmoqda"];
+  const r4 = rMap["Boshqa shifokor ko'rigi yoki boshqa muolajasi bor"];
+
+  if (document.getElementById("i18n_r_personal")) document.getElementById("i18n_r_personal").value = (r1 && r1[langCode]) ? r1[langCode] : "";
+  if (document.getElementById("i18n_r_prep")) document.getElementById("i18n_r_prep").value = (r2 && r2[langCode]) ? r2[langCode] : "";
+  if (document.getElementById("i18n_r_travel")) document.getElementById("i18n_r_travel").value = (r3 && r3[langCode]) ? r3[langCode] : "";
+  if (document.getElementById("i18n_r_doctor")) document.getElementById("i18n_r_doctor").value = (r4 && r4[langCode]) ? r4[langCode] : "";
+
+  updateI18nLivePreview();
+}
+
+function updateI18nLivePreview() {
+  const container = document.getElementById("i18nLivePreviewContainer");
+  if (!container) return;
+
+  const L = currentI18nEditorLang;
+  const tDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[L]) ? I18N_TRANSLATIONS.ticket[L] : (typeof I18N_TRANSLATIONS !== 'undefined' ? I18N_TRANSLATIONS.ticket['uz'] : {});
+  const cDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.consent && I18N_TRANSLATIONS.consent[L]) ? I18N_TRANSLATIONS.consent[L] : (typeof I18N_TRANSLATIONS !== 'undefined' ? I18N_TRANSLATIONS.consent['uz'] : {});
+
+  // Current values from editor form
+  const boxTitle = document.getElementById("i18n_boxTitle")?.value || "TIBBIY KO'RSATMALAR VA ESLATMA";
+  const generalPrepTitle = document.getElementById("i18n_generalPrepTitle")?.value || "📌 Umumiy Tayyorgarlik:";
+  const fasting = (document.getElementById("i18n_fasting")?.value || "").replace('{H}', '6');
+  const bloodTest = document.getElementById("i18n_bloodTest")?.value || "";
+  const metformin = document.getElementById("i18n_metformin")?.value || "";
+  const postHydration = document.getElementById("i18n_postHydration")?.value || "";
+  const contraTitle = document.getElementById("i18n_contraTitle")?.value || "🚫 Qarshi ko'rsatmalar:";
+  const allergy = document.getElementById("i18n_allergy")?.value || "";
+  const kidney = document.getElementById("i18n_kidney")?.value || "";
+  const pregnancy = document.getElementById("i18n_pregnancy")?.value || "";
+  const reasonText = document.getElementById("i18n_r_personal")?.value || "Личная просьба пациента / Неудобное время";
+
+  const sampleServiceName = (typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal("Bosh Miya MRT (Kontrastsiz)", L) : "Bosh Miya MRT";
+  const sampleRoom = (typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal("1-MRT Xonasi", "MRT 1 (Siemens)", L) : "1-MRT Xonasi";
+
+  if (currentI18nPreviewMode === 'ticket') {
+    container.innerHTML = `
+      <div style="background:#fff; border:2px solid #000; border-radius:6px; padding:12px 10px; font-family:sans-serif; color:#000; font-size:12px; max-width:320px; margin:0 auto; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="text-align:center; font-weight:900; font-size:13px; text-transform:uppercase;">${escapeHtml(tDict.centerName || 'MARKAZ')}</div>
+        <div style="text-align:center; font-size:11px; font-weight:700; margin-bottom:4px;">${escapeHtml(tDict.ticketTitle || 'Talon')}</div>
+        <div style="border-top:1.5px dashed #000; margin:6px 0;"></div>
+        
+        <div style="text-align:center; font-size:26px; font-weight:900; border:2px solid #000; border-radius:6px; padding:2px 0; margin:4px 0;">84210</div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px;">
+          <span>${escapeHtml(tDict.patient || 'Bemor')}:</span>
+          <strong>Sayidov Sherali</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span>${escapeHtml(tDict.patientType || 'Toifasi')}:</span>
+          <span>${escapeHtml(tDict.stationary || 'Statsionar')} (Xirurgiya)</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span>${escapeHtml(tDict.roomDevice || 'Xona')}:</span>
+          <span style="text-align:right;">${escapeHtml(sampleRoom)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span>${escapeHtml(tDict.service || 'Tekshiruv')}:</span>
+          <strong style="text-align:right;">${escapeHtml(sampleServiceName)}</strong>
+        </div>
+
+        <div style="border:2px solid #000; border-radius:6px; padding:4px 6px; text-align:center; margin:8px 0; background:#f8fafc;">
+          <div style="font-size:10px; font-weight:900;">${escapeHtml(tDict.bookedTime || 'VAQT')}</div>
+          <div style="font-size:18px; font-weight:900;">08:00 - 08:29</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; font-size:11px;">
+          <span>${escapeHtml(tDict.appointmentDate || 'Sana')}:</span>
+          <strong>2026-08-24</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span>${escapeHtml(tDict.operator || 'Ro\'yxatchi')}:</span>
+          <span>TB1 - Turatov Hojiakbar</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span>${escapeHtml(tDict.reasonLabel || 'Sabab:')}</span>
+          <span style="font-weight:bold; text-align:right;">${escapeHtml(reasonText)} [Bemor iltimosi]</span>
+        </div>
+
+        <div style="border-top:1.5px dashed #000; margin:6px 0;"></div>
+
+        <!-- Guidelines Box Preview -->
+        <div style="border:1.5px solid #000; border-radius:4px; padding:6px; margin:6px 0; font-size:10.5px;">
+          <div style="text-align:center; font-weight:900; font-size:10.5px; border-bottom:1px dashed #000; padding-bottom:2px; margin-bottom:4px;">
+            ${escapeHtml(boxTitle)}
+          </div>
+          <div style="font-weight:900; color:#000;">${escapeHtml(generalPrepTitle)}</div>
+          <div style="padding-left:2px; margin-bottom:4px; line-height:1.25;">
+            <div>• ${escapeHtml(fasting)}</div>
+            <div>• ${escapeHtml(bloodTest)}</div>
+            <div>• ${escapeHtml(metformin)}</div>
+            <div>• ${escapeHtml(postHydration)}</div>
+          </div>
+          <div style="font-weight:900; color:#000;">${escapeHtml(contraTitle)}</div>
+          <div style="padding-left:2px; line-height:1.25;">
+            <div>• ${escapeHtml(allergy)}</div>
+            <div>• ${escapeHtml(kidney)}</div>
+            <div>• ${escapeHtml(pregnancy)}</div>
+          </div>
+        </div>
+
+        <div style="border-top:1.5px dashed #000; margin:6px 0;"></div>
+        <div style="text-align:center; font-size:10px; line-height:1.2;">
+          ${escapeHtml(tDict.timeNotice || '')}<br>
+          <strong>${escapeHtml(tDict.footerThanks || '')}</strong>
+        </div>
+      </div>
+    `;
+  } else {
+    // Consent A4 Preview
+    const qKeys = [
+      "pacemaker", "metalImplants", "claustrophobia", "pregnancy", "allergy",
+      "kidney", "asthmaDiabetes", "hearingDental", "abdominalFasting", "pelvicBladder"
+    ];
+    const questionsHtml = qKeys.map((k, idx) => {
+      const qVal = document.getElementById(`i18n_q_${k}`)?.value || "";
+      return `
+        <tr>
+          <td style="border:1px solid #000; padding:2px 4px; text-align:center; font-size:9.5px; font-weight:bold;">${idx + 1}</td>
+          <td style="border:1px solid #000; padding:2px 4px; font-size:9.5px;">${escapeHtml(qVal)}</td>
+          <td style="border:1px solid #000; padding:2px 4px; text-align:center; font-size:9.5px; width:30px;">[ ]</td>
+          <td style="border:1px solid #000; padding:2px 4px; text-align:center; font-size:9.5px; width:30px;">[ ]</td>
+        </tr>
+      `;
+    }).join("");
+
+    container.innerHTML = `
+      <div style="background:#fff; border:1px solid #000; border-radius:4px; padding:8px; font-family:sans-serif; color:#000; font-size:10.5px; line-height:1.25; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="border:1px solid #000; padding:4px; margin-bottom:6px; text-align:center;">
+          <div style="font-size:9px; font-weight:bold;">${(cDict.ministryTitle || '').replace(/\\n/g, '<br>')}</div>
+          <div style="font-size:10px; font-weight:900; margin-top:2px;">${(cDict.docTitle || '').replace('{examType}', 'MRT')}</div>
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; margin-bottom:6px; font-size:9.5px;">
+          <tr>
+            <td style="border:1px solid #000; padding:2px 4px; font-weight:bold; width:25%; background:#f8fafc;">${cDict.patientName || 'Bemor'}</td>
+            <td style="border:1px solid #000; padding:2px 4px; font-weight:bold;" colspan="3">Sayidov Sherali</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #000; padding:2px 4px; font-weight:bold; background:#f8fafc;">${cDict.deviceRoom || 'Xona'}</td>
+            <td style="border:1px solid #000; padding:2px 4px;">${escapeHtml(sampleRoom)}</td>
+            <td style="border:1px solid #000; padding:2px 4px; font-weight:bold; background:#f8fafc;">${cDict.serviceName || 'Tekshiruv'}</td>
+            <td style="border:1px solid #000; padding:2px 4px;"><strong>${escapeHtml(sampleServiceName)}</strong></td>
+          </tr>
+        </table>
+
+        <div style="font-size:9.5px; font-weight:bold; background:#f1f5f9; border:1px solid #000; padding:2px 4px; margin-bottom:4px;">
+          ${cDict.section1 || 'SAVOLNOMA'}
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; margin-bottom:6px;">
+          <thead>
+            <tr style="background:#f8fafc;">
+              <th style="border:1px solid #000; padding:2px; font-size:9px; width:20px;">#</th>
+              <th style="border:1px solid #000; padding:2px 4px; font-size:9px; text-align:left;">${cDict.criteriaHeader || 'Savollar'}</th>
+              <th style="border:1px solid #000; padding:2px; font-size:9px;">${cDict.yes || 'HA'}</th>
+              <th style="border:1px solid #000; padding:2px; font-size:9px;">${cDict.no || 'YO\'Q'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${questionsHtml}
+          </tbody>
+        </table>
+
+        <div style="font-size:8.5px; line-height:1.2; border:1px solid #000; padding:4px; background:#fafafa; text-align:justify;">
+          ${(cDict.declaration || '').replace(/{examType}/g, 'MRT')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function setI18nPreviewMode(mode) {
+  currentI18nPreviewMode = mode;
+  const btnT = document.getElementById("btnPreviewModeTicket");
+  const btnC = document.getElementById("btnPreviewModeConsent");
+
+  if (mode === 'ticket') {
+    if (btnT) { btnT.style.background = "#0284c7"; btnT.style.color = "#fff"; }
+    if (btnC) { btnC.style.background = "#f8fafc"; btnC.style.color = "#334155"; }
+  } else {
+    if (btnC) { btnC.style.background = "#0284c7"; btnC.style.color = "#fff"; }
+    if (btnT) { btnT.style.background = "#f8fafc"; btnT.style.color = "#334155"; }
+  }
+  updateI18nLivePreview();
+}
+
+async function saveCurrentI18nLangSettings() {
+  const L = currentI18nEditorLang;
+  
+  if (!customI18nSettings.guidelines) customI18nSettings.guidelines = {};
+  if (!customI18nSettings.guidelines[L]) customI18nSettings.guidelines[L] = {};
+
+  customI18nSettings.guidelines[L].boxTitle = document.getElementById("i18n_boxTitle")?.value || "";
+  customI18nSettings.guidelines[L].generalPrepTitle = document.getElementById("i18n_generalPrepTitle")?.value || "";
+  customI18nSettings.guidelines[L].fasting = document.getElementById("i18n_fasting")?.value || "";
+  customI18nSettings.guidelines[L].bloodTest = document.getElementById("i18n_bloodTest")?.value || "";
+  customI18nSettings.guidelines[L].metformin = document.getElementById("i18n_metformin")?.value || "";
+  customI18nSettings.guidelines[L].postHydration = document.getElementById("i18n_postHydration")?.value || "";
+  customI18nSettings.guidelines[L].metalWarning = document.getElementById("i18n_metalWarning")?.value || "";
+  customI18nSettings.guidelines[L].contraTitle = document.getElementById("i18n_contraTitle")?.value || "";
+  customI18nSettings.guidelines[L].allergy = document.getElementById("i18n_allergy")?.value || "";
+  customI18nSettings.guidelines[L].kidney = document.getElementById("i18n_kidney")?.value || "";
+  customI18nSettings.guidelines[L].hyperthyroidism = document.getElementById("i18n_hyperthyroidism")?.value || "";
+  customI18nSettings.guidelines[L].pregnancy = document.getElementById("i18n_pregnancy")?.value || "";
+  customI18nSettings.guidelines[L].pacemaker = document.getElementById("i18n_pacemaker")?.value || "";
+
+  // Questions
+  if (!customI18nSettings.questions) customI18nSettings.questions = {};
+  const qKeys = [
+    "pacemaker", "metalImplants", "claustrophobia", "pregnancy", "allergy",
+    "kidney", "asthmaDiabetes", "hearingDental", "abdominalFasting", "pelvicBladder"
+  ];
+  qKeys.forEach(k => {
+    if (!customI18nSettings.questions[k]) customI18nSettings.questions[k] = {};
+    customI18nSettings.questions[k][L] = document.getElementById(`i18n_q_${k}`)?.value || "";
+  });
+
+  // Reasons
+  if (!customI18nSettings.deferReasons) customI18nSettings.deferReasons = {};
+  const rKeys = [
+    { id: "i18n_r_personal", raw: "Bemorning shaxsiy iltimosi / Vaqti to'g'ri kelmadi" },
+    { id: "i18n_r_prep", raw: "Bemor tayyorgarlik ko'rishga ulgurmaydi (och qorin / tahlillar topshirish)" },
+    { id: "i18n_r_travel", raw: "Uzoqdan / viloyatdan yo'lda kelmoqda" },
+    { id: "i18n_r_doctor", raw: "Boshqa shifokor ko'rigi yoki boshqa muolajasi bor" }
+  ];
+  rKeys.forEach(item => {
+    if (!customI18nSettings.deferReasons[item.raw]) customI18nSettings.deferReasons[item.raw] = {};
+    customI18nSettings.deferReasons[item.raw][L] = document.getElementById(item.id)?.value || "";
+  });
+
+  try {
+    if (db) {
+      await db.ref("settings/i18n").set(customI18nSettings);
+    }
+    alert(`✅ [${I18N_LANG_LABELS[L] || L}] tili bo'yicha tibbiy ko'rsatmalar va savolnoma sozlamalari Firebase-da muvaffaqiyatli saqlandi!`);
+  } catch (err) {
+    alert("❌ Saqlashda xatolik yuz berdi: " + err.message);
+  }
+}
+
+async function resetCurrentI18nLangToDefaults() {
+  const L = currentI18nEditorLang;
+  if (!confirm(`Haqiqatdan ham [${I18N_LANG_LABELS[L] || L}] tili sozlamalarini standart holatga qaytarmoqchimisiz?`)) return;
+
+  if (customI18nSettings.guidelines && customI18nSettings.guidelines[L]) {
+    delete customI18nSettings.guidelines[L];
+  }
+  if (customI18nSettings.questions) {
+    Object.keys(customI18nSettings.questions).forEach(k => {
+      if (customI18nSettings.questions[k][L]) delete customI18nSettings.questions[k][L];
+    });
+  }
+  if (customI18nSettings.deferReasons) {
+    Object.keys(customI18nSettings.deferReasons).forEach(k => {
+      if (customI18nSettings.deferReasons[k][L]) delete customI18nSettings.deferReasons[k][L];
+    });
+  }
+
+  try {
+    if (db) {
+      await db.ref("settings/i18n").set(customI18nSettings);
+    }
+    populateI18nEditorForm(L);
+    alert(`✅ [${I18N_LANG_LABELS[L] || L}] tili standart holatga qaytarildi.`);
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
+}
+
+function testPrintCurrentI18nPreview() {
+  const L = currentI18nEditorLang;
+  const samplePatient = {
+    ticketId: "84210",
+    name: "Sayidov Sherali",
+    patientType: "Bo'limda yotibdi",
+    department: "Xirurgiya",
+    referringDoctor: "Dr. Ahmedov",
+    room: "1-MRT Xonasi",
+    doctorName: "MRT 1 (Siemens)",
+    service: "Bosh Miya MRT (Kontrastsiz)",
+    scheduledTime: "08:00",
+    endTime: "08:29",
+    timeSlot: "08:00 - 08:29",
+    appointmentDate: "2026-08-24",
+    registeredBy: "TB1 - Turatov Hojiakbar",
+    rescheduleReason: "Bemorning shaxsiy iltimosi / Vaqti to'g'ri kelmadi",
+    preparation: "Kamida 6-8 soat och qoringa kelish. Qonda Kreatinin va Mochevina tahlili natijasi (oxirgi 3 kun ichida). Qandli diabet bo'lsa: Metformin dori vositasini 48 soat oldin to'xtatish.",
+    contraindications: "Yodli kontrastga allergiya. Buyrak yetishmovchiligi. Gipertireoz. Homiladorlik.",
+    servicesList: [
+      {
+        name: "Bosh Miya MRT",
+        preparation: "Kamida 6-8 soat och qoringa kelish. Qonda Kreatinin va Mochevina tahlili natijasi.",
+        contraindications: "Yodli kontrastga allergiya. Buyrak yetishmovchiligi."
+      }
+    ]
+  };
+
+  if (currentI18nPreviewMode === 'ticket') {
+    openPrintModalDirect(samplePatient, true, L);
+  } else {
+    printConsentFormDirect(samplePatient, L);
+  }
 }
