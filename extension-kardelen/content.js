@@ -209,8 +209,40 @@ function getDayEffectiveSchedule(targetDate, schedule = null, exceptions = null)
   return Object.assign({ title: baseDayCfg.name, isException: false }, baseDayCfg);
 }
 
-// Faqat asosiy oynada (window === window.top) ishga tushirish
-if (window === window.top) {
+function isKardelenEnvironment() {
+  try {
+    const loc = window.location;
+    const hostname = (loc.hostname || '').toLowerCase();
+    const href = (loc.href || '').toLowerCase();
+
+    // 1. Tizimning o'zining ichki app sahifalari (app1-registratura, app2-vrach, app3-android-tv) bo'lsa kengaytma ISHLAMASIN!
+    if (href.includes("app1-registratura") || href.includes("app2-vrach") || href.includes("app3-android-tv")) {
+      return false;
+    }
+
+    // 2. Karmed / Kardelen rasmiy IP manzillari
+    if (hostname === "192.168.150.111" || hostname === "213.230.91.59") {
+      return true;
+    }
+
+    // 3. Karmed / Kardelen domen nomlari
+    if (hostname.includes("karmed") || hostname.includes("kardelen")) {
+      return true;
+    }
+
+    // 4. Test qilish uchun maxsus parametr (?kardelen=1 yoki ?karmed=1)
+    if (loc.search && (loc.search.includes("kardelen=1") || loc.search.includes("karmed=1"))) {
+      return true;
+    }
+
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Faqat asosiy oynada (window === window.top) va faqat Karmed hostlarida ishga tushirish
+if (window === window.top && isKardelenEnvironment()) {
   initExtension();
 }
 
