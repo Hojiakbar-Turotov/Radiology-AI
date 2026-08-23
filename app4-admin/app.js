@@ -213,6 +213,7 @@ function listenToLaborants() {
     if (cEl) cEl.innerText = laborantsList.length;
 
     renderLaborantsTable();
+    renderSchedulesTable();
     populateAuditLaborantFilter();
   });
 }
@@ -310,9 +311,81 @@ function switchUsersSubTab(subTabName, btnEl) {
 
   if (btnEl) btnEl.classList.add("active");
 
-  if (subTabName === "laborants") document.getElementById("subSecLaborants")?.classList.add("active");
-  if (subTabName === "doctors") document.getElementById("subSecDoctors")?.classList.add("active");
-  if (subTabName === "admins") document.getElementById("subSecAdmins")?.classList.add("active");
+  if (subTabName === "laborants") {
+    document.getElementById("subSecLaborants")?.classList.add("active");
+    renderLaborantsTable();
+  }
+  if (subTabName === "doctors") {
+    document.getElementById("subSecDoctors")?.classList.add("active");
+    renderDoctorsTable();
+  }
+  if (subTabName === "admins") {
+    document.getElementById("subSecAdmins")?.classList.add("active");
+    renderAdminsTable();
+  }
+  if (subTabName === "schedules") {
+    document.getElementById("subSecSchedules")?.classList.add("active");
+    renderSchedulesTable();
+  }
+}
+
+function renderSchedulesTable() {
+  const tbody = document.getElementById("schedulesTableBody");
+  const countSched = document.getElementById("countSchedules");
+  if (!tbody) return;
+
+  const dayNames = { 1: "Du", 2: "Se", 3: "Chor", 4: "Pay", 5: "Juma", 6: "Shan", 0: "Yak" };
+
+  let activeSchedCount = 0;
+  const rows = laborantsList.map(lab => {
+    const sched = lab.schedule;
+    const customDurs = lab.customDurations || {};
+    const customCount = Object.keys(customDurs).length;
+
+    if (sched && sched.roomId) activeSchedCount++;
+
+    const daysFormatted = (sched && sched.days && sched.days.length > 0)
+      ? sched.days.map(d => `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.75rem; margin-right:2px; font-weight:bold;">${dayNames[d] || d}</span>`).join("")
+      : `<span style="color:#94a3b8; font-style:italic;">Belgilanmagan</span>`;
+
+    const hours = (sched && sched.startTime && sched.endTime)
+      ? `<strong style="color:#0f172a;">${sched.startTime} - ${sched.endTime}</strong>`
+      : `<span style="color:#94a3b8;">08:00 - 19:30 (Standart)</span>`;
+
+    const breakTime = (sched && sched.breakStart && sched.breakEnd)
+      ? `<span style="font-size:0.82rem; color:#64748b;">${sched.breakStart} - ${sched.breakEnd}</span>`
+      : `<span style="color:#94a3b8;">-</span>`;
+
+    const roomText = (sched && sched.roomName)
+      ? `<strong style="color:#7c3aed;"><i class="fa-solid fa-door-open"></i> ${escapeHtml(sched.roomName)}</strong>`
+      : `<span style="color:#94a3b8; font-style:italic;">Band qilinmagan</span>`;
+
+    const customDursText = customCount > 0
+      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;"><i class="fa-solid fa-stopwatch"></i> ${customCount} ta maxsus vaqt</span>`
+      : `<span style="color:#94a3b8; font-size:0.8rem;">Standart</span>`;
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:800; color:#0f172a;">${escapeHtml(lab.name)}</div>
+          <div style="font-size:0.8rem; color:#64748b;">Login: <strong style="color:#0284c7;">${escapeHtml(lab.login)}</strong></div>
+        </td>
+        <td>${roomText}</td>
+        <td>${daysFormatted}</td>
+        <td>${hours}</td>
+        <td>${breakTime}</td>
+        <td>${customDursText}</td>
+        <td style="text-align: right;">
+          <span class="badge ${sched ? 'badge-completed' : 'badge-waiting'}">
+            ${sched ? 'Faol Smena' : 'Avtomatik'}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  tbody.innerHTML = rows;
+  if (countSched) countSched.innerText = activeSchedCount;
 }
 
 // 4. MONITORING VA ANALITIKA HISOBLARI

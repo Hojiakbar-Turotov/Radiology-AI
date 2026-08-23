@@ -115,6 +115,11 @@
           <i class="fa-solid fa-sliders"></i> <span class="btn-txt-responsive">Tekshiruvlar</span>
         </button>
 
+        <!-- Ish Jadvali va Xonani Band Qilish -->
+        <button class="btn btn-schedule-nav" onclick="openLaborantScheduleModal()" title="Ish grafigim va xonani band qilish" style="background: #8b5cf6; color: #fff;">
+          <i class="fa-solid fa-calendar-check"></i> <span class="btn-txt-responsive">Ish Jadvalim</span>
+        </button>
+
         <!-- Shaxsiy Profil -->
         <button class="btn btn-profile-nav" onclick="openProfileModal()" title="Profil va Parol">
           <i class="fa-solid fa-user-gear"></i> <span class="btn-txt-responsive">Profil</span>
@@ -140,6 +145,10 @@
       <button class="tab-item" id="tabBtnServices" onclick="openServicesManagementModal()">
         <i class="fa-solid fa-list-check"></i>
         <span>Tekshiruvlar</span>
+      </button>
+      <button class="tab-item" id="tabBtnSchedule" onclick="openLaborantScheduleModal()">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Jadvalim</span>
       </button>
       <button class="tab-item" id="tabBtnHistory" onclick="switchMobileTab('history')">
         <i class="fa-solid fa-clock-rotate-left"></i>
@@ -415,19 +424,29 @@
 
         <div class="form-row-2">
           <div class="form-group">
-            <label for="editServiceDuration"><i class="fa-solid fa-clock"></i> Rejalashtirilgan Vaqt (daqiqa):</label>
+            <label for="editServiceDuration"><i class="fa-solid fa-clock"></i> Standart Vaqt (Admin tasdiqlagan):</label>
             <div style="display: flex; align-items: center; gap: 8px;">
               <input type="number" id="editServiceDuration" required min="1" max="300" step="1" value="30" style="font-size: 1.1rem; font-weight: 800; color: #0284c7;">
               <span style="font-weight: bold; color: #64748b;">daqiqa</span>
             </div>
           </div>
 
-          <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
-            <label class="checkbox-label" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
-              <input type="checkbox" id="editServiceIsContrast" onchange="handleContrastToggle()">
-              <strong style="color: #0f172a;">💉 Kontrast modda ishlatiladi</strong>
+          <div class="form-group">
+            <label for="editMyPersonalDuration" style="color: #7c3aed; font-weight: 700;">
+              <i class="fa-solid fa-user-clock"></i> Mening Shaxsiy Vaqtim (Men uchun):
             </label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="number" id="editMyPersonalDuration" min="1" max="300" step="1" placeholder="Standart" style="font-size: 1.1rem; font-weight: 800; color: #7c3aed; border-color: #c4b5fd;">
+              <span style="font-weight: bold; color: #7c3aed;">daqiqa</span>
+            </div>
           </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="checkbox-label" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="editServiceIsContrast" onchange="handleContrastToggle()">
+            <strong style="color: #0f172a;">💉 Kontrast modda ishlatiladi</strong>
+          </label>
         </div>
 
         <!-- Tuzilmaviy Tayyorgarlik Qoidalari -->
@@ -631,6 +650,87 @@
               <i class="fa-solid fa-ban"></i> Butunlay Bekor Qilish
             </button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. LABORANT ISH JADVALI VA XONANI BAND QILISH MODALI -->
+  <div id="modalLaborantSchedule" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-md" style="max-width: 600px;">
+      <div class="modal-header" style="border-bottom: 2px solid #ede9fe;">
+        <h3 style="color: #7c3aed; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Mening Ish Jadvalim & Xonani Band Qilish</span>
+        </h3>
+        <button type="button" class="btn-close" onclick="closeLaborantScheduleModal()">&times;</button>
+      </div>
+
+      <form id="laborantScheduleForm" onsubmit="handleSaveLaborantSchedule(event)" style="margin-top: 14px;">
+        <!-- Xonani / Qurilmani tanlash -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="schedRoomSelect" style="font-weight: 700; color: #334155; margin-bottom: 6px;">
+            <i class="fa-solid fa-door-open" style="color: #0284c7;"></i> Men band qiladigan xona / qurilma:
+          </label>
+          <select id="schedRoomSelect" required style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold; font-size: 0.95rem;">
+            <!-- Dinamik xonalar ro'yxati -->
+          </select>
+          <small style="color: #64748b; margin-top: 4px; display: block;">* Bitta xonani bir vaqtning o'zida bir nechta laborant band qilishi mumkin.</small>
+        </div>
+
+        <!-- Ish kunlari (Hafta kunlari) -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block;">
+            <i class="fa-solid fa-calendar-week" style="color: #10b981;"></i> Mening ish kunlarim:
+          </label>
+          <div class="schedule-days-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay1" value="1"> <span>Dushanba</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay2" value="2"> <span>Seshanba</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay3" value="3"> <span>Chorshanba</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay4" value="4"> <span>Payshanba</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay5" value="5"> <span>Juma</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay6" value="6"> <span>Shanba</span></label>
+            <label class="day-checkbox-card" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;"><input type="checkbox" id="schedDay0" value="0"> <span>Yakshanba</span></label>
+          </div>
+        </div>
+
+        <!-- Ish vaqtlari (Smena) -->
+        <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group">
+            <label for="schedStartTime" style="font-weight: 700; color: #334155; margin-bottom: 6px;"><i class="fa-solid fa-clock" style="color: #0284c7;"></i> Smena boshlanishi:</label>
+            <input type="time" id="schedStartTime" required value="08:00" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold;">
+          </div>
+          <div class="form-group">
+            <label for="schedEndTime" style="font-weight: 700; color: #334155; margin-bottom: 6px;"><i class="fa-solid fa-clock" style="color: #0284c7;"></i> Smena tugashi:</label>
+            <input type="time" id="schedEndTime" required value="19:30" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold;">
+          </div>
+        </div>
+
+        <!-- Tushlik / Tanaffus -->
+        <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group">
+            <label for="schedBreakStart" style="font-weight: 700; color: #334155; margin-bottom: 6px;"><i class="fa-solid fa-utensils" style="color: #f59e0b;"></i> Tushlik boshlanishi:</label>
+            <input type="time" id="schedBreakStart" value="13:00" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold;">
+          </div>
+          <div class="form-group">
+            <label for="schedBreakEnd" style="font-weight: 700; color: #334155; margin-bottom: 6px;"><i class="fa-solid fa-utensils" style="color: #f59e0b;"></i> Tushlik tugashi:</label>
+            <input type="time" id="schedBreakEnd" value="14:00" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold;">
+          </div>
+        </div>
+
+        <!-- Commit / Izoh -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="schedCommitComment" style="font-weight: 700; color: #334155; margin-bottom: 6px;">
+            <i class="fa-solid fa-code-commit" style="color: #8b5cf6;"></i> O'zgarish sababi / Izoh (Ixtiyoriy):
+          </label>
+          <input type="text" id="schedCommitComment" placeholder="Masalan: Dushanba-Juma 08:00 dan 18:00 gacha 1-MRT xonasi smenasiga o'tdim" style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px;">
+        </div>
+
+        <div class="modal-footer-actions" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+          <button type="button" class="btn btn-outline" onclick="closeLaborantScheduleModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" style="background: #7c3aed; color: #fff; font-weight: bold;">
+            <i class="fa-solid fa-floppy-disk"></i> Jadvalni Saqlash & Band Qilish
+          </button>
         </div>
       </form>
     </div>

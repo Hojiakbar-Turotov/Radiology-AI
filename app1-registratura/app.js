@@ -4,6 +4,7 @@ let doctorsList = [];
 let todayDateStr = "";
 let selectedQueueDate = "";
 let currentPatientsRef = null;
+let laborantsList = [];
 
 // 📌 UMUMIY TIBBIY QOIDALAR, QARSHI KO'RSATMALAR VA SAVOLNOMA SHABLONLARI
 const DEFAULT_GLOBAL_GUIDELINES = {
@@ -155,6 +156,7 @@ function initApp() {
   if (db) {
     setupConnectionMonitor();
     listenToDoctors();
+    listenToLaborants();
     listenToPatients(todayDateStr);
     listenToServices();
     listenToGeneralGuidelines();
@@ -596,6 +598,21 @@ function listenToDoctors() {
   });
 }
 
+function listenToLaborants() {
+  db.ref("laborants").on("value", (snapshot) => {
+    laborantsList = [];
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        laborantsList.push({ login: key, ...data[key] });
+      });
+    }
+    if (typeof onDateOrDoctorOrTimeChanged === "function") {
+      onDateOrDoctorOrTimeChanged();
+    }
+  });
+}
+
 // Bugungi sana
 function setTodayDate() {
   const now = new Date();
@@ -933,10 +950,106 @@ function toggleDeferReasonOther() {
 let lastCalculatedSlot = null;
 let isCurrentSlotValid = false;
 
+// Laborant va Xona asosida dinamik vaqtni aniqlash
+function getResolvedDurationForRoom(docId, serviceText, targetDateStr) {
+  if (!targetDateStr) targetDateStr = todayDateStr;
+  const dObj = new Date(targetDateStr + "T12:00:00");
+  const dayOfWeek = dObj.getDay(); // 0: Yak, 1: Du, ...
+
+  // Ushbu xonaga shu kunda biriktirilgan laborantlarni topish
+  const activeLaborants = laborantsList.filter(l => {
+    const s = l.schedule;
+    return s && s.roomId === docId && Array.isArray(s.days) && s.days.includes(dayOfWeek);
+  });
+
+  // Mos keluvchi tekshiruv katalogini qidirish
+  const sText = (serviceText || "").toLowerCase().trim();
+  const matchingService = servicesList.find(s => 
+    (s.code && sText.includes(s.code.toLowerCase())) ||
+    (s.name && (sText.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(sText)))
+  );
+  const standardDuration = matchingService ? (matchingService.duration || 30) : 30;
+
+  if (activeLaborants.length > 0) {
+    // Har bir laborantning ushbu tekshiruv uchun vaqtini olish
+    const durations = activeLaborants.map(lab => {
+      if (lab.customDurations && matchingService && lab.customDurations[matchingService.code]) {
+        return parseInt(lab.customDurations[matchingService.code], 10);
+      }
+      return standardDuration;
+    });
+    // Agar bir vaqtda 2 yoki undan ortiq laborant bo'lsa, eng uzoq (maksimal) vaqt olinadi
+    return {
+      duration: Math.max(...durations),
+      laborantNames: activeLaborants.map(l => l.name || l.login),
+      hasLaborant: true,
+      serviceCode: matchingService ? matchingService.code : null
+    };
+  }
+
+  // Laborant biriktirilmagan bo'lsa -> admin tasdiqlagan standart vaqt
+  return {
+    duration: standardDuration,
+    laborantNames: [],
+    hasLaborant: false,
+    serviceCode: matchingService ? matchingService.code : null
+  };
+}
+
+function getDateStrWithOffsetFrom(baseDateStr, offsetDays) {
+  const base = new Date((baseDateStr || todayDateStr) + "T12:00:00");
+  base.setDate(base.getDate() + offsetDays);
+  const y = base.getFullYear();
+  const m = String(base.getMonth() + 1).padStart(2, '0');
+  const d = String(base.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// Barcha keyingi kunlar bo'yicha eng yaqin bo'sh slotni avtomatik qidirish
+async function findEarliestAvailableSlot(docId, serviceText, startAppDate, maxSearchDays = 30) {
+  const startDate = startAppDate || todayDateStr;
+
+  for (let offset = 0; offset < maxSearchDays; offset++) {
+    const checkDateStr = getDateStrWithOffsetFrom(startDate, offset);
+    const effDay = getDayEffectiveSchedule(checkDateStr, currentWorkSchedule, calendarExceptions);
+    if (!effDay.enabled) continue; // Dam olish kuni
+
+    const durInfo = getResolvedDurationForRoom(docId, serviceText, checkDateStr);
+    const resolvedDuration = durInfo.duration;
+
+    let dayPatients = [];
+    if (checkDateStr === selectedQueueDate) {
+      dayPatients = patientsList;
+    } else {
+      try {
+        const snap = await db.ref(`patients/${checkDateStr}`).once("value");
+        const val = snap.val();
+        if (val) dayPatients = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+      } catch (e) {}
+    }
+    const devPatients = dayPatients.filter(p => p.doctorId === docId && p.status !== "cancelled");
+
+    const slot = calculateSlotFromPatientsList(devPatients, resolvedDuration, checkDateStr, currentWorkSchedule);
+    if (!slot.error && !slot.isFull) {
+      return {
+        date: checkDateStr,
+        dayName: effDay.title || effDay.name,
+        slot: slot,
+        duration: resolvedDuration,
+        durInfo: durInfo,
+        isToday: checkDateStr === todayDateStr,
+        isFutureDay: checkDateStr !== startDate
+      };
+    }
+  }
+
+  return { error: "Keyingi 30 kun ichida bo'sh navbat topilmadi!" };
+}
+
 async function onDateOrDoctorOrTimeChanged() {
   const docId = document.getElementById("doctorSelect") ? document.getElementById("doctorSelect").value : "";
-  const appDate = document.getElementById("patientAppDate") ? document.getElementById("patientAppDate").value : todayDateStr;
-  const duration = parseInt(document.getElementById("patientDuration") ? document.getElementById("patientDuration").value : 30, 10) || 30;
+  let appDate = document.getElementById("patientAppDate") ? document.getElementById("patientAppDate").value : todayDateStr;
+  const serviceText = document.getElementById("serviceType") ? document.getElementById("serviceType").value : "";
   const mode = document.querySelector('input[name="timeSlotMode"]:checked') ? document.querySelector('input[name="timeSlotMode"]:checked').value : "auto";
   const customStartTime = document.getElementById("customStartTime") ? document.getElementById("customStartTime").value : "08:00";
   const alertEl = document.getElementById("slotStatusAlert");
@@ -952,6 +1065,14 @@ async function onDateOrDoctorOrTimeChanged() {
     isCurrentSlotValid = false;
     return;
   }
+
+  // Dinamik tekshiruv vaqtini aniqlash (Laborant jadvali va bir nechta laborantning maksimal vaqti bo'yicha)
+  const resolvedDurInfo = getResolvedDurationForRoom(docId, serviceText, appDate);
+  const durationInput = document.getElementById("patientDuration");
+  if (durationInput && (!durationInput.value || durationInput.dataset.userEdited !== "true")) {
+    durationInput.value = resolvedDurInfo.duration;
+  }
+  const duration = parseInt(durationInput ? durationInput.value : resolvedDurInfo.duration, 10) || resolvedDurInfo.duration;
 
   // Tanlangan sana uchun bemorlarni olish
   let targetPatients = [];
@@ -971,7 +1092,7 @@ async function onDateOrDoctorOrTimeChanged() {
 
   // 1. Dam olish kuni yoki bayram tekshiruvi
   const effDay = getDayEffectiveSchedule(appDate, currentWorkSchedule, calendarExceptions);
-  if (!effDay.enabled) {
+  if (!effDay.enabled && mode !== "auto") {
     isCurrentSlotValid = false;
     if (alertEl) {
       alertEl.style.background = "#fee2e2";
@@ -995,28 +1116,54 @@ async function onDateOrDoctorOrTimeChanged() {
   }
 
   if (mode === "auto") {
-    // Eng yaqin bo'sh slotni hisoblash (hozirgi vaqtdan boshlab va o'sha kunning ish soatlari doirasida)
-    const slot = calculateSlotFromPatientsList(devPatients, duration, appDate, currentWorkSchedule);
+    // Eng yaqin bo'sh slotni hisoblash
+    let slot = effDay.enabled ? calculateSlotFromPatientsList(devPatients, duration, appDate, currentWorkSchedule) : { error: "Dam olish kuni", isFull: true };
     
-    if (slot.error) {
-      isCurrentSlotValid = false;
-      lastCalculatedSlot = null;
-      if (alertEl) {
-        alertEl.style.background = "#fee2e2";
-        alertEl.style.color = "#b91c1c";
-        alertEl.innerHTML = `❌ <strong>DIQQAT:</strong> ${escapeHtml(slot.error)}`;
+    // Agar bugungi kunda navbat to'lgan bo'lsa yoki dam olish kuni bo'lsa -> Avtomatik keyingi kunlardan eng yaqinini qidirish!
+    if (slot.error || slot.isFull) {
+      const earliest = await findEarliestAvailableSlot(docId, serviceText, appDate);
+      if (!earliest.error) {
+        appDate = earliest.date;
+        const pDateEl = document.getElementById("patientAppDate");
+        if (pDateEl) pDateEl.value = appDate;
+        slot = earliest.slot;
+
+        lastCalculatedSlot = slot;
+        isCurrentSlotValid = true;
+
+        const labInfoStr = earliest.durInfo.laborantNames.length > 0 ? ` (Laborant: ${earliest.durInfo.laborantNames.join(', ')})` : '';
+
+        if (alertEl) {
+          alertEl.style.background = "#fef3c7";
+          alertEl.style.color = "#92400e";
+          alertEl.innerHTML = `⚡ <strong>Eng yaqin bo'sh navbat:</strong> ${slot.slotString} (${appDate} - ${earliest.dayName})<br><small style="color:#b45309;">* Oldingi kunlardagi navbatlar to'lganligi sababli eng yaqin bo'sh kunga belgilandi${labInfoStr}.</small>`;
+        }
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (deferContainer) deferContainer.style.display = (appDate !== todayDateStr) ? "block" : "none";
+        return;
+      } else {
+        isCurrentSlotValid = false;
+        lastCalculatedSlot = null;
+        if (alertEl) {
+          alertEl.style.background = "#fee2e2";
+          alertEl.style.color = "#b91c1c";
+          alertEl.innerHTML = `❌ <strong>DIQQAT:</strong> ${escapeHtml(earliest.error || slot.error)}`;
+        }
+        if (submitBtn) submitBtn.disabled = true;
+        return;
       }
-      if (submitBtn) submitBtn.disabled = true;
-      return;
     }
 
     lastCalculatedSlot = slot;
     isCurrentSlotValid = true;
 
+    const labInfoStr = resolvedDurInfo.laborantNames.length > 0 ? ` <span style="font-size:0.8rem; color:#0369a1;">[Laborant: ${resolvedDurInfo.laborantNames.join(', ')}]</span>` : '';
+
     if (alertEl) {
       alertEl.style.background = "#dcfce7";
       alertEl.style.color = "#15803d";
-      alertEl.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${slot.slotString} (${appDate === todayDateStr ? 'Bugun' : appDate} - ${effDay.title || effDay.name})`;
+      alertEl.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${slot.slotString} (${appDate === todayDateStr ? 'Bugun' : appDate} - ${effDay.title || effDay.name})${labInfoStr}`;
     }
 
     if (submitBtn) submitBtn.disabled = false;

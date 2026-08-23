@@ -20,6 +20,8 @@ let currentQueueSubFilter = 'all'; // 'all' (Navbat tartibi) or 'in_hall' (Hozir
 let selectedServiceForTest = null;
 let currentTestPreviewMode = 'ticket'; // 'ticket' or 'consent'
 let currentTestLang = 'uz';
+let mySchedule = null; // Laborant ish jadvali va band qilgan xonasi
+let myCustomDurations = {}; // Laborantning shaxsiy tekshiruv vaqtlari { "R140": 25, ... }
 
 const DEFAULT_LABORANTS = [
   { login: "LAB1", name: "Yoqubov Dilmurod", password: "15420", role: "Vrach / Laborant-Operator" },
@@ -232,7 +234,19 @@ function setLaborantLoggedIn(laborant, doctor) {
   if (modDocRoom) modDocRoom.innerText = `${roomName} (${docSpecialty})`;
 
   listenToMyPatients();
+  listenToMyScheduleAndDurations();
   renderLaborantServicesList();
+}
+
+function listenToMyScheduleAndDurations() {
+  if (!currentLaborant) return;
+  db.ref(`laborants/${currentLaborant.login}/schedule`).on("value", (snap) => {
+    mySchedule = snap.val();
+  });
+  db.ref(`laborants/${currentLaborant.login}/customDurations`).on("value", (snap) => {
+    myCustomDurations = snap.val() || {};
+    renderLaborantServicesList();
+  });
 }
 
 function logoutLaborant() {
@@ -854,6 +868,7 @@ function renderLaborantServicesList() {
   container.innerHTML = filtered.map(s => {
     const isMrt = (s.type || "").toUpperCase() === "MRT";
     const duration = s.duration || 30;
+    const myPersonalDur = myCustomDurations[s.code];
     const questionsCount = s.questions ? String(s.questions).split(/\r?\n/).filter(l => l.trim()).length : 0;
     const structured = parseStructuredPreparation(s.preparation, s);
 
@@ -865,8 +880,10 @@ function renderLaborantServicesList() {
             <span class="badge ${isMrt ? 'badge-mrt' : 'badge-mskt'}">${isMrt ? '🧲 MRT' : '⚡ MSKT'}</span>
             ${s.isContrast ? `<span class="badge badge-contrast">💉 Kontrastli</span>` : `<span class="badge badge-plain">Oddiy</span>`}
           </div>
-          <div class="svc-duration-tag">
-            <i class="fa-solid fa-clock"></i> <strong>${duration}</strong> daq
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="svc-duration-tag" style="${myPersonalDur ? 'background: #ede9fe; color: #7c3aed; border: 1.5px solid #c4b5fd;' : ''}">
+              <i class="fa-solid fa-clock"></i> <strong>${myPersonalDur || duration}</strong> daq ${myPersonalDur ? '<span style="font-size: 0.72rem; font-weight: 700; color: #7c3aed;">(Mening vaqtim)</span>' : ''}
+            </div>
           </div>
         </div>
 
@@ -918,6 +935,7 @@ function openAddServiceModal() {
   document.getElementById("editServiceName").value = "";
   document.getElementById("editServiceType").value = (currentDoctor && (currentDoctor.specialty || "").includes("MRT")) ? "MRT" : "MSKT";
   document.getElementById("editServiceDuration").value = "30";
+  document.getElementById("editMyPersonalDuration").value = "";
   document.getElementById("editServiceIsContrast").checked = false;
 
   document.getElementById("editFastingHours").value = "6-8";
@@ -946,6 +964,7 @@ function openEditServiceModal(serviceId) {
   document.getElementById("editServiceName").value = service.name || "";
   document.getElementById("editServiceType").value = service.type || "MSKT";
   document.getElementById("editServiceDuration").value = service.duration || 30;
+  document.getElementById("editMyPersonalDuration").value = (myCustomDurations && myCustomDurations[service.code]) ? myCustomDurations[service.code] : "";
   document.getElementById("editServiceIsContrast").checked = !!service.isContrast;
 
   const structured = parseStructuredPreparation(service.preparation, service);
@@ -1127,6 +1146,21 @@ async function handleSaveServiceForm(e) {
 
   try {
     await db.ref(`services_catalog/${targetKey}`).set(updatedServiceData);
+
+    // Agar laborant o'zi uchun shaxsiy vaqt belgilagan bo'lsa
+    const personalDurVal = document.getElementById("editMyPersonalDuration")?.value;
+    const personalDur = parseInt(personalDurVal, 10);
+    if (currentLaborant && currentLaborant.login) {
+      if (!isNaN(personalDur) && personalDur > 0) {
+        await db.ref(`laborants/${currentLaborant.login}/customDurations/${code}`).set(personalDur);
+        myCustomDurations[code] = personalDur;
+        changes.push({ field: "Mening shaxsiy vaqtim", old: "-", new: `${personalDur} daqiqa` });
+      } else if (personalDurVal === "") {
+        await db.ref(`laborants/${currentLaborant.login}/customDurations/${code}`).remove();
+        delete myCustomDurations[code];
+      }
+    }
+
     await db.ref(`services_history/${targetKey}`).push(historyEntry);
     await db.ref(`services_history_log`).push({ serviceId: targetKey, ...historyEntry });
 
@@ -1135,6 +1169,106 @@ async function handleSaveServiceForm(e) {
   } catch (err) {
     console.error("Save error:", err);
     alert("❌ Saqlashda xatolik yuz berdi: " + err.message);
+  }
+}
+
+// 9.5 LABORANT ISH JADVALI VA XONANI BAND QILISH FUNKSIYALARI
+function openLaborantScheduleModal() {
+  if (!currentLaborant) return;
+  const modal = document.getElementById("modalLaborantSchedule");
+  if (!modal) return;
+
+  // Xonalar ro'yxatini to'ldirish
+  const roomSel = document.getElementById("schedRoomSelect");
+  if (roomSel) {
+    roomSel.innerHTML = doctorsList.map(d => {
+      const isSelected = (mySchedule && mySchedule.roomId === d.id) || (currentDoctor && currentDoctor.id === d.id);
+      return `<option value="${escapeHtml(d.id)}" ${isSelected ? 'selected' : ''}>${escapeHtml(d.room || d.name)} - ${escapeHtml(d.specialty || '')}</option>`;
+    }).join("");
+  }
+
+  // Kunlar
+  const days = (mySchedule && mySchedule.days) ? mySchedule.days : [1, 2, 3, 4, 5];
+  [0, 1, 2, 3, 4, 5, 6].forEach(dayNum => {
+    const chk = document.getElementById(`schedDay${dayNum}`);
+    if (chk) chk.checked = days.includes(dayNum);
+  });
+
+  // Vaqtlar
+  if (document.getElementById("schedStartTime")) document.getElementById("schedStartTime").value = (mySchedule && mySchedule.startTime) || "08:00";
+  if (document.getElementById("schedEndTime")) document.getElementById("schedEndTime").value = (mySchedule && mySchedule.endTime) || "19:30";
+  if (document.getElementById("schedBreakStart")) document.getElementById("schedBreakStart").value = (mySchedule && mySchedule.breakStart) || "13:00";
+  if (document.getElementById("schedBreakEnd")) document.getElementById("schedBreakEnd").value = (mySchedule && mySchedule.breakEnd) || "14:00";
+  if (document.getElementById("schedCommitComment")) document.getElementById("schedCommitComment").value = "";
+
+  modal.style.display = "flex";
+}
+
+function closeLaborantScheduleModal() {
+  const modal = document.getElementById("modalLaborantSchedule");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleSaveLaborantSchedule(e) {
+  e.preventDefault();
+  if (!currentLaborant) return;
+
+  const roomId = document.getElementById("schedRoomSelect")?.value;
+  const selectedDoc = doctorsList.find(d => d.id === roomId);
+  const roomName = selectedDoc ? (selectedDoc.room || selectedDoc.name) : "Xona";
+
+  const days = [];
+  [0, 1, 2, 3, 4, 5, 6].forEach(dayNum => {
+    const chk = document.getElementById(`schedDay${dayNum}`);
+    if (chk && chk.checked) days.push(dayNum);
+  });
+
+  if (days.length === 0) {
+    alert("Iltimos, kamida bitta ish kunini tanlang!");
+    return;
+  }
+
+  const startTime = document.getElementById("schedStartTime")?.value || "08:00";
+  const endTime = document.getElementById("schedEndTime")?.value || "19:30";
+  const breakStart = document.getElementById("schedBreakStart")?.value || "";
+  const breakEnd = document.getElementById("schedBreakEnd")?.value || "";
+  const commitComment = (document.getElementById("schedCommitComment")?.value || "").trim() || "Ish jadvali yangilandi";
+
+  const scheduleData = {
+    laborantLogin: currentLaborant.login,
+    laborantName: currentLaborant.name,
+    roomId: roomId,
+    roomName: roomName,
+    days: days,
+    startTime: startTime,
+    endTime: endTime,
+    breakStart: breakStart,
+    breakEnd: breakEnd,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+    updatedDate: todayDateStr
+  };
+
+  try {
+    // 1. Laborant ma'lumotlariga saqlash
+    await db.ref(`laborants/${currentLaborant.login}/schedule`).set(scheduleData);
+    mySchedule = scheduleData;
+
+    // 2. Global Audit logga yozish
+    const logKey = db.ref("services_history_log").push().key;
+    await db.ref(`services_history_log/${logKey}`).set({
+      type: "schedule_update",
+      laborantLogin: currentLaborant.login,
+      laborantName: currentLaborant.name,
+      room: roomName,
+      comment: `Ish jadvali va xona band qilindi: ${roomName}, kunlar: [${days.join(',')}], soat: ${startTime}-${endTime}. Izoh: ${commitComment}`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      datetime: new Date().toLocaleString()
+    });
+
+    closeLaborantScheduleModal();
+    alert(`✅ Ish jadvalingiz saqlandi va ${roomName} siz uchun band qilindi!`);
+  } catch (err) {
+    alert("❌ Saqlashda xatolik: " + err.message);
   }
 }
 

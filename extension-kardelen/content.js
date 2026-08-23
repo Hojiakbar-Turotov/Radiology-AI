@@ -1607,7 +1607,9 @@ function isMsktCheck(code, name, rawText) {
   return false;
 }
 
-// 7. TEKSHIRUVLAR KATALOGINI FIREBASE-DAN YUKLASH
+let laborantsCatalog = {};
+
+// 7. TEKSHIRUVLAR VA LABORANTLAR KATALOGINI FIREBASE-DAN YUKLASH
 async function loadServicesCatalog() {
   try {
     const res = await safeFetch(`${FIREBASE_DB_URL}/services_catalog.json`);
@@ -1618,36 +1620,96 @@ async function loadServicesCatalog() {
   } catch (e) {}
 }
 
-// 8. TIME-SLOT HISOBLASH (ISh SOATLARI VA HOZIRGI VAQTDAN BOSHLAB)
-async function calculateNextAvailableTimeSlot(deviceId, durationMinutes, targetDate = null) {
-  const duration = parseInt(durationMinutes, 10) || 30;
+async function loadLaborantsCatalog() {
+  try {
+    const res = await safeFetch(`${FIREBASE_DB_URL}/laborants.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data) laborantsCatalog = data;
+    }
+  } catch (e) {}
+}
+
+function getResolvedDurationForExtension(deviceId, serviceCode, targetDateStr) {
+  const dObj = new Date((targetDateStr || getTodayDateStr()) + "T12:00:00");
+  const dayOfWeek = dObj.getDay();
+
+  const activeLaborants = Object.values(laborantsCatalog || {}).filter(l => {
+    const s = l.schedule;
+    return s && s.roomId === deviceId && Array.isArray(s.days) && s.days.includes(dayOfWeek);
+  });
+
+  const matchingService = Object.values(servicesCatalog || {}).find(s => (s.code || '').toUpperCase() === (serviceCode || '').toUpperCase());
+  const standardDuration = matchingService ? (matchingService.duration || 30) : 30;
+
+  if (activeLaborants.length > 0) {
+    const durations = activeLaborants.map(lab => {
+      if (lab.customDurations && matchingService && lab.customDurations[matchingService.code]) {
+        return parseInt(lab.customDurations[matchingService.code], 10);
+      }
+      return standardDuration;
+    });
+    return Math.max(...durations);
+  }
+
+  return standardDuration;
+}
+
+// 8. TIME-SLOT HISOBLASH (ISh SOATLARI VA AVTOMATIK KUNLAR BO'YICHA)
+async function calculateNextAvailableTimeSlot(deviceId, durationMinutes, targetDate = null, serviceCode = null) {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
-  const checkDate = targetDate || todayStr;
+  const startDate = targetDate || todayStr;
 
   await loadWorkScheduleFromFirebase();
+  await loadLaborantsCatalog();
 
-  try {
-    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${checkDate}.json`);
-    if (!res || !res.ok) return findEarliestFreeSlot([], duration, checkDate, currentWorkSchedule);
+  // 30 kun ichida eng yaqin bo'sh slotni qidirish
+  for (let offset = 0; offset < 30; offset++) {
+    const checkObj = new Date(startDate + "T12:00:00");
+    checkObj.setDate(checkObj.getDate() + offset);
+    const cy = checkObj.getFullYear();
+    const cm = String(checkObj.getMonth() + 1).padStart(2, '0');
+    const cd = String(checkObj.getDate()).padStart(2, '0');
+    const checkDateStr = `${cy}-${cm}-${cd}`;
 
-    const data = await res.json();
-    let devPatients = [];
-    if (data) {
-      Object.values(data).forEach(p => {
-        if (p.doctorId === deviceId && p.status !== "cancelled") {
-          devPatients.push(p);
+    const resolvedDuration = serviceCode
+      ? getResolvedDurationForExtension(deviceId, serviceCode, checkDateStr)
+      : (parseInt(durationMinutes, 10) || 30);
+
+    try {
+      const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${checkDateStr}.json`);
+      let devPatients = [];
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data) {
+          Object.values(data).forEach(p => {
+            if (p.doctorId === deviceId && p.status !== "cancelled") {
+              devPatients.push(p);
+            }
+          });
         }
-      });
-    }
+      }
 
-    return findEarliestFreeSlot(devPatients, duration, checkDate, currentWorkSchedule);
-  } catch (err) {
-    return findEarliestFreeSlot([], duration, checkDate, currentWorkSchedule);
+      const slot = findEarliestFreeSlot(devPatients, resolvedDuration, checkDateStr, currentWorkSchedule);
+      if (!slot.error && !slot.isFull) {
+        return {
+          ...slot,
+          date: checkDateStr,
+          isToday: checkDateStr === todayStr,
+          isFutureDay: checkDateStr !== startDate,
+          resolvedDuration: resolvedDuration
+        };
+      }
+    } catch (err) {
+      // xatolik bo'lsa davom etish
+    }
   }
+
+  return { error: "Keyingi 30 kun ichida bo'sh navbat topilmadi!", isFull: true };
 }
 
 function addMinutesToTime(timeStr, mins) {
