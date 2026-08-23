@@ -21,14 +21,27 @@
           <i class="fa-solid fa-brain"></i>
         </div>
         <div class="brand-text">
-          <h1>MRT & MSKT DIAGNOSTIKA MARKAZI</h1>
-          <p>ELEKTRON NAVBAT MONITORI</p>
+          <h1>ELEKTRON NAVBAT MONITORI</h1>
+          <p>RADIOLOGIYA VA DIAGNOSTIKA BO'LIMI</p>
         </div>
       </div>
 
-      <div class="header-center-status">
-        <span class="pulse-dot"></span>
-        <span>JONLI NAVBAT</span>
+      <!-- JAMI NAVBAT VA ZAL STATISTIKALARI -->
+      <div class="header-summary-stats">
+        <div class="stat-pill stat-queue">
+          <i class="fa-solid fa-users"></i>
+          <div class="stat-pill-content">
+            <span class="stat-pill-label">Jami Navbatda</span>
+            <strong class="stat-pill-value" id="totalQueueCount">0</strong>
+          </div>
+        </div>
+        <div class="stat-pill stat-hall">
+          <i class="fa-solid fa-couch"></i>
+          <div class="stat-pill-content">
+            <span class="stat-pill-label">Kutish Zalida</span>
+            <strong class="stat-pill-value" id="totalInHallCount">0</strong>
+          </div>
+        </div>
       </div>
 
       <div class="header-right-clock">
@@ -40,50 +53,64 @@
     <!-- 2. ASOSIY DISPLAY KONTENTI (SPLIT VIEW) -->
     <main class="tv-main-grid">
       
-      <!-- CHAP TOMON: CHAQIRILGAN BEMOR (KATMA-KAT E'LON) -->
+      <!-- CHAP TOMON: CHAQIRILGAN BEMOR / TAYYORGARLIK KO'RSATMALARI -->
       <section class="calling-hero-panel">
-        <div class="panel-header">
-          <i class="fa-solid fa-bullhorn icon-blink"></i>
-          <span>HOZIRGI CHAQIRUV</span>
+        <div class="panel-header" id="heroPanelHeader">
+          <i class="fa-solid fa-bullhorn icon-blink" id="heroHeaderIcon"></i>
+          <span id="heroHeaderTitle">HOZIRGI CHAQIRUV</span>
         </div>
 
         <div class="calling-card" id="callingCard">
-          <div class="calling-idle" id="callingIdleState">
-            <i class="fa-solid fa-user-clock"></i>
-            <h2>Navbat kutilmoqda</h2>
-            <p>Qurilma chaqirishi bilan bu yerda ko'rinadi</p>
+          <!-- Bemor chaqirilmayotgan paytda: TAYYORGARLIK SLAYDSHOU (Har 4 daqiqada almashadi) -->
+          <div class="guidelines-slideshow" id="guidelinesSlideshow">
+            <div class="slide-badge-row">
+              <span class="slide-badge"><i class="fa-solid fa-notes-medical"></i> TEKSHIRUVGA TAYYORGARLIK</span>
+              <span class="slide-counter" id="slideCounter">1 / 6</span>
+            </div>
+            <div class="slide-content" id="slideContent">
+              <div class="slide-service-title" id="slideServiceTitle">💉 Kontrastli MSKT (Bosh miya va bo'yin)</div>
+              <div class="slide-guidelines-box" id="slideGuidelinesBox">
+                <!-- Tayyorgarlik punktlari -->
+              </div>
+            </div>
+            <div class="slide-progress-bar">
+              <div class="slide-progress-fill" id="slideProgressFill"></div>
+            </div>
           </div>
 
+          <!-- Bemor chaqirilganda: KATTA CHAQIRUV OYNASI (ID raqamsiz, Faqat FISH va Xona) -->
           <div class="calling-active" id="callingActiveState" style="display: none;">
-            <div class="ticket-jumbo" id="heroTicketId">5245</div>
-            <div class="patient-jumbo" id="heroPatientName">SAYIDOV SHERALI</div>
+            <div class="patient-jumbo-wrap">
+              <div class="calling-pre-title"><i class="fa-solid fa-user-check"></i> QABULGA CHAQIRILMOQDA:</div>
+              <div class="patient-jumbo" id="heroPatientName">SAYIDOV SHERALI</div>
+            </div>
             
             <div class="hero-target-box">
               <div class="target-room-badge" id="heroRoomNum">1-MRT XONASI</div>
               <div class="target-doc-name" id="heroDoctorName">MRT 1</div>
               <div class="target-service" id="heroService">Bosh Miya MRT</div>
-              <div class="target-laborant" id="heroLaborant" style="display: none; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 14px; border-radius: 8px; font-size: 1.15rem; font-weight: 800; margin-top: 8px; align-items: center; justify-content: center; gap: 8px;">
+              <div class="target-laborant" id="heroLaborant" style="display: none; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 6px 18px; border-radius: 10px; font-size: 1.25rem; font-weight: 800; margin-top: 8px; align-items: center; justify-content: center; gap: 8px;">
                 <i class="fa-solid fa-user-doctor"></i> <span id="heroLaborantName">Laborant: Hojiakbar Turatov</span>
               </div>
-              <div class="target-contrast-badge" id="heroContrastBadge" style="display: none;">💉 KONTRASTLI</div>
+              <div class="target-contrast-badge" id="heroContrastBadge" style="display: none;">💉 KONTRASTLI TEKSHIRUV</div>
             </div>
 
             <div class="call-action-hint">
-              <i class="fa-solid fa-arrow-right-to-bracket"></i> ILTIMOS, XONAGA KIRING
+              <i class="fa-solid fa-person-walking-arrow-right"></i> ILTIMOS, XONA OLDIGA KELING
             </div>
           </div>
         </div>
       </section>
 
-      <!-- O'NG TOMON: 4 TA QURILMA JADVALI (MRT1, MRT2, MSKT1, MSKT2) -->
+      <!-- O'NG TOMON: QURILMALAR BO'YICHA NAVBAT VA HOLAT -->
       <section class="rooms-grid-panel">
         <div class="panel-header">
           <i class="fa-solid fa-desktop"></i>
-          <span>QURILMALAR BO'YICHA NAVBAT</span>
+          <span>QURILMALAR HOLATI VA NAVBAT</span>
         </div>
 
         <div class="rooms-container" id="roomsContainer">
-          <!-- Dinamik 4 ta qurilma kartasi -->
+          <!-- Dinamik qurilma kartalari -->
           <div class="room-loading">
             <i class="fa-solid fa-spinner fa-spin"></i> Qurilmalar ma'lumotlari yuklanmoqda...
           </div>
@@ -91,7 +118,7 @@
       </section>
     </main>
 
-    <!-- 3. PASTDAGI YUGURUVCHI SATR (TICKER) -->
+    <!-- 3. PASTDAGI YUGURUVCHI SATR (TICKER) - O'QISH UCHUN SEKINLASHTIRILGAN -->
     <footer class="tv-footer-ticker">
       <div class="ticker-label">
         <i class="fa-solid fa-circle-info"></i> DIQQAT:

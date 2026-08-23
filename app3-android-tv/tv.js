@@ -8,6 +8,73 @@ let allPatients = [];
 let lastAnnouncementTimestamp = 0;
 let isAudioUnlocked = false;
 let audioContext = null;
+let activeCallTimer = null;
+
+// Preparation Guidelines Slideshow
+let preparationSlides = [];
+let currentSlideIdx = 0;
+let slideProgressTimer = null;
+const SLIDE_DURATION_SEC = 240; // Har bir tekshiruv tayyorgarligi 4 daqiqa (240 soniya) ekranda turadi
+let slideRemainingSec = SLIDE_DURATION_SEC;
+
+const DEFAULT_GUIDELINES = [
+  {
+    icon: "fa-syringe",
+    title: "💉 Kontrastli MSKT Tekshiruvlari (Bosh miya, bo'yin, qorin)",
+    points: [
+      "Tekshiruvdan kamida 4–6 soat oldin ovqatlanmaslik (och qoringa kelish) talab etiladi.",
+      "Qondagi kreatinin tahlili natijasi (oxirgi 1 oy ichida olingan) bo'lishi shart.",
+      "Qandli diabeti bor va Metformin (Glyukofaj) qabul qiluvchi bemorlar shifokorga xabar berishi shart.",
+      "Tekshiruvdan so'ng kontrast modda organizmdan tez chiqib ketishi uchun ko'proq gazsiz toza suv iching."
+    ]
+  },
+  {
+    icon: "fa-brain",
+    title: "🧠 Bosh Miya va Umurtqa Pog'onasi MRT Tekshiruvi",
+    points: [
+      "MRT xonasiga kirishdan oldin barcha metall buyumlar, soat, kalit, tangalar, karta va telefonlarni topshiring.",
+      "Tanada metall implant, kardiostimulyator yoki sun'iy klapan bo'lsa shifokorga oldindan ma'lum qiling.",
+      "Tasvir sifati aniq chiqishi uchun tekshiruv vaqtida (15–25 daqiqa) mutlaqo qimirlamay yotish zarur.",
+      "Xavotir yoki klostrofobiya (yopiq joydan qo'rqish) bo'lsa laborant-operatorga ayting."
+    ]
+  },
+  {
+    icon: "fa-lungs",
+    title: "🫁 Ko'krak Qafasi va O'pka MSKT Tekshiruvi",
+    points: [
+      "Oddiy (kontrastsiz) o'pka MSKT tekshiruvi uchun maxsus och qolish talab qilinmaydi.",
+      "Tekshiruv vaqtida laborant buyrug'iga binoan nafasni 10–15 soniyaga ushlab turish kerak.",
+      "Oldingi rentgen yoki KT tasvirlari/xulosalari bo'lsa, qiyoslash uchun shifokorga taqdim eting."
+    ]
+  },
+  {
+    icon: "fa-apple-whole",
+    title: "🍏 Qorin Bo'shlig'i va Kichik Chanoq MRT / MSKT",
+    points: [
+      "Tekshiruvdan 6 soat oldin ovqat yemaslik (och qoringa bo'lish) tavsiya etiladi.",
+      "Tekshiruvdan 1 kun oldin gaz hosil qiluvchi mahsulotlar (dukkaklilar, xom sabzavotlar, gazli suvlar) yemang.",
+      "Kichik chanoq a'zolari MRT tekshiruvi uchun siydik pufagi o'rtacha to'lgan bo'lishi maqsadga muvofiq."
+    ]
+  },
+  {
+    icon: "fa-bone",
+    title: "🦴 Bo'g'imlar va Tayanch-Harakat Tizimi MRT (Tizza, Yelka, Tos)",
+    points: [
+      "Tekshiruv uchun och qolish yoki maxsus parhez talab qilinmaydi.",
+      "Bo'g'imdagi fiksatorlar, metall bolt/plastinalar mavjudligi haqida laborantni ogohlantiring.",
+      "Tekshirilayotgan qo'l yoki oyoqni qimirlatmasdan erkin holatda saqlang."
+    ]
+  },
+  {
+    icon: "fa-droplet",
+    title: "🩸 Kontrastli MRT (Magnit-Rezonans Tomografiya)",
+    points: [
+      "Tekshiruvdan 3–4 soat oldin yengil taomlanish mumkin, ortiqcha to'yib ovqatlanmaslik tavsiya etiladi.",
+      "Dori vositalariga allergik reaksiyalar yoki buyrak yetishmovchiligi bo'lsa shifokorga ayting.",
+      "Tekshiruv tugagach, kun davomida 1.5–2 litr toza suv ichish kontrast chiqishini tezlashtiradi."
+    ]
+  }
+];
 
 const DEVICES = [
   { id: "mrt1", name: "MRT 1", room: "1-MRT Xonasi", type: "MRT", icon: "fa-brain", color: "#38bdf8" },
@@ -24,14 +91,101 @@ function initTV() {
   setTodayDate();
   db = initFirebase();
 
+  initGuidelinesSlideshow();
+
   if (db) {
     listenToTodayPatients();
     listenToCallingAnnouncements();
+    listenToServicesCatalog();
     renderDevicesGrid();
   }
 }
 
-// 1. SOAT VA SANA
+// 1. TAYYORGARLIK SLAYDSHOU (Har bir tekshiruv 4 daqiqa ekranda turadi, ovozsiz)
+function initGuidelinesSlideshow() {
+  preparationSlides = [...DEFAULT_GUIDELINES];
+  currentSlideIdx = 0;
+  slideRemainingSec = SLIDE_DURATION_SEC;
+  renderCurrentSlide();
+
+  if (slideProgressTimer) clearInterval(slideProgressTimer);
+
+  // 1 soniyalik progress bar yangilanishi
+  slideProgressTimer = setInterval(() => {
+    const slideshowEl = document.getElementById("guidelinesSlideshow");
+    if (slideshowEl && slideshowEl.style.display !== "none") {
+      slideRemainingSec--;
+      const progressPercent = ((SLIDE_DURATION_SEC - slideRemainingSec) / SLIDE_DURATION_SEC) * 100;
+      const fillEl = document.getElementById("slideProgressFill");
+      if (fillEl) fillEl.style.width = `${progressPercent}%`;
+
+      if (slideRemainingSec <= 0) {
+        nextGuidelineSlide();
+      }
+    }
+  }, 1000);
+}
+
+function nextGuidelineSlide() {
+  slideRemainingSec = SLIDE_DURATION_SEC;
+  currentSlideIdx = (currentSlideIdx + 1) % preparationSlides.length;
+  renderCurrentSlide();
+}
+
+function renderCurrentSlide() {
+  if (preparationSlides.length === 0) return;
+  const slide = preparationSlides[currentSlideIdx];
+
+  const counterEl = document.getElementById("slideCounter");
+  const titleEl = document.getElementById("slideServiceTitle");
+  const boxEl = document.getElementById("slideGuidelinesBox");
+  const fillEl = document.getElementById("slideProgressFill");
+
+  if (counterEl) counterEl.innerText = `${currentSlideIdx + 1} / ${preparationSlides.length}`;
+  if (titleEl) titleEl.innerText = slide.title;
+  if (fillEl) fillEl.style.width = "0%";
+
+  if (boxEl) {
+    boxEl.innerHTML = slide.points.map(pt => `
+      <div class="guideline-item">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>${escapeHtml(pt)}</span>
+      </div>
+    `).join("");
+  }
+}
+
+function listenToServicesCatalog() {
+  db.ref("services_catalog").on("value", (snap) => {
+    const val = snap.val();
+    if (val && Object.keys(val).length > 0) {
+      const dynamicSlides = [];
+      Object.keys(val).forEach(k => {
+        const s = val[k];
+        if (s.preparation || s.guidelines || s.contraindications) {
+          const points = [];
+          if (s.preparation) points.push(s.preparation);
+          if (s.contraindications) points.push(`Qarshi ko'rsatmalar: ${s.contraindications}`);
+          if (s.guidelines) points.push(s.guidelines);
+
+          dynamicSlides.push({
+            icon: s.name?.toLowerCase().includes("mrt") ? "fa-brain" : "fa-circle-nodes",
+            title: `${s.isContrast ? '💉 ' : '📋 '}${s.name}`,
+            points: points.length > 0 ? points : ["Maxsus tayyorgarlik talab etilmaydi."]
+          });
+        }
+      });
+
+      if (dynamicSlides.length > 0) {
+        preparationSlides = dynamicSlides;
+        if (currentSlideIdx >= preparationSlides.length) currentSlideIdx = 0;
+        renderCurrentSlide();
+      }
+    }
+  });
+}
+
+// 2. SOAT VA SANA
 function startClock() {
   function updateTime() {
     const now = new Date();
@@ -57,7 +211,7 @@ function setTodayDate() {
   todayDateStr = `${y}-${m}-${d}`;
 }
 
-// 2. BUGUNGI BEMORLARNI TINGLASH
+// 3. BUGUNGI BEMORLARNI TINGLASH VA JAMI STATISTIKALAR
 function listenToTodayPatients() {
   db.ref(`patients/${todayDateStr}`).on("value", (snapshot) => {
     allPatients = [];
@@ -67,11 +221,21 @@ function listenToTodayPatients() {
         allPatients.push({ id: key, ...data[key] });
       });
     }
+
+    // Jami navbat va jami zal hisob-kitobi
+    const allWaiting = allPatients.filter(p => p.status === "waiting");
+    const allInHall = allWaiting.filter(p => p.inHall !== false);
+
+    const totalQueueEl = document.getElementById("totalQueueCount");
+    const totalHallEl = document.getElementById("totalInHallCount");
+    if (totalQueueEl) totalQueueEl.innerText = allWaiting.length;
+    if (totalHallEl) totalHallEl.innerText = allInHall.length;
+
     renderDevicesGrid();
   });
 }
 
-// 3. 4 TA QURILMA GRIDINI CHIZISH (MRT1, MRT2, MSKT1, MSKT2)
+// 4. QURILMALAR HOLATI VA NAVBATNI CHIZISH (ID raqamlarsiz, Ro'yxatsiz)
 function renderDevicesGrid() {
   const container = document.getElementById("roomsContainer");
   if (!container) return;
@@ -83,11 +247,9 @@ function renderDevicesGrid() {
     // Qabuldagi bemor (calling yoki in_progress)
     const servingPatient = devPatients.find(p => p.status === "calling" || p.status === "in_progress");
     
-    // Navbatdagi kutayotgan bemorlar
-    const waitingPatients = devPatients
-      .filter(p => p.status === "waiting")
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
-      .slice(0, 4);
+    // Navbatdagi kutayotgan bemorlar soni
+    const waitingPatients = devPatients.filter(p => p.status === "waiting");
+    const inHallPatients = waitingPatients.filter(p => p.inHall !== false);
 
     const isCalling = servingPatient && servingPatient.status === "calling";
 
@@ -98,22 +260,25 @@ function renderDevicesGrid() {
             <span class="room-num" style="color: ${dev.color};"><i class="fa-solid ${dev.icon}"></i> ${escapeHtml(dev.name)}</span>
             <small style="color: #94a3b8; display: block; font-size: 11px;">${escapeHtml(dev.room)}</small>
           </div>
-          <span style="background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">
-            ${waitingPatients.length} kutmoqda
+          <span style="background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #38bdf8;">
+            ${waitingPatients.length} ta navbatda
           </span>
         </div>
 
-        <!-- Hozirgi qabuldagi bemor -->
+        <!-- Hozirgi qabuldagi bemor (ID raqamsiz, Faqat FISH) -->
         <div class="room-serving-box">
-          <span class="serving-label">${servingPatient ? (servingPatient.status === 'calling' ? '🔔 CHAQIRILMOQDA' : '▶️ QABULDA') : 'QURILMA BO\'SH'}</span>
+          <span class="serving-label">
+            <i class="fa-solid ${servingPatient ? (servingPatient.status === 'calling' ? 'fa-bell' : 'fa-circle-play') : 'fa-hourglass-start'}"></i>
+            ${servingPatient ? (servingPatient.status === 'calling' ? 'CHAQIRILMOQDA' : 'QABUL QILINMOQDA') : 'QURILMA BO\'SH'}
+          </span>
           <div class="serving-patient">
             ${servingPatient ? `
-              <span class="serving-ticket" style="background:${dev.color};">${servingPatient.ticketId || 'ID'}</span>
-              <div style="overflow:hidden;">
+              <div style="overflow:hidden; width: 100%;">
                 <div class="serving-name">${escapeHtml(servingPatient.name)}</div>
-                ${servingPatient.isContrast ? '<span style="background:#ef4444; color:#fff; font-size:9px; padding:1px 5px; border-radius:3px; font-weight:bold;">KONTRAST</span>' : ''}
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 2px;">${escapeHtml(servingPatient.service || 'Tekshiruv')}</div>
+                ${servingPatient.isContrast ? '<span style="background:#ef4444; color:#fff; font-size:9px; padding:1px 6px; border-radius:3px; font-weight:bold; display:inline-block; margin-top:3px;">KONTRAST</span>' : ''}
                 ${(servingPatient.calledByLaborant || servingPatient.laborantName) ? `
-                  <div style="font-size:11px; color:#fbbf24; font-weight:700; margin-top:2px;">
+                  <div style="font-size:11px; color:#fbbf24; font-weight:700; margin-top:3px;">
                     <i class="fa-solid fa-user-doctor" style="font-size:10px;"></i> ${escapeHtml(servingPatient.calledByLaborant || servingPatient.laborantName)}
                   </div>
                 ` : ''}
@@ -124,15 +289,15 @@ function renderDevicesGrid() {
           </div>
         </div>
 
-        <!-- Keyingi navbatdagilar -->
-        <div class="room-next-queue">
-          <span class="next-label">Keyingi navbat:</span>
-          <div class="next-tags-wrap">
-            ${waitingPatients.length > 0 ? waitingPatients.map(p => `
-              <span class="next-tag">
-                <strong>${p.ticketId}</strong> <small style="color:#94a3b8;">${p.scheduledTime || p.time}</small> ${p.isContrast ? '<b style="color:#f87171;">[K]</b>' : ''}
-              </span>
-            `).join('') : `<span style="color:#64748b; font-size:0.8rem;">Yo'q</span>`}
+        <!-- Qurilma jami navbat statistikasi (Bemorlar ro'yxatisiz) -->
+        <div class="room-stats-footer">
+          <div class="room-stat-item">
+            <span>Navbatda:</span>
+            <strong>${waitingPatients.length} ta</strong>
+          </div>
+          <div class="room-stat-item">
+            <span>Zalda:</span>
+            <strong style="color: #22c55e;">${inHallPatients.length} ta</strong>
           </div>
         </div>
       </div>
@@ -140,7 +305,7 @@ function renderDevicesGrid() {
   }).join("");
 }
 
-// 4. JONLI CHAQIRUV E'LONLARINI TINGLASH (AUDIO + KATTA BANNER)
+// 5. JONLI CHAQIRUV E'LONLARINI TINGLASH (AUDIO + KATTA E'LON)
 function listenToCallingAnnouncements() {
   db.ref("calling_announcement").on("value", (snapshot) => {
     const data = snapshot.val();
@@ -154,21 +319,24 @@ function listenToCallingAnnouncements() {
 }
 
 function handleNewCall(data) {
-  const idleState = document.getElementById("callingIdleState");
+  const slideshowEl = document.getElementById("guidelinesSlideshow");
   const activeState = document.getElementById("callingActiveState");
   const callingCard = document.getElementById("callingCard");
   const contrastBadge = document.getElementById("heroContrastBadge");
   const heroLaborant = document.getElementById("heroLaborant");
   const heroLaborantName = document.getElementById("heroLaborantName");
+  const heroHeaderTitle = document.getElementById("heroHeaderTitle");
+  const heroHeaderIcon = document.getElementById("heroHeaderIcon");
 
-  if (idleState) idleState.style.display = "none";
+  if (slideshowEl) slideshowEl.style.display = "none";
   if (activeState) activeState.style.display = "flex";
+  if (heroHeaderTitle) heroHeaderTitle.innerText = "QABULGA CHAQIRUV";
+  if (heroHeaderIcon) heroHeaderIcon.className = "fa-solid fa-bullhorn icon-blink";
 
-  document.getElementById("heroTicketId").innerText = data.ticketId || "ID";
-  document.getElementById("heroPatientName").innerText = data.patientName || "Bemor";
+  document.getElementById("heroPatientName").innerText = data.patientName || "BEMOR";
   document.getElementById("heroRoomNum").innerText = data.room || data.doctorName || "Xona";
   document.getElementById("heroDoctorName").innerText = data.doctorName || "Qurilma";
-  document.getElementById("heroService").innerText = data.specialty || "Tomografiya";
+  document.getElementById("heroService").innerText = data.specialty || data.service || "Tomografiya";
 
   if (heroLaborant && heroLaborantName) {
     if (data.laborantName) {
@@ -191,9 +359,29 @@ function handleNewCall(data) {
 
   playCallChime();
   speakAnnouncement(data);
+
+  // 45 soniyadan so'ng avtomatik tayyorgarlik slaydshousiga qaytish
+  if (activeCallTimer) clearTimeout(activeCallTimer);
+  activeCallTimer = setTimeout(() => {
+    returnToSlideshow();
+  }, 45000);
 }
 
-// 5. AUDIO CHIME
+function returnToSlideshow() {
+  const slideshowEl = document.getElementById("guidelinesSlideshow");
+  const activeState = document.getElementById("callingActiveState");
+  const callingCard = document.getElementById("callingCard");
+  const heroHeaderTitle = document.getElementById("heroHeaderTitle");
+  const heroHeaderIcon = document.getElementById("heroHeaderIcon");
+
+  if (callingCard) callingCard.classList.remove("active-pulse");
+  if (activeState) activeState.style.display = "none";
+  if (slideshowEl) slideshowEl.style.display = "flex";
+  if (heroHeaderTitle) heroHeaderTitle.innerText = "TEKSHIRUV TAYYORGARLIGI";
+  if (heroHeaderIcon) heroHeaderIcon.className = "fa-solid fa-notes-medical";
+}
+
+// 6. AUDIO CHIME
 function unlockAudio() {
   isAudioUnlocked = true;
   const overlay = document.getElementById("audioUnlockOverlay");
@@ -243,55 +431,9 @@ function playTone(ctx, freq, startTime, duration) {
   osc.stop(startTime + duration);
 }
 
-// 6. O'ZBEK TILI RAQAMLAR VA XONA NOMLARI KONVERTERI
-function numberToUzbekWords(num) {
-  num = parseInt(num, 10);
-  if (isNaN(num)) return "";
-  if (num === 0) return "nol";
-
-  const ones = ["", "bir", "ikki", "uch", "to'rt", "besh", "olti", "yetti", "sakkiz", "to'qqiz"];
-  const tens = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "yetmish", "sakson", "to'qson"];
-
-  function convertHundreds(n) {
-    let str = "";
-    const h = Math.floor(n / 100);
-    const remainder = n % 100;
-    const t = Math.floor(remainder / 10);
-    const o = remainder % 10;
-
-    if (h > 0) {
-      str += (h === 1 ? "bir yuz " : ones[h] + " yuz ");
-    }
-    if (t > 0) {
-      str += tens[t] + " ";
-    }
-    if (o > 0) {
-      str += ones[o] + " ";
-    }
-    return str.trim();
-  }
-
-  let result = "";
-  const thousands = Math.floor(num / 1000);
-  const remainder = num % 1000;
-
-  if (thousands > 0) {
-    if (thousands === 1) {
-      result += "bir ming ";
-    } else {
-      result += convertHundreds(thousands) + " ming ";
-    }
-  }
-
-  if (remainder > 0) {
-    result += convertHundreds(remainder);
-  }
-
-  return result.trim();
-}
-
+// 7. O'ZBEK TILI XONA NOMLARI KONVERTERI
 function formatRoomUzbek(roomStr) {
-  if (!roomStr) return "qabul xonasiga";
+  if (!roomStr) return "qabul xonasi";
   let r = roomStr.trim();
   r = r.replace(/^1-?MRT\s*Xonasi/i, "birinchi MRT xonasi")
        .replace(/^2-?MRT\s*Xonasi/i, "ikkinchi MRT xonasi")
@@ -304,22 +446,11 @@ function formatRoomUzbek(roomStr) {
        .replace(/^101-?xona/i, "bir yuz birinchi xona")
        .replace(/^102-?xona/i, "bir yuz ikkinchi xona");
   
-  if (!r.toLowerCase().endsWith("ga") && !r.toLowerCase().endsWith("qa")) {
-    r += "ga";
-  }
   return r;
 }
 
 function buildUzbekAnnouncement(data) {
-  let ticketText = "";
-  const ticketStr = String(data.ticketId || "").trim();
-  if (/^\d+$/.test(ticketStr)) {
-    ticketText = numberToUzbekWords(ticketStr);
-  } else {
-    ticketText = ticketStr;
-  }
-
-  const patientName = data.patientName ? data.patientName.trim() : "";
+  const patientName = data.patientName ? data.patientName.trim() : "Bemor";
   const roomText = formatRoomUzbek(data.room || data.doctorName);
   
   let laborantText = "";
@@ -328,10 +459,10 @@ function buildUzbekAnnouncement(data) {
     laborantText = ` Laborant ${labName}.`;
   }
 
-  return `Diqqat! Talon raqami ${ticketText}, Bemor ${patientName}, ${roomText} kiring.${laborantText}`;
+  return `Diqqat! Bemor ${patientName}, ${roomText} oldiga keling.${laborantText}`;
 }
 
-// 7. OVOZLI CHAQIRUV (To'liq O'zbek tilida Text-to-Speech)
+// 8. OVOZLI CHAQIRUV (To'liq O'zbek tilida Text-to-Speech)
 function speakAnnouncement(data) {
   if (!('speechSynthesis' in window)) return;
 
