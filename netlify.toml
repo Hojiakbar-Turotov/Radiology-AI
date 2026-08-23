@@ -1,4 +1,4 @@
-﻿[build]
+[build]
   publish = "."
 
 [[headers]]
@@ -22,3 +22,9 @@
   from = "/tv"
   to = "/app3-android-tv/index.html"
   status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/app4-admin/index.html"
+  status = 200
+

@@ -1,0 +1,636 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin & Monitoring Portali | RONS AI-Randevu</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for beautiful graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Firebase App & Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+</head>
+<body>
+  <!-- 1. ADMIN LOGIN EKRANI -->
+  <div id="adminLoginScreen" class="admin-login-wrapper">
+    <div class="admin-login-box">
+      <div class="admin-logo-badge">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h2>ADMINISTRATOR PANELI</h2>
+      <p class="admin-login-sub">Tizimni to'liq monitoring qilish, tahlil va boshqaruv</p>
+
+      <div class="lang-pill-wrap">
+        <div class="lang-selector-pill">
+          <i class="fa-solid fa-globe"></i>
+          <select id="adminLoginLang" onchange="changeAdminLang(this.value)">
+            <option value="uz">🇺🇿 O'zbekcha</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="kk">🇰🇿 Қазақша</option>
+            <option value="tg">🇹🇯 Тоҷикӣ</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+          </select>
+        </div>
+      </div>
+
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label for="adminUsername"><i class="fa-solid fa-user-gear"></i> Admin Login:</label>
+          <input type="text" id="adminUsername" required placeholder="ADMIN_SHOXFRUH yoki ADMIN_NODIRBEK" autofocus style="text-transform: uppercase;">
+        </div>
+
+        <div class="form-group">
+          <label for="adminPassword"><i class="fa-solid fa-key"></i> Parol:</label>
+          <div class="password-input-wrap">
+            <input type="password" id="adminPassword" required placeholder="Parolni kiriting...">
+            <button type="button" class="btn-eye" onclick="togglePwdVisibility('adminPassword', this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="adminLoginError" class="alert-box-error" style="display: none;">
+          ❌ Login yoki parol noto'g'ri!
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="padding: 13px; font-size: 1rem;">
+          <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
+        </button>
+      </form>
+
+      <div class="admin-quick-hints">
+        <small><i class="fa-solid fa-circle-info"></i> Ruxsat etilgan foydalanuvchilar: <strong>Abdurashidov Shoxruh</strong> va <strong>To'xtamishov Nodirbek</strong></small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ASOSIY ADMIN BOSHQARUV PANELI (WORKSPACE) -->
+  <div id="adminWorkspace" class="admin-workspace-layout" style="display: none;">
+    <!-- Tepalik Bar -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <div class="admin-brand">
+          <i class="fa-solid fa-chart-line brand-icon"></i>
+          <div>
+            <div class="brand-title">RONS AI-RANDEVU</div>
+            <div class="brand-sub">Super-Admin & Monitoring Portali</div>
+          </div>
+        </div>
+
+        <!-- Asosiy Bo'limlar Navigatsiyasi -->
+        <nav class="admin-nav-tabs">
+          <button class="nav-tab active" data-section="analytics" onclick="switchAdminSection('analytics', this)">
+            <i class="fa-solid fa-chart-pie"></i> <span>Monitoring & Tahlil</span>
+          </button>
+          <button class="nav-tab" data-section="liveQueue" onclick="switchAdminSection('liveQueue', this)">
+            <i class="fa-solid fa-users-viewfinder"></i> <span>Jonli Navbat (<strong id="badgeLiveCount">0</strong>)</span>
+          </button>
+          <button class="nav-tab" data-section="users" onclick="switchAdminSection('users', this)">
+            <i class="fa-solid fa-user-group"></i> <span>Xodimlar & Xonalar</span>
+          </button>
+          <button class="nav-tab" data-section="services" onclick="switchAdminSection('services', this)">
+            <i class="fa-solid fa-list-check"></i> <span>Tekshiruvlar</span>
+          </button>
+          <button class="nav-tab" data-section="audit" onclick="switchAdminSection('audit', this)">
+            <i class="fa-solid fa-clock-rotate-left"></i> <span>Audit & Commits</span>
+          </button>
+          <button class="nav-tab" data-section="reports" onclick="switchAdminSection('reports', this)">
+            <i class="fa-solid fa-file-excel"></i> <span>Hisobotlar</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Til tanlash -->
+        <div class="lang-selector-pill">
+          <i class="fa-solid fa-globe"></i>
+          <select id="adminWorkspaceLang" onchange="changeAdminLang(this.value)">
+            <option value="uz">🇺🇿 UZ</option>
+            <option value="ru">🇷🇺 RU</option>
+            <option value="en">🇬🇧 EN</option>
+            <option value="kk">🇰🇿 KK</option>
+            <option value="tg">🇹🇯 TG</option>
+            <option value="tr">🇹🇷 TR</option>
+          </select>
+        </div>
+
+        <!-- Firebase holati -->
+        <div class="conn-status-pill hide-mobile-sm">
+          <span class="status-dot connected" id="adminConnDot"></span>
+          <span id="adminConnText">Online</span>
+        </div>
+
+        <!-- Admin Profil -->
+        <button class="btn btn-admin-profile" onclick="openAdminProfileModal()" title="Admin profili">
+          <i class="fa-solid fa-user-gear"></i> <span id="topbarAdminName">Admin</span>
+        </button>
+
+        <!-- Chiqish -->
+        <button class="btn btn-admin-logout" onclick="logoutAdmin()" title="Chiqish">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobil uchun pastki navigatsiya paneli (< 992px) -->
+    <nav class="mobile-admin-tabbar">
+      <button class="m-tab active" onclick="switchAdminSection('analytics', this)"><i class="fa-solid fa-chart-pie"></i><span>Tahlil</span></button>
+      <button class="m-tab" onclick="switchAdminSection('liveQueue', this)"><i class="fa-solid fa-users"></i><span>Navbat</span></button>
+      <button class="m-tab" onclick="switchAdminSection('users', this)"><i class="fa-solid fa-user-group"></i><span>Xodimlar</span></button>
+      <button class="m-tab" onclick="switchAdminSection('services', this)"><i class="fa-solid fa-list-check"></i><span>Tekshiruv</span></button>
+      <button class="m-tab" onclick="switchAdminSection('reports', this)"><i class="fa-solid fa-file-lines"></i><span>Hisobot</span></button>
+    </nav>
+
+    <!-- Asosiy Dinamik Kontent Maydoni -->
+    <main class="admin-main-container">
+
+      <!-- ==================== 1. MONITORING VA TAHLIL BO'LIMI ==================== -->
+      <section id="secAnalytics" class="admin-section active">
+        <!-- Filtrlar Bar -->
+        <div class="analytics-filter-bar">
+          <div class="date-preset-buttons">
+            <button class="btn-filter-date active" onclick="setDateFilter('today', this)">Bugun</button>
+            <button class="btn-filter-date" onclick="setDateFilter('yesterday', this)">Kecha</button>
+            <button class="btn-filter-date" onclick="setDateFilter('last7', this)">Oxirgi 7 kun</button>
+            <button class="btn-filter-date" onclick="setDateFilter('month', this)">Shu oy</button>
+            <button class="btn-filter-date" onclick="setDateFilter('all', this)">Barcha vaqt</button>
+          </div>
+
+          <div class="custom-date-range">
+            <label><i class="fa-solid fa-calendar-days"></i> Oraliq:</label>
+            <input type="date" id="filterDateFrom">
+            <span>—</span>
+            <input type="date" id="filterDateTo">
+            <button class="btn btn-primary btn-sm" onclick="applyCustomDateRange()">
+              <i class="fa-solid fa-filter"></i> Tahlil qilish
+            </button>
+          </div>
+
+          <div style="margin-left: auto; display: flex; gap: 8px;">
+            <button class="btn btn-outline btn-sm" onclick="refreshAnalyticsData()" title="Yangilash">
+              <i class="fa-solid fa-rotate"></i> Yangilash
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="printAnalyticsReport()" title="Hisobotni chop etish">
+              <i class="fa-solid fa-print"></i> Chop etish
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Kartalari Gridi -->
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-total">
+            <div class="kpi-icon"><i class="fa-solid fa-hospital-user"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">Jami Ro'yxatdan O'tganlar</div>
+              <div class="kpi-value" id="kpiTotalPatients">0</div>
+              <div class="kpi-sub" id="kpiTotalSub">Tanlangan davr bo'yicha</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-completed">
+            <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">Ko'rik Yakunlandi</div>
+              <div class="kpi-value" id="kpiCompleted">0</div>
+              <div class="kpi-sub" id="kpiCompletedRate">0% muvaffaqiyatli</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-waiting">
+            <div class="kpi-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">Hozir Kutayotganlar</div>
+              <div class="kpi-value" id="kpiWaiting">0</div>
+              <div class="kpi-sub">Navbatda turgan bemorlar</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-calling">
+            <div class="kpi-icon"><i class="fa-solid fa-stethoscope"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">Qabulda / Ko'rikda</div>
+              <div class="kpi-value" id="kpiInProgress">0</div>
+              <div class="kpi-sub">Xonalarda tekshirilmoqda</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-avg-time">
+            <div class="kpi-icon"><i class="fa-solid fa-stopwatch"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">O'rtacha Ko'rik Vaqti</div>
+              <div class="kpi-value" id="kpiAvgDuration">0 <small>daq</small></div>
+              <div class="kpi-sub">Har bir bemor uchun</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-cancelled">
+            <div class="kpi-icon"><i class="fa-solid fa-user-xmark"></i></div>
+            <div class="kpi-content">
+              <div class="kpi-label">Kelmadi / Bekor qilindi</div>
+              <div class="kpi-value" id="kpiCancelled">0</div>
+              <div class="kpi-sub" id="kpiCancelledRate">0% bekor</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Ustunli Grafiklar va Tahlillar -->
+        <div class="analytics-charts-grid">
+          <!-- 1. Qurilmalar / Xonalar bo'yicha Yuklama -->
+          <div class="chart-box">
+            <div class="chart-box-header">
+              <h4><i class="fa-solid fa-door-open" style="color: #0284c7;"></i> Qurilmalar & Xonalar Bo'yicha Bemorlar Taqsimoti</h4>
+              <span class="badge badge-primary" id="badgeRoomCount">0 ta xona</span>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartRooms"></canvas>
+            </div>
+            <div class="room-stats-table-wrap" id="roomStatsContainer">
+              <!-- Dinamik jadval -->
+            </div>
+          </div>
+
+          <!-- 2. Modallik va Kontrast Tahlili -->
+          <div class="chart-box">
+            <div class="chart-box-header">
+              <h4><i class="fa-solid fa-microchip" style="color: #8b5cf6;"></i> Modallik (MRT vs MSKT) & Kontrast Taqsimoti</h4>
+            </div>
+            <div class="dual-pie-wrap">
+              <div style="flex: 1; min-width: 140px; text-align: center;">
+                <canvas id="chartModality"></canvas>
+                <div style="font-size: 0.8rem; font-weight: bold; margin-top: 6px; color: #475569;">MRT vs MSKT</div>
+              </div>
+              <div style="flex: 1; min-width: 140px; text-align: center;">
+                <canvas id="chartContrast"></canvas>
+                <div style="font-size: 0.8rem; font-weight: bold; margin-top: 6px; color: #475569;">💉 Kontrast modda</div>
+              </div>
+            </div>
+            <div class="modality-summary-cards" id="modalitySummaryContainer">
+              <!-- Dinamik qisqacha ma'lumot -->
+            </div>
+          </div>
+
+          <!-- 3. Soatbay Yuklama (Peak Hours) -->
+          <div class="chart-box chart-box-full">
+            <div class="chart-box-header">
+              <h4><i class="fa-solid fa-chart-area" style="color: #10b981;"></i> Kun davomida soatbay bemorlar kelishi (08:00 - 18:00)</h4>
+              <span style="font-size: 0.8rem; color: #64748b;">Eng tig'iz vaqtlar monitoringi</span>
+            </div>
+            <div class="chart-canvas-wrap" style="height: 240px;">
+              <canvas id="chartHourly"></canvas>
+            </div>
+          </div>
+
+          <!-- 4. Laborantlar Samaradorligi va Reytingi -->
+          <div class="chart-box chart-box-full">
+            <div class="chart-box-header">
+              <h4><i class="fa-solid fa-award" style="color: #f59e0b;"></i> Vrach-Laborantlar Faoliyati & Xizmat Ko'rsatish Ko'rsatkichlari</h4>
+            </div>
+            <div class="laborants-ranking-table-wrap" id="laborantsRankingContainer">
+              <!-- Dinamik Laborantlar faoliyati jadvali -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 2. JONLI NAVBAT KUZATUVI (LIVE QUEUE MATRIX) ==================== -->
+      <section id="secLiveQueue" class="admin-section">
+        <div class="section-toolbar">
+          <div class="toolbar-title">
+            <h3><i class="fa-solid fa-users-viewfinder" style="color: #0284c7;"></i> Barcha Xonalarning Jonli Navbat Doskasi</h3>
+            <p style="font-size: 0.85rem; color: #64748b;">Har bir qurilmadagi hozirgi qabul va kutayotgan bemorlarni real-vaqtda boshqarish</p>
+          </div>
+          <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button class="btn btn-outline btn-sm" onclick="renderLiveQueueMatrix()"><i class="fa-solid fa-rotate"></i> Yangilash</button>
+          </div>
+        </div>
+
+        <div class="live-queue-matrix-grid" id="liveQueueMatrixContainer">
+          <!-- Dinamik xonalar doskasi -->
+        </div>
+      </section>
+
+      <!-- ==================== 3. XODIMLAR VA XONALAR BOSHQARUVI ==================== -->
+      <section id="secUsers" class="admin-section">
+        <div class="users-section-tabs">
+          <button class="btn-sub-tab active" data-sub="laborants" onclick="switchUsersSubTab('laborants', this)">
+            <i class="fa-solid fa-user-doctor"></i> Vrach-Laborantlar (<span id="countLaborants">0</span>)
+          </button>
+          <button class="btn-sub-tab" data-sub="doctors" onclick="switchUsersSubTab('doctors', this)">
+            <i class="fa-solid fa-door-open"></i> Xonalar & Qurilmalar (<span id="countDoctors">0</span>)
+          </button>
+          <button class="btn-sub-tab" data-sub="admins" onclick="switchUsersSubTab('admins', this)">
+            <i class="fa-solid fa-user-shield"></i> Administratorlar (<span id="countAdmins">2</span>)
+          </button>
+        </div>
+
+        <!-- Laborantlar qismi -->
+        <div id="subSecLaborants" class="user-sub-section active">
+          <div class="table-actions-bar">
+            <input type="text" id="searchLaborantInput" placeholder="Laborant ismi yoki logini bo'yicha qidirish..." oninput="renderLaborantsTable()" style="max-width: 320px;">
+            <button class="btn btn-success" onclick="openAddLaborantModal()" style="margin-left: auto;">
+              <i class="fa-solid fa-user-plus"></i> Yangi Laborant Qo'shish
+            </button>
+          </div>
+
+          <div class="data-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Login</th>
+                  <th>FISH (To'liq Ismi)</th>
+                  <th>Lavozimi / Roli</th>
+                  <th>Amaldagi Parol</th>
+                  <th>Oxirgi Faollik</th>
+                  <th style="text-align: right;">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="laborantsTableBody">
+                <!-- Dinamik qatorlar -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Xonalar / Qurilmalar qismi -->
+        <div id="subSecDoctors" class="user-sub-section">
+          <div class="table-actions-bar">
+            <input type="text" id="searchDoctorInput" placeholder="Xona yoki qurilma nomi bo'yicha qidirish..." oninput="renderDoctorsTable()" style="max-width: 320px;">
+            <button class="btn btn-success" onclick="openAddDoctorModal()" style="margin-left: auto;">
+              <i class="fa-solid fa-plus"></i> Yangi Xona / Qurilma Qo'shish
+            </button>
+          </div>
+
+          <div class="data-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Xona Raqami</th>
+                  <th>Qurilma / Modallik</th>
+                  <th>Tibbiy Mutaxassislik</th>
+                  <th>Bemorlar Sig'imi / Holati</th>
+                  <th style="text-align: right;">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="doctorsTableBody">
+                <!-- Dinamik qatorlar -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Adminlar qismi -->
+        <div id="subSecAdmins" class="user-sub-section">
+          <div class="data-table-container" style="margin-top: 14px;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Admin Login</th>
+                  <th>To'liq Ismi</th>
+                  <th>Roli</th>
+                  <th>Kirish Paroli</th>
+                  <th style="text-align: right;">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="adminsTableBody">
+                <!-- Dinamik qatorlar -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 4. TEKSHIRUVLAR KATALOGI BO'LIMI ==================== -->
+      <section id="secServices" class="admin-section">
+        <div class="table-actions-bar">
+          <input type="text" id="adminServiceSearch" placeholder="Tekshiruv nomi yoki kodi bo'yicha qidirish..." oninput="renderAdminServicesList()" style="max-width: 340px;">
+          <div class="filter-pills-wrap" style="margin-left: 8px;">
+            <button class="filter-pill active" onclick="setAdminServiceFilter('all', this)">Barchasi</button>
+            <button class="filter-pill" onclick="setAdminServiceFilter('MRT', this)">MRT</button>
+            <button class="filter-pill" onclick="setAdminServiceFilter('MSKT', this)">MSKT</button>
+            <button class="filter-pill" onclick="setAdminServiceFilter('contrast', this)">💉 Kontrastli</button>
+          </div>
+          <button class="btn btn-success" onclick="openAddAdminServiceModal()" style="margin-left: auto;">
+            <i class="fa-solid fa-plus"></i> Yangi Tekshiruv Kiritish
+          </button>
+        </div>
+
+        <div class="admin-services-grid" id="adminServicesGridContainer">
+          <!-- Dinamik tekshiruvlar kartochkalari -->
+        </div>
+      </section>
+
+      <!-- ==================== 5. GLOBAL AUDIT & COMMITS TARIXI ==================== -->
+      <section id="secAudit" class="admin-section">
+        <div class="table-actions-bar">
+          <input type="text" id="adminAuditSearch" placeholder="Laborant ismi, izohi yoki tekshiruv kodi bo'yicha qidirish..." oninput="renderAdminAuditLogs()" style="max-width: 400px;">
+          <select id="adminAuditLaborantFilter" onchange="renderAdminAuditLogs()" style="padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-weight: bold;">
+            <option value="all">Barcha Laborantlar</option>
+          </select>
+          <div style="margin-left: auto;">
+            <button class="btn btn-outline btn-sm" onclick="loadAuditLogs()"><i class="fa-solid fa-rotate"></i> Yangilash</button>
+          </div>
+        </div>
+
+        <div class="global-audit-timeline" id="adminAuditTimelineContainer">
+          <!-- Dinamik commits / audit tarixi -->
+        </div>
+      </section>
+
+      <!-- ==================== 6. HISOBOTLAR VA EKSPORT BO'LIMI ==================== -->
+      <section id="secReports" class="admin-section">
+        <div class="reports-container">
+          <div class="report-box-card">
+            <div class="report-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-file-excel"></i></div>
+            <h3>Bemorlar Reyestri Hisoboti (Excel / CSV)</h3>
+            <p>Tanlangan sana oralig'idagi barcha bemorlar (F.I.SH, Telefon, Xona, Tekshiruv, Kelgan vaqti, Qabul vaqti, Laborant, Status) to'liq jadvali.</p>
+            <button class="btn btn-primary" onclick="exportPatientsCSV()">
+              <i class="fa-solid fa-download"></i> Bemorlar Ro'yxatini Yuklash (CSV)
+            </button>
+          </div>
+
+          <div class="report-box-card">
+            <div class="report-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-user-doctor"></i></div>
+            <h3>Laborantlar Faoliyati Hisoboti</h3>
+            <p>Har bir laborant bo'yicha qabul qilingan bemorlar soni, sarflangan o'rtacha vaqt va yuklama hisoboti.</p>
+            <button class="btn btn-primary" onclick="exportLaborantsCSV()" style="background: #d97706;">
+              <i class="fa-solid fa-download"></i> Laborantlar Hisobotini Yuklash (CSV)
+            </button>
+          </div>
+
+          <div class="report-box-card">
+            <div class="report-icon" style="background: #ede9fe; color: #7c3aed;"><i class="fa-solid fa-chart-pie"></i></div>
+            <h3>Tekshiruvlar va Qurilmalar Statistikasi</h3>
+            <p>MRT va MSKT turlari bo'yicha o'tkazilgan tekshiruvlar miqdori va ko'rsatkichlari jadvali.</p>
+            <button class="btn btn-primary" onclick="exportServicesCSV()" style="background: #7c3aed;">
+              <i class="fa-solid fa-download"></i> Xizmatlar Statistkasini Yuklash (CSV)
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL 1: LABORANT TAHRIRLASH / QO'SHISH -->
+  <div id="modalLaborantEdit" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3 id="laborantModalTitle"><i class="fa-solid fa-user-plus"></i> Laborant Ma'lumotlari</h3>
+        <button type="button" class="btn-close" onclick="closeLaborantModal()">&times;</button>
+      </div>
+
+      <form id="laborantEditForm" onsubmit="handleSaveLaborantForm(event)">
+        <input type="hidden" id="labFormIsNew" value="1">
+
+        <div class="form-group">
+          <label for="labFormLogin">Laborant Login (Unikal):</label>
+          <input type="text" id="labFormLogin" required placeholder="Masalan: LAB11" style="text-transform: uppercase; font-weight: bold;">
+        </div>
+
+        <div class="form-group">
+          <label for="labFormName">To'liq FISH (Ismi):</label>
+          <input type="text" id="labFormName" required placeholder="Masalan: Aliyev Vali">
+        </div>
+
+        <div class="form-group">
+          <label for="labFormPassword">Kirish Paroli:</label>
+          <input type="text" id="labFormPassword" required placeholder="Parol kiriting" value="15420">
+        </div>
+
+        <div class="form-group">
+          <label for="labFormRole">Lavozimi / Roli:</label>
+          <input type="text" id="labFormRole" value="Vrach / Laborant-Operator">
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeLaborantModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: XONA / QURILMA TAHRIRLASH / QO'SHISH -->
+  <div id="modalDoctorEdit" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3 id="doctorModalTitle"><i class="fa-solid fa-door-open"></i> Xona / Qurilma Sozlamalari</h3>
+        <button type="button" class="btn-close" onclick="closeDoctorModal()">&times;</button>
+      </div>
+
+      <form id="doctorEditForm" onsubmit="handleSaveDoctorForm(event)">
+        <input type="hidden" id="docFormId" value="">
+        <input type="hidden" id="docFormIsNew" value="1">
+
+        <div class="form-group">
+          <label for="docFormRoom">Xona Raqami / Nomi:</label>
+          <input type="text" id="docFormRoom" required placeholder="Masalan: 101-xona, 102-xona">
+        </div>
+
+        <div class="form-group">
+          <label for="docFormName">Qurilma / Shifokor Nomi:</label>
+          <input type="text" id="docFormName" required placeholder="Masalan: MRT 1 (Siemens Magnetom)">
+        </div>
+
+        <div class="form-group">
+          <label for="docFormSpecialty">Modallik / Mutaxassislik:</label>
+          <select id="docFormSpecialty">
+            <option value="MRT 1 (Magnit-Rezonans Tomografiyasi)">MRT (Magnit-Rezonans Tomografiyasi)</option>
+            <option value="MSKT 1 (Kompyuter Tomografiyasi)">MSKT (Kompyuter Tomografiyasi)</option>
+            <option value="MRT 2">MRT 2</option>
+            <option value="MSKT 2">MSKT 2</option>
+            <option value="UTT (Ultratovush Tekshiruvi)">UTT (Ultratovush)</option>
+          </select>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeDoctorModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ADMIN SHAXSIY PROFILI VA PAROLNI O'ZGARTIRISH -->
+  <div id="modalAdminProfile" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-shield" style="color: #0284c7;"></i> Admin Profili</h3>
+        <button type="button" class="btn-close" onclick="closeAdminProfileModal()">&times;</button>
+      </div>
+
+      <div class="admin-profile-badge-box">
+        <div class="admin-avatar-lg"><i class="fa-solid fa-user-gear"></i></div>
+        <div>
+          <div style="font-weight: 800; font-size: 1.1rem; color: #0f172a;" id="profileAdminFullName">Abdurashidov Shoxruh</div>
+          <div style="font-size: 0.85rem; color: #64748b;">Login: <strong id="profileAdminLogin" style="color: #0284c7;">ADMIN_SHOXFRUH</strong></div>
+          <div style="font-size: 0.8rem; color: #059669; font-weight: bold;">Super-Administrator (To'liq ruxsat)</div>
+        </div>
+      </div>
+
+      <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: #334155;"><i class="fa-solid fa-key" style="color: #f59e0b;"></i> Parolni O'zgartirish</h4>
+
+      <form id="adminChangePwdForm" onsubmit="handleChangeAdminPassword(event)">
+        <div class="form-group">
+          <label for="adminOldPwd">Amaldagi Eski Parol:</label>
+          <input type="password" id="adminOldPwd" required placeholder="Eski parolni kiriting">
+        </div>
+
+        <div class="form-group">
+          <label for="adminNewPwd">Yangi Parol:</label>
+          <input type="password" id="adminNewPwd" required minlength="4" placeholder="Yangi parolni kiriting">
+        </div>
+
+        <div class="form-group">
+          <label for="adminConfirmPwd">Yangi Parolni Qayta Kiriting:</label>
+          <input type="password" id="adminConfirmPwd" required minlength="4" placeholder="Yangi parolni takrorlang">
+        </div>
+
+        <div id="adminPwdStatus" style="display: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; margin-bottom: 14px; text-align: center;"></div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeAdminProfileModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Parolni Yangilash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: BEMORNI BOSHQA XONAGA KO'CHIRISH (TRANSFER) -->
+  <div id="modalTransferPatient" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-arrow-right-arrow-left" style="color: #0284c7;"></i> Bemorni Boshqa Xonaga Yo'naltirish</h3>
+        <button type="button" class="btn-close" onclick="closeTransferModal()">&times;</button>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.9rem;">
+        <div>Bemor: <strong id="transferPatientName">-</strong> (<span id="transferTicketId">-</span>)</div>
+        <div style="color: #64748b; font-size: 0.82rem;">Hozirgi xonasi: <span id="transferCurrentRoom">-</span></div>
+      </div>
+
+      <div class="form-group">
+        <label for="selectTransferTargetRoom">Yangi Yo'naltiriladigan Xona:</label>
+        <select id="selectTransferTargetRoom" required>
+          <!-- Xonalar ro'yxati -->
+        </select>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button type="button" class="btn btn-outline" onclick="closeTransferModal()">Bekor qilish</button>
+        <button type="button" class="btn btn-primary" onclick="confirmTransferPatient()"><i class="fa-solid fa-check"></i> Ko'chirish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Fayllari -->
+  <script src="./i18n.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
