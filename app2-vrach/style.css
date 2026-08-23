@@ -1442,5 +1442,15 @@ body {
     max-width: 96vw !important;
     width: 96vw !important;
   }
+
+  .day-hour-row > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .day-hour-row input[type="time"] {
+    max-width: 85px;
+  }
 }
 

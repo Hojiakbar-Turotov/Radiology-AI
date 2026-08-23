@@ -341,16 +341,38 @@ function renderSchedulesTable() {
     const sched = lab.schedule;
     const customDurs = lab.customDurations || {};
     const customCount = Object.keys(customDurs).length;
+    const dateOverrides = (sched && sched.dateOverrides) ? sched.dateOverrides : {};
+    const overridesCount = Object.keys(dateOverrides).length;
 
     if (sched && sched.roomId) activeSchedCount++;
 
-    const daysFormatted = (sched && sched.days && sched.days.length > 0)
-      ? sched.days.map(d => `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.75rem; margin-right:2px; font-weight:bold;">${dayNames[d] || d}</span>`).join("")
-      : `<span style="color:#94a3b8; font-style:italic;">Belgilanmagan</span>`;
+    // Kunbay alohida soatlarni formatlash
+    let daysAndHoursFormatted = "";
+    if (sched && sched.dailyHours) {
+      const activeDayKeys = Object.keys(sched.dailyHours).filter(d => sched.dailyHours[d].enabled !== false);
+      if (activeDayKeys.length > 0) {
+        daysAndHoursFormatted = activeDayKeys.map(d => {
+          const dh = sched.dailyHours[d];
+          return `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.75rem; margin:2px 3px 2px 0; display:inline-block;"><strong>${dayNames[d] || d}:</strong> ${dh.start || '08:00'}-${dh.end || '19:30'}</span>`;
+        }).join("");
+      }
+    }
+
+    if (!daysAndHoursFormatted) {
+      daysAndHoursFormatted = (sched && sched.days && sched.days.length > 0)
+        ? sched.days.map(d => `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.75rem; margin-right:2px; font-weight:bold;">${dayNames[d] || d}</span>`).join("")
+        : `<span style="color:#94a3b8; font-style:italic;">Belgilanmagan</span>`;
+    }
+
+    // Oylik maxsus sanalar
+    let overridesText = "";
+    if (overridesCount > 0) {
+      overridesText = `<div style="margin-top:4px;"><span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem; font-weight:bold;"><i class="fa-solid fa-calendar-day"></i> ${overridesCount} ta maxsus sana</span></div>`;
+    }
 
     const hours = (sched && sched.startTime && sched.endTime)
       ? `<strong style="color:#0f172a;">${sched.startTime} - ${sched.endTime}</strong>`
-      : `<span style="color:#94a3b8;">08:00 - 19:30 (Standart)</span>`;
+      : `<span style="color:#94a3b8;">08:00 - 19:30</span>`;
 
     const breakTime = (sched && sched.breakStart && sched.breakEnd)
       ? `<span style="font-size:0.82rem; color:#64748b;">${sched.breakStart} - ${sched.breakEnd}</span>`
@@ -371,7 +393,10 @@ function renderSchedulesTable() {
           <div style="font-size:0.8rem; color:#64748b;">Login: <strong style="color:#0284c7;">${escapeHtml(lab.login)}</strong></div>
         </td>
         <td>${roomText}</td>
-        <td>${daysFormatted}</td>
+        <td style="max-width: 260px;">
+          ${daysAndHoursFormatted}
+          ${overridesText}
+        </td>
         <td>${hours}</td>
         <td>${breakTime}</td>
         <td>${customDursText}</td>

@@ -1479,7 +1479,135 @@ async function handleSaveServiceForm(e) {
   }
 }
 
-// 9.5 LABORANT ISH JADVALI VA XONANI BAND QILISH FUNKSIYALARI
+// 9.5 LABORANT ISH JADVALI VA XONANI BAND QILISH FUNKSIYALARI (KUNBAY VA OYLIK ANIQ SANALAR)
+let tempDateOverrides = {};
+
+function switchScheduleTab(tabName) {
+  const tabWeeklyBtn = document.getElementById("tabBtnWeeklySchedule");
+  const tabMonthlyBtn = document.getElementById("tabBtnMonthlyOverrides");
+  const contentWeekly = document.getElementById("tabContentWeekly");
+  const contentMonthly = document.getElementById("tabContentMonthly");
+
+  if (tabName === 'weekly') {
+    if (tabWeeklyBtn) { tabWeeklyBtn.style.background = "#0284c7"; tabWeeklyBtn.style.color = "#fff"; }
+    if (tabMonthlyBtn) { tabMonthlyBtn.style.background = "#f1f5f9"; tabMonthlyBtn.style.color = "#475569"; }
+    if (contentWeekly) contentWeekly.style.display = "block";
+    if (contentMonthly) contentMonthly.style.display = "none";
+  } else {
+    if (tabMonthlyBtn) { tabMonthlyBtn.style.background = "#16a34a"; tabMonthlyBtn.style.color = "#fff"; }
+    if (tabWeeklyBtn) { tabWeeklyBtn.style.background = "#f1f5f9"; tabWeeklyBtn.style.color = "#475569"; }
+    if (contentWeekly) contentWeekly.style.display = "none";
+    if (contentMonthly) contentMonthly.style.display = "block";
+  }
+}
+
+function toggleDayInputs(dayNum) {
+  const chk = document.getElementById(`schedDay${dayNum}`);
+  const wrap = document.getElementById(`inputsDay${dayNum}`);
+  const row = document.getElementById(`dayRow${dayNum}`);
+  if (!chk || !wrap) return;
+
+  const isChecked = chk.checked;
+  const inputs = wrap.querySelectorAll("input");
+  inputs.forEach(inp => {
+    inp.disabled = !isChecked;
+    inp.style.opacity = isChecked ? "1" : "0.45";
+  });
+  if (row) {
+    row.style.background = isChecked ? "#f0f9ff" : "#f8fafc";
+    row.style.borderColor = isChecked ? "#bae6fd" : "var(--border)";
+  }
+}
+
+function copyMondayHoursToAllDays() {
+  const startMon = document.getElementById("startDay1")?.value || "08:00";
+  const endMon = document.getElementById("endDay1")?.value || "19:30";
+  const breakStartMon = document.getElementById("breakStartDay1")?.value || "";
+  const breakEndMon = document.getElementById("breakEndDay1")?.value || "";
+
+  [2, 3, 4, 5, 6, 0].forEach(d => {
+    const sEl = document.getElementById(`startDay${d}`);
+    const eEl = document.getElementById(`endDay${d}`);
+    const bsEl = document.getElementById(`breakStartDay${d}`);
+    const beEl = document.getElementById(`breakEndDay${d}`);
+    if (sEl) sEl.value = startMon;
+    if (eEl) eEl.value = endMon;
+    if (bsEl) bsEl.value = breakStartMon;
+    if (beEl) beEl.value = breakEndMon;
+  });
+
+  alert("✅ Dushanba soatlari barcha kunlarga nusxalandi! Endi har bir kunni xohlagancha o'zgartirishingiz mumkin.");
+}
+
+function toggleOverrideTimeInputs() {
+  const type = document.getElementById("newOverrideType")?.value;
+  const wrap = document.getElementById("overrideHoursWrap");
+  if (wrap) {
+    wrap.style.display = (type === "work") ? "flex" : "none";
+  }
+}
+
+function addNewDateOverride() {
+  const dateInput = document.getElementById("newOverrideDate");
+  const dateVal = dateInput?.value;
+  if (!dateVal) {
+    alert("Iltimos, sanani tanlang!");
+    return;
+  }
+
+  const type = document.getElementById("newOverrideType")?.value || "work";
+  const start = document.getElementById("newOverrideStart")?.value || "08:00";
+  const end = document.getElementById("newOverrideEnd")?.value || "18:00";
+
+  tempDateOverrides[dateVal] = {
+    enabled: (type === "work"),
+    start: (type === "work") ? start : "",
+    end: (type === "work") ? end : "",
+    type: type
+  };
+
+  renderDateOverridesList();
+  if (dateInput) dateInput.value = "";
+}
+
+function removeDateOverride(dateStr) {
+  delete tempDateOverrides[dateStr];
+  renderDateOverridesList();
+}
+
+function renderDateOverridesList() {
+  const container = document.getElementById("dateOverridesList");
+  const badge = document.getElementById("countOverridesBadge");
+  const keys = Object.keys(tempDateOverrides).sort();
+  if (badge) badge.innerText = keys.length;
+  if (!container) return;
+
+  if (keys.length === 0) {
+    container.innerHTML = `<span style="font-size: 11.5px; color: #94a3b8; font-style: italic;">Hozircha maxsus oylik sanalar belgilanmagan.</span>`;
+    return;
+  }
+
+  container.innerHTML = keys.map(k => {
+    const ov = tempDateOverrides[k];
+    const isWork = ov.enabled !== false;
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: ${isWork ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${isWork ? '#bbf7d0' : '#fecaca'}; border-radius: 6px; padding: 5px 10px; font-size: 12px;">
+        <div>
+          <strong style="color: #0f172a;"><i class="fa-solid fa-calendar-day"></i> ${escapeHtml(k)}:</strong>
+          ${isWork ? `
+            <span style="color: #15803d; font-weight: bold; margin-left: 6px;">${escapeHtml(ov.start || '08:00')} - ${escapeHtml(ov.end || '18:00')}</span>
+          ` : `
+            <span style="color: #b91c1c; font-weight: bold; margin-left: 6px;">⛔ Dam olish kuni</span>
+          `}
+        </div>
+        <button type="button" onclick="removeDateOverride('${escapeHtml(k)}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 13px; padding: 2px 6px;">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
 function openLaborantScheduleModal() {
   if (!currentLaborant) return;
   const modal = document.getElementById("modalLaborantSchedule");
@@ -1494,20 +1622,37 @@ function openLaborantScheduleModal() {
     }).join("");
   }
 
-  // Kunlar
+  // Kunbay soatlar (dailyHours)
   const days = (mySchedule && mySchedule.days) ? mySchedule.days : [1, 2, 3, 4, 5];
-  [0, 1, 2, 3, 4, 5, 6].forEach(dayNum => {
-    const chk = document.getElementById(`schedDay${dayNum}`);
-    if (chk) chk.checked = days.includes(dayNum);
+  const dHours = (mySchedule && mySchedule.dailyHours) ? mySchedule.dailyHours : {};
+
+  [1, 2, 3, 4, 5, 6, 0].forEach(d => {
+    const chk = document.getElementById(`schedDay${d}`);
+    const sEl = document.getElementById(`startDay${d}`);
+    const eEl = document.getElementById(`endDay${d}`);
+    const bsEl = document.getElementById(`breakStartDay${d}`);
+    const beEl = document.getElementById(`breakEndDay${d}`);
+
+    const dh = dHours[d];
+    const isChecked = dh ? (dh.enabled !== false) : days.includes(d);
+
+    if (chk) chk.checked = isChecked;
+    if (sEl) sEl.value = (dh && dh.start) || (mySchedule && mySchedule.startTime) || "08:00";
+    if (eEl) eEl.value = (dh && dh.end) || (mySchedule && mySchedule.endTime) || "19:30";
+    if (bsEl) bsEl.value = (dh && dh.breakStart) || (mySchedule && mySchedule.breakStart) || ((d <= 5) ? "13:00" : "");
+    if (beEl) beEl.value = (dh && dh.breakEnd) || (mySchedule && mySchedule.breakEnd) || ((d <= 5) ? "14:00" : "");
+
+    toggleDayInputs(d);
   });
 
-  // Vaqtlar
-  if (document.getElementById("schedStartTime")) document.getElementById("schedStartTime").value = (mySchedule && mySchedule.startTime) || "08:00";
-  if (document.getElementById("schedEndTime")) document.getElementById("schedEndTime").value = (mySchedule && mySchedule.endTime) || "19:30";
-  if (document.getElementById("schedBreakStart")) document.getElementById("schedBreakStart").value = (mySchedule && mySchedule.breakStart) || "13:00";
-  if (document.getElementById("schedBreakEnd")) document.getElementById("schedBreakEnd").value = (mySchedule && mySchedule.breakEnd) || "14:00";
-  if (document.getElementById("schedCommitComment")) document.getElementById("schedCommitComment").value = "";
+  // Oylik maxsus sanalar (dateOverrides)
+  tempDateOverrides = (mySchedule && mySchedule.dateOverrides) ? { ...mySchedule.dateOverrides } : {};
+  renderDateOverridesList();
 
+  // Reset to weekly tab
+  switchScheduleTab('weekly');
+
+  if (document.getElementById("schedCommitComment")) document.getElementById("schedCommitComment").value = "";
   modal.style.display = "flex";
 }
 
@@ -1525,21 +1670,34 @@ async function handleSaveLaborantSchedule(e) {
   const roomName = selectedDoc ? (selectedDoc.room || selectedDoc.name) : "Xona";
 
   const days = [];
-  [0, 1, 2, 3, 4, 5, 6].forEach(dayNum => {
-    const chk = document.getElementById(`schedDay${dayNum}`);
-    if (chk && chk.checked) days.push(dayNum);
+  const dailyHours = {};
+
+  [1, 2, 3, 4, 5, 6, 0].forEach(d => {
+    const chk = document.getElementById(`schedDay${d}`);
+    const isChecked = chk ? chk.checked : false;
+    if (isChecked) {
+      days.push(d);
+    }
+    dailyHours[d] = {
+      enabled: isChecked,
+      start: document.getElementById(`startDay${d}`)?.value || "08:00",
+      end: document.getElementById(`endDay${d}`)?.value || "19:30",
+      breakStart: document.getElementById(`breakStartDay${d}`)?.value || "",
+      breakEnd: document.getElementById(`breakEndDay${d}`)?.value || ""
+    };
   });
 
-  if (days.length === 0) {
-    alert("Iltimos, kamida bitta ish kunini tanlang!");
+  if (days.length === 0 && Object.keys(tempDateOverrides).length === 0) {
+    alert("Iltimos, kamida bitta ish kunini yoki maxsus sanani belgilang!");
     return;
   }
 
-  const startTime = document.getElementById("schedStartTime")?.value || "08:00";
-  const endTime = document.getElementById("schedEndTime")?.value || "19:30";
-  const breakStart = document.getElementById("schedBreakStart")?.value || "";
-  const breakEnd = document.getElementById("schedBreakEnd")?.value || "";
-  const commitComment = (document.getElementById("schedCommitComment")?.value || "").trim() || "Ish jadvali yangilandi";
+  // Fallback soatlar (birinchi tanlangan kundan yoki standart)
+  const firstActiveDay = days[0] !== undefined ? dailyHours[days[0]] : null;
+  const startTime = firstActiveDay ? firstActiveDay.start : "08:00";
+  const endTime = firstActiveDay ? firstActiveDay.end : "19:30";
+
+  const commitComment = (document.getElementById("schedCommitComment")?.value || "").trim() || "Kunbay va oylik ish jadvali yangilandi";
 
   const scheduleData = {
     laborantLogin: currentLaborant.login,
@@ -1547,10 +1705,10 @@ async function handleSaveLaborantSchedule(e) {
     roomId: roomId,
     roomName: roomName,
     days: days,
+    dailyHours: dailyHours,
+    dateOverrides: tempDateOverrides,
     startTime: startTime,
     endTime: endTime,
-    breakStart: breakStart,
-    breakEnd: breakEnd,
     updatedAt: firebase.database.ServerValue.TIMESTAMP,
     updatedDate: todayDateStr
   };
@@ -1567,7 +1725,7 @@ async function handleSaveLaborantSchedule(e) {
       laborantLogin: currentLaborant.login,
       laborantName: currentLaborant.name,
       room: roomName,
-      comment: `Ish jadvali va xona band qilindi: ${roomName}, kunlar: [${days.join(',')}], soat: ${startTime}-${endTime}. Izoh: ${commitComment}`,
+      comment: `Kunbay ish jadvali va xona band qilindi: ${roomName}, faol kunlar: [${days.join(',')}], maxsus sanalar: ${Object.keys(tempDateOverrides).length} ta. Izoh: ${commitComment}`,
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       datetime: new Date().toLocaleString()
     });

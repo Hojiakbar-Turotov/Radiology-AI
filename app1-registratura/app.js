@@ -959,17 +959,77 @@ function toggleDeferReasonOther() {
 let lastCalculatedSlot = null;
 let isCurrentSlotValid = false;
 
-// Laborant va Xona asosida dinamik vaqtni aniqlash
+function isLaborantOnDuty(lab, roomId, targetDateStr) {
+  const s = lab.schedule;
+  if (!s) return false;
+
+  // 1. Oylik aniq sana istisnosi (dateOverrides)
+  if (s.dateOverrides && s.dateOverrides[targetDateStr]) {
+    const ov = s.dateOverrides[targetDateStr];
+    if (ov.enabled === false) return false;
+    const targetRoom = ov.roomId || s.roomId;
+    return targetRoom === roomId;
+  }
+
+  const dObj = new Date(targetDateStr + "T12:00:00");
+  const dayOfWeek = dObj.getDay(); // 0-6
+
+  // 2. Kunbay alohida soatlar (dailyHours)
+  if (s.dailyHours && s.dailyHours[dayOfWeek]) {
+    const dh = s.dailyHours[dayOfWeek];
+    if (dh.enabled === false) return false;
+    return s.roomId === roomId;
+  }
+
+  // 3. Standart kunlar massivi (days)
+  if (Array.isArray(s.days) && s.days.includes(dayOfWeek)) {
+    return s.roomId === roomId;
+  }
+
+  return false;
+}
+
+function getLaborantWorkingHours(lab, targetDateStr) {
+  const s = lab.schedule;
+  if (!s) return { start: "08:00", end: "19:30", breakStart: "", breakEnd: "" };
+
+  if (s.dateOverrides && s.dateOverrides[targetDateStr]) {
+    const ov = s.dateOverrides[targetDateStr];
+    return {
+      start: ov.start || "08:00",
+      end: ov.end || "19:30",
+      breakStart: ov.breakStart || "",
+      breakEnd: ov.breakEnd || ""
+    };
+  }
+
+  const dObj = new Date(targetDateStr + "T12:00:00");
+  const dayOfWeek = dObj.getDay();
+
+  if (s.dailyHours && s.dailyHours[dayOfWeek]) {
+    const dh = s.dailyHours[dayOfWeek];
+    return {
+      start: dh.start || "08:00",
+      end: dh.end || "19:30",
+      breakStart: dh.breakStart || "",
+      breakEnd: dh.breakEnd || ""
+    };
+  }
+
+  return {
+    start: s.startTime || "08:00",
+    end: s.endTime || "19:30",
+    breakStart: s.breakStart || "",
+    breakEnd: s.breakEnd || ""
+  };
+}
+
+// Laborant va Xona asosida dinamik vaqtni aniqlash (Kunbay va Oylik jadvallar bilan)
 function getResolvedDurationForRoom(docId, serviceText, targetDateStr) {
   if (!targetDateStr) targetDateStr = todayDateStr;
-  const dObj = new Date(targetDateStr + "T12:00:00");
-  const dayOfWeek = dObj.getDay(); // 0: Yak, 1: Du, ...
 
   // Ushbu xonaga shu kunda biriktirilgan laborantlarni topish
-  const activeLaborants = laborantsList.filter(l => {
-    const s = l.schedule;
-    return s && s.roomId === docId && Array.isArray(s.days) && s.days.includes(dayOfWeek);
-  });
+  const activeLaborants = laborantsList.filter(l => isLaborantOnDuty(l, docId, targetDateStr));
 
   // Mos keluvchi tekshiruv katalogini qidirish
   const sText = (serviceText || "").toLowerCase().trim();

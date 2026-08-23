@@ -1630,14 +1630,42 @@ async function loadLaborantsCatalog() {
   } catch (e) {}
 }
 
-function getResolvedDurationForExtension(deviceId, serviceCode, targetDateStr) {
-  const dObj = new Date((targetDateStr || getTodayDateStr()) + "T12:00:00");
+function isLaborantOnDutyExtension(lab, roomId, targetDateStr) {
+  const s = lab.schedule;
+  if (!s) return false;
+
+  // 1. Oylik aniq sana istisnosi (dateOverrides)
+  if (s.dateOverrides && s.dateOverrides[targetDateStr]) {
+    const ov = s.dateOverrides[targetDateStr];
+    if (ov.enabled === false) return false;
+    const targetRoom = ov.roomId || s.roomId;
+    return targetRoom === roomId;
+  }
+
+  const dObj = new Date(targetDateStr + "T12:00:00");
   const dayOfWeek = dObj.getDay();
 
-  const activeLaborants = Object.values(laborantsCatalog || {}).filter(l => {
-    const s = l.schedule;
-    return s && s.roomId === deviceId && Array.isArray(s.days) && s.days.includes(dayOfWeek);
-  });
+  // 2. Kunbay alohida soatlar (dailyHours)
+  if (s.dailyHours && s.dailyHours[dayOfWeek]) {
+    const dh = s.dailyHours[dayOfWeek];
+    if (dh.enabled === false) return false;
+    return s.roomId === roomId;
+  }
+
+  // 3. Standart kunlar massivi (days)
+  if (Array.isArray(s.days) && s.days.includes(dayOfWeek)) {
+    return s.roomId === roomId;
+  }
+
+  return false;
+}
+
+function getResolvedDurationForExtension(deviceId, serviceCode, targetDateStr) {
+  const checkDate = targetDateStr || getTodayDateStr();
+
+  const activeLaborants = Object.values(laborantsCatalog || {}).filter(l => 
+    isLaborantOnDutyExtension(l, deviceId, checkDate)
+  );
 
   const matchingService = Object.values(servicesCatalog || {}).find(s => (s.code || '').toUpperCase() === (serviceCode || '').toUpperCase());
   const standardDuration = matchingService ? (matchingService.duration || 30) : 30;
