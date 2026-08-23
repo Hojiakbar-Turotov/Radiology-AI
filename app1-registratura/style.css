@@ -891,3 +891,152 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
+/* ==========================================================================
+   RESPONSIVELIK (MEDIA QUERIES) - KOMPYUTER, PLANSHET VA TELEFONLAR
+   ========================================================================== */
+
+/* 1. KATTA MONITORLAR (min-width: 1600px) */
+@media (min-width: 1600px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .table-card table th, .table-card table td {
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+}
+
+/* 2. PLANSHET VA NOUTBUKLAR (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    margin: 0;
+  }
+  .nav-btn span {
+    display: inline;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .filter-bar-right {
+    flex-wrap: wrap;
+  }
+}
+
+/* 3. MOBIL TELEFONLAR (max-width: 768px) */
+@media (max-width: 768px) {
+  body {
+    overflow-y: auto !important;
+  }
+  .app-container {
+    height: auto !important;
+    overflow: visible;
+  }
+  .sidebar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .sidebar-brand {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .sidebar-nav {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .nav-btn {
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .top-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .header-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .main-content {
+    padding: 12px 10px;
+    overflow-y: visible;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 12px;
+  }
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  .table-card {
+    padding: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-card table {
+    min-width: 720px;
+  }
+  .modal-box {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    padding: 16px !important;
+    margin: 10px auto;
+  }
+  .form-row, .form-row-2, .form-row-3 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .btn-submit-block {
+    width: 100%;
+  }
+}
+
+/* 4. KICHIK MOBIL EKRANLAR (max-width: 480px) */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-card {
+    gap: 8px;
+  }
+  .top-header h2 {
+    font-size: 1.15rem;
+  }
+  .ticket-box {
+    width: 96vw;
+    padding: 12px;
+  }
+}
+

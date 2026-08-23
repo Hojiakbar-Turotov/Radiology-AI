@@ -652,3 +652,274 @@ body {
   letter-spacing: 1px;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   RESPONSIVELIK (MEDIA QUERIES) - 4K TV, DESKTOP, PLANSHET VA TELEFONLAR
+   ========================================================================== */
+
+/* 1. 4K / KATTA TV MONITORLAR (min-width: 2100px) */
+@media (min-width: 2100px) {
+  .tv-container {
+    padding: 30px 45px 20px 45px;
+    gap: 24px;
+  }
+  .brand-icon {
+    width: 75px;
+    height: 75px;
+    font-size: 2.6rem;
+  }
+  .brand-text h1 {
+    font-size: 2.4rem;
+  }
+  .brand-text p {
+    font-size: 1.2rem;
+  }
+  .stat-pill {
+    padding: 12px 26px;
+    border-radius: 18px;
+  }
+  .stat-pill i {
+    font-size: 2rem;
+  }
+  .stat-pill-label {
+    font-size: 0.95rem;
+  }
+  .stat-pill-value {
+    font-size: 2.2rem;
+  }
+  .tv-time {
+    font-size: 3.2rem;
+  }
+  .tv-date {
+    font-size: 1.3rem;
+  }
+  .patient-jumbo {
+    font-size: 4rem;
+  }
+  .target-room-badge {
+    font-size: 3.2rem;
+  }
+  .target-service {
+    font-size: 1.8rem;
+  }
+  .call-action-hint {
+    font-size: 2.2rem;
+  }
+  .slide-service-title {
+    font-size: 2.4rem;
+  }
+  .guideline-item {
+    font-size: 1.55rem;
+    gap: 16px;
+  }
+  .room-num {
+    font-size: 1.8rem;
+  }
+  .serving-name {
+    font-size: 1.7rem;
+  }
+  .ticker-move {
+    font-size: 1.4rem;
+  }
+}
+
+/* 2. PLANSHET VA NOUTBUKLAR (max-width: 1200px) */
+@media (max-width: 1200px) {
+  .tv-main-grid {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 14px;
+  }
+  .patient-jumbo {
+    font-size: 2.2rem;
+  }
+  .target-room-badge {
+    font-size: 2rem;
+  }
+  .slide-service-title {
+    font-size: 1.45rem;
+  }
+  .guideline-item {
+    font-size: 1.05rem;
+  }
+}
+
+/* 3. MOBIL TELEFONLAR VA KICHIK PLANSHETLAR (max-width: 900px) - TELEFONDA KUZATISH */
+@media (max-width: 900px) {
+  body {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+  .tv-container {
+    height: auto !important;
+    min-height: 100vh;
+    padding: 12px 10px 10px 10px;
+    gap: 12px;
+  }
+  .tv-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    align-items: stretch;
+    text-align: center;
+  }
+  .clinic-brand {
+    justify-content: center;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+  .brand-text h1 {
+    font-size: 1.25rem;
+  }
+  .brand-text p {
+    font-size: 0.75rem;
+  }
+  .header-summary-stats {
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+  }
+  .stat-pill {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 10px;
+    justify-content: center;
+  }
+  .stat-pill i {
+    font-size: 1.15rem;
+  }
+  .stat-pill-label {
+    font-size: 0.65rem;
+  }
+  .stat-pill-value {
+    font-size: 1.2rem;
+  }
+  .header-right-clock {
+    text-align: center;
+    border-top: 1px solid #334155;
+    padding-top: 8px;
+  }
+  .tv-time {
+    font-size: 1.7rem;
+  }
+  .tv-date {
+    font-size: 0.82rem;
+  }
+
+  /* Asosiy gridni vertikal (1 ustun) qilish */
+  .tv-main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .calling-hero-panel {
+    min-height: 380px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .calling-card {
+    padding: 14px 10px;
+  }
+  .slide-service-title {
+    font-size: 1.25rem;
+  }
+  .slide-guidelines-box {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .guideline-item {
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+  .patient-jumbo {
+    font-size: 1.9rem;
+  }
+  .target-room-badge {
+    font-size: 1.7rem;
+  }
+  .target-doc-name {
+    font-size: 1.15rem;
+  }
+  .target-service {
+    font-size: 1.05rem;
+  }
+  .target-laborant {
+    font-size: 1rem !important;
+    padding: 4px 10px !important;
+  }
+  .call-action-hint {
+    font-size: 1.25rem;
+  }
+
+  /* Qurilmalar paneli */
+  .rooms-grid-panel {
+    padding: 16px;
+    border-radius: 16px;
+    overflow: visible;
+  }
+  .rooms-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    overflow-y: visible;
+    padding-right: 0;
+  }
+  .room-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  .serving-name {
+    font-size: 1.1rem;
+  }
+
+  /* Ticker */
+  .tv-footer-ticker {
+    padding: 8px 12px;
+    border-radius: 10px;
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+  }
+  .ticker-label {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+  .ticker-move {
+    font-size: 0.88rem;
+  }
+}
+
+/* 4. KICHIK TELEFONLAR (max-width: 480px) */
+@media (max-width: 480px) {
+  .brand-text h1 {
+    font-size: 1.1rem;
+  }
+  .header-summary-stats {
+    flex-direction: row;
+  }
+  .stat-pill {
+    padding: 5px 8px;
+  }
+  .stat-pill-value {
+    font-size: 1.1rem;
+  }
+  .patient-jumbo {
+    font-size: 1.6rem;
+  }
+  .target-room-badge {
+    font-size: 1.45rem;
+  }
+  .call-action-hint {
+    font-size: 1.1rem;
+  }
+  .slide-service-title {
+    font-size: 1.15rem;
+  }
+  .guideline-item {
+    font-size: 0.85rem;
+  }
+}
