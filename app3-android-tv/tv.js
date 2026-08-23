@@ -185,7 +185,23 @@ function listenToServicesCatalog() {
   });
 }
 
-// 2. SOAT VA SANA
+// 2. SOAT VA SANA (To'liq O'zbek tilida hafta kuni va oy)
+const UZ_MONTHS = [
+  "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+  "Iyul", "Avgust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
+];
+const UZ_WEEKDAYS = [
+  "Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"
+];
+
+function formatUzbekDate(dateObj) {
+  const dayName = UZ_WEEKDAYS[dateObj.getDay()];
+  const dayNum = dateObj.getDate();
+  const monthName = UZ_MONTHS[dateObj.getMonth()];
+  const yearNum = dateObj.getFullYear();
+  return `${dayName}, ${dayNum}-${monthName} ${yearNum}-yil`;
+}
+
 function startClock() {
   function updateTime() {
     const now = new Date();
@@ -193,8 +209,7 @@ function startClock() {
     const timeEl = document.getElementById("clockTime");
     if (timeEl) timeEl.innerText = timeStr;
 
-    const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const dateStr = now.toLocaleDateString('uz-UZ', dateOptions);
+    const dateStr = formatUzbekDate(now);
     const dateEl = document.getElementById("clockDate");
     if (dateEl) dateEl.innerText = dateStr;
   }
