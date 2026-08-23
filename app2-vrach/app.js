@@ -16,6 +16,7 @@ let activePatient = null;
 // Tekshiruvlar va Audit Tarixi holatlari
 let servicesList = [];
 let currentServiceFilter = 'all';
+let currentQueueSubFilter = 'all'; // 'all' (Navbat tartibi) or 'in_hall' (Hozir zalda)
 let selectedServiceForTest = null;
 let currentTestPreviewMode = 'ticket'; // 'ticket' or 'consent'
 let currentTestLang = 'uz';
@@ -266,9 +267,13 @@ function listenToMyPatients() {
           myPatients.push(p);
         }
       });
-    }
-
-    myPatients.sort((a, b) => {
+    }    myPatients.sort((a, b) => {
+      // Qayta navbatga qo'yilgan bemorlar navbat oxirida turadi
+      if (a.isRequeued && !b.isRequeued) return 1;
+      if (!a.isRequeued && b.isRequeued) return -1;
+      if (a.isRequeued && b.isRequeued) {
+        return (a.requeuedAt || 0) - (b.requeuedAt || 0);
+      }
       const tA = a.timeSlot || a.time || "";
       const tB = b.timeSlot || b.time || "";
       return tA.localeCompare(tB);
@@ -279,6 +284,32 @@ function listenToMyPatients() {
     renderActivePatientCard();
     renderQueueList();
   });
+}
+
+function setQueueSubFilter(filter, btnEl) {
+  currentQueueSubFilter = filter;
+  document.querySelectorAll(".queue-filter-tabs .btn-q-filter").forEach(b => b.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+  renderQueueList();
+}
+
+async function togglePatientPresence(patientId, event) {
+  if (event) event.stopPropagation();
+  const patient = myPatients.find(p => p.id === patientId);
+  if (!patient) return;
+
+  const currentPresence = patient.inHall !== false;
+  const newPresence = !currentPresence;
+  const pDate = patient.dateKey || todayDateStr;
+
+  try {
+    await db.ref(`patients/${pDate}/${patient.id}`).update({
+      inHall: newPresence,
+      presenceUpdatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+  } catch (err) {
+    console.error("Presence toggle error:", err);
+  }
 }
 
 function renderActivePatientCard() {
@@ -323,7 +354,9 @@ function renderActivePatientCard() {
     if (notesText) notesText.innerText = combinedNotes;
   } else {
     if (notesBox) notesBox.style.display = "none";
-  }  const callingButtons = document.getElementById("callingStateButtons");
+  }
+
+  const callingButtons = document.getElementById("callingStateButtons");
   const inProgressButtons = document.getElementById("inProgressStateButtons");
 
   if (activePatient.status === "calling") {
@@ -341,45 +374,62 @@ function renderActivePatientCard() {
 
 function renderQueueList() {
   const container = document.getElementById("queueCardsContainer");
-  const countBadge = document.getElementById("waitingCount");
+  const countAllBadge = document.getElementById("countQueueAll");
+  const countInHallBadge = document.getElementById("countQueueInHall");
   const mobileCountBadge = document.getElementById("mobileWaitingCount");
   const completedList = document.getElementById("completedList");
   const completedCount = document.getElementById("completedCount");
 
   // Faol qabuldagi bemor navbat ro'yxatida ko'rinmaydi
-  const waitingPatients = myPatients.filter(p => p.status === "waiting" && (!activePatient || p.id !== activePatient.id));
+  const allWaiting = myPatients.filter(p => p.status === "waiting" && (!activePatient || p.id !== activePatient.id));
+  const inHallWaiting = allWaiting.filter(p => p.inHall !== false);
   const completedPatients = myPatients.filter(p => p.status === "completed" || p.status === "cancelled");
 
-  if (countBadge) countBadge.innerText = `${waitingPatients.length} nafar`;
-  if (mobileCountBadge) mobileCountBadge.innerText = waitingPatients.length;
+  if (countAllBadge) countAllBadge.innerText = allWaiting.length;
+  if (countInHallBadge) countInHallBadge.innerText = inHallWaiting.length;
+  if (mobileCountBadge) mobileCountBadge.innerText = allWaiting.length;
   if (completedCount) completedCount.innerText = completedPatients.length;
 
+  const targetList = (currentQueueSubFilter === 'in_hall') ? inHallWaiting : allWaiting;
+
   if (container) {
-    if (waitingPatients.length === 0) {
+    if (targetList.length === 0) {
       container.innerHTML = `
         <div class="empty-queue-msg">
-          <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: #10b981; margin-bottom: 8px;"></i>
-          <p>Kutayotgan bemorlar yo'q</p>
+          <i class="fa-solid ${currentQueueSubFilter === 'in_hall' ? 'fa-couch' : 'fa-circle-check'}" style="font-size: 2rem; color: ${currentQueueSubFilter === 'in_hall' ? '#0284c7' : '#10b981'}; margin-bottom: 8px;"></i>
+          <p>${currentQueueSubFilter === 'in_hall' ? 'Hozir kutish zalida o\'tirgan bemorlar yo\'q' : 'Kutayotgan bemorlar yo\'q'}</p>
         </div>
       `;
     } else {
       const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
-      container.innerHTML = waitingPatients.map((p, idx) => `
-        <div class="queue-card ${idx === 0 ? 'next-in-line' : ''}">
-          <div class="queue-card-left">
-            <div class="queue-ticket-badge">${escapeHtml(p.ticketId || String(idx + 1))}</div>
-            <div class="queue-info">
-              <div class="queue-patient-title">${escapeHtml(p.name)}</div>
-              <div class="queue-patient-sub">
-                ${escapeHtml(formatServiceNameWithOriginal(p.service || '', curLang))} • <strong>${escapeHtml(p.timeSlot || p.time || '')}</strong>
+      container.innerHTML = targetList.map((p, idx) => {
+        const isInHall = p.inHall !== false;
+        return `
+          <div class="queue-card ${idx === 0 ? 'next-in-line' : ''} ${p.isRequeued ? 'requeued-card' : ''}">
+            <div class="queue-card-left">
+              <div class="queue-ticket-badge">${escapeHtml(p.ticketId || String(idx + 1))}</div>
+              <div class="queue-info">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span class="queue-patient-title">${escapeHtml(p.name)}</span>
+                  ${p.isRequeued ? `<span class="requeued-badge"><i class="fa-solid fa-rotate-right"></i> Qayta navbatda</span>` : ''}
+                </div>
+                <div class="queue-patient-sub">
+                  ${escapeHtml(formatServiceNameWithOriginal(p.service || '', curLang))} • <strong>${escapeHtml(p.timeSlot || p.time || '')}</strong>
+                </div>
+                <div style="margin-top: 4px;">
+                  <span class="presence-toggle-badge ${isInHall ? 'presence-in-hall' : 'presence-away'}" onclick="togglePatientPresence('${escapeHtml(p.id)}', event)" title="Zalda bor/yo'qligini belgilash uchun bosing">
+                    <i class="fa-solid ${isInHall ? 'fa-couch' : 'fa-clock'}"></i>
+                    ${isInHall ? 'Zalda o\'tiribdi' : 'Hali kelmadi'}
+                  </span>
+                </div>
               </div>
             </div>
+            <button class="btn btn-call-small" onclick="callSpecificPatient('${escapeHtml(p.id)}')">
+              <i class="fa-solid fa-bell"></i> Chaqirish
+            </button>
           </div>
-          <button class="btn btn-call-small" onclick="callSpecificPatient('${escapeHtml(p.id)}')">
-            <i class="fa-solid fa-bell"></i> Chaqirish
-          </button>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
   }
 
@@ -390,12 +440,19 @@ function renderQueueList() {
       completedList.innerHTML = completedPatients.map(p => `
         <div class="completed-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
           <div>
-            <strong>${escapeHtml(p.ticketId || '-')}</strong> - ${escapeHtml(p.name)}
+            <div><strong>${escapeHtml(p.ticketId || '-')}</strong> - ${escapeHtml(p.name)}</div>
             ${p.cancelReason ? `<div style="font-size: 0.75rem; color: #dc2626; margin-top: 2px;"><i class="fa-solid fa-circle-exclamation"></i> Sabab: ${escapeHtml(p.cancelReason)}</div>` : ''}
           </div>
-          <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-danger'}" style="${p.status === 'cancelled' ? 'background: #fee2e2; color: #dc2626;' : ''}">
-            ${p.status === 'completed' ? 'Yakunlandi' : 'Bekor qilindi'}
-          </span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-danger'}" style="${p.status === 'cancelled' ? 'background: #fee2e2; color: #dc2626;' : ''}">
+              ${p.status === 'completed' ? 'Yakunlandi' : 'Bekor qilindi'}
+            </span>
+            ${p.status === 'cancelled' ? `
+              <button class="btn btn-sm btn-outline" onclick="requeuePatient('${escapeHtml(p.id)}')" style="color: #0284c7; border-color: #bae6fd; background: #f0f9ff; padding: 4px 8px; font-size: 0.78rem;" title="Bugun qaytadan navbat oxiriga qo'yish">
+                <i class="fa-solid fa-rotate-right"></i> Qayta navbatga
+              </button>
+            ` : ''}
+          </div>
         </div>
       `).join("");
     }
@@ -614,6 +671,109 @@ async function handleConfirmCancelExam(e) {
     alert("✅ Bemor tekshiruvi bekor qilindi va sababi tizimga saqlandi!");
   } catch (err) {
     alert("❌ Xatolik yuz berdi: " + err.message);
+  }
+}
+
+// BEMORNI MODALDAN NAVBAT OXIRIGA YO'NALTIRISH (Zalda kutib turadi, bugun qayta chaqiriladi)
+async function handleConfirmRequeueFromModal() {
+  if (!activePatient) return;
+
+  const reasonSelect = document.getElementById("cancelReasonSelect")?.value || "Zalda kutib turadi";
+  const reasonDetail = (document.getElementById("cancelReasonDetail")?.value || "").trim();
+
+  const pDate = activePatient.dateKey || todayDateStr;
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+  const roomName = currentDoctor ? (currentDoctor.room || currentDoctor.name) : "";
+  const requeuedCount = (activePatient.requeuedCount || 0) + 1;
+
+  const updateInfo = {
+    status: "waiting",
+    inHall: true,
+    isRequeued: true,
+    requeuedAt: firebase.database.ServerValue.TIMESTAMP,
+    requeuedCount: requeuedCount,
+    requeuedByLaborant: labName ? `[${labLogin}] ${labName}` : "Laborant",
+    requeueReason: reasonSelect,
+    requeueDetail: reasonDetail,
+    notes: [activePatient.notes, `[Navbat oxiriga qaytarildi (${reasonSelect})${reasonDetail ? ': ' + reasonDetail : ''}]`].filter(Boolean).join(" | ")
+  };
+
+  try {
+    await db.ref(`patients/${pDate}/${activePatient.id}`).update(updateInfo);
+
+    // TV e'lonini tozalash
+    db.ref("calling_announcement").once("value", (snap) => {
+      const ann = snap.val();
+      if (ann && ann.patientId === activePatient.id) {
+        db.ref("calling_announcement").remove();
+      }
+    });
+
+    // Global Audit Logga yozish
+    const logKey = db.ref("services_history_log").push().key;
+    await db.ref(`services_history_log/${logKey}`).set({
+      type: "patient_requeue",
+      patientId: activePatient.id,
+      patientName: activePatient.name,
+      ticketId: activePatient.ticketId,
+      serviceName: activePatient.service || "",
+      room: roomName,
+      laborantLogin: labLogin,
+      laborantName: labName,
+      comment: `Bemor (${activePatient.name}) navbat oxiriga yo'naltirildi. Sabab: ${reasonSelect}${reasonDetail ? ' (' + reasonDetail + ')' : ''}`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      datetime: new Date().toLocaleString()
+    });
+
+    closeCancelExamModal();
+    activePatient = null;
+    alert("✅ Bemor navbat oxiriga muvaffaqiyatli yo'naltirildi va bugun qayta chaqiriladi!");
+  } catch (err) {
+    alert("❌ Xatolik yuz berdi: " + err.message);
+  }
+}
+
+// BEMORNI BEKOR BO'LGANLAR RO'YXATIDAN QAYTADAN NAVBAT OXIRIGA QO'YISH
+async function requeuePatient(patientId) {
+  const patient = myPatients.find(p => p.id === patientId);
+  if (!patient) return;
+
+  const pDate = patient.dateKey || todayDateStr;
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+  const requeuedCount = (patient.requeuedCount || 0) + 1;
+
+  try {
+    await db.ref(`patients/${pDate}/${patient.id}`).update({
+      status: "waiting",
+      inHall: true,
+      isRequeued: true,
+      requeuedAt: firebase.database.ServerValue.TIMESTAMP,
+      requeuedCount: requeuedCount,
+      requeuedByLaborant: labName ? `[${labLogin}] ${labName}` : "Laborant",
+      notes: [patient.notes, `[${requeuedCount}-marta navbat oxiriga qaytarildi]`].filter(Boolean).join(" | ")
+    });
+
+    // Global Audit Log
+    const logKey = db.ref("services_history_log").push().key;
+    await db.ref(`services_history_log/${logKey}`).set({
+      type: "patient_requeue",
+      patientId: patient.id,
+      patientName: patient.name,
+      ticketId: patient.ticketId,
+      serviceName: patient.service || "",
+      room: currentDoctor ? (currentDoctor.room || currentDoctor.name) : "",
+      laborantLogin: labLogin,
+      laborantName: labName,
+      comment: `Bemor (${patient.name}) navbat oxiriga qaytadan qo'yildi (${requeuedCount}-marta)`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      datetime: new Date().toLocaleString()
+    });
+
+    alert(`✅ ${patient.name} muvaffaqiyatli navbat oxiriga yo'naltirildi!`);
+  } catch (err) {
+    alert("❌ Qayta navbatga qo'yishda xatolik: " + err.message);
   }
 }
 

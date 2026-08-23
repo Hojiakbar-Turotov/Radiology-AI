@@ -241,7 +241,16 @@
         <div class="section-header">
           <div class="section-title">
             <h3><i class="fa-solid fa-users"></i> Navbatdagi Bemorlar</h3>
-            <span class="count-badge" id="waitingCount">0 nafar</span>
+          </div>
+
+          <!-- 2 TA NAVBAT FILTRI: NAVBAT TARTIBI VA HOZIR ZALDA -->
+          <div class="queue-filter-tabs">
+            <button type="button" class="btn-q-filter active" id="btnFilterQueueAll" onclick="setQueueSubFilter('all', this)">
+              <i class="fa-solid fa-list-ol"></i> <span>Navbat tartibi</span> (<strong id="countQueueAll">0</strong>)
+            </button>
+            <button type="button" class="btn-q-filter" id="btnFilterQueueInHall" onclick="setQueueSubFilter('in_hall', this)">
+              <i class="fa-solid fa-couch"></i> <span>Hozir zalda</span> (<strong id="countQueueInHall">0</strong>)
+            </button>
           </div>
         </div>
 
@@ -611,11 +620,17 @@
           <textarea id="cancelReasonDetail" rows="3" placeholder="Laborant izohi: nima sababdan bekor qilinganini batafsil yozing..." style="width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
         </div>
 
-        <div class="modal-footer-actions" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+        <div class="modal-footer-actions" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; flex-wrap: wrap;">
           <button type="button" class="btn btn-outline" onclick="closeCancelExamModal()">Bekor qilish (Ortga)</button>
-          <button type="submit" class="btn btn-danger" style="background: #dc2626; color: #fff; font-weight: bold;">
-            <i class="fa-solid fa-ban"></i> Bekor Qilishni Tasdiqlash
-          </button>
+          
+          <div style="display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap;">
+            <button type="button" class="btn btn-warning" onclick="handleConfirmRequeueFromModal()" style="background: #f59e0b; color: #fff; font-weight: bold;">
+              <i class="fa-solid fa-rotate-right"></i> Zalda Kutadi (Navbat Oxiriga)
+            </button>
+            <button type="submit" class="btn btn-danger" style="background: #dc2626; color: #fff; font-weight: bold;">
+              <i class="fa-solid fa-ban"></i> Butunlay Bekor Qilish
+            </button>
+          </div>
         </div>
       </form>
     </div>
