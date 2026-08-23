@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
@@ -137,13 +137,26 @@
       </div>
     </header>
 
-    <!-- Mobil uchun pastki navigatsiya paneli (< 992px) -->
+    <!-- Mobil uchun navigatsiya paneli (< 992px) -->
     <nav class="mobile-admin-tabbar">
-      <button class="m-tab active" onclick="switchAdminSection('analytics', this)"><i class="fa-solid fa-chart-pie"></i><span>Tahlil</span></button>
-      <button class="m-tab" onclick="switchAdminSection('liveQueue', this)"><i class="fa-solid fa-users"></i><span>Navbat</span></button>
-      <button class="m-tab" onclick="switchAdminSection('users', this)"><i class="fa-solid fa-user-group"></i><span>Xodimlar</span></button>
-      <button class="m-tab" onclick="switchAdminSection('services', this)"><i class="fa-solid fa-list-check"></i><span>Tekshiruv</span></button>
-      <button class="m-tab" onclick="switchAdminSection('reports', this)"><i class="fa-solid fa-file-lines"></i><span>Hisobot</span></button>
+      <button class="m-tab active" data-section="analytics" onclick="switchAdminSection('analytics', this)">
+        <i class="fa-solid fa-chart-pie"></i><span>Tahlil</span>
+      </button>
+      <button class="m-tab" data-section="liveQueue" onclick="switchAdminSection('liveQueue', this)">
+        <i class="fa-solid fa-users-viewfinder"></i><span>Navbat</span>
+      </button>
+      <button class="m-tab" data-section="users" onclick="switchAdminSection('users', this)">
+        <i class="fa-solid fa-user-group"></i><span>Xodimlar</span>
+      </button>
+      <button class="m-tab" data-section="services" onclick="switchAdminSection('services', this)">
+        <i class="fa-solid fa-list-check"></i><span>Tekshiruv</span>
+      </button>
+      <button class="m-tab" data-section="audit" onclick="switchAdminSection('audit', this)">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>Audit</span>
+      </button>
+      <button class="m-tab" data-section="reports" onclick="switchAdminSection('reports', this)">
+        <i class="fa-solid fa-file-excel"></i><span>Hisobot</span>
+      </button>
     </nav>
 
     <!-- Asosiy Dinamik Kontent Maydoni -->
@@ -260,13 +273,17 @@
               <h4><i class="fa-solid fa-microchip" style="color: #8b5cf6;"></i> Modallik (MRT vs MSKT) & Kontrast Taqsimoti</h4>
             </div>
             <div class="dual-pie-wrap">
-              <div style="flex: 1; min-width: 140px; text-align: center;">
-                <canvas id="chartModality"></canvas>
-                <div style="font-size: 0.8rem; font-weight: bold; margin-top: 6px; color: #475569;">MRT vs MSKT</div>
+              <div class="pie-card-item">
+                <div class="pie-title">MRT vs MSKT</div>
+                <div class="pie-canvas-wrap">
+                  <canvas id="chartModality"></canvas>
+                </div>
               </div>
-              <div style="flex: 1; min-width: 140px; text-align: center;">
-                <canvas id="chartContrast"></canvas>
-                <div style="font-size: 0.8rem; font-weight: bold; margin-top: 6px; color: #475569;">💉 Kontrast modda</div>
+              <div class="pie-card-item">
+                <div class="pie-title">💉 Kontrast Modda</div>
+                <div class="pie-canvas-wrap">
+                  <canvas id="chartContrast"></canvas>
+                </div>
               </div>
             </div>
             <div class="modality-summary-cards" id="modalitySummaryContainer">

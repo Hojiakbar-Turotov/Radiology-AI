@@ -60,6 +60,18 @@ function initAdminApp() {
     listenToAllPatients();
     checkSavedAdminSession();
   }
+
+  // Oyna o'lchami o'zgarganda (Desktop <-> Mobil) grafiklarni avtomatik moslashtirish
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (chartRoomsInstance) chartRoomsInstance.resize();
+      if (chartModalityInstance) chartModalityInstance.resize();
+      if (chartContrastInstance) chartContrastInstance.resize();
+      if (chartHourlyInstance) chartHourlyInstance.resize();
+    }, 200);
+  });
 }
 
 function getTodayDateStr() {
@@ -263,6 +275,8 @@ function switchAdminSection(sectionName, btnEl) {
   document.querySelectorAll(".admin-nav-tabs .nav-tab, .mobile-admin-tabbar .m-tab").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
 
+  // Desktop va Mobil tab tugmalarining ikkalasini ham faollashtirish
+  document.querySelectorAll(`[data-section="${sectionName}"]`).forEach(t => t.classList.add("active"));
   if (btnEl) btnEl.classList.add("active");
 
   const secMap = {
@@ -278,7 +292,15 @@ function switchAdminSection(sectionName, btnEl) {
   const targetSec = document.getElementById(targetId);
   if (targetSec) targetSec.classList.add("active");
 
-  if (sectionName === "analytics") refreshAnalyticsData();
+  if (sectionName === "analytics") {
+    refreshAnalyticsData();
+    setTimeout(() => {
+      if (chartRoomsInstance) chartRoomsInstance.resize();
+      if (chartModalityInstance) chartModalityInstance.resize();
+      if (chartContrastInstance) chartContrastInstance.resize();
+      if (chartHourlyInstance) chartHourlyInstance.resize();
+    }, 100);
+  }
   if (sectionName === "liveQueue") renderLiveQueueMatrix();
 }
 
@@ -536,31 +558,59 @@ function renderModalityAndContrastCharts(patients) {
   });
 
   if (typeof Chart !== 'undefined') {
-    // Modallik Pie Chart
+    // Modallik Doughnut Chart
     const ctxM = document.getElementById("chartModality")?.getContext("2d");
     if (ctxM) {
       if (chartModalityInstance) chartModalityInstance.destroy();
+      const hasModalityData = (mrtCount + msktCount) > 0;
       chartModalityInstance = new Chart(ctxM, {
         type: "doughnut",
         data: {
-          labels: ["MRT", "MSKT"],
-          datasets: [{ data: [mrtCount, msktCount], backgroundColor: ["#8b5cf6", "#0284c7"] }]
+          labels: hasModalityData ? ["MRT", "MSKT"] : ["Ma'lumot yo'q"],
+          datasets: [{
+            data: hasModalityData ? [mrtCount, msktCount] : [1],
+            backgroundColor: hasModalityData ? ["#8b5cf6", "#0284c7"] : ["#e2e8f0"],
+            borderWidth: 2,
+            borderColor: "#ffffff"
+          }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: hasModalityData }
+          }
+        }
       });
     }
 
-    // Kontrast Pie Chart
+    // Kontrast Doughnut Chart
     const ctxC = document.getElementById("chartContrast")?.getContext("2d");
     if (ctxC) {
       if (chartContrastInstance) chartContrastInstance.destroy();
+      const hasContrastData = (contrastCount + plainCount) > 0;
       chartContrastInstance = new Chart(ctxC, {
         type: "doughnut",
         data: {
-          labels: ["Kontrastli", "Oddiy"],
-          datasets: [{ data: [contrastCount, plainCount], backgroundColor: ["#ef4444", "#10b981"] }]
+          labels: hasContrastData ? ["Kontrastli", "Oddiy"] : ["Ma'lumot yo'q"],
+          datasets: [{
+            data: hasContrastData ? [contrastCount, plainCount] : [1],
+            backgroundColor: hasContrastData ? ["#ef4444", "#10b981"] : ["#e2e8f0"],
+            borderWidth: 2,
+            borderColor: "#ffffff"
+          }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: hasContrastData }
+          }
+        }
       });
     }
   }
