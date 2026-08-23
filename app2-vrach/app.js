@@ -323,14 +323,19 @@ function renderActivePatientCard() {
     if (notesText) notesText.innerText = combinedNotes;
   } else {
     if (notesBox) notesBox.style.display = "none";
-  }
+  }  const callingButtons = document.getElementById("callingStateButtons");
+  const inProgressButtons = document.getElementById("inProgressStateButtons");
 
   if (activePatient.status === "calling") {
     statusBadge.className = "badge badge-calling";
-    statusBadge.innerText = "Chaqirilmoqda...";
+    statusBadge.innerHTML = `<i class="fa-solid fa-bell"></i> Chaqirilmoqda...`;
+    if (callingButtons) callingButtons.style.display = "contents";
+    if (inProgressButtons) inProgressButtons.style.display = "none";
   } else if (activePatient.status === "in_progress") {
     statusBadge.className = "badge badge-in_progress";
-    statusBadge.innerText = "Qabul qilinmoqda";
+    statusBadge.innerHTML = `<i class="fa-solid fa-circle-play"></i> Qabul qilinmoqda...`;
+    if (callingButtons) callingButtons.style.display = "none";
+    if (inProgressButtons) inProgressButtons.style.display = "flex";
   }
 }
 
@@ -341,7 +346,8 @@ function renderQueueList() {
   const completedList = document.getElementById("completedList");
   const completedCount = document.getElementById("completedCount");
 
-  const waitingPatients = myPatients.filter(p => p.status === "waiting");
+  // Faol qabuldagi bemor navbat ro'yxatida ko'rinmaydi
+  const waitingPatients = myPatients.filter(p => p.status === "waiting" && (!activePatient || p.id !== activePatient.id));
   const completedPatients = myPatients.filter(p => p.status === "completed" || p.status === "cancelled");
 
   if (countBadge) countBadge.innerText = `${waitingPatients.length} nafar`;
@@ -379,13 +385,16 @@ function renderQueueList() {
 
   if (completedList) {
     if (completedPatients.length === 0) {
-      completedList.innerHTML = `<p style="font-size: 0.8rem; color: #94a3b8; text-align: center;">Hozircha qabul tugaganlar yo'q</p>`;
+      completedList.innerHTML = `<p style="font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 10px;">Hozircha qabul tugaganlar yo'q</p>`;
     } else {
       completedList.innerHTML = completedPatients.map(p => `
-        <div class="completed-row">
-          <span><strong>${escapeHtml(p.ticketId)}</strong> - ${escapeHtml(p.name)}</span>
-          <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-waiting'}">
-            ${p.status === 'completed' ? 'Yakunlandi' : 'Kelmadi'}
+        <div class="completed-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
+          <div>
+            <strong>${escapeHtml(p.ticketId || '-')}</strong> - ${escapeHtml(p.name)}
+            ${p.cancelReason ? `<div style="font-size: 0.75rem; color: #dc2626; margin-top: 2px;"><i class="fa-solid fa-circle-exclamation"></i> Sabab: ${escapeHtml(p.cancelReason)}</div>` : ''}
+          </div>
+          <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-danger'}" style="${p.status === 'cancelled' ? 'background: #fee2e2; color: #dc2626;' : ''}">
+            ${p.status === 'completed' ? 'Yakunlandi' : 'Bekor qilindi'}
           </span>
         </div>
       `).join("");
@@ -395,7 +404,7 @@ function renderQueueList() {
 
 // 7. BEMORNI CHAQIRISH VA BOSHQARISH
 function callNextPatient() {
-  const waitingPatients = myPatients.filter(p => p.status === "waiting");
+  const waitingPatients = myPatients.filter(p => p.status === "waiting" && (!activePatient || p.id !== activePatient.id));
   if (waitingPatients.length === 0) {
     alert("Navbatda kutayotgan bemorlar yo'q!");
     return;
@@ -415,8 +424,9 @@ function callSpecificPatient(patientId) {
 function callPatient(patient) {
   const labLogin = currentLaborant ? currentLaborant.login : "";
   const labName = currentLaborant ? currentLaborant.name : "";
+  const pDate = patient.dateKey || todayDateStr;
 
-  db.ref(`patients/${todayDateStr}/${patient.id}`).update({
+  db.ref(`patients/${pDate}/${patient.id}`).update({
     status: "calling",
     callTimestamp: firebase.database.ServerValue.TIMESTAMP,
     laborantLogin: labLogin,
@@ -452,28 +462,158 @@ function broadcastToTV(patient) {
   db.ref("calling_announcement").set(announcement);
 }
 
-function startExamination() {
+async function startExamination() {
   if (!activePatient) return;
-  db.ref(`patients/${todayDateStr}/${activePatient.id}`).update({
-    status: "in_progress",
-    startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  });
-}
+  const pDate = activePatient.dateKey || todayDateStr;
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
 
-function finishExamination() {
-  if (!activePatient) return;
-  db.ref(`patients/${todayDateStr}/${activePatient.id}`).update({
-    status: "completed",
-    endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  });
-}
-
-function skipPatient() {
-  if (!activePatient) return;
-  if (confirm("Bemor kelmadi deb belgilansinmi?")) {
-    db.ref(`patients/${todayDateStr}/${activePatient.id}`).update({
-      status: "cancelled"
+  try {
+    await db.ref(`patients/${pDate}/${activePatient.id}`).update({
+      status: "in_progress",
+      startedAt: firebase.database.ServerValue.TIMESTAMP,
+      laborantLogin: labLogin,
+      laborantName: labName,
+      startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
+  } catch (err) {
+    alert("❌ Xatolik: " + err.message);
+  }
+}
+
+async function finishExamination() {
+  if (!activePatient) return;
+  const pDate = activePatient.dateKey || todayDateStr;
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+
+  try {
+    await db.ref(`patients/${pDate}/${activePatient.id}`).update({
+      status: "completed",
+      completedAt: firebase.database.ServerValue.TIMESTAMP,
+      completedByLaborant: labName ? `[${labLogin}] ${labName}` : "Laborant",
+      completedByLaborantLogin: labLogin,
+      completedByLaborantName: labName,
+      endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+
+    // TV e'lonini tozalash
+    db.ref("calling_announcement").once("value", (snap) => {
+      const ann = snap.val();
+      if (ann && ann.patientId === activePatient.id) {
+        db.ref("calling_announcement").remove();
+      }
+    });
+
+    activePatient = null;
+  } catch (err) {
+    alert("❌ Yakunlashda xatolik: " + err.message);
+  }
+}
+
+// BEMOR TEKSHIRUVINI BEKOR QILISH (MODAL VA SABAB BILAN)
+function openCancelExamModal() {
+  if (!activePatient) return;
+  const modal = document.getElementById("modalCancelPatientExam");
+  if (!modal) return;
+
+  const summaryBox = document.getElementById("cancelPatientSummary");
+  if (summaryBox) {
+    const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const sName = formatServiceNameWithOriginal(activePatient.service || '', curLang);
+    const stText = activePatient.status === "in_progress" ? "Qabul jarayonida (Ko'rikda)" : "Chaqirilmoqda (Kutish zalida)";
+    summaryBox.innerHTML = `
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-weight: 800; font-size: 1.1rem; color: #0f172a;">${escapeHtml(activePatient.name)}</div>
+        <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">
+          Talon: <strong style="color:#0284c7;">${escapeHtml(activePatient.ticketId || '-')}</strong> | 
+          Xizmat: <strong>${escapeHtml(sName)}</strong>
+        </div>
+        <div style="margin-top: 4px; font-size: 0.8rem; color: #dc2626; font-weight: 700;">
+          <i class="fa-solid fa-clock"></i> Holati: ${stText}
+        </div>
+      </div>
+    `;
+  }
+
+  // Formani tozalash
+  const reasonSelect = document.getElementById("cancelReasonSelect");
+  const detailText = document.getElementById("cancelReasonDetail");
+  if (reasonSelect) reasonSelect.value = "";
+  if (detailText) detailText.value = "";
+
+  modal.style.display = "flex";
+}
+
+function closeCancelExamModal() {
+  const modal = document.getElementById("modalCancelPatientExam");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleConfirmCancelExam(e) {
+  e.preventDefault();
+  if (!activePatient) return;
+
+  const reasonSelect = document.getElementById("cancelReasonSelect")?.value;
+  const reasonDetail = (document.getElementById("cancelReasonDetail")?.value || "").trim();
+
+  if (!reasonSelect) {
+    alert("Iltimos, tekshiruv bekor qilinishining asosiy sababini tanlang!");
+    return;
+  }
+
+  const pDate = activePatient.dateKey || todayDateStr;
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+  const roomName = currentDoctor ? (currentDoctor.room || currentDoctor.name) : "";
+
+  const cancelInfo = {
+    status: "cancelled",
+    cancelledAt: firebase.database.ServerValue.TIMESTAMP,
+    cancelledDate: todayDateStr,
+    cancelledTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    cancelledByLaborant: labName ? `[${labLogin}] ${labName}` : "Laborant",
+    cancelledByLaborantLogin: labLogin,
+    cancelledByLaborantName: labName,
+    cancelledStage: activePatient.status === "in_progress" ? "in_examination" : "calling",
+    cancelReason: reasonSelect,
+    cancelDetail: reasonDetail,
+    notes: [activePatient.notes, `[BEKOR QILINDI (${reasonSelect})${reasonDetail ? ': ' + reasonDetail : ''}]`].filter(Boolean).join(" | ")
+  };
+
+  try {
+    // 1. Bemor holatini Firebase'da yangilash
+    await db.ref(`patients/${pDate}/${activePatient.id}`).update(cancelInfo);
+
+    // 2. TV e'lonini tozalash (agar shu bemor chaqirilgan bo'lsa)
+    db.ref("calling_announcement").once("value", (snap) => {
+      const ann = snap.val();
+      if (ann && ann.patientId === activePatient.id) {
+        db.ref("calling_announcement").remove();
+      }
+    });
+
+    // 3. Tarixga (Global Audit Log) yozish
+    const logKey = db.ref("services_history_log").push().key;
+    await db.ref(`services_history_log/${logKey}`).set({
+      type: "patient_cancellation",
+      patientId: activePatient.id,
+      patientName: activePatient.name,
+      ticketId: activePatient.ticketId,
+      serviceName: activePatient.service || "",
+      room: roomName,
+      laborantLogin: labLogin,
+      laborantName: labName,
+      comment: `Bemor tekshiruvi bekor qilindi. Sabab: ${reasonSelect}${reasonDetail ? ' (' + reasonDetail + ')' : ''}`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      datetime: new Date().toLocaleString()
+    });
+
+    closeCancelExamModal();
+    activePatient = null;
+    alert("✅ Bemor tekshiruvi bekor qilindi va sababi tizimga saqlandi!");
+  } catch (err) {
+    alert("❌ Xatolik yuz berdi: " + err.message);
   }
 }
 
