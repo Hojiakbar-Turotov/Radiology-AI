@@ -1,6 +1,7 @@
 /**
  * Vrach - Laborant Xonasi (App2) - Asosiy JavaScript Mantiqi
- * Avtorizatsiya, Laborantlar ro'yxati, Parol o'zgartirish va Navbatni boshqarish
+ * Avtorizatsiya, Laborantlar ro'yxati, Parol o'zgartirish, Navbatni boshqarish,
+ * Xona Tekshiruvlari Boshqaruvi (Services CRUD), Audit Tarixi (Commits) va Test Chop Etish
  */
 
 let db = null;
@@ -11,6 +12,13 @@ let doctorsList = [];
 let todayDateStr = "";
 let myPatients = [];
 let activePatient = null;
+
+// Tekshiruvlar va Audit Tarixi holatlari
+let servicesList = [];
+let currentServiceFilter = 'all';
+let selectedServiceForTest = null;
+let currentTestPreviewMode = 'ticket'; // 'ticket' or 'consent'
+let currentTestLang = 'uz';
 
 const DEFAULT_LABORANTS = [
   { login: "LAB1", name: "Yoqubov Dilmurod", password: "15420", role: "Vrach / Laborant-Operator" },
@@ -44,6 +52,7 @@ function initApp() {
     setupConnectionMonitor();
     listenToLaborants();
     listenToDoctors();
+    listenToServices();
     checkSavedSession();
   }
 }
@@ -59,6 +68,12 @@ function changeLaborantLang(langCode) {
 
   renderActivePatientCard();
   renderQueueList();
+  renderLaborantServicesList();
+  if (selectedServiceForTest) {
+    const tpLang = document.getElementById("testPrintLang");
+    if (tpLang) tpLang.value = langCode;
+    renderTestPreview();
+  }
 }
 
 function setTodayDate() {
@@ -77,7 +92,7 @@ function setupConnectionMonitor() {
     const txt = document.getElementById("connText");
     if (dot && txt) {
       dot.className = isOnline ? "status-dot connected" : "status-dot disconnected";
-      txt.innerText = isOnline ? "Firebase: Ulangan" : "Ulanish uzildi";
+      txt.innerText = isOnline ? "Online" : "Offline";
     }
   });
 }
@@ -93,11 +108,6 @@ function listenToLaborants() {
       });
     } else {
       laborantsList = [...DEFAULT_LABORANTS];
-    }
-
-    if (currentLaborant) {
-      const fresh = laborantsList.find(l => l.login.toUpperCase() === currentLaborant.login.toUpperCase());
-      if (fresh) currentLaborant = fresh;
     }
   });
 }
@@ -120,11 +130,6 @@ function renderDoctorSelect() {
   const select = document.getElementById("doctorSelect");
   if (!select) return;
 
-  if (doctorsList.length === 0) {
-    select.innerHTML = `<option value="">Qurilmalar topilmadi</option>`;
-    return;
-  }
-
   const currentVal = select.value;
   select.innerHTML = `<option value="">-- Ish xonasini tanlang --</option>` + doctorsList.map(d => `
     <option value="${escapeHtml(d.id)}">${escapeHtml(d.room || d.name)}: ${escapeHtml(d.name)} (${escapeHtml(d.specialty || '')})</option>
@@ -133,7 +138,21 @@ function renderDoctorSelect() {
   if (currentVal) select.value = currentVal;
 }
 
-// 3. SAQLANGAN SEANSIYANI TEKSHIRISH (AUTO-LOGIN)
+// 3. TEKSHIRUVLAR KATALOGINI REALTIME TINGLASH
+function listenToServices() {
+  db.ref("services_catalog").on("value", (snapshot) => {
+    servicesList = [];
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        servicesList.push({ id: key, ...data[key] });
+      });
+    }
+    renderLaborantServicesList();
+  });
+}
+
+// 4. SAQLANGAN SEANSIYANI TEKSHIRISH (AUTO-LOGIN)
 function checkSavedSession() {
   try {
     const savedLaborantJson = localStorage.getItem("utt_active_laborant");
@@ -153,178 +172,93 @@ function checkSavedSession() {
   }
 }
 
-// 4. LABORANT TIZIMGA KIRISHI (LOGIN VA PAROLNI TERISH ORQALI)
+// 5. LABORANT TIZIMGA KIRISHI
 async function handleLaborantLogin(e) {
   e.preventDefault();
   const inputLogin = (document.getElementById("loginUsername")?.value || "").trim().toUpperCase();
   const inputPwd = (document.getElementById("loginPassword")?.value || "").trim();
-  const docId = document.getElementById("doctorSelect").value;
-  const errorMsg = document.getElementById("loginErrorMsg");
+  const selectedDocId = document.getElementById("doctorSelect")?.value;
+  const errorEl = document.getElementById("loginErrorMsg");
 
-  if (!inputLogin) {
-    alert("Iltimos, Loginni kiriting!");
+  if (errorEl) errorEl.style.display = "none";
+
+  if (!inputLogin || !inputPwd || !selectedDocId) {
+    if (errorEl) {
+      errorEl.innerText = "❌ Iltimos, barcha maydonlarni to'ldiring!";
+      errorEl.style.display = "block";
+    }
     return;
   }
 
-  if (!inputPwd) {
-    alert("Iltimos, Parolni kiriting!");
-    return;
-  }
+  const selectedDoctor = doctorsList.find(d => d.id === selectedDocId);
+  if (!selectedDoctor) return;
 
-  if (!docId) {
-    alert("Iltimos, ish xonasini (qurilmani) tanlang!");
-    return;
-  }
+  const foundLab = laborantsList.find(l => l.login.toUpperCase() === inputLogin);
 
-  const laborant = laborantsList.find(l => (l.login || "").toUpperCase() === inputLogin);
-  const doc = doctorsList.find(d => d.id === docId);
+  if (foundLab && String(foundLab.password) === String(inputPwd)) {
+    localStorage.setItem("utt_active_laborant", JSON.stringify(foundLab));
+    localStorage.setItem("utt_active_doctor_id", selectedDocId);
 
-  if (!doc) {
-    alert("Tanlangan ish xonasi topilmadi!");
-    return;
-  }
-
-  if (laborant && String(laborant.password) === String(inputPwd)) {
-    if (errorMsg) errorMsg.style.display = "none";
-
-    localStorage.setItem("utt_active_laborant", JSON.stringify(laborant));
-    localStorage.setItem("utt_active_doctor_id", doc.id);
-
-    setLaborantLoggedIn(laborant, doc);
+    setLaborantLoggedIn(foundLab, selectedDoctor);
   } else {
-    if (errorMsg) {
-      errorMsg.style.display = "block";
-      errorMsg.innerText = "❌ Login yoki parol noto'g'ri! Qaytadan tekshirib kiriting.";
+    if (errorEl) {
+      errorEl.innerText = "❌ Login yoki parol noto'g'ri!";
+      errorEl.style.display = "block";
     }
   }
 }
 
-function setLaborantLoggedIn(laborant, doc) {
+function setLaborantLoggedIn(laborant, doctor) {
   currentLaborant = laborant;
-  currentDoctor = doc;
+  currentDoctor = doctor;
 
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("doctorWorkspace").style.display = "flex";
 
+  const roomName = doctor.room || doctor.name || "Xona";
+  const docSpecialty = doctor.specialty || doctor.name || "";
+
   document.getElementById("headerLaborantName").innerText = laborant.name;
   document.getElementById("headerLaborantBadge").innerText = laborant.login;
-  document.getElementById("headerDocRoom").innerText = doc.room || doc.name;
-  document.getElementById("headerDocSpecialty").innerText = `${doc.name} (${doc.specialty || 'Tomografiya'})`;
+  document.getElementById("headerDocRoom").innerText = roomName;
+  document.getElementById("headerDocSpecialty").innerText = `${docSpecialty}`;
+
+  const modLabName = document.getElementById("modalLaborantName");
+  const modLabLogin = document.getElementById("modalLaborantLogin");
+  const modDocRoom = document.getElementById("modalDocRoomName");
+  if (modLabName) modLabName.innerText = laborant.name;
+  if (modLabLogin) modLabLogin.innerText = laborant.login;
+  if (modDocRoom) modDocRoom.innerText = `${roomName} (${docSpecialty})`;
 
   listenToMyPatients();
+  renderLaborantServicesList();
 }
 
 function logoutLaborant() {
-  if (confirm("Tizimdan chiqmoqchimisiz?")) {
+  if (confirm("Haqiqatan ham xonadan chiqmoqchimisiz?")) {
     localStorage.removeItem("utt_active_laborant");
     localStorage.removeItem("utt_active_doctor_id");
     currentLaborant = null;
     currentDoctor = null;
     activePatient = null;
+    myPatients = [];
 
-    document.getElementById("loginPassword").value = "";
     document.getElementById("doctorWorkspace").style.display = "none";
     document.getElementById("loginScreen").style.display = "flex";
+
+    const pwdInput = document.getElementById("loginPassword");
+    if (pwdInput) pwdInput.value = "";
   }
 }
 
-// 5. SHAXSIY PROFIL VA PAROL O'ZGARTIRISH MODALI
-function openProfileModal() {
-  if (!currentLaborant) return;
-
-  document.getElementById("modalLaborantName").innerText = currentLaborant.name;
-  document.getElementById("modalLaborantLogin").innerText = currentLaborant.login;
-  document.getElementById("modalLaborantRole").innerText = currentLaborant.role || "Vrach / Laborant";
-
-  document.getElementById("oldPassword").value = "";
-  document.getElementById("newPassword").value = "";
-  document.getElementById("confirmNewPassword").value = "";
-
-  const statusEl = document.getElementById("pwdChangeStatus");
-  if (statusEl) statusEl.style.display = "none";
-
-  document.getElementById("profileModal").style.display = "flex";
-}
-
-function closeProfileModal() {
-  document.getElementById("profileModal").style.display = "none";
-}
-
-async function handleChangePassword(e) {
-  e.preventDefault();
-  if (!currentLaborant) return;
-
-  const oldPwd = document.getElementById("oldPassword").value.trim();
-  const newPwd = document.getElementById("newPassword").value.trim();
-  const confirmPwd = document.getElementById("confirmNewPassword").value.trim();
-
-  if (String(oldPwd) !== String(currentLaborant.password)) {
-    showPasswordStatus("❌ Amaldagi (eski) parol noto'g'ri!", "error");
-    return;
-  }
-
-  if (newPwd.length < 4) {
-    showPasswordStatus("❌ Yangi parol kamida 4 ta belgidan iborat bo'lishi kerak!", "error");
-    return;
-  }
-
-  if (newPwd !== confirmPwd) {
-    showPasswordStatus("❌ Yangi parollar bir-biriga mos kelmadi!", "error");
-    return;
-  }
-
-  try {
-    // Firebase-da parolni yangilash
-    await db.ref(`laborants/${currentLaborant.login}/password`).set(newPwd);
-
-    currentLaborant.password = newPwd;
-    localStorage.setItem("utt_active_laborant", JSON.stringify(currentLaborant));
-
-    showPasswordStatus("✅ Parol muvaffaqiyatli o'zgartirildi!", "success");
-
-    setTimeout(() => {
-      closeProfileModal();
-    }, 1500);
-  } catch (err) {
-    showPasswordStatus("❌ Xatolik yuz berdi: " + err.message, "error");
-  }
-}
-
-function showPasswordStatus(msg, type) {
-  const el = document.getElementById("pwdChangeStatus");
-  if (!el) return;
-  el.style.display = "block";
-  el.innerText = msg;
-  if (type === "success") {
-    el.style.background = "#dcfce7";
-    el.style.color = "#166534";
-    el.style.border = "1px solid #86efac";
-  } else {
-    el.style.background = "#fee2e2";
-    el.style.color = "#991b1b";
-    el.style.border = "1px solid #fca5a5";
-  }
-}
-
-function togglePasswordVisibility(inputId, btn) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  if (input.type === "password") {
-    input.type = "text";
-    btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i>`;
-  } else {
-    input.type = "password";
-    btn.innerHTML = `<i class="fa-solid fa-eye"></i>`;
-  }
-}
-
-// 6. SHU QURILMA/XONAGA TEGISHLI BEMORLARNI REAL-TIME TINGLASH
+// 6. XONA NAVBATINI REALTIME TINGLASH
 function listenToMyPatients() {
   if (!currentDoctor) return;
 
   db.ref(`patients/${todayDateStr}`).on("value", (snapshot) => {
     myPatients = [];
     const data = snapshot.val();
+
     if (data) {
       Object.keys(data).forEach((key) => {
         const p = { id: key, ...data[key] };
@@ -334,119 +268,132 @@ function listenToMyPatients() {
       });
     }
 
-    // Saralash: kutayotganlar timestamp / vaqt bo'yicha birinchi
-    myPatients.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    myPatients.sort((a, b) => {
+      const tA = a.timeSlot || a.time || "";
+      const tB = b.timeSlot || b.time || "";
+      return tA.localeCompare(tB);
+    });
 
-    updateWorkspaceState();
+    activePatient = myPatients.find(p => p.status === "calling" || p.status === "in_progress") || null;
+
+    renderActivePatientCard();
+    renderQueueList();
   });
 }
 
-// 7. ISH STOLINI YANGILASH
-function updateWorkspaceState() {
-  const currentActive = myPatients.find(p => p.status === "calling" || p.status === "in_progress");
+function renderActivePatientCard() {
+  const emptyState = document.getElementById("emptyPatientState");
+  const activeDetails = document.getElementById("activeDetails");
+  const statusBadge = document.getElementById("currentStatusBadge");
+  const btnCallNext = document.getElementById("btnCallNext");
+  const inCallButtons = document.getElementById("inCallButtons");
+
+  if (!activePatient) {
+    if (emptyState) emptyState.style.display = "block";
+    if (activeDetails) activeDetails.style.display = "none";
+    if (statusBadge) {
+      statusBadge.className = "badge badge-waiting";
+      statusBadge.innerText = "Qabul bo'sh";
+    }
+    if (btnCallNext) btnCallNext.style.display = "flex";
+    if (inCallButtons) inCallButtons.style.display = "none";
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = "none";
+  if (activeDetails) activeDetails.style.display = "block";
+  if (btnCallNext) btnCallNext.style.display = "none";
+  if (inCallButtons) inCallButtons.style.display = "grid";
+
+  const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const serviceTitle = formatServiceNameWithOriginal(activePatient.service || "Tekshiruv", curLang);
+
+  document.getElementById("activeTicketId").innerText = activePatient.ticketId || "---";
+  document.getElementById("activePatientName").innerText = activePatient.name || "Bemor";
+  document.getElementById("activePhone").innerText = activePatient.phone || "-";
+  document.getElementById("activeAge").innerText = activePatient.age ? `${activePatient.age} yosh` : "-";
+  document.getElementById("activeService").innerText = serviceTitle;
+  document.getElementById("activeTime").innerText = activePatient.timeSlot || activePatient.time || "-";
+
+  const notesBox = document.getElementById("activeNotesBox");
+  const notesText = document.getElementById("activeNotes");
+  if (activePatient.notes || activePatient.rescheduleReason) {
+    const combinedNotes = [activePatient.notes, activePatient.rescheduleReason ? `Sabab: ${activePatient.rescheduleReason}` : null].filter(Boolean).join(" | ");
+    if (notesBox) notesBox.style.display = "block";
+    if (notesText) notesText.innerText = combinedNotes;
+  } else {
+    if (notesBox) notesBox.style.display = "none";
+  }
+
+  if (activePatient.status === "calling") {
+    statusBadge.className = "badge badge-calling";
+    statusBadge.innerText = "Chaqirilmoqda...";
+  } else if (activePatient.status === "in_progress") {
+    statusBadge.className = "badge badge-in_progress";
+    statusBadge.innerText = "Qabul qilinmoqda";
+  }
+}
+
+function renderQueueList() {
+  const container = document.getElementById("queueCardsContainer");
+  const countBadge = document.getElementById("waitingCount");
+  const mobileCountBadge = document.getElementById("mobileWaitingCount");
+  const completedList = document.getElementById("completedList");
+  const completedCount = document.getElementById("completedCount");
+
   const waitingPatients = myPatients.filter(p => p.status === "waiting");
   const completedPatients = myPatients.filter(p => p.status === "completed" || p.status === "cancelled");
 
-  activePatient = currentActive || null;
+  if (countBadge) countBadge.innerText = `${waitingPatients.length} nafar`;
+  if (mobileCountBadge) mobileCountBadge.innerText = waitingPatients.length;
+  if (completedCount) completedCount.innerText = completedPatients.length;
 
-  renderActivePatientCard(activePatient);
-  renderWaitingQueue(waitingPatients);
-  renderCompletedHistory(completedPatients);
-}
-
-function renderActivePatientCard(patient) {
-  const emptyState = document.getElementById("emptyPatientState");
-  const activeDetails = document.getElementById("activeDetails");
-  const badge = document.getElementById("currentStatusBadge");
-  const btnCallNext = document.getElementById("btnCallNext");
-  const inCallButtons = document.getElementById("inCallButtons");
-  const btnStartExam = document.getElementById("btnStartExam");
-
-  if (!patient) {
-    emptyState.style.display = "block";
-    activeDetails.style.display = "none";
-    badge.className = "badge badge-waiting";
-    badge.innerText = "Qabul bo'sh";
-    btnCallNext.style.display = "flex";
-    inCallButtons.style.display = "none";
-    return;
-  }
-
-  emptyState.style.display = "none";
-  activeDetails.style.display = "flex";
-
-  document.getElementById("activeTicketId").innerText = patient.ticketId || "U-000";
-  document.getElementById("activePatientName").innerText = patient.name;
-  document.getElementById("activePhone").innerText = patient.phone || "-";
-  document.getElementById("activeAge").innerText = patient.age || "-";
-  document.getElementById("activeService").innerText = patient.service || "Tomografiya Ko'rik";
-  document.getElementById("activeTime").innerText = patient.time || "-";
-
-  if (patient.notes) {
-    document.getElementById("activeNotesBox").style.display = "block";
-    document.getElementById("activeNotes").innerText = patient.notes;
-  } else {
-    document.getElementById("activeNotesBox").style.display = "none";
-  }
-
-  if (patient.status === "calling") {
-    badge.className = "badge badge-calling";
-    badge.innerText = "Chaqirilmoqda...";
-    btnStartExam.style.display = "inline-flex";
-  } else if (patient.status === "in_progress") {
-    badge.className = "badge badge-in_progress";
-    badge.innerText = "Qabul qilinmoqda";
-    btnStartExam.style.display = "none";
-  }
-
-  btnCallNext.style.display = "none";
-  inCallButtons.style.display = "grid";
-}
-
-function renderWaitingQueue(waitingList) {
-  const container = document.getElementById("queueCardsContainer");
-  const countBadge = document.getElementById("waitingCount");
-
-  countBadge.innerText = `${waitingList.length} nafar`;
-
-  if (waitingList.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;"><i class="fa-solid fa-check" style="font-size:2rem; margin-bottom:8px; display:block;"></i>Kutayotgan bemorlar yo'q</div>`;
-    return;
-  }
-
-  container.innerHTML = waitingList.map((p) => `
-    <div class="queue-item-card">
-      <div class="queue-item-left">
-        <span class="queue-ticket-num">${p.ticketId}</span>
-        <div>
-          <div class="queue-patient-title">${escapeHtml(p.name)}</div>
-          <div class="queue-patient-sub">${escapeHtml(p.service || "Tomografiya")} • ${p.time || ''}</div>
+  if (container) {
+    if (waitingPatients.length === 0) {
+      container.innerHTML = `
+        <div class="empty-queue-msg">
+          <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: #10b981; margin-bottom: 8px;"></i>
+          <p>Kutayotgan bemorlar yo'q</p>
         </div>
-      </div>
-      <button class="btn btn-primary btn-small" onclick="callSpecificPatient('${p.id}')">
-        <i class="fa-solid fa-bell"></i> Chaqirish
-      </button>
-    </div>
-  `).join("");
+      `;
+    } else {
+      const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+      container.innerHTML = waitingPatients.map((p, idx) => `
+        <div class="queue-card ${idx === 0 ? 'next-in-line' : ''}">
+          <div class="queue-card-left">
+            <div class="queue-ticket-badge">${escapeHtml(p.ticketId || String(idx + 1))}</div>
+            <div class="queue-info">
+              <div class="queue-patient-title">${escapeHtml(p.name)}</div>
+              <div class="queue-patient-sub">
+                ${escapeHtml(formatServiceNameWithOriginal(p.service || '', curLang))} • <strong>${escapeHtml(p.timeSlot || p.time || '')}</strong>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-call-small" onclick="callSpecificPatient('${escapeHtml(p.id)}')">
+            <i class="fa-solid fa-bell"></i> Chaqirish
+          </button>
+        </div>
+      `).join("");
+    }
+  }
+
+  if (completedList) {
+    if (completedPatients.length === 0) {
+      completedList.innerHTML = `<p style="font-size: 0.8rem; color: #94a3b8; text-align: center;">Hozircha qabul tugaganlar yo'q</p>`;
+    } else {
+      completedList.innerHTML = completedPatients.map(p => `
+        <div class="completed-row">
+          <span><strong>${escapeHtml(p.ticketId)}</strong> - ${escapeHtml(p.name)}</span>
+          <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-waiting'}">
+            ${p.status === 'completed' ? 'Yakunlandi' : 'Kelmadi'}
+          </span>
+        </div>
+      `).join("");
+    }
+  }
 }
 
-function renderCompletedHistory(completedList) {
-  const countSpan = document.getElementById("completedCount");
-  const listContainer = document.getElementById("completedList");
-
-  countSpan.innerText = completedList.length;
-
-  listContainer.innerHTML = completedList.map(p => `
-    <div class="completed-row">
-      <span><strong>${p.ticketId}</strong> - ${escapeHtml(p.name)}</span>
-      <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-cancelled'}">
-        ${p.status === 'completed' ? 'Yakunlandi' : 'Kelmadi'}
-      </span>
-    </div>
-  `).join("");
-}
-
-// 8. NAVBATNI BOSHQARISH VA TV MONITORGA CHAQIRUV YUBORISH
+// 7. BEMORNI CHAQIRISH VA BOSHQARISH
 function callNextPatient() {
   const waitingPatients = myPatients.filter(p => p.status === "waiting");
   if (waitingPatients.length === 0) {
@@ -493,11 +440,11 @@ function broadcastToTV(patient) {
     patientId: patient.id,
     ticketId: patient.ticketId,
     patientName: patient.name,
-    room: currentDoctor.room || currentDoctor.name,
-    doctorName: currentDoctor.name,
+    room: currentDoctor ? (currentDoctor.room || currentDoctor.name) : "Xona",
+    doctorName: currentDoctor ? currentDoctor.name : "",
     laborantName: labName,
     laborantLogin: labLogin,
-    specialty: currentDoctor.specialty || "Tomografiya",
+    specialty: currentDoctor ? (currentDoctor.specialty || "Tomografiya") : "",
     isContrast: patient.isContrast || false,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
@@ -530,6 +477,847 @@ function skipPatient() {
   }
 }
 
+// 8. TEKSHIRUVLARNI BOSHQARISH (SERVICES MANAGEMENT CRUD & COMMITS)
+function openServicesManagementModal() {
+  const modal = document.getElementById("servicesModal");
+  if (modal) modal.style.display = "flex";
+
+  const badge = document.getElementById("svcRoomBadge");
+  if (badge && currentDoctor) {
+    badge.innerText = `${currentDoctor.room || currentDoctor.name} (${currentDoctor.specialty || ''})`;
+  }
+
+  renderLaborantServicesList();
+}
+
+function closeServicesModal() {
+  const modal = document.getElementById("servicesModal");
+  if (modal) modal.style.display = "none";
+}
+
+function setServiceFilter(filter, el) {
+  currentServiceFilter = filter;
+  document.querySelectorAll(".services-filter-toolbar .filter-pill").forEach(p => p.classList.remove("active"));
+  if (el) el.classList.add("active");
+  renderLaborantServicesList();
+}
+
+function renderLaborantServicesList() {
+  const container = document.getElementById("laborantServicesContainer");
+  if (!container) return;
+
+  const searchQuery = (document.getElementById("svcSearchInput")?.value || "").toLowerCase().trim();
+  const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+
+  let filtered = [...servicesList];
+
+  // 1. Modallik va Xona filtrlari
+  if (currentServiceFilter === "my_room" && currentDoctor) {
+    const docSpec = (currentDoctor.specialty || currentDoctor.name || "").toUpperCase();
+    if (docSpec.includes("MRT")) {
+      filtered = filtered.filter(s => (s.type || "").toUpperCase() === "MRT");
+    } else if (docSpec.includes("MSKT") || docSpec.includes("KT") || docSpec.includes("CT")) {
+      filtered = filtered.filter(s => (s.type || "").toUpperCase() === "MSKT");
+    }
+  } else if (currentServiceFilter === "MRT") {
+    filtered = filtered.filter(s => (s.type || "").toUpperCase() === "MRT");
+  } else if (currentServiceFilter === "MSKT") {
+    filtered = filtered.filter(s => (s.type || "").toUpperCase() === "MSKT");
+  } else if (currentServiceFilter === "contrast") {
+    filtered = filtered.filter(s => s.isContrast === true);
+  }
+
+  // 2. Qidiruv
+  if (searchQuery) {
+    filtered = filtered.filter(s => {
+      const code = (s.code || "").toLowerCase();
+      const name = (s.name || "").toLowerCase();
+      const prep = (s.preparation || "").toLowerCase();
+      return code.includes(searchQuery) || name.includes(searchQuery) || prep.includes(searchQuery);
+    });
+  }
+
+  // Saralash: kod bo'yicha
+  filtered.sort((a, b) => (a.code || "").localeCompare(b.code || ""));
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; color: #64748b;">
+        <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px;"></i>
+        <h4 style="color: #334155;">Tekshiruvlar topilmadi</h4>
+        <p style="font-size: 0.9rem;">Qidiruv parametrini o'zgartiring yoki yangi tekshiruv qo'shing</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(s => {
+    const isMrt = (s.type || "").toUpperCase() === "MRT";
+    const duration = s.duration || 30;
+    const questionsCount = s.questions ? String(s.questions).split(/\r?\n/).filter(l => l.trim()).length : 0;
+    const structured = parseStructuredPreparation(s.preparation, s);
+
+    return `
+      <div class="service-mgmt-card">
+        <div class="svc-card-header">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span class="svc-code-badge">${escapeHtml(s.code || 'KOD')}</span>
+            <span class="badge ${isMrt ? 'badge-mrt' : 'badge-mskt'}">${isMrt ? '🧲 MRT' : '⚡ MSKT'}</span>
+            ${s.isContrast ? `<span class="badge badge-contrast">💉 Kontrastli</span>` : `<span class="badge badge-plain">Oddiy</span>`}
+          </div>
+          <div class="svc-duration-tag">
+            <i class="fa-solid fa-clock"></i> <strong>${duration}</strong> daq
+          </div>
+        </div>
+
+        <h4 class="svc-card-title">${escapeHtml(s.name || 'Tekshiruv')}</h4>
+
+        <div class="svc-card-body">
+          <div class="svc-detail-row">
+            <span class="svc-lbl">Tayyorgarlik:</span>
+            <span class="svc-val">${escapeHtml(s.preparation || 'Maxsus tayyorgarlik talab etilmaydi')}</span>
+          </div>
+          ${s.contraindications ? `
+            <div class="svc-detail-row">
+              <span class="svc-lbl">Qarshi ko'rsatma:</span>
+              <span class="svc-val" style="color: #b91c1c;">${escapeHtml(s.contraindications)}</span>
+            </div>
+          ` : ''}
+          <div class="svc-detail-row">
+            <span class="svc-lbl">Savolnoma:</span>
+            <span class="svc-val">${questionsCount > 0 ? `<strong>${questionsCount} ta</strong> maxsus savol kiritilgan` : 'Standart savolnoma'}</span>
+          </div>
+        </div>
+
+        <div class="svc-card-actions">
+          <button type="button" class="btn-card-action btn-edit-act" onclick="openEditServiceModal('${escapeHtml(s.id)}')">
+            <i class="fa-solid fa-pen-to-square"></i> Tahrirlash
+          </button>
+          <button type="button" class="btn-card-action btn-history-act" onclick="openServiceHistoryModal('${escapeHtml(s.id)}')">
+            <i class="fa-solid fa-clock-rotate-left"></i> Tarix
+          </button>
+          <button type="button" class="btn-card-action btn-test-act" onclick="openTestPrintModal('${escapeHtml(s.id)}')">
+            <i class="fa-solid fa-print"></i> Test Chop Etish
+          </button>
+          <button type="button" class="btn-card-action btn-delete-act" onclick="deleteService('${escapeHtml(s.id)}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// 9. TEKSHIRUV QO'SHISH / TAHRIRLASH MODALI
+function openAddServiceModal() {
+  document.getElementById("serviceEditModalTitle").innerHTML = `<i class="fa-solid fa-plus" style="color: #10b981;"></i> Yangi Tekshiruv Qo'shish`;
+  document.getElementById("editServiceId").value = "";
+  document.getElementById("editIsNew").value = "1";
+
+  document.getElementById("editServiceCode").value = "";
+  document.getElementById("editServiceName").value = "";
+  document.getElementById("editServiceType").value = (currentDoctor && (currentDoctor.specialty || "").includes("MRT")) ? "MRT" : "MSKT";
+  document.getElementById("editServiceDuration").value = "30";
+  document.getElementById("editServiceIsContrast").checked = false;
+
+  document.getElementById("editFastingHours").value = "6-8";
+  document.getElementById("editNeedsBloodTest").checked = false;
+  document.getElementById("editNeedsMetformin").checked = false;
+  document.getElementById("editNeedsMetalFree").checked = false;
+  document.getElementById("editNeedsHydration").checked = false;
+  document.getElementById("editSpecialPrep").value = "";
+  document.getElementById("editContraindications").value = "";
+  document.getElementById("editQuestions").value = "";
+  document.getElementById("editCommitComment").value = "Yangi tekshiruv qo'shildi";
+
+  handleModalityChange();
+  document.getElementById("serviceEditModal").style.display = "flex";
+}
+
+function openEditServiceModal(serviceId) {
+  const service = servicesList.find(s => s.id === serviceId);
+  if (!service) return;
+
+  document.getElementById("serviceEditModalTitle").innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: #0284c7;"></i> [${escapeHtml(service.code || '')}] Tekshiruvni Tahrirlash`;
+  document.getElementById("editServiceId").value = service.id;
+  document.getElementById("editIsNew").value = "0";
+
+  document.getElementById("editServiceCode").value = service.code || "";
+  document.getElementById("editServiceName").value = service.name || "";
+  document.getElementById("editServiceType").value = service.type || "MSKT";
+  document.getElementById("editServiceDuration").value = service.duration || 30;
+  document.getElementById("editServiceIsContrast").checked = !!service.isContrast;
+
+  const structured = parseStructuredPreparation(service.preparation, service);
+  document.getElementById("editFastingHours").value = structured.fastingHours || "none";
+  document.getElementById("editNeedsBloodTest").checked = !!structured.needsBloodTest;
+  document.getElementById("editNeedsMetformin").checked = !!structured.needsMetformin;
+  document.getElementById("editNeedsMetalFree").checked = !!structured.needsMetalFree;
+  document.getElementById("editNeedsHydration").checked = !!structured.needsHydration;
+  document.getElementById("editSpecialPrep").value = structured.specialPrep || "";
+
+  document.getElementById("editContraindications").value = service.contraindications || "";
+  document.getElementById("editQuestions").value = service.questions || "";
+  document.getElementById("editCommitComment").value = "";
+
+  handleModalityChange();
+  document.getElementById("serviceEditModal").style.display = "flex";
+}
+
+function closeServiceEditModal() {
+  document.getElementById("serviceEditModal").style.display = "none";
+}
+
+function handleModalityChange() {
+  const type = document.getElementById("editServiceType")?.value;
+  const isMrt = type === "MRT";
+  const metalFreeBox = document.getElementById("editNeedsMetalFree");
+  if (metalFreeBox && isMrt && !metalFreeBox.checked) {
+    metalFreeBox.checked = true;
+  }
+}
+
+function handleContrastToggle() {
+  const isContrast = document.getElementById("editServiceIsContrast")?.checked;
+  const bloodBox = document.getElementById("editNeedsBloodTest");
+  const metforminBox = document.getElementById("editNeedsMetformin");
+  const hydrationBox = document.getElementById("editNeedsHydration");
+
+  if (isContrast) {
+    if (bloodBox) bloodBox.checked = true;
+    if (metforminBox) metforminBox.checked = true;
+    if (hydrationBox) hydrationBox.checked = true;
+  }
+}
+
+// Helper: Tayyorgarlik strukturasini ajratish
+function parseStructuredPreparation(prepText, serviceObj = {}) {
+  const p = prepText || "";
+  let fastingHours = serviceObj.fastingHours || "none";
+  if (!serviceObj.fastingHours) {
+    if (p.includes("8-10")) fastingHours = "8-10";
+    else if (p.includes("6-8")) fastingHours = "6-8";
+    else if (p.includes("4-6")) fastingHours = "4-6";
+    else if (p.toLowerCase().includes("och qorin") || p.toLowerCase().includes("och holda")) fastingHours = "6-8";
+  }
+
+  const needsBloodTest = serviceObj.needsBloodTest !== undefined ? serviceObj.needsBloodTest : /kreatinin|mochevina|mochivina/i.test(p);
+  const needsMetformin = serviceObj.needsMetformin !== undefined ? serviceObj.needsMetformin : /metformin|diabet/i.test(p);
+  const needsMetalFree = serviceObj.needsMetalFree !== undefined ? serviceObj.needsMetalFree : /metall|ferromagnit/i.test(p);
+  const needsHydration = serviceObj.needsHydration !== undefined ? serviceObj.needsHydration : /suyuqlik/i.test(p);
+
+  let specialPrep = serviceObj.specialPreparation || "";
+  if (!specialPrep && p) {
+    const sentences = p.split(/(?:\.(?!\d)|\;|\r?\n)+/).map(s => s.trim().replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
+    const specificParts = sentences.filter(s => {
+      const l = s.toLowerCase();
+      if (l.includes("och qorin") || l.includes("och holda") || l.includes("ovqatlanmasdan")) return false;
+      if (l.includes("kreatinin") || l.includes("mochevina") || l.includes("mochivina")) return false;
+      if (l.includes("metformin") || l.includes("glyukofaj") || l.includes("siofor")) return false;
+      if (l.includes("ko'p suyuqlik") || l.includes("kop suyuqlik")) return false;
+      if ((l.includes("metall") || l.includes("ferromagnit")) && l.includes("yechish")) return false;
+      return true;
+    });
+    specialPrep = specificParts.join(". ");
+  }
+
+  return { fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPrep };
+}
+
+function buildStructuredPreparationString(fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPrep) {
+  const parts = [];
+  if (fastingHours === "8-10") parts.push("Kamida 8-10 soat och qoringa kelish.");
+  else if (fastingHours === "6-8") parts.push("Kamida 6-8 soat och qoringa kelish.");
+  else if (fastingHours === "4-6") parts.push("4-6 soat och qoringa kelish.");
+
+  if (needsBloodTest) parts.push("Qonda Kreatinin va Mochevina tahlili (oxirgi 3 kun).");
+  if (needsMetformin) parts.push("Qandli diabet bo'lsa: Metformin 48 soat oldin to'xtatiladi.");
+  if (needsMetalFree) parts.push("Barcha ferromagnit metall buyumlar, soat, telefon, bank kartalari, kamar va taqinchoqlarni yechish.");
+  if (needsHydration) parts.push("Tekshiruvdan so'ng ko'p suyuqlik ichish.");
+
+  if (specialPrep && specialPrep.trim()) {
+    let sp = specialPrep.trim();
+    if (!/[.\?!:;]$/.test(sp)) sp += '.';
+    parts.push(sp);
+  }
+  return parts.join(" ");
+}
+
+// Formani saqlash va Audit Log commitini yozish
+async function handleSaveServiceForm(e) {
+  e.preventDefault();
+
+  const isNew = document.getElementById("editIsNew")?.value === "1";
+  const serviceId = (document.getElementById("editServiceId")?.value || "").trim();
+  const code = (document.getElementById("editServiceCode")?.value || "").trim().toUpperCase();
+  const name = (document.getElementById("editServiceName")?.value || "").trim();
+  const type = document.getElementById("editServiceType")?.value || "MSKT";
+  const duration = parseInt(document.getElementById("editServiceDuration")?.value, 10) || 30;
+  const isContrast = document.getElementById("editServiceIsContrast")?.checked || false;
+
+  const fastingHours = document.getElementById("editFastingHours")?.value || "none";
+  const needsBloodTest = document.getElementById("editNeedsBloodTest")?.checked || false;
+  const needsMetformin = document.getElementById("editNeedsMetformin")?.checked || false;
+  const needsMetalFree = document.getElementById("editNeedsMetalFree")?.checked || false;
+  const needsHydration = document.getElementById("editNeedsHydration")?.checked || false;
+  const specialPrep = (document.getElementById("editSpecialPrep")?.value || "").trim();
+
+  const contraindications = (document.getElementById("editContraindications")?.value || "").trim();
+  const questions = (document.getElementById("editQuestions")?.value || "").trim();
+  const commitComment = (document.getElementById("editCommitComment")?.value || "").trim();
+
+  if (!code || !name) {
+    alert("Iltimos, kod va nomni kiriting!");
+    return;
+  }
+  if (!commitComment) {
+    alert("Iltimos, o'zgarish sababi (commit izohi)ni kiriting!");
+    return;
+  }
+
+  const preparation = buildStructuredPreparationString(fastingHours, needsBloodTest, needsMetformin, needsMetalFree, needsHydration, specialPrep);
+
+  const targetKey = isNew ? (code.replace(/[^a-zA-Z0-9]/g, "_") || db.ref("services_catalog").push().key) : serviceId;
+
+  const updatedServiceData = {
+    code,
+    name,
+    fullName: `${code} - ${name}`,
+    type,
+    duration,
+    isContrast,
+    fastingHours,
+    needsBloodTest,
+    needsMetformin,
+    needsMetalFree,
+    needsHydration,
+    specialPreparation: specialPrep,
+    preparation,
+    contraindications,
+    questions,
+    lastModified: firebase.database.ServerValue.TIMESTAMP,
+    lastModifiedBy: currentLaborant ? `${currentLaborant.login} (${currentLaborant.name})` : "Laborant"
+  };
+
+  // Diff hisoblash
+  const changes = [];
+  const oldObj = servicesList.find(s => s.id === targetKey);
+  if (oldObj) {
+    if (oldObj.duration !== duration) changes.push({ field: "Vaqt", old: `${oldObj.duration || 30} daqiqa`, new: `${duration} daqiqa` });
+    if (oldObj.isContrast !== isContrast) changes.push({ field: "Kontrast", old: oldObj.isContrast ? "Ha" : "Yo'q", new: isContrast ? "Ha" : "Yo'q" });
+    if (oldObj.preparation !== preparation) changes.push({ field: "Tayyorgarlik", old: oldObj.preparation || "Bo'sh", new: preparation });
+    if (oldObj.contraindications !== contraindications) changes.push({ field: "Qarshi ko'rsatma", old: oldObj.contraindications || "Bo'sh", new: contraindications });
+    if (oldObj.questions !== questions) changes.push({ field: "Savolnoma", old: oldObj.questions || "Bo'sh", new: questions });
+  } else {
+    changes.push({ field: "Yangi tekshiruv", old: "-", new: `${code}: ${name}` });
+  }
+
+  const historyEntry = {
+    timestamp: Date.now(),
+    datetime: new Date().toLocaleString('uz-UZ'),
+    laborantLogin: currentLaborant ? currentLaborant.login : "LAB",
+    laborantName: currentLaborant ? currentLaborant.name : "Laborant",
+    room: currentDoctor ? (currentDoctor.room || currentDoctor.name) : "Xona",
+    action: isNew ? "create" : "update",
+    serviceCode: code,
+    serviceName: name,
+    comment: commitComment,
+    changes: changes
+  };
+
+  try {
+    await db.ref(`services_catalog/${targetKey}`).set(updatedServiceData);
+    await db.ref(`services_history/${targetKey}`).push(historyEntry);
+    await db.ref(`services_history_log`).push({ serviceId: targetKey, ...historyEntry });
+
+    closeServiceEditModal();
+    alert("✅ Tekshiruv va o'zgarishlar tarixi muvaffaqiyatli saqlandi!");
+  } catch (err) {
+    console.error("Save error:", err);
+    alert("❌ Saqlashda xatolik yuz berdi: " + err.message);
+  }
+}
+
+// 10. TEKSHIRUVNI O'CHIRISH
+async function deleteService(serviceId) {
+  const service = servicesList.find(s => s.id === serviceId);
+  if (!service) return;
+
+  const reason = prompt(`"${service.code} - ${service.name}" tekshiruvini o'chirish sababini yozing:`);
+  if (reason === null) return; // bekor qilindi
+
+  if (!reason.trim()) {
+    alert("O'chirish sababini kiritish majburiy!");
+    return;
+  }
+
+  const historyEntry = {
+    timestamp: Date.now(),
+    datetime: new Date().toLocaleString('uz-UZ'),
+    laborantLogin: currentLaborant ? currentLaborant.login : "LAB",
+    laborantName: currentLaborant ? currentLaborant.name : "Laborant",
+    room: currentDoctor ? (currentDoctor.room || currentDoctor.name) : "Xona",
+    action: "delete",
+    serviceCode: service.code || "",
+    serviceName: service.name || "",
+    comment: reason.trim(),
+    changes: [{ field: "O'chirildi", old: `${service.code} - ${service.name}`, new: "Arxivlandi/O'chirildi" }]
+  };
+
+  try {
+    await db.ref(`services_history/${serviceId}`).push(historyEntry);
+    await db.ref(`services_history_log`).push({ serviceId, ...historyEntry });
+    await db.ref(`services_catalog/${serviceId}`).remove();
+    alert("✅ Tekshiruv o'chirildi va tarixga qayd etildi!");
+  } catch (e) {
+    alert("❌ O'chirishda xatolik: " + e.message);
+  }
+}
+
+// 11. O'ZGARISHLAR TARIXI (HISTORY / COMMITS MODAL)
+function openServiceHistoryModal(serviceId) {
+  const service = servicesList.find(s => s.id === serviceId);
+  const modal = document.getElementById("serviceHistoryModal");
+  if (!modal) return;
+
+  const headerInfo = document.getElementById("historyServiceInfo");
+  if (headerInfo && service) {
+    headerInfo.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">${escapeHtml(service.code)}: ${escapeHtml(service.name)}</h4>
+          <span style="font-size: 0.85rem; color: #64748b;">Qurilma: <strong>${escapeHtml(service.type)}</strong> | Davomiyligi: <strong>${service.duration || 30} daqiqa</strong></span>
+        </div>
+        <span class="badge ${service.isContrast ? 'badge-contrast' : 'badge-plain'}">
+          ${service.isContrast ? '💉 Kontrastli' : 'Oddiy'}
+        </span>
+      </div>
+    `;
+  }
+
+  const container = document.getElementById("historyTimelineContainer");
+  if (container) {
+    container.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Tarix yuklanmoqda...</div>`;
+  }
+
+  modal.style.display = "flex";
+
+  db.ref(`services_history/${serviceId}`).once("value", (snap) => {
+    const data = snap.val();
+    if (!data) {
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 30px; color: #64748b;">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 8px;"></i>
+            <p>Ushbu tekshiruv bo'yicha hali o'zgarishlar tarixi mavjud emas</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    const list = Object.values(data);
+    list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    if (container) {
+      container.innerHTML = list.map(item => `
+        <div class="history-item-card">
+          <div class="history-item-top">
+            <div class="history-author">
+              <div class="author-avatar">${escapeHtml((item.laborantLogin || 'LAB').slice(0, 4))}</div>
+              <div>
+                <strong>${escapeHtml(item.laborantName || 'Laborant')} (${escapeHtml(item.laborantLogin || '')})</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Xona: ${escapeHtml(item.room || 'Xona')}</div>
+              </div>
+            </div>
+            <div class="history-date">${escapeHtml(item.datetime || '')}</div>
+          </div>
+
+          <div class="history-comment-bubble">
+            <i class="fa-solid fa-quote-left" style="color: #8b5cf6; margin-right: 4px;"></i>
+            <strong>Izoh:</strong> "${escapeHtml(item.comment || 'Sabab ko\'rsatilmadi')}"
+          </div>
+
+          ${(item.changes && item.changes.length > 0) ? `
+            <div class="history-changes-box">
+              <strong style="font-size: 0.8rem; color: #334155; display: block; margin-bottom: 4px;">O'zgartirilgan parametrlar:</strong>
+              ${item.changes.map(ch => `
+                <div class="history-change-row">
+                  <span class="ch-field">${escapeHtml(ch.field)}:</span>
+                  <span class="ch-old">${escapeHtml(ch.old)}</span>
+                  <i class="fa-solid fa-arrow-right" style="font-size: 0.7rem; color: #94a3b8;"></i>
+                  <span class="ch-new">${escapeHtml(ch.new)}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : ''}
+        </div>
+      `).join("");
+    }
+  });
+}
+
+function closeServiceHistoryModal() {
+  const modal = document.getElementById("serviceHistoryModal");
+  if (modal) modal.style.display = "none";
+}
+
+// 12. TEST CHOP ETISH VA KO'RISH (MULTI-LANGUAGE PREVIEW & DIRECT PRINT)
+function openTestPrintModal(serviceId) {
+  const service = servicesList.find(s => s.id === serviceId);
+  if (!service) return;
+
+  selectedServiceForTest = service;
+  currentTestPreviewMode = 'ticket';
+
+  const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const tpLang = document.getElementById("testPrintLang");
+  if (tpLang) tpLang.value = curLang;
+
+  const badge = document.getElementById("testModalServiceBadge");
+  if (badge) badge.innerText = `${service.code} - ${service.name}`;
+
+  document.getElementById("testPrintModal").style.display = "flex";
+  renderTestPreview();
+}
+
+function closeTestPrintModal() {
+  document.getElementById("testPrintModal").style.display = "none";
+  selectedServiceForTest = null;
+}
+
+function switchTestPreviewMode(mode) {
+  currentTestPreviewMode = mode;
+  document.getElementById("btnPreviewTicket")?.classList.toggle("active", mode === 'ticket');
+  document.getElementById("btnPreviewConsent")?.classList.toggle("active", mode === 'consent');
+  renderTestPreview();
+}
+
+function renderTestPreview() {
+  if (!selectedServiceForTest) return;
+
+  const lang = document.getElementById("testPrintLang")?.value || "uz";
+  const frame = document.getElementById("testPreviewFrame");
+  if (!frame) return;
+
+  if (currentTestPreviewMode === "ticket") {
+    frame.innerHTML = generateTestTicketHtml(selectedServiceForTest, lang);
+  } else {
+    frame.innerHTML = generateTestConsentHtml(selectedServiceForTest, lang);
+  }
+}
+
+function generateTestTicketHtml(service, lang = 'uz') {
+  const L = lang || 'uz';
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket && I18N_TRANSLATIONS.ticket[L]) 
+    ? I18N_TRANSLATIONS.ticket[L] 
+    : I18N_TRANSLATIONS.ticket['uz'];
+
+  const rawRoom = currentDoctor ? (currentDoctor.room || currentDoctor.name) : "101-xona";
+  const docName = currentDoctor ? currentDoctor.name : "MRT 1";
+  const roomFormatted = formatRoomWithOriginal(rawRoom, docName, L);
+  const serviceFormatted = formatServiceNameWithOriginal(service.name || service.fullName, L);
+  const contrastBadgeHtml = service.isContrast ? `<span style="background:#000; color:#fff; padding:2px 6px; font-size:12px; font-weight:bold; border-radius:3px; margin-left:4px;">${dict.contrastBadge}</span>` : '';
+
+  const mockPayload = {
+    ticketId: "847",
+    name: "Yoqubov Dilshod (TEST)",
+    patientType: "Uyidan qatnaydi",
+    service: service.name,
+    doctorName: docName,
+    room: rawRoom,
+    isContrast: service.isContrast,
+    preparation: service.preparation,
+    contraindications: service.contraindications,
+    servicesList: [service]
+  };
+
+  const guidelinesHtml = formatConsolidatedGuidelinesHtml(mockPayload, L);
+
+  return `
+    <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:16px; width:100%; max-width:380px; margin:0 auto; font-family:'Segoe UI', Tahoma, sans-serif; font-size:13px; line-height:1.4; color:#000; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div style="text-align:center; border-bottom:2px dashed #000; padding-bottom:8px; margin-bottom:8px;">
+        <h3 style="font-size:14px; font-weight:900; text-transform:uppercase; margin:0 0 4px 0;">${dict.centerName}</h3>
+        <div style="font-size:12px; font-weight:700; color:#334155;">${dict.ticketTitle}</div>
+      </div>
+
+      <div style="text-align:center; margin:8px 0; background:#f1f5f9; border:2px solid #000; border-radius:8px; padding:6px;">
+        <div style="font-size:11px; font-weight:700; color:#475569;">TALON RAQAMI:</div>
+        <div style="font-size:28px; font-weight:900; letter-spacing:1px; color:#000;">847</div>
+      </div>
+
+      <div style="margin-bottom:8px; font-size:12.5px;">
+        <div><strong>${dict.patient}</strong> Yoqubov Dilshod</div>
+        <div><strong>${dict.patientType}</strong> ${dict.ambulatory}</div>
+        <div><strong>${dict.roomDevice}</strong> ${roomFormatted}</div>
+        <div><strong>${dict.service}</strong> ${serviceFormatted} ${contrastBadgeHtml}</div>
+      </div>
+
+      <div style="border-top:1px dashed #000; border-bottom:1px dashed #000; padding:6px 0; margin:8px 0; text-align:center;">
+        <div style="font-size:11px; font-weight:700;">${dict.bookedTime}</div>
+        <div style="font-size:18px; font-weight:900; color:#000;">09:00 - 09:${String(service.duration || 30).padStart(2, '0')}</div>
+        <div style="font-size:11.5px; margin-top:2px;">${dict.appointmentDate} ${todayDateStr}</div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        ${guidelinesHtml}
+      </div>
+
+      <div style="text-align:center; font-size:11px; color:#334155; margin-top:8px; border-top:1px dashed #000; padding-top:6px;">
+        <div>${dict.timeNotice}</div>
+        <div style="font-weight:700; margin-top:3px;">${dict.footerThanks}</div>
+      </div>
+    </div>
+  `;
+}
+
+function generateTestConsentHtml(service, lang = 'uz') {
+  const L = lang || 'uz';
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.consent && I18N_TRANSLATIONS.consent[L]) 
+    ? I18N_TRANSLATIONS.consent[L] 
+    : I18N_TRANSLATIONS.consent['uz'];
+
+  const rawRoom = currentDoctor ? (currentDoctor.room || currentDoctor.name) : "101-xona";
+  const docName = currentDoctor ? currentDoctor.name : "MRT 1";
+  const roomFormatted = formatRoomWithOriginal(rawRoom, docName, L);
+  const serviceFormatted = formatServiceNameWithOriginal(service.name || service.fullName, L);
+
+  const rawQuestions = service.questions || (service.isContrast 
+    ? "1. Yodli yoki boshqa kontrast dori vositalariga allergiyangiz bormi?\n2. Buyrak yetishmovchiligi yoki dializ olasizmi?\n3. Homiladorlik yoki emizish davridamisiz?"
+    : "1. Yuragingizda kardiostimulyator yoki metall implant bormi?\n2. Klavstrofobiya (yopiq joydan qo'rqish) bormi?");
+
+  const qLines = rawQuestions.split(/\r?\n/).filter(l => l.trim());
+  const translatedQuestions = translateQuestionsList(qLines, L);
+
+  return `
+    <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:20px; width:100%; max-width:680px; margin:0 auto; font-family:'Segoe UI', Tahoma, sans-serif; font-size:11.5px; line-height:1.35; color:#000; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:10px;">
+        <img src="${typeof LOGO_ONKOLOGIYA !== 'undefined' ? LOGO_ONKOLOGIYA : ''}" style="width:60px; height:auto; max-height:60px;" alt="Logo Onko">
+        <div style="text-align:center; flex:1; padding:0 10px;">
+          <h3 style="font-size:12px; font-weight:900; margin:0; text-transform:uppercase;">${dict.ministryTitle}</h3>
+          <h2 style="font-size:13.5px; font-weight:900; margin:3px 0 0 0; text-transform:uppercase;">${service.isContrast ? dict.contrastDocTitle : dict.standardDocTitle}</h2>
+        </div>
+        <img src="${typeof LOGO_SSV !== 'undefined' ? LOGO_SSV : ''}" style="width:60px; height:auto; max-height:60px;" alt="Logo SSV">
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:11px; text-align:center;">
+        <tr>
+          <td style="border:1px solid #000; padding:3px;"><strong>${dict.codeNo}</strong><br>TOMO-2026</td>
+          <td style="border:1px solid #000; padding:3px;"><strong>${dict.publishDate}</strong><br>01.01.2026</td>
+          <td style="border:1px solid #000; padding:3px;"><strong>${dict.examNum}</strong><br>847</td>
+          <td style="border:1px solid #000; padding:3px;"><strong>${dict.pageCount}</strong><br>1 / 1</td>
+        </tr>
+      </table>
+
+      <div style="background:#f1f5f9; border:1px solid #000; padding:3px 6px; font-weight:900; font-size:11.5px; text-transform:uppercase; margin-bottom:4px;">
+        ${dict.patientSectionTitle}
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:11.5px;">
+        <tr>
+          <td style="border:1px solid #000; padding:4px 6px; width:25%; font-weight:700; background:#f8fafc;">${dict.patientName}:</td>
+          <td style="border:1px solid #000; padding:4px 6px; width:25%; font-weight:800;">Yoqubov Dilshod</td>
+          <td style="border:1px solid #000; padding:4px 6px; width:25%; font-weight:700; background:#f8fafc;">${dict.birthYear}:</td>
+          <td style="border:1px solid #000; padding:4px 6px; width:25%; font-weight:800;">1995 (29 yosh)</td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; padding:4px 6px; font-weight:700; background:#f8fafc;">${dict.serviceLabel}:</td>
+          <td style="border:1px solid #000; padding:4px 6px; font-weight:800;">${serviceFormatted}</td>
+          <td style="border:1px solid #000; padding:4px 6px; font-weight:700; background:#f8fafc;">${dict.roomDeviceLabel}:</td>
+          <td style="border:1px solid #000; padding:4px 6px; font-weight:800;">${roomFormatted}</td>
+        </tr>
+      </table>
+
+      <div style="background:#f1f5f9; border:1px solid #000; padding:3px 6px; font-weight:900; font-size:11.5px; text-transform:uppercase; margin-bottom:4px;">
+        ${dict.questionsTitle}
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:11px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="border:1px solid #000; padding:4px 6px; text-align:left;">${dict.thQuestion}</th>
+            <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center;">${dict.thYes}</th>
+            <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center;">${dict.thNo}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${translatedQuestions.map(q => `
+            <tr>
+              <td style="border:1px solid #000; padding:3.5px 6px;">${escapeHtml(q.text)}</td>
+              <td style="border:1px solid #000; padding:3.5px 6px; text-align:center; font-weight:bold;">[  ]</td>
+              <td style="border:1px solid #000; padding:3.5px 6px; text-align:center; font-weight:bold;">[  ]</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <div style="border:1px solid #000; border-radius:3px; padding:6px; background:#fafafa; font-size:10.5px; line-height:1.35; margin-bottom:8px; text-align:justify;">
+        ${dict.declarationText}
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; font-size:11.5px; margin-top:8px;">
+        <tr>
+          <td style="width:50%; vertical-align:top; padding-right:10px;">
+            <strong>${dict.patientSignature}:</strong><br>
+            <span style="font-size:10.5px; color:#475569;">Yoqubov Dilshod</span><br><br>
+            _________________________ (Imzo)
+          </td>
+          <td style="width:50%; vertical-align:top; padding-left:10px;">
+            <strong>${dict.laborantSignature}:</strong><br>
+            <span style="font-size:10.5px; color:#475569;">${currentLaborant ? `${currentLaborant.name} (${currentLaborant.login})` : 'Laborant'}</span><br><br>
+            _________________________ (Imzo)
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+}
+
+function printCurrentTestDocument() {
+  if (!selectedServiceForTest) return;
+  const lang = document.getElementById("testPrintLang")?.value || "uz";
+
+  let printContent = "";
+  if (currentTestPreviewMode === "ticket") {
+    printContent = generateTestTicketHtml(selectedServiceForTest, lang);
+  } else {
+    printContent = generateTestConsentHtml(selectedServiceForTest, lang);
+  }
+
+  const printWindow = window.open('', '_blank', 'width=800,height=900');
+  if (!printWindow) {
+    alert("Iltimos, brauzerda pop-up oynalarni ochishga ruxsat bering!");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Chop Etish - RONS Navbat Tizimi</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 10px; background: #fff; }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        ${printContent}
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }, 300);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+// 13. SHAXSIY PROFIL VA PAROLNI O'ZGARTIRISH
+function openProfileModal() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.style.display = "flex";
+  const statusEl = document.getElementById("pwdChangeStatus");
+  if (statusEl) statusEl.style.display = "none";
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleChangePassword(e) {
+  e.preventDefault();
+  const oldPwd = document.getElementById("oldPassword")?.value.trim();
+  const newPwd = document.getElementById("newPassword")?.value.trim();
+  const confirmPwd = document.getElementById("confirmNewPassword")?.value.trim();
+  const statusEl = document.getElementById("pwdChangeStatus");
+
+  if (!currentLaborant) return;
+
+  if (String(currentLaborant.password) !== String(oldPwd)) {
+    statusEl.style.display = "block";
+    statusEl.style.background = "#fee2e2";
+    statusEl.style.color = "#dc2626";
+    statusEl.innerText = "❌ Amaldagi eski parol noto'g'ri!";
+    return;
+  }
+
+  if (newPwd !== confirmPwd) {
+    statusEl.style.display = "block";
+    statusEl.style.background = "#fee2e2";
+    statusEl.style.color = "#dc2626";
+    statusEl.innerText = "❌ Yangi parollar bir-biriga mos kelmadi!";
+    return;
+  }
+
+  try {
+    await db.ref(`laborants/${currentLaborant.login}/password`).set(newPwd);
+    currentLaborant.password = newPwd;
+    localStorage.setItem("utt_active_laborant", JSON.stringify(currentLaborant));
+
+    statusEl.style.display = "block";
+    statusEl.style.background = "#dcfce7";
+    statusEl.style.color = "#15803d";
+    statusEl.innerText = "✅ Parol muvaffaqiyatli o'zgartirildi!";
+
+    document.getElementById("changePasswordForm")?.reset();
+    setTimeout(() => { closeProfileModal(); }, 1500);
+  } catch (err) {
+    statusEl.style.display = "block";
+    statusEl.style.background = "#fee2e2";
+    statusEl.style.color = "#dc2626";
+    statusEl.innerText = "❌ Xatolik: " + err.message;
+  }
+}
+
+// 14. MOBIL TABLAR BOSHQARUVI
+function switchMobileTab(tab) {
+  const activeSec = document.getElementById("activeSection");
+  const queueSec = document.getElementById("queueSection");
+  const compSec = document.getElementById("completedSection");
+
+  document.querySelectorAll(".mobile-tab-bar .tab-item").forEach(t => t.classList.remove("active"));
+
+  if (tab === "active") {
+    document.getElementById("tabBtnActive")?.classList.add("active");
+    if (activeSec) activeSec.style.display = "flex";
+    if (queueSec) queueSec.style.display = "none";
+  } else if (tab === "queue") {
+    document.getElementById("tabBtnQueue")?.classList.add("active");
+    if (activeSec) activeSec.style.display = "none";
+    if (queueSec) queueSec.style.display = "flex";
+    if (compSec) compSec.style.display = "none";
+  } else if (tab === "history") {
+    document.getElementById("tabBtnHistory")?.classList.add("active");
+    if (activeSec) activeSec.style.display = "none";
+    if (queueSec) queueSec.style.display = "flex";
+    if (compSec) {
+      compSec.style.display = "block";
+      const list = document.getElementById("completedList");
+      if (list) list.style.display = "flex";
+    }
+  }
+}
+
+// 15. TUGMALAR VA YORDAMCHILAR
+function togglePasswordVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    if (btnEl) btnEl.innerHTML = `<i class="fa-solid fa-eye-slash"></i>`;
+  } else {
+    input.type = "password";
+    if (btnEl) btnEl.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+  }
+}
+
 function setupKeyboardShortcuts() {
   window.addEventListener("keydown", (e) => {
     if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") {
@@ -545,18 +1333,6 @@ function setupKeyboardShortcuts() {
   });
 }
 
-function toggleCompletedList() {
-  const list = document.getElementById("completedList");
-  const chevron = document.getElementById("completedChevron");
-  if (list.style.display === "none") {
-    list.style.display = "flex";
-    chevron.className = "fa-solid fa-chevron-up";
-  } else {
-    list.style.display = "none";
-    chevron.className = "fa-solid fa-chevron-down";
-  }
-}
-
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -566,4 +1342,3 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-

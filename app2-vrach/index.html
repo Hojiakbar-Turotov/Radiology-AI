@@ -2,8 +2,8 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vrach Xonasi - UTT Navbat Tizimi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vrach - Laborant Xonasi | RONS Navbat Tizimi</title>
   <link rel="stylesheet" href="./style.css">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,17 +15,17 @@
 <body>
   <!-- 1. VRACH - LABORANT TANLASH EKRANI (LOGIN) -->
   <div id="loginScreen" class="login-container">
-    <div class="login-card" style="max-width: 460px;">
+    <div class="login-card">
       <div class="login-icon">
         <i class="fa-solid fa-user-doctor"></i>
       </div>
       <h2>VRACH - LABORANT XONASI</h2>
-      <p class="login-desc">Ishni boshlash uchun Login, Parol va ish xonangizni kiriting</p>
+      <p class="login-desc">Ishni boshlash uchun Login, Parol va ish xonangizni tanlang</p>
 
       <div style="display: flex; justify-content: center; margin-bottom: 16px;">
-        <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 10px;">
+        <div class="lang-selector-pill">
           <i class="fa-solid fa-globe" style="color: #0284c7;"></i>
-          <select id="loginLangSelector" onchange="changeLaborantLang(this.value)" style="border: none; background: transparent; font-weight: 700; font-size: 0.9rem; outline: none; cursor: pointer; color: #0f172a;">
+          <select id="loginLangSelector" onchange="changeLaborantLang(this.value)">
             <option value="uz">🇺🇿 O'zbekcha</option>
             <option value="ru">🇷🇺 Русский</option>
             <option value="en">🇬🇧 English</option>
@@ -39,14 +39,14 @@
       <form id="loginForm" onsubmit="handleLaborantLogin(event)">
         <div class="form-group">
           <label for="loginUsername"><i class="fa-solid fa-user"></i> Login:</label>
-          <input type="text" id="loginUsername" required placeholder="Masalan: LAB1, LAB2, LAB4..." autocomplete="username" autofocus style="width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; outline: none; font-weight: 600; text-transform: uppercase;">
+          <input type="text" id="loginUsername" required placeholder="Masalan: LAB1, LAB2, LAB4..." autocomplete="username" autofocus style="text-transform: uppercase;">
         </div>
 
         <div class="form-group">
           <label for="loginPassword"><i class="fa-solid fa-key"></i> Parol:</label>
           <div style="position: relative;">
-            <input type="password" id="loginPassword" required placeholder="Parolni kiriting..." autocomplete="current-password" style="width: 100%; padding: 12px 42px 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; outline: none;">
-            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.1rem;">
+            <input type="password" id="loginPassword" required placeholder="Parolni kiriting..." autocomplete="current-password" style="padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="btn-pwd-eye">
               <i class="fa-solid fa-eye"></i>
             </button>
           </div>
@@ -59,11 +59,11 @@
           </select>
         </div>
 
-        <div id="loginErrorMsg" style="display: none; color: #ef4444; background: #fee2e2; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; margin-bottom: 16px; text-align: center;">
+        <div id="loginErrorMsg" class="alert-error" style="display: none;">
           ❌ Login yoki parol noto'g'ri!
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">
+        <button type="submit" class="btn btn-primary btn-block" style="padding: 13px;">
           <i class="fa-solid fa-right-to-bracket"></i> Xonaga Kirish
         </button>
       </form>
@@ -72,7 +72,7 @@
 
   <!-- 2. ASOSIY VRACH ISH STOLI -->
   <div id="doctorWorkspace" class="workspace-container" style="display: none;">
-    <!-- Tepalik Bar -->
+    <!-- Tepalik Header Bar -->
     <header class="doctor-header">
       <div class="doc-profile">
         <div class="doc-avatar">
@@ -80,45 +80,77 @@
         </div>
         <div class="doc-info">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h2 id="headerLaborantName" style="font-size: 1.2rem; color: #0f172a; margin-bottom: 0;">Laborant Nomi</h2>
-            <span class="room-pill" id="headerLaborantBadge" style="background: #0284c7; color: #fff; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: bold;">LAB4</span>
+            <h2 id="headerLaborantName">Laborant Nomi</h2>
+            <span class="room-pill badge-primary" id="headerLaborantBadge">LAB4</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-            <span class="room-pill" id="headerDocRoom" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;">101-xona</span>
-            <span class="specialty-text" id="headerDocSpecialty" style="color: #059669; font-weight: bold;">MRT 1 (Siemens)</span>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap;">
+            <span class="room-pill" id="headerDocRoom">101-xona</span>
+            <span class="specialty-text" id="headerDocSpecialty">MRT 1 (Siemens)</span>
           </div>
         </div>
       </div>
 
-      <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
-        <div style="display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 8px;">
+      <div class="header-actions">
+        <!-- Til tanlash -->
+        <div class="lang-selector-pill">
           <i class="fa-solid fa-globe" style="color: #0284c7;"></i>
-          <select id="workspaceLangSelector" onchange="changeLaborantLang(this.value)" style="border: none; background: transparent; font-weight: 700; font-size: 0.85rem; outline: none; cursor: pointer; color: #0f172a;">
-            <option value="uz">🇺🇿 O'zbekcha</option>
-            <option value="ru">🇷🇺 Русский</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="kk">🇰🇿 Қазақша</option>
-            <option value="tg">🇹🇯 Тоҷикӣ</option>
-            <option value="tr">🇹🇷 Türkçe</option>
+          <select id="workspaceLangSelector" onchange="changeLaborantLang(this.value)">
+            <option value="uz">🇺🇿 UZ</option>
+            <option value="ru">🇷🇺 RU</option>
+            <option value="en">🇬🇧 EN</option>
+            <option value="kk">🇰🇿 KK</option>
+            <option value="tg">🇹🇯 TG</option>
+            <option value="tr">🇹🇷 TR</option>
           </select>
         </div>
-        <div class="connection-status">
+
+        <!-- Firebase holati -->
+        <div class="connection-status hide-mobile-sm">
           <span class="status-dot connected" id="connDot"></span>
-          <span id="connText">Firebase: Ulangan</span>
+          <span id="connText">Online</span>
         </div>
-        <button class="btn btn-secondary" onclick="openProfileModal()" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: bold;">
-          <i class="fa-solid fa-user-gear"></i> <span id="btnTxtProfile">Profil / Parol</span>
+
+        <!-- Tekshiruvlar va Xona Boshqaruvi -->
+        <button class="btn btn-services-nav" onclick="openServicesManagementModal()" title="Xona tekshiruvlarini boshqarish">
+          <i class="fa-solid fa-sliders"></i> <span class="btn-txt-responsive">Tekshiruvlar</span>
         </button>
-        <button class="btn btn-outline" onclick="logoutLaborant()" style="color: #ef4444; border-color: #fca5a5;">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> <span id="btnTxtLogout">Chiqish</span>
+
+        <!-- Shaxsiy Profil -->
+        <button class="btn btn-profile-nav" onclick="openProfileModal()" title="Profil va Parol">
+          <i class="fa-solid fa-user-gear"></i> <span class="btn-txt-responsive">Profil</span>
+        </button>
+
+        <!-- Chiqish -->
+        <button class="btn btn-outline btn-logout-nav" onclick="logoutLaborant()" title="Tizimdan chiqish">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="btn-txt-responsive">Chiqish</span>
         </button>
       </div>
     </header>
 
-    <!-- Asosiy Ish Maydoni (2 ustunli) -->
-    <div class="workspace-grid">
+    <!-- Mobil Ekranlar uchun Tab Bar (< 992px) -->
+    <nav class="mobile-tab-bar" id="mobileTabBar">
+      <button class="tab-item active" id="tabBtnActive" onclick="switchMobileTab('active')">
+        <i class="fa-solid fa-hospital-user"></i>
+        <span>Hozirgi</span>
+      </button>
+      <button class="tab-item" id="tabBtnQueue" onclick="switchMobileTab('queue')">
+        <i class="fa-solid fa-users"></i>
+        <span>Navbat (<span id="mobileWaitingCount">0</span>)</span>
+      </button>
+      <button class="tab-item" id="tabBtnServices" onclick="openServicesManagementModal()">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Tekshiruvlar</span>
+      </button>
+      <button class="tab-item" id="tabBtnHistory" onclick="switchMobileTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Tarix</span>
+      </button>
+    </nav>
+
+    <!-- Asosiy Ish Maydoni (2 ustunli / Mobil tabli) -->
+    <div class="workspace-grid" id="workspaceGrid">
       <!-- Chap Ustun: Hozirgi Bemor va Boshqaruv -->
-      <section class="active-patient-section">
+      <section class="active-patient-section" id="activeSection">
         <div class="section-title">
           <h3><i class="fa-solid fa-hospital-user"></i> Hozirgi Bemor</h3>
           <span id="currentStatusBadge" class="badge badge-waiting">Qabul bo'sh</span>
@@ -168,7 +200,7 @@
           <button class="btn btn-call-big" id="btnCallNext" onclick="callNextPatient()">
             <i class="fa-solid fa-bell"></i>
             <span>KEYINGI BEMORNI CHAQIRISH</span>
-            <small>(Space yoki Enter)</small>
+            <small class="hide-mobile">(Space yoki Enter)</small>
           </button>
 
           <!-- Agar bemor chaqirilgan yoki qabulda bo'lsa ko'rinadigan tugmalar -->
@@ -190,7 +222,7 @@
       </section>
 
       <!-- O'ng Ustun: Kutayotgan Bemorlar Navbati -->
-      <section class="queue-list-section">
+      <section class="queue-list-section" id="queueSection">
         <div class="section-header">
           <div class="section-title">
             <h3><i class="fa-solid fa-users"></i> Navbatdagi Bemorlar</h3>
@@ -203,7 +235,7 @@
         </div>
 
         <!-- Bugun qabul qilinganlar tarixi -->
-        <div class="completed-section">
+        <div class="completed-section" id="completedSection">
           <div class="section-title toggle-title" onclick="toggleCompletedList()">
             <h4><i class="fa-solid fa-clock-rotate-left"></i> Bugun qabul qilinganlar (<span id="completedCount">0</span>)</h4>
             <i class="fa-solid fa-chevron-down" id="completedChevron"></i>
@@ -218,17 +250,15 @@
 
   <!-- 3. LABORANT PROFILI VA PAROL O'ZGARTIRISH MODALI -->
   <div id="profileModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card" style="max-width: 440px; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 1.2rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-user-shield" style="color: #0284c7;"></i> Shaxsiy Profil
-        </h3>
-        <button type="button" onclick="closeProfileModal()" style="background: none; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer;">&times;</button>
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-shield" style="color: #0284c7;"></i> Shaxsiy Profil</h3>
+        <button type="button" class="btn-close" onclick="closeProfileModal()">&times;</button>
       </div>
 
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+      <div class="profile-info-banner">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+          <div class="profile-avatar-circle">
             <i class="fa-solid fa-user-doctor"></i>
           </div>
           <div>
@@ -236,8 +266,17 @@
             <div style="font-size: 0.85rem; color: #64748b;">
               Login: <strong id="modalLaborantLogin" style="color: #0284c7;">LAB4</strong> | <span id="modalLaborantRole">Vrach / Laborant</span>
             </div>
+            <div style="font-size: 0.85rem; color: #059669; font-weight: 700; margin-top: 2px;">
+              Biriktirilgan xona: <span id="modalDocRoomName">-</span>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <button type="button" class="btn btn-secondary btn-block" onclick="closeProfileModal(); openServicesManagementModal();" style="background: #e0f2fe; color: #0369a1; font-weight: bold;">
+          <i class="fa-solid fa-sliders"></i> Xona Tekshiruvlarini Boshqarish
+        </button>
       </div>
 
       <h4 style="font-size: 0.95rem; color: #334155; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
@@ -245,19 +284,19 @@
       </h4>
 
       <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label for="oldPassword" style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block;">Amaldagi (Eski) Parol:</label>
-          <input type="password" id="oldPassword" required placeholder="Eski parolni kiriting" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none;">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="oldPassword">Amaldagi (Eski) Parol:</label>
+          <input type="password" id="oldPassword" required placeholder="Eski parolni kiriting">
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label for="newPassword" style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block;">Yangi Parol:</label>
-          <input type="password" id="newPassword" required minlength="4" placeholder="Yangi parolni kiriting" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none;">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="newPassword">Yangi Parol:</label>
+          <input type="password" id="newPassword" required minlength="4" placeholder="Yangi parolni kiriting">
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
-          <label for="confirmNewPassword" style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block;">Yangi Parolni Qayta Kiriting:</label>
-          <input type="password" id="confirmNewPassword" required minlength="4" placeholder="Yangi parolni takrorlang" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none;">
+          <label for="confirmNewPassword">Yangi Parolni Qayta Kiriting:</label>
+          <input type="password" id="confirmNewPassword" required minlength="4" placeholder="Yangi parolni takrorlang">
         </div>
 
         <div id="pwdChangeStatus" style="display: none; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; margin-bottom: 16px; text-align: center;"></div>
@@ -265,13 +304,259 @@
         <div style="display: flex; gap: 10px;">
           <button type="button" class="btn btn-outline" onclick="closeProfileModal()" style="flex: 1;">Bekor qilish</button>
           <button type="submit" class="btn btn-primary" style="flex: 1.2;">
-            <i class="fa-solid fa-floppy-disk"></i> Parolni Saqlash
+            <i class="fa-solid fa-floppy-disk"></i> Saqlash
           </button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- 4. TEKSHIRUVLARNI BOSHQARISH MODALI (Services Catalog & Room Management) -->
+  <div id="servicesModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-xl">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-list-check" style="color: #0284c7;"></i>
+            <span>Tekshiruvlar & Xona Sozlamalari</span>
+          </h3>
+          <span class="badge badge-primary" id="svcRoomBadge">Barcha tekshiruvlar</span>
+        </div>
+        <button type="button" class="btn-close" onclick="closeServicesModal()">&times;</button>
+      </div>
+
+      <!-- Qidiruv va Filtrlar paneli -->
+      <div class="services-filter-toolbar">
+        <div class="search-input-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="svcSearchInput" placeholder="Tekshiruv nomi yoki kodi bo'yicha qidirish..." oninput="renderLaborantServicesList()">
+        </div>
+
+        <div class="filter-pills-wrap">
+          <button class="filter-pill active" data-filter="all" onclick="setServiceFilter('all', this)">Barchasi</button>
+          <button class="filter-pill" data-filter="my_room" onclick="setServiceFilter('my_room', this)">Shu xonaga xos</button>
+          <button class="filter-pill" data-filter="MRT" onclick="setServiceFilter('MRT', this)">MRT</button>
+          <button class="filter-pill" data-filter="MSKT" onclick="setServiceFilter('MSKT', this)">MSKT</button>
+          <button class="filter-pill" data-filter="contrast" onclick="setServiceFilter('contrast', this)">💉 Kontrastli</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-left: auto;">
+          <button type="button" class="btn btn-success" onclick="openAddServiceModal()" style="font-weight: bold; white-space: nowrap;">
+            <i class="fa-solid fa-plus"></i> Yangi Tekshiruv Qo'shish
+          </button>
+        </div>
+      </div>
+
+      <!-- Tekshiruvlar Ro'yxati / Kartochkalar konteyneri -->
+      <div class="services-list-container" id="laborantServicesContainer">
+        <!-- Dinamik tekshiruv kartochkalari yuklanadi -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. TEKSHIRUV TAHRIRLASH / YARATISH MODALI (Service Edit/Add Form with Commit Message) -->
+  <div id="serviceEditModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="serviceEditModalTitle">
+          <i class="fa-solid fa-pen-to-square" style="color: #0284c7;"></i> Tekshiruvni Tahrirlash
+        </h3>
+        <button type="button" class="btn-close" onclick="closeServiceEditModal()">&times;</button>
+      </div>
+
+      <form id="serviceEditForm" onsubmit="handleSaveServiceForm(event)" class="service-edit-form">
+        <input type="hidden" id="editServiceId" value="">
+        <input type="hidden" id="editIsNew" value="0">
+
+        <!-- Asosiy parametrlar -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="editServiceCode"><i class="fa-solid fa-hashtag"></i> Tekshiruv Kodi (Karmed ID):</label>
+            <input type="text" id="editServiceCode" required placeholder="Masalan: R140, R182, MRT-01" style="font-weight: 700; text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label for="editServiceType"><i class="fa-solid fa-microchip"></i> Qurilma / Modallik:</label>
+            <select id="editServiceType" required onchange="handleModalityChange()">
+              <option value="MSKT">MSKT (Kompyuter Tomografiyasi)</option>
+              <option value="MRT">MRT (Magnit-Rezonans Tomografiyasi)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editServiceName"><i class="fa-solid fa-file-medical"></i> Tekshiruv To'liq Nomi:</label>
+          <input type="text" id="editServiceName" required placeholder="Masalan: Ko'krak qafasi a'zolarini kontrast moddasi bilan MSKT tekshiruvi">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="editServiceDuration"><i class="fa-solid fa-clock"></i> Rejalashtirilgan Vaqt (daqiqa):</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="number" id="editServiceDuration" required min="5" max="180" step="5" value="30" style="font-size: 1.1rem; font-weight: 800; color: #0284c7;">
+              <span style="font-weight: bold; color: #64748b;">daqiqa</span>
+            </div>
+          </div>
+
+          <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <label class="checkbox-label" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+              <input type="checkbox" id="editServiceIsContrast" onchange="handleContrastToggle()">
+              <strong style="color: #0f172a;">💉 Kontrast modda ishlatiladi</strong>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tuzilmaviy Tayyorgarlik Qoidalari -->
+        <div class="form-section-box">
+          <h4 style="margin-bottom: 10px; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-list-ol" style="color: #10b981;"></i> Standart Tayyorgarlik Ko'rsatmalari
+          </h4>
+
+          <div class="form-row-2" style="margin-bottom: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="editFastingHours">Och qoringa kelish talabi:</label>
+              <select id="editFastingHours">
+                <option value="none">Och qolish talab etilmaydi</option>
+                <option value="4-6">4 - 6 soat och qoringa</option>
+                <option value="6-8" selected>Kamida 6 - 8 soat och qoringa</option>
+                <option value="8-10">Kamida 8 - 10 soat och qoringa</option>
+              </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+              <label class="checkbox-label">
+                <input type="checkbox" id="editNeedsBloodTest">
+                <span>Qonda Kreatinin va Mochevina tahlili talab qilinadi</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="editNeedsMetformin">
+                <span>Diabetda: Metformin dori vositasini 48 soat oldin to'xtatish</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="editNeedsMetalFree">
+              <span>Barcha metall va ferromagnit buyumlarni yechish</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="editNeedsHydration">
+              <span>Tekshiruvdan so'ng ko'p suyuqlik (suv) ichish</span>
+            </label>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editSpecialPrep">Ushbu tekshiruvga xos qo'shimcha maxsus tayyorgarlik:</label>
+            <input type="text" id="editSpecialPrep" placeholder="Masalan: Tekshiruvdan 1 soat oldin 1 litr gazsiz suv ichish (siydik qopi to'la bo'lishi)...">
+          </div>
+        </div>
+
+        <!-- Qarshi ko'rsatmalar -->
+        <div class="form-group">
+          <label for="editContraindications"><i class="fa-solid fa-ban" style="color: #ef4444;"></i> Qarshi ko'rsatmalar:</label>
+          <textarea id="editContraindications" rows="2" placeholder="Masalan: Yodli kontrastga allergiya, buyrak yetishmovchiligi, homiladorlik..."></textarea>
+        </div>
+
+        <!-- Rozilik anketasi savollari -->
+        <div class="form-group">
+          <label for="editQuestions"><i class="fa-solid fa-clipboard-question" style="color: #0284c7;"></i> Rozilik Anketasi Savollari (Har bir qator 1 ta savol):</label>
+          <textarea id="editQuestions" rows="3" placeholder="1. Yodli yoki boshqa dori vositalariga allergiyangiz bormi?&#10;2. Buyrak yetishmovchiligi yoki dializ muolajasini olasizmi?&#10;3. Homiladorlik yoki emizish holati bormi?"></textarea>
+        </div>
+
+        <!-- COMMIT SABABI / IZOHI (AUDIT TRAIL) -->
+        <div class="commit-comment-box">
+          <label for="editCommitComment">
+            <i class="fa-solid fa-code-commit" style="color: #8b5cf6;"></i>
+            <strong>Laborant Izohi / O'zgarish Sababi (Commit Message):</strong>
+          </label>
+          <input type="text" id="editCommitComment" placeholder="Nima sababdan o'zgartirildi? Masalan: Shifokor tavsiyasiga binoan vaqt 25 daqiqaga oshirildi..." required>
+          <small style="color: #64748b;">* Ushbu izoh va sizning ismingiz tekshiruv tarixida saqlanadi va barcha xodimlar uchun ko'rinadi.</small>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeServiceEditModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+            <i class="fa-solid fa-floppy-disk"></i> Saqlash va Tasdiqlash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. O'ZGARISHLAR TARIXI MODALI (Audit Log & Commits History) -->
+  <div id="serviceHistoryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="historyModalTitle">
+          <i class="fa-solid fa-clock-rotate-left" style="color: #0284c7;"></i> O'zgarishlar Tarixi
+        </h3>
+        <button type="button" class="btn-close" onclick="closeServiceHistoryModal()">&times;</button>
+      </div>
+
+      <div id="historyServiceInfo" class="history-service-header">
+        <!-- Tekshiruv haqida qisqacha ma'lumot -->
+      </div>
+
+      <div class="history-timeline-container" id="historyTimelineContainer">
+        <!-- Dinamik commitlar / o'zgarishlar ro'yxati -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. TEST CHOP ETISH VA KO'RISH MODALI (Multi-language Preview & Print) -->
+  <div id="testPrintModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-xl">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <h3 style="margin: 0; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-print" style="color: #0284c7;"></i>
+            <span>Sinov Tariqasida Ko'rish va Chop Etish</span>
+          </h3>
+          <span class="badge badge-success" id="testModalServiceBadge">R140</span>
+        </div>
+        <button type="button" class="btn-close" onclick="closeTestPrintModal()">&times;</button>
+      </div>
+
+      <!-- Til va Format tanlash boshqaruv paneli -->
+      <div class="test-preview-toolbar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-weight: 700; font-size: 0.9rem; color: #334155;">Chop etish tili:</span>
+          <select id="testPrintLang" onchange="renderTestPreview()" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; font-weight: 700; cursor: pointer;">
+            <option value="uz">🇺🇿 O'zbekcha</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="kk">🇰🇿 Қазақша</option>
+            <option value="tg">🇹🇯 Тоҷикӣ</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+          </select>
+        </div>
+
+        <div class="test-preview-tabs">
+          <button class="btn-tab-preview active" id="btnPreviewTicket" onclick="switchTestPreviewMode('ticket')">
+            <i class="fa-solid fa-receipt"></i> Navbat Taloni (80mm)
+          </button>
+          <button class="btn-tab-preview" id="btnPreviewConsent" onclick="switchTestPreviewMode('consent')">
+            <i class="fa-solid fa-file-contract"></i> Rozilik Anketasi (A4)
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-left: auto;">
+          <button type="button" class="btn btn-primary" onclick="printCurrentTestDocument()" style="font-weight: bold;">
+            <i class="fa-solid fa-print"></i> Chop Etish (Print)
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview oynasi -->
+      <div class="test-preview-frame" id="testPreviewFrame">
+        <!-- Dinamik talon yoki rozilik anketasi HTML ko'rinishi -->
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Fayllari -->
+  <script src="./logos.js"></script>
   <script src="./i18n.js"></script>
   <script src="./app.js"></script>
 </body>

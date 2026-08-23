@@ -1,0 +1,24 @@
+﻿[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+
+[[redirects]]
+  from = "/registratura"
+  to = "/app1-registratura/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/vrach"
+  to = "/app2-vrach/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/tv"
+  to = "/app3-android-tv/index.html"
+  status = 200
