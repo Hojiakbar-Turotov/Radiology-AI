@@ -3560,7 +3560,7 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
   // 4. Faol bemorlarning vaqt oraliqlarini olish
   const activeIntervals = [];
   for (const p of (devPatients || [])) {
-    if (p.status === "cancelled") continue;
+    if (p.status === "cancelled" || p.isOutOfQueue || p.isRecheck || (p.scheduledTime && p.scheduledTime.includes("Navbatdan tashqari"))) continue;
     const pStartStr = p.scheduledTime || p.time;
     if (!pStartStr) continue;
 

@@ -22,6 +22,9 @@ let currentTestPreviewMode = 'ticket'; // 'ticket' or 'consent'
 let currentTestLang = 'uz';
 let mySchedule = null; // Laborant ish jadvali va band qilgan xonasi
 let myCustomDurations = {}; // Laborantning shaxsiy tekshiruv vaqtlari { "R140": 25, ... }
+let selectedVrachDate = ""; // Laborant ko'rayotgan sana (Bugun, Ertaga, Kecha va h.k.)
+let currentPatientsRef = null;
+let selectedRecheckPatient = null;
 
 const DEFAULT_LABORANTS = [
   { login: "LAB1", name: "Yoqubov Dilmurod", password: "15420", role: "Vrach / Laborant-Operator" },
@@ -85,6 +88,19 @@ function setTodayDate() {
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   todayDateStr = `${y}-${m}-${d}`;
+  if (!selectedVrachDate) selectedVrachDate = todayDateStr;
+
+  const dateInput = document.getElementById("laborantDateSelector");
+  if (dateInput) dateInput.value = selectedVrachDate;
+}
+
+function getDateStrWithOffset(offset) {
+  const target = new Date();
+  target.setDate(target.getDate() + offset);
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, '0');
+  const d = String(target.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function setupConnectionMonitor() {
@@ -234,8 +250,10 @@ function setLaborantLoggedIn(laborant, doctor) {
   if (modDocRoom) modDocRoom.innerText = `${roomName} (${docSpecialty})`;
 
   listenToMyPatients();
+  listenToDateSummaryCounts();
   listenToMyScheduleAndDurations();
   renderLaborantServicesList();
+  updateDateNavigatorUI();
 }
 
 function listenToMyScheduleAndDurations() {
@@ -266,28 +284,139 @@ function logoutLaborant() {
   }
 }
 
+// 5.5 SANA BO'YICHA NAVBATNI BOSHQARISH VA STATISTIKALARI
+function setLaborantDateOffset(offset) {
+  const target = new Date();
+  target.setDate(target.getDate() + offset);
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, '0');
+  const d = String(target.getDate()).padStart(2, '0');
+  setLaborantCustomDate(`${y}-${m}-${d}`);
+}
+
+function setLaborantCustomDate(dateStr) {
+  if (!dateStr) dateStr = todayDateStr;
+  selectedVrachDate = dateStr;
+  const dateInput = document.getElementById("laborantDateSelector");
+  if (dateInput) dateInput.value = selectedVrachDate;
+
+  updateDateNavigatorUI();
+  listenToMyPatients();
+}
+
+function updateDateNavigatorUI() {
+  const yStr = getDateStrWithOffset(-1);
+  const tStr = todayDateStr;
+  const tmStr = getDateStrWithOffset(1);
+
+  const btnY = document.getElementById("btnDateYesterday");
+  const btnT = document.getElementById("btnDateToday");
+  const btnTm = document.getElementById("btnDateTomorrow");
+  const banner = document.getElementById("dateBannerNotification");
+  const compLabel = document.getElementById("completedSectionDateLabel");
+
+  if (btnY) btnY.classList.toggle("active", selectedVrachDate === yStr);
+  if (btnT) btnT.classList.toggle("active", selectedVrachDate === tStr);
+  if (btnTm) btnTm.classList.toggle("active", selectedVrachDate === tmStr);
+
+  if (compLabel) {
+    if (selectedVrachDate === tStr) compLabel.innerText = "Bugun";
+    else if (selectedVrachDate === yStr) compLabel.innerText = "Kecha";
+    else if (selectedVrachDate === tmStr) compLabel.innerText = "Ertaga";
+    else compLabel.innerText = selectedVrachDate;
+  }
+
+  if (banner) {
+    if (selectedVrachDate === tStr) {
+      banner.style.display = "none";
+    } else if (selectedVrachDate > tStr) {
+      banner.style.display = "block";
+      banner.style.background = "#eff6ff";
+      banner.style.color = "#1d4ed8";
+      banner.style.border = "1px solid #bfdbfe";
+      banner.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Siz <strong>${selectedVrachDate} (Kelgusi kun)</strong> navbatini ko'rmoqdasiz. Bemorlarni bugun oldindan qabul qilishingiz mumkin.`;
+    } else {
+      banner.style.display = "block";
+      banner.style.background = "#fef2f2";
+      banner.style.color = "#b91c1c";
+      banner.style.border = "1px solid #fecaca";
+      banner.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Siz <strong>${selectedVrachDate} (O'tgan kun)</strong> navbati va tarixini ko'rmoqdasiz. Bemorlarni qayta tekshiruvga (kontrol) yozishingiz mumkin.`;
+    }
+  }
+}
+
+function listenToDateSummaryCounts() {
+  if (!currentDoctor) return;
+  const yStr = getDateStrWithOffset(-1);
+  const tStr = todayDateStr;
+  const tmStr = getDateStrWithOffset(1);
+
+  // Kecha
+  db.ref(`patients/${yStr}`).on("value", snap => {
+    let count = 0;
+    const v = snap.val();
+    if (v) Object.values(v).forEach(p => { if (p.doctorId === currentDoctor.id) count++; });
+    const el = document.getElementById("countYesterdaySummary");
+    if (el) el.innerText = count;
+  });
+
+  // Bugun
+  db.ref(`patients/${tStr}`).on("value", snap => {
+    let count = 0;
+    const v = snap.val();
+    if (v) Object.values(v).forEach(p => { if (p.doctorId === currentDoctor.id) count++; });
+    const el = document.getElementById("countTodaySummary");
+    if (el) el.innerText = count;
+  });
+
+  // Ertaga
+  db.ref(`patients/${tmStr}`).on("value", snap => {
+    let count = 0;
+    const v = snap.val();
+    if (v) Object.values(v).forEach(p => { if (p.doctorId === currentDoctor.id) count++; });
+    const el = document.getElementById("countTomorrowSummary");
+    if (el) el.innerText = count;
+  });
+}
+
 // 6. XONA NAVBATINI REALTIME TINGLASH
 function listenToMyPatients() {
   if (!currentDoctor) return;
+  const queryDate = selectedVrachDate || todayDateStr;
 
-  db.ref(`patients/${todayDateStr}`).on("value", (snapshot) => {
+  if (currentPatientsRef) {
+    currentPatientsRef.off();
+  }
+
+  currentPatientsRef = db.ref(`patients/${queryDate}`);
+  currentPatientsRef.on("value", (snapshot) => {
     myPatients = [];
     const data = snapshot.val();
 
     if (data) {
       Object.keys(data).forEach((key) => {
-        const p = { id: key, ...data[key] };
+        const p = { id: key, dateKey: queryDate, ...data[key] };
         if (p.doctorId === currentDoctor.id) {
           myPatients.push(p);
         }
       });
-    }    myPatients.sort((a, b) => {
-      // Qayta navbatga qo'yilgan bemorlar navbat oxirida turadi
+    }
+
+    myPatients.sort((a, b) => {
+      // 1. Qayta tekshiruv (Navbatdan tashqari / 1-o'rin) bemorlar eng boshida turadi
+      const aRecheck = !!(a.isOutOfQueue || a.isRecheck);
+      const bRecheck = !!(b.isOutOfQueue || b.isRecheck);
+      if (aRecheck && !bRecheck) return -1;
+      if (!aRecheck && bRecheck) return 1;
+
+      // 2. Qayta navbatga qo'yilgan (bekor qilinib zalda kutayotgan) bemorlar navbat oxirida turadi
       if (a.isRequeued && !b.isRequeued) return 1;
       if (!a.isRequeued && b.isRequeued) return -1;
       if (a.isRequeued && b.isRequeued) {
         return (a.requeuedAt || 0) - (b.requeuedAt || 0);
       }
+
+      // 3. Standart vaqt bo'yicha saralash
       const tA = a.timeSlot || a.time || "";
       const tB = b.timeSlot || b.time || "";
       return tA.localeCompare(tB);
@@ -314,7 +443,7 @@ async function togglePatientPresence(patientId, event) {
 
   const currentPresence = patient.inHall !== false;
   const newPresence = !currentPresence;
-  const pDate = patient.dateKey || todayDateStr;
+  const pDate = patient.dateKey || selectedVrachDate || todayDateStr;
 
   try {
     await db.ref(`patients/${pDate}/${patient.id}`).update({
@@ -323,6 +452,18 @@ async function togglePatientPresence(patientId, event) {
     });
   } catch (err) {
     console.error("Presence toggle error:", err);
+  }
+}
+
+function toggleCompletedList() {
+  const completedList = document.getElementById("completedList");
+  const chevron = document.getElementById("completedChevron");
+  if (!completedList) return;
+
+  const isHidden = completedList.style.display === "none" || completedList.style.display === "";
+  completedList.style.display = isHidden ? "block" : "none";
+  if (chevron) {
+    chevron.className = isHidden ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down";
   }
 }
 
@@ -362,8 +503,8 @@ function renderActivePatientCard() {
 
   const notesBox = document.getElementById("activeNotesBox");
   const notesText = document.getElementById("activeNotes");
-  if (activePatient.notes || activePatient.rescheduleReason) {
-    const combinedNotes = [activePatient.notes, activePatient.rescheduleReason ? `Sabab: ${activePatient.rescheduleReason}` : null].filter(Boolean).join(" | ");
+  if (activePatient.notes || activePatient.rescheduleReason || activePatient.recheckReason) {
+    const combinedNotes = [activePatient.notes, activePatient.recheckReason ? `Qayta tekshiruv: ${activePatient.recheckReason}` : null, activePatient.rescheduleReason ? `Sabab: ${activePatient.rescheduleReason}` : null].filter(Boolean).join(" | ");
     if (notesBox) notesBox.style.display = "block";
     if (notesText) notesText.innerText = combinedNotes;
   } else {
@@ -405,6 +546,7 @@ function renderQueueList() {
   if (completedCount) completedCount.innerText = completedPatients.length;
 
   const targetList = (currentQueueSubFilter === 'in_hall') ? inHallWaiting : allWaiting;
+  const isFutureDate = selectedVrachDate > todayDateStr;
 
   if (container) {
     if (targetList.length === 0) {
@@ -418,13 +560,16 @@ function renderQueueList() {
       const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
       container.innerHTML = targetList.map((p, idx) => {
         const isInHall = p.inHall !== false;
+        const isRecheck = !!(p.isOutOfQueue || p.isRecheck);
+
         return `
-          <div class="queue-card ${idx === 0 ? 'next-in-line' : ''} ${p.isRequeued ? 'requeued-card' : ''}">
+          <div class="queue-card ${idx === 0 ? 'next-in-line' : ''} ${p.isRequeued ? 'requeued-card' : ''} ${isRecheck ? 'out-of-queue-card' : ''}">
             <div class="queue-card-left">
-              <div class="queue-ticket-badge">${escapeHtml(p.ticketId || String(idx + 1))}</div>
+              <div class="queue-ticket-badge" style="${isRecheck ? 'background:#7c3aed; color:#fff;' : ''}">${escapeHtml(p.ticketId || String(idx + 1))}</div>
               <div class="queue-info">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <span class="queue-patient-title">${escapeHtml(p.name)}</span>
+                  ${isRecheck ? `<span class="out-of-queue-badge"><i class="fa-solid fa-bolt"></i> Qayta tekshiruv (1-o'rin)</span>` : ''}
                   ${p.isRequeued ? `<span class="requeued-badge"><i class="fa-solid fa-rotate-right"></i> Qayta navbatda</span>` : ''}
                 </div>
                 <div class="queue-patient-sub">
@@ -438,9 +583,18 @@ function renderQueueList() {
                 </div>
               </div>
             </div>
-            <button class="btn btn-call-small" onclick="callSpecificPatient('${escapeHtml(p.id)}')">
-              <i class="fa-solid fa-bell"></i> Chaqirish
-            </button>
+
+            <div style="display: flex; gap: 6px; align-items: center;">
+              ${isFutureDate ? `
+                <button class="btn btn-early-call" onclick="callPatientEarly('${escapeHtml(p.id)}', '${selectedVrachDate}')" title="Ushbu kelgusi kungi bemorni bugun oldindan qabul qilish">
+                  <i class="fa-solid fa-bolt"></i> Oldindan Qabul
+                </button>
+              ` : `
+                <button class="btn btn-call-small" onclick="callSpecificPatient('${escapeHtml(p.id)}')">
+                  <i class="fa-solid fa-bell"></i> Chaqirish
+                </button>
+              `}
+            </div>
           </div>
         `;
       }).join("");
@@ -455,12 +609,18 @@ function renderQueueList() {
         <div class="completed-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
           <div>
             <div><strong>${escapeHtml(p.ticketId || '-')}</strong> - ${escapeHtml(p.name)}</div>
+            <div style="font-size: 0.78rem; color: #64748b;">${escapeHtml(p.service || '')}</div>
             ${p.cancelReason ? `<div style="font-size: 0.75rem; color: #dc2626; margin-top: 2px;"><i class="fa-solid fa-circle-exclamation"></i> Sabab: ${escapeHtml(p.cancelReason)}</div>` : ''}
           </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <span class="badge ${p.status === 'completed' ? 'badge-completed' : 'badge-danger'}" style="${p.status === 'cancelled' ? 'background: #fee2e2; color: #dc2626;' : ''}">
               ${p.status === 'completed' ? 'Yakunlandi' : 'Bekor qilindi'}
             </span>
+
+            <button class="btn btn-sm btn-outline" onclick="openRecheckModal('${escapeHtml(p.id)}', '${selectedVrachDate}')" style="color: #7c3aed; border-color: #ddd6fe; background: #faf5ff; padding: 4px 8px; font-size: 0.78rem; font-weight: 700;" title="Ushbu bemorga qayta tekshiruv (kontrol) belgilash">
+              <i class="fa-solid fa-rotate-right"></i> Qayta tekshiruv
+            </button>
+
             ${p.status === 'cancelled' ? `
               <button class="btn btn-sm btn-outline" onclick="requeuePatient('${escapeHtml(p.id)}')" style="color: #0284c7; border-color: #bae6fd; background: #f0f9ff; padding: 4px 8px; font-size: 0.78rem;" title="Bugun qaytadan navbat oxiriga qo'yish">
                 <i class="fa-solid fa-rotate-right"></i> Qayta navbatga
@@ -470,6 +630,153 @@ function renderQueueList() {
         </div>
       `).join("");
     }
+  }
+}
+
+// 6.5 KELGUSI KUN BEMORLARINI OLDINDAN QABUL QILISH (ISTALGAN VAQTDA)
+async function callPatientEarly(patientId, fromDate) {
+  const patient = myPatients.find(p => p.id === patientId);
+  if (!patient) return;
+
+  if (!confirm(`"${patient.name}" (${fromDate} sanasiga yozilgan) bemorni HOZIROQ (${todayDateStr}) navbatdan oldin qabul qilasizmi?`)) {
+    return;
+  }
+
+  const labLogin = currentLaborant ? currentLaborant.login : "";
+  const labName = currentLaborant ? currentLaborant.name : "";
+
+  // Bugungi sanaga ko'chirish / o'tkazish
+  const targetKey = db.ref(`patients/${todayDateStr}`).push().key;
+  const updatedPatient = {
+    ...patient,
+    id: targetKey,
+    appointmentDate: todayDateStr,
+    scheduledTime: "Oldindan qabul (" + fromDate + " dan)",
+    timeSlot: "Oldindan qabul (" + fromDate + " dan)",
+    isEarlyCalled: true,
+    earlyCalledFromDate: fromDate,
+    status: "calling",
+    callTimestamp: firebase.database.ServerValue.TIMESTAMP,
+    laborantLogin: labLogin,
+    laborantName: labName,
+    calledByLaborant: labName ? `[${labLogin}] ${labName}` : ""
+  };
+
+  try {
+    await db.ref(`patients/${todayDateStr}/${targetKey}`).set(updatedPatient);
+    // Kelgusi kungi holatini yangilash
+    await db.ref(`patients/${fromDate}/${patientId}`).update({
+      status: "completed",
+      earlyTransferredToToday: true,
+      transferredToDate: todayDateStr,
+      transferredPatientKey: targetKey
+    });
+
+    broadcastToTV(updatedPatient);
+    setLaborantCustomDate(todayDateStr);
+    alert(`✅ "${patient.name}" bugungi qabulga olindi va ekranda chaqirildi!`);
+  } catch (err) {
+    alert("❌ Xatolik: " + err.message);
+  }
+}
+
+// 6.6 OLDINGI KUNDAGI BEMORLARGA QAYTA TEKSHIRUV (KONTROL / NAVBATDAN TASHQARI) BELGILASH
+function openRecheckModal(patientId, dateKey) {
+  const patient = myPatients.find(p => p.id === patientId);
+  if (!patient) return;
+
+  selectedRecheckPatient = { ...patient, dateKey: dateKey || selectedVrachDate || todayDateStr };
+
+  document.getElementById("recheckOriginalPatientId").value = patient.id;
+  document.getElementById("recheckOriginalDate").value = selectedRecheckPatient.dateKey;
+  document.getElementById("recheckPatientNameDisplay").innerText = patient.name || "Bemor";
+  document.getElementById("recheckTicketIdDisplay").innerText = patient.ticketId || "-";
+  document.getElementById("recheckServiceDisplay").innerText = patient.service || "Tekshiruv";
+
+  document.getElementById("recheckTargetDate").value = todayDateStr;
+  document.getElementById("recheckReasonSelect").value = "Kontrast modda dinamikasi / Kechki fazalar";
+  document.getElementById("recheckReasonDetail").value = "";
+
+  document.getElementById("modalRecheckPatient").style.display = "flex";
+}
+
+function closeRecheckModal() {
+  document.getElementById("modalRecheckPatient").style.display = "none";
+  selectedRecheckPatient = null;
+}
+
+function setRecheckTargetDateOffset(offset) {
+  const target = new Date();
+  target.setDate(target.getDate() + offset);
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, '0');
+  const d = String(target.getDate()).padStart(2, '0');
+  document.getElementById("recheckTargetDate").value = `${y}-${m}-${d}`;
+}
+
+async function handleConfirmRecheck(e) {
+  e.preventDefault();
+  if (!selectedRecheckPatient || !currentDoctor) return;
+
+  const targetDate = document.getElementById("recheckTargetDate")?.value || todayDateStr;
+  const reasonSelect = document.getElementById("recheckReasonSelect")?.value;
+  const reasonDetail = (document.getElementById("recheckReasonDetail")?.value || "").trim();
+  const fullReason = reasonDetail ? `${reasonSelect} (${reasonDetail})` : reasonSelect;
+
+  const newKey = db.ref(`patients/${targetDate}`).push().key;
+
+  const recheckData = {
+    ticketId: `${selectedRecheckPatient.ticketId || ''}-K`,
+    name: selectedRecheckPatient.name,
+    phone: selectedRecheckPatient.phone || "",
+    age: selectedRecheckPatient.age || "",
+    patientType: selectedRecheckPatient.patientType || "Uyidan qatnaydi",
+    department: selectedRecheckPatient.department || "",
+    referringDoctor: selectedRecheckPatient.referringDoctor || "",
+    doctorId: currentDoctor.id,
+    doctorName: currentDoctor.name,
+    room: currentDoctor.room,
+    service: selectedRecheckPatient.service,
+    duration: selectedRecheckPatient.duration || 30,
+    appointmentDate: targetDate,
+    scheduledTime: "Navbatdan tashqari (1-o'rin)",
+    timeSlot: "Navbatdan tashqari (1-o'rin)",
+    isOutOfQueue: true,
+    isRecheck: true,
+    priority: 1,
+    recheckFromDate: selectedRecheckPatient.dateKey,
+    recheckReason: fullReason,
+    recheckCreatedBy: currentLaborant ? `${currentLaborant.login} (${currentLaborant.name})` : "Laborant",
+    recheckCreatedAt: firebase.database.ServerValue.TIMESTAMP,
+    status: "waiting",
+    inHall: true,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  };
+
+  try {
+    await db.ref(`patients/${targetDate}/${newKey}`).set(recheckData);
+
+    // Global audit logga yozish
+    const logKey = db.ref("services_history_log").push().key;
+    await db.ref(`services_history_log/${logKey}`).set({
+      type: "patient_recheck",
+      laborantLogin: currentLaborant ? currentLaborant.login : "LAB",
+      laborantName: currentLaborant ? currentLaborant.name : "Laborant",
+      room: currentDoctor ? (currentDoctor.room || currentDoctor.name) : "Xona",
+      comment: `Qayta tekshiruv (kontrol) biriktirildi: ${selectedRecheckPatient.name} (${targetDate} kunga 1-o'rinda). Sabab: ${fullReason}`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      datetime: new Date().toLocaleString()
+    });
+
+    closeRecheckModal();
+    alert(`✅ "${selectedRecheckPatient.name}" ${targetDate} kunga 1-o'rinda (Navbatdan tashqari / Vaqtsiz) qayta tekshiruvga muvaffaqiyatli ro'yxatga olindi!`);
+
+    if (selectedVrachDate !== targetDate && confirm(`Qayta tekshiruv yozilgan sana (${targetDate}) navbatiga o'tilsinmi?`)) {
+      setLaborantCustomDate(targetDate);
+    }
+  } catch (err) {
+    alert("❌ Xatolik: " + err.message);
   }
 }
 
@@ -495,7 +802,7 @@ function callSpecificPatient(patientId) {
 function callPatient(patient) {
   const labLogin = currentLaborant ? currentLaborant.login : "";
   const labName = currentLaborant ? currentLaborant.name : "";
-  const pDate = patient.dateKey || todayDateStr;
+  const pDate = patient.dateKey || selectedVrachDate || todayDateStr;
 
   db.ref(`patients/${pDate}/${patient.id}`).update({
     status: "calling",

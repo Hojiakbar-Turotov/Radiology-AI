@@ -772,6 +772,12 @@ function renderQueueTable() {
 
   // A-Z va Har qanday ustun bo'yicha saralash
   filtered.sort((a, b) => {
+    // 1. Qayta tekshiruv (Navbatdan tashqari / 1-o'rin) bemorlar har doim birinchi o'rinda chiqadi
+    const aRecheck = !!(a.isOutOfQueue || a.isRecheck);
+    const bRecheck = !!(b.isOutOfQueue || b.isRecheck);
+    if (aRecheck && !bRecheck) return -1;
+    if (!aRecheck && bRecheck) return 1;
+
     let valA = "";
     let valB = "";
 
@@ -827,17 +833,20 @@ function renderQueueTable() {
 
   tbody.innerHTML = filtered.map((p) => {
     const isCancelled = p.status === "cancelled";
+    const isRecheck = !!(p.isOutOfQueue || p.isRecheck);
     const oldSlot = p.cancelledSlot || p.timeSlot || p.scheduledTime || "-";
     const timeDisplay = isCancelled
       ? `<div style="color:#94a3b8; font-size:11.5px; text-decoration:line-through;">${escapeHtml(oldSlot)}</div>
          <span style="background:#dcfce7; color:#15803d; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-block; margin-top:2px;">
            🟢 Bo'shatildi
          </span>`
-      : (p.timeSlot ? `<strong style="color:#0284c7;">${escapeHtml(p.timeSlot)}</strong>` : (p.scheduledTime || p.time || '-'));
+      : (isRecheck
+          ? `<span class="badge" style="background:#7c3aed; color:#fff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:6px; display:inline-block;">⚡ 1-O'rin (Navbatdan tashqari)</span>`
+          : (p.timeSlot ? `<strong style="color:#0284c7;">${escapeHtml(p.timeSlot)}</strong>` : (p.scheduledTime || p.time || '-')));
     const operatorDisplay = p.registeredBy || (p.operatorLogin ? `${p.operatorLogin} - ${p.operatorName || ''}` : '-');
     const statusInfo = getStatusBadge(p.status);
     const dateLabel = (p.appointmentDate && p.appointmentDate !== todayDateStr) ? `<div style="font-size:10px; color:#b45309; font-weight:bold;">📅 ${escapeHtml(p.appointmentDate)}</div>` : '';
-    const deferNote = p.rescheduleReason ? `<div style="font-size:10px; color:#64748b;" title="Voz kechish sababi: ${escapeHtml(p.rescheduleReason)}">⚠️ ${escapeHtml(p.rescheduleReason)}</div>` : '';
+    const deferNote = p.recheckReason ? `<div style="font-size:10px; color:#7c3aed; font-weight:bold;" title="Qayta tekshiruv sababi: ${escapeHtml(p.recheckReason)}">⚡ Qayta tekshiruv: ${escapeHtml(p.recheckReason)}</div>` : (p.rescheduleReason ? `<div style="font-size:10px; color:#64748b;" title="Voz kechish sababi: ${escapeHtml(p.rescheduleReason)}">⚠️ ${escapeHtml(p.rescheduleReason)}</div>` : '');
     const patientTypeBadge = p.patientType === "Bo'limda yotibdi"
       ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">🏥 Bo'limda ${p.department ? `(${escapeHtml(p.department)})` : ''}</span>`
       : `<span class="badge" style="background:#e0f2fe; color:#0284c7; font-weight:700;">🏠 Uyidan qatnaydi</span>`;
@@ -1318,7 +1327,7 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
   // 4. Faol bemorlarning vaqt oraliqlarini olish
   const activeIntervals = [];
   for (const p of (devPatients || [])) {
-    if (p.status === "cancelled") continue;
+    if (p.status === "cancelled" || p.isOutOfQueue || p.isRecheck || (p.scheduledTime && p.scheduledTime.includes("Navbatdan tashqari"))) continue;
     const pStartStr = p.scheduledTime || p.time;
     if (!pStartStr) continue;
 

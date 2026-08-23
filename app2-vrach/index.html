@@ -263,14 +263,40 @@
           </div>
         </div>
 
+        <!-- SANA TANLASH VA O'TISH PANELI (Kecha, Bugun, Ertaga, Boshqa sana) -->
+        <div class="vrach-date-navigator" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-date-tab" id="btnDateYesterday" onclick="setLaborantDateOffset(-1)">
+                <i class="fa-solid fa-chevron-left"></i> Kecha (<span id="countYesterdaySummary">0</span>)
+              </button>
+              <button type="button" class="btn btn-date-tab active" id="btnDateToday" onclick="setLaborantDateOffset(0)">
+                <i class="fa-solid fa-calendar-day"></i> Bugun (<span id="countTodaySummary">0</span>)
+              </button>
+              <button type="button" class="btn btn-date-tab" id="btnDateTomorrow" onclick="setLaborantDateOffset(1)">
+                Ertaga (<span id="countTomorrowSummary">0</span>) <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+              <label for="laborantDateSelector" style="font-size: 0.8rem; font-weight: 700; color: #64748b;"><i class="fa-solid fa-calendar"></i></label>
+              <input type="date" id="laborantDateSelector" onchange="setLaborantCustomDate(this.value)" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight: 700; color: #0f172a;">
+            </div>
+          </div>
+
+          <div id="dateBannerNotification" style="display: none; margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">
+            <!-- Dinamik xabarnoma -->
+          </div>
+        </div>
+
         <div class="queue-cards-list" id="queueCardsContainer">
           <!-- Dinamik navbat kartalari -->
         </div>
 
         <!-- Bugun qabul qilinganlar tarixi -->
         <div class="completed-section" id="completedSection">
-          <div class="section-title toggle-title" onclick="toggleCompletedList()">
-            <h4><i class="fa-solid fa-clock-rotate-left"></i> Bugun qabul qilinganlar (<span id="completedCount">0</span>)</h4>
+          <div class="section-title toggle-title" onclick="toggleCompletedList()" style="cursor: pointer; user-select: none;">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> <span id="completedSectionDateLabel">Bugun</span> qabul qilinganlar (<span id="completedCount">0</span>)</h4>
             <i class="fa-solid fa-chevron-down" id="completedChevron"></i>
           </div>
           <div class="completed-list" id="completedList" style="display: none;">
@@ -730,6 +756,76 @@
           <button type="button" class="btn btn-outline" onclick="closeLaborantScheduleModal()">Bekor qilish</button>
           <button type="submit" class="btn btn-primary" style="background: #7c3aed; color: #fff; font-weight: bold;">
             <i class="fa-solid fa-floppy-disk"></i> Jadvalni Saqlash & Band Qilish
+          </button>
+        </div>
+      </form>
+    </div>
+  <!-- 10. QAYTA TEKSHIRUVGA YOZISH (KONTROL / NAVBATDAN TASHQARI) MODALI -->
+  <div id="modalRecheckPatient" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-md" style="max-width: 580px;">
+      <div class="modal-header" style="border-bottom: 2px solid #ede9fe;">
+        <h3 style="color: #7c3aed; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span>Qayta Tekshiruv (Kontrol) Belgilash</span>
+        </h3>
+        <button type="button" class="btn-close" onclick="closeRecheckModal()">&times;</button>
+      </div>
+
+      <div class="alert-box" style="background: #fdf4ff; border: 1.5px solid #f0abfc; color: #86198f; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.45;">
+        <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> OGOHLANTIRISH / QAYTA TEKSHIRUV QOIDASI:
+        </div>
+        Bemor oldingi kunlarda tekshirilgan. Qayta tekshiruv (kontrol) <strong>asosiy navbat vaqtlarini buzmagan holda</strong>, tanlangan kunda <strong>1-o'rinda (Navbatdan tashqari / Vaqtsiz)</strong> ro'yxatga olinadi. Bemor kelganda istagan bo'sh vaqtda navbatdan tashqari qabul qilinadi.
+      </div>
+
+      <form id="recheckPatientForm" onsubmit="handleConfirmRecheck(event)" style="margin-top: 14px;">
+        <input type="hidden" id="recheckOriginalPatientId">
+        <input type="hidden" id="recheckOriginalDate">
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
+          <div style="font-size: 0.8rem; color: #64748b;">Bemor ma'lumotlari:</div>
+          <div style="font-weight: 800; color: #0f172a; font-size: 1.05rem;" id="recheckPatientNameDisplay">Falonchi Pistonchi</div>
+          <div style="font-size: 0.85rem; color: #334155; margin-top: 2px;">
+            Talon: <strong id="recheckTicketIdDisplay" style="color: #0284c7;">#101</strong> • <span id="recheckServiceDisplay">Bosh miya MRT</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="recheckTargetDate" style="font-weight: 700; color: #334155; margin-bottom: 6px;">
+            <i class="fa-solid fa-calendar-check" style="color: #10b981;"></i> Qayta tekshiruv o'tkaziladigan kun:
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="date" id="recheckTargetDate" required style="flex: 1; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: bold;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="setRecheckTargetDateOffset(0)">Bugun</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="setRecheckTargetDateOffset(1)">Ertaga</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="recheckReasonSelect" style="font-weight: 700; color: #334155; margin-bottom: 6px;">
+            <i class="fa-solid fa-notes-medical" style="color: #8b5cf6;"></i> Qayta tekshirish sababi:
+          </label>
+          <select id="recheckReasonSelect" required style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-weight: 600;">
+            <option value="Kontrast modda dinamikasi / Kechki fazalar">💉 Kontrast modda dinamikasi / Kechki fazalar</option>
+            <option value="Qo'shimcha soha / Segment tekshiruvi">🔍 Qo'shimcha soha / Qo'shimcha rejim tekshiruvi</option>
+            <option value="Shifokor ko'rsatmasi / Konsilium">👨‍⚕️ Davolovchi shifokor ko'rsatmasi / Konsilium</option>
+            <option value="Artefakt / Tasvir sifatini qayta aniqlash">📸 Artefakt / Tasvir sifatini qayta aniqlash</option>
+            <option value="Davolashdan keyingi kontrol tekshiruv">📋 Davolashdan keyingi dinamik kontrol tekshiruv</option>
+            <option value="Boshqa sabab">📝 Boshqa sabab (Quyida yozing)...</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="recheckReasonDetail" style="font-weight: 700; color: #334155; margin-bottom: 6px;">
+            <i class="fa-solid fa-pen"></i> Qo'shimcha izoh / Tavsif:
+          </label>
+          <textarea id="recheckReasonDetail" rows="2" placeholder="Laborant izohi: qaysi rejim yoki qaysi soha qayta o'tkazilishi kerak..." style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
+        </div>
+
+        <div class="modal-footer-actions" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+          <button type="button" class="btn btn-outline" onclick="closeRecheckModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" style="background: #7c3aed; color: #fff; font-weight: bold; padding: 10px 20px;">
+            <i class="fa-solid fa-calendar-plus"></i> Navbatdan Tashqari (1-o'rinda) Qo'shish
           </button>
         </div>
       </form>

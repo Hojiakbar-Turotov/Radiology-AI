@@ -587,6 +587,72 @@ body {
   gap: 3px;
 }
 
+.btn-date-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-date-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-date-tab.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25);
+}
+
+.out-of-queue-card {
+  border: 2px solid #c084fc !important;
+  background: #faf5ff !important;
+  box-shadow: 0 3px 8px rgba(192, 132, 252, 0.15);
+}
+
+.out-of-queue-badge {
+  background: #7c3aed;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+}
+
+.btn-early-call {
+  background: #8b5cf6;
+  color: #ffffff;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+
+.btn-early-call:hover {
+  background: #7c3aed;
+}
+
 .queue-cards-list {
   display: flex;
   flex-direction: column;
