@@ -413,11 +413,6 @@ async function initExtension() {
     document.addEventListener("click", handlePassiveRowClick, true);
     setupPeriodicSync();
 
-    if (!currentUser) {
-      setTimeout(() => {
-        try { openLoginModal(); } catch (e) {}
-      }, 1000);
-    }
   } catch (err) {
     console.warn("RONS Extension init safely caught:", err);
   }
@@ -738,6 +733,9 @@ function extractInstitutionName() {
 function handlePassiveRowClick(e) {
   try {
     if (!isExtensionEnabled) return;
+
+    // Agar tibbiy ro'yxatchi avtorizatsiyadan o'tmagan bo'lsa, kengaytma mutlaqo xalaqit bermaydi
+    if (!currentUser) return;
 
     // Agar kengaytmaning o'zini floating bari yoki modal oynalari bosilsa, tegmaymiz:
     if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay") || e.target.closest(".utt-login-modal") || e.target.closest(".utt-toast")) {
@@ -2321,50 +2319,114 @@ async function loadOperatorsFromFirebase() {
   } catch (e) {}
 }
 
+const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 soat (3600000 ms)
+
 async function checkUserAuth() {
   try {
-    if (chrome.storage && chrome.storage.local) {
-      const saved = await chrome.storage.local.get("utt_current_user");
-      if (saved && saved.utt_current_user) {
-        currentUser = saved.utt_current_user;
+    let saved = null;
+    // 1. chrome.storage.session (agar mavjud bo'lsa - Chrome yopilganda avtomatik o'chadi)
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.session) {
+      try {
+        const sRes = await chrome.storage.session.get("utt_current_session");
+        if (sRes && sRes.utt_current_session) {
+          saved = sRes.utt_current_session;
+        }
+      } catch (e) {}
+    }
+
+    // 2. sessionStorage (tab doirasida)
+    if (!saved) {
+      try {
+        const sLocal = sessionStorage.getItem("utt_current_session");
+        if (sLocal) saved = JSON.parse(sLocal);
+      } catch (e) {}
+    }
+
+    // 3. chrome.storage.local (agar sessiya belgisi mavjud bo'lsa)
+    if (!saved && typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      try {
+        const lRes = await chrome.storage.local.get("utt_current_user");
+        if (lRes && lRes.utt_current_user) {
+          saved = lRes.utt_current_user;
+        }
+      } catch (e) {}
+    }
+
+    if (saved && saved.authTime) {
+      const elapsed = Date.now() - Number(saved.authTime);
+      if (elapsed < SESSION_DURATION_MS) {
+        currentUser = saved;
+      } else {
+        // 1 soatdan oshgan -> sessiya muddati tugadi
+        currentUser = null;
+        await clearUserAuth(false);
       }
+    } else {
+      currentUser = null;
     }
-    if (!currentUser) {
-      const local = localStorage.getItem("utt_current_user");
-      if (local) currentUser = JSON.parse(local);
-    }
-  } catch (e) {}
+  } catch (e) {
+    currentUser = null;
+  }
 
   if (currentUser) {
     calculateTodayOperatorStats().catch(() => {});
   }
+  updateFloatingBar();
 }
 
 async function saveUserAuth(user) {
-  currentUser = user;
+  const sessionUser = {
+    login: user.login,
+    name: user.name,
+    role: user.role || "Operator",
+    authTime: Date.now()
+  };
+  currentUser = sessionUser;
+
   try {
-    if (chrome.storage && chrome.storage.local) {
-      await chrome.storage.local.set({ utt_current_user: user });
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.session) {
+      await chrome.storage.session.set({ utt_current_session: sessionUser }).catch(() => {});
     }
-    localStorage.setItem("utt_current_user", JSON.stringify(user));
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      await chrome.storage.local.set({ utt_current_user: sessionUser }).catch(() => {});
+    }
+    sessionStorage.setItem("utt_current_session", JSON.stringify(sessionUser));
   } catch (e) {}
+
   updateFloatingBar();
   calculateTodayOperatorStats().catch(() => {});
 }
 
-async function clearUserAuth() {
+async function clearUserAuth(openModalAfter = false) {
   currentUser = null;
   try {
-    if (chrome.storage && chrome.storage.local) {
-      await chrome.storage.local.remove("utt_current_user");
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.session) {
+      await chrome.storage.session.remove("utt_current_session").catch(() => {});
     }
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      await chrome.storage.local.remove("utt_current_user").catch(() => {});
+    }
+    sessionStorage.removeItem("utt_current_session");
     localStorage.removeItem("utt_current_user");
   } catch (e) {}
   updateFloatingBar();
-  openLoginModal();
+  if (openModalAfter) {
+    openLoginModal();
+  }
 }
 
-// 10. LOGIN MODALI
+// Har 30 soniyada 1 soatlik sessiya muddatini tekshirib turish
+setInterval(() => {
+  if (currentUser && currentUser.authTime) {
+    const elapsed = Date.now() - Number(currentUser.authTime);
+    if (elapsed >= SESSION_DURATION_MS) {
+      clearUserAuth(false);
+      showToast("⏰ Ro'yxatchi sessiyasi muddati (1 soat) tugadi. Kengaytmadan foydalanish uchun qayta kiring.");
+    }
+  }
+}, 30000);
+
+// 10. LOGIN MODALI (Bloklamaydigan, xavfsiz va qulay)
 function openLoginModal() {
   try {
     const oldModal = document.getElementById("uttLoginModal");
@@ -2382,13 +2444,13 @@ function openLoginModal() {
     overlay.innerHTML = `
       <div class="utt-modal-box">
         <div class="utt-modal-header">
-          <h3>🔒 ${dict.loginModalTitle || "Tizimga Kirish (Tibbiy Ro'yxatchi)"}</h3>
-          ${currentUser ? '<button class="utt-modal-close" id="uttLoginClose">&times;</button>' : ''}
+          <h3>🔒 ${dict.loginModalTitle || "Ro'yxatchi Kirish Tizimi"}</h3>
+          <button class="utt-modal-close" id="uttLoginClose" title="Yopish">&times;</button>
         </div>
 
         <form id="uttLoginForm" onsubmit="return false;">
           <div class="utt-form-group">
-            <label for="uttLoginSelect">${dict.userProfile || "Tibbiy Ro'yxatchi"}:</label>
+            <label for="uttLoginSelect">${dict.userProfile || "Ro'yxatchi profili"}:</label>
             <select id="uttLoginSelect" required>
               ${operatorsList.map(op => `
                 <option value="${op.login}">${op.login} — ${op.name}</option>
@@ -2405,10 +2467,10 @@ function openLoginModal() {
             ${dict.loginError || "❌ Parol noto'g'ri! Iltimos, qayta urinib ko'ring."}
           </div>
 
-          <div class="utt-modal-actions" style="margin-top:20px;">
-            ${currentUser ? `<button type="button" class="utt-btn-cancel" id="uttLoginCancel">${dict.cancelBtn || 'Bekor qilish'}</button>` : ''}
-            <button type="button" class="utt-btn-submit" id="uttBtnDoLogin" style="width:100%;">
-              ${dict.enterBtn || 'Tizimga Kirish'} 🚀
+          <div class="utt-modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+            <button type="button" class="utt-btn-cancel" id="uttLoginCancel">${dict.cancelBtn || 'Bekor qilish'}</button>
+            <button type="button" class="utt-btn-submit" id="uttBtnDoLogin" style="flex:1;">
+              ${dict.enterBtn || 'Kirish'} 🚀
             </button>
           </div>
         </form>
@@ -2417,23 +2479,28 @@ function openLoginModal() {
 
     document.body.appendChild(overlay);
 
+    // Tashqariga bosilganda yopish (sahifani hech qachon bloklamaydi)
+    overlay.onclick = (e) => {
+      if (e.target === overlay) overlay.remove();
+    };
+
     const pwdInput = document.getElementById("uttPasswordInput");
     if (pwdInput) {
       pwdInput.focus();
       pwdInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") handleLoginAction();
+        if (e.key === "Escape") overlay.remove();
       });
     }
 
     const doLoginBtn = document.getElementById("uttBtnDoLogin");
     if (doLoginBtn) doLoginBtn.onclick = handleLoginAction;
 
-    if (document.getElementById("uttLoginClose")) {
-      document.getElementById("uttLoginClose").onclick = () => overlay.remove();
-    }
-    if (document.getElementById("uttLoginCancel")) {
-      document.getElementById("uttLoginCancel").onclick = () => overlay.remove();
-    }
+    const closeBtn = document.getElementById("uttLoginClose");
+    if (closeBtn) closeBtn.onclick = () => overlay.remove();
+
+    const cancelBtn = document.getElementById("uttLoginCancel");
+    if (cancelBtn) cancelBtn.onclick = () => overlay.remove();
 
     async function handleLoginAction() {
       try {
@@ -2447,7 +2514,7 @@ function openLoginModal() {
           if (errEl) errEl.style.display = "none";
           await saveUserAuth(foundOp);
           overlay.remove();
-          const welcomeMsg = dict.loginSuccess ? dict.loginSuccess.replace('{name}', foundOp.name) : `👋 Xush kelibsiz, ${foundOp.name} (${foundOp.login})!`;
+          const welcomeMsg = dict.loginSuccess ? dict.loginSuccess.replace('{name}', foundOp.name) : `👋 Xush kelibsiz, ${foundOp.name} (${foundOp.login})! (Sessiya: 1 soat)`;
           showToast(welcomeMsg);
         } else {
           if (errEl) errEl.style.display = "block";

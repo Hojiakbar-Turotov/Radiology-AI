@@ -82,12 +82,36 @@ async function loadOperators() {
   } catch (e) {}
 }
 
+const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 soat
+
 async function loadCurrentUser() {
-  if (chrome.storage && chrome.storage.local) {
-    const saved = await chrome.storage.local.get("utt_current_user");
-    if (saved && saved.utt_current_user) {
-      currentUser = saved.utt_current_user;
+  let saved = null;
+  if (chrome.storage && chrome.storage.session) {
+    try {
+      const sRes = await chrome.storage.session.get("utt_current_session");
+      if (sRes && sRes.utt_current_session) saved = sRes.utt_current_session;
+    } catch (e) {}
+  }
+  if (!saved && chrome.storage && chrome.storage.local) {
+    const lRes = await chrome.storage.local.get("utt_current_user");
+    if (lRes && lRes.utt_current_user) saved = lRes.utt_current_user;
+  }
+
+  if (saved && saved.authTime) {
+    const elapsed = Date.now() - Number(saved.authTime);
+    if (elapsed < SESSION_DURATION_MS) {
+      currentUser = saved;
+    } else {
+      currentUser = null;
+      if (chrome.storage && chrome.storage.local) {
+        await chrome.storage.local.remove("utt_current_user");
+      }
+      if (chrome.storage && chrome.storage.session) {
+        await chrome.storage.session.remove("utt_current_session");
+      }
     }
+  } else {
+    currentUser = null;
   }
 
   const curLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
@@ -140,9 +164,18 @@ async function doLogin() {
 
   if (foundOp && String(foundOp.password) === String(inputPwd)) {
     errEl.style.display = "none";
-    currentUser = foundOp;
+    const sessionUser = {
+      login: foundOp.login,
+      name: foundOp.name,
+      role: foundOp.role || "Operator",
+      authTime: Date.now()
+    };
+    currentUser = sessionUser;
+    if (chrome.storage && chrome.storage.session) {
+      await chrome.storage.session.set({ utt_current_session: sessionUser }).catch(() => {});
+    }
     if (chrome.storage && chrome.storage.local) {
-      await chrome.storage.local.set({ utt_current_user: foundOp });
+      await chrome.storage.local.set({ utt_current_user: sessionUser }).catch(() => {});
     }
     renderView();
     fetchTodayStats();
@@ -154,8 +187,11 @@ async function doLogin() {
 async function doLogout() {
   if (confirm("Tizimdan chiqmoqchimisiz?")) {
     currentUser = null;
+    if (chrome.storage && chrome.storage.session) {
+      await chrome.storage.session.remove("utt_current_session").catch(() => {});
+    }
     if (chrome.storage && chrome.storage.local) {
-      await chrome.storage.local.remove("utt_current_user");
+      await chrome.storage.local.remove("utt_current_user").catch(() => {});
     }
     renderView();
   }
