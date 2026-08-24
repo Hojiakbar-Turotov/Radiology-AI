@@ -7,6 +7,8 @@ let db = null;
 let currentAdmin = null;
 let adminsList = [];
 let laborantsList = [];
+let operatorsList = [];
+let schedulingRulesList = [];
 let doctorsList = [];
 let servicesList = [];
 let auditLogsList = [];
@@ -28,6 +30,41 @@ let chartHourlyInstance = null;
 const DEFAULT_ADMINS = [
   { login: "ADMIN_SHOXFRUH", name: "Abdurashidov Shoxruh", password: "admin15420", role: "Bosh Administrator" },
   { login: "ADMIN_NODIRBEK", name: "To'xtamishov Nodirbek", password: "admin15420", role: "Bosh Administrator" }
+];
+
+// Standart Operatorlar
+const DEFAULT_OPERATORS = [
+  { login: "TB1", name: "Turatov Hojiakbar", password: "15420", role: "Operator" },
+  { login: "TB2", name: "Saida'loxon Saidaxmadxonov", password: "15420", role: "Operator" },
+  { login: "TB3", name: "Isfandiyor Xaydaraliyev", password: "15420", role: "Operator" }
+];
+
+// Standart Aqlli Taqsimlash Qoidalari
+const DEFAULT_SCHEDULING_RULES = [
+  {
+    id: "rule_mrt_contrast",
+    name: "MRT Kontrastli tekshiruvlar (Faqat 1-MRT, 08:00 - 14:00)",
+    deviceType: "MRT",
+    targetDeviceId: "mrt1",
+    disallowedDevices: ["mrt2"],
+    isContrast: "yes",
+    minServicesCount: 1,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  },
+  {
+    id: "rule_mskt_multi_contrast",
+    name: "MSKT 3 va undan ortiq soha kontrastli (08:00 - 14:00)",
+    deviceType: "MSKT",
+    targetDeviceId: "mskt1",
+    disallowedDevices: [],
+    isContrast: "yes",
+    minServicesCount: 3,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  }
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -53,6 +90,8 @@ function initAdminApp() {
   if (db) {
     setupAdminConnectionMonitor();
     listenToAdmins();
+    listenToOperators();
+    listenToSchedulingRules();
     listenToLaborants();
     listenToDoctors();
     listenToServices();
@@ -283,6 +322,8 @@ function switchAdminSection(sectionName, btnEl) {
   const secMap = {
     analytics: "secAnalytics",
     liveQueue: "secLiveQueue",
+    schedulingRules: "secSchedulingRules",
+    fastAccess: "secFastAccess",
     users: "secUsers",
     services: "secServices",
     audit: "secAudit",
@@ -303,6 +344,7 @@ function switchAdminSection(sectionName, btnEl) {
     }, 100);
   }
   if (sectionName === "liveQueue") renderLiveQueueMatrix();
+  if (sectionName === "schedulingRules") renderSchedulingRulesTable();
 }
 
 function switchUsersSubTab(subTabName, btnEl) {
@@ -311,6 +353,10 @@ function switchUsersSubTab(subTabName, btnEl) {
 
   if (btnEl) btnEl.classList.add("active");
 
+  if (subTabName === "operators") {
+    document.getElementById("subSecOperators")?.classList.add("active");
+    renderOperatorsTable();
+  }
   if (subTabName === "laborants") {
     document.getElementById("subSecLaborants")?.classList.add("active");
     renderLaborantsTable();
@@ -975,6 +1021,314 @@ async function confirmTransferPatient() {
 }
 
 // 6. XODIMLAR & FOYDALANUVCHILAR JADVALI (USERS MANAGEMENT)
+function listenToOperators() {
+  db.ref("operators").on("value", (snapshot) => {
+    operatorsList = [];
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        operatorsList.push({ login: key, ...data[key] });
+      });
+    } else {
+      const seed = {};
+      DEFAULT_OPERATORS.forEach(op => { seed[op.login] = op; });
+      db.ref("operators").set(seed);
+      operatorsList = [...DEFAULT_OPERATORS];
+    }
+    const cEl = document.getElementById("countOperators");
+    if (cEl) cEl.innerText = operatorsList.length;
+
+    renderOperatorsTable();
+  });
+}
+
+function renderOperatorsTable() {
+  const tbody = document.getElementById("operatorsTableBody");
+  if (!tbody) return;
+
+  const query = (document.getElementById("searchOperatorInput")?.value || "").toLowerCase().trim();
+  let filtered = [...operatorsList];
+  if (query) {
+    filtered = filtered.filter(o => (o.name || "").toLowerCase().includes(query) || (o.login || "").toLowerCase().includes(query));
+  }
+
+  tbody.innerHTML = filtered.map((op, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td><strong style="color: #0284c7;">${escapeHtml(op.login)}</strong></td>
+      <td><strong>${escapeHtml(op.name)}</strong></td>
+      <td><span class="badge badge-plain">${escapeHtml(op.role || 'Operator')}</span></td>
+      <td>
+        <span class="badge badge-mskt" style="font-family: monospace; font-size: 0.9rem;">${escapeHtml(op.password || '15420')}</span>
+      </td>
+      <td><span class="badge badge-completed">Faol</span></td>
+      <td style="text-align: right;">
+        <button class="btn btn-sm btn-outline" onclick="openEditOperatorModal('${escapeHtml(op.login)}')"><i class="fa-solid fa-pen-to-square"></i> Tahrirlash</button>
+        <button class="btn btn-sm btn-outline" onclick="deleteOperator('${escapeHtml(op.login)}')" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openAddOperatorModal() {
+  document.getElementById("operatorModalTitle").innerHTML = `<i class="fa-solid fa-user-plus"></i> Yangi Ro'yxatchi Qo'shish`;
+  document.getElementById("opFormIsNew").value = "1";
+  document.getElementById("opFormLogin").value = `TB${operatorsList.length + 1}`;
+  document.getElementById("opFormLogin").readOnly = false;
+  document.getElementById("opFormName").value = "";
+  document.getElementById("opFormPassword").value = "15420";
+  document.getElementById("opFormRole").value = "Operator";
+
+  document.getElementById("modalOperatorEdit").style.display = "flex";
+}
+
+function openEditOperatorModal(login) {
+  const op = operatorsList.find(o => o.login === login);
+  if (!op) return;
+
+  document.getElementById("operatorModalTitle").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Ro'yxatchi Ma'lumotlarini Tahrirlash`;
+  document.getElementById("opFormIsNew").value = "0";
+  document.getElementById("opFormLogin").value = op.login;
+  document.getElementById("opFormLogin").readOnly = true;
+  document.getElementById("opFormName").value = op.name;
+  document.getElementById("opFormPassword").value = op.password;
+  document.getElementById("opFormRole").value = op.role || "Operator";
+
+  document.getElementById("modalOperatorEdit").style.display = "flex";
+}
+
+function closeOperatorModal() {
+  document.getElementById("modalOperatorEdit").style.display = "none";
+}
+
+async function handleSaveOperatorForm(e) {
+  e.preventDefault();
+  const isNew = document.getElementById("opFormIsNew").value === "1";
+  const login = document.getElementById("opFormLogin").value.trim().toUpperCase();
+  const name = document.getElementById("opFormName").value.trim();
+  const password = document.getElementById("opFormPassword").value.trim();
+  const role = document.getElementById("opFormRole").value.trim() || "Operator";
+
+  if (!login || !name || !password) {
+    alert("Iltimos, barcha maydonlarni to'ldiring!");
+    return;
+  }
+
+  try {
+    await db.ref(`operators/${login}`).set({
+      login,
+      name,
+      password,
+      role,
+      lastUpdated: firebase.database.ServerValue.TIMESTAMP
+    });
+    closeOperatorModal();
+    alert("✅ Ro'yxatchi (Operator) ma'lumotlari muvaffaqiyatli saqlandi!");
+  } catch (err) {
+    alert("❌ Saqlashda xatolik: " + err.message);
+  }
+}
+
+async function deleteOperator(login) {
+  if (confirm(`Haqiqatan ham "${login}" operatorini o'chirmoqchimisiz?`)) {
+    try {
+      await db.ref(`operators/${login}`).remove();
+      alert("✅ Operator o'chirildi!");
+    } catch (e) {
+      alert("❌ Xatolik: " + e.message);
+    }
+  }
+}
+
+// 7. AQLLI NAVBAT TAQSIMLASH QOIDALARI (SCHEDULING RULES MANAGEMENT)
+function listenToSchedulingRules() {
+  db.ref("settings/scheduling_rules").on("value", (snapshot) => {
+    schedulingRulesList = [];
+    const data = snapshot.val();
+    if (data) {
+      if (Array.isArray(data)) {
+        schedulingRulesList = data.filter(Boolean);
+      } else {
+        Object.keys(data).forEach((key) => {
+          schedulingRulesList.push({ id: key, ...data[key] });
+        });
+      }
+    } else {
+      db.ref("settings/scheduling_rules").set(DEFAULT_SCHEDULING_RULES);
+      schedulingRulesList = [...DEFAULT_SCHEDULING_RULES];
+    }
+    renderSchedulingRulesTable();
+  });
+}
+
+function renderSchedulingRulesTable() {
+  const tbody = document.getElementById("schedulingRulesTableBody");
+  if (!tbody) return;
+
+  if (schedulingRulesList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b; padding:20px;">Hozircha maxsus qoidalar mavjud emas. "Yangi Qoida Qo'shish" tugmasini bosing.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = schedulingRulesList.map((r, idx) => {
+    const isEn = r.enabled !== false;
+    const disallowedStr = (Array.isArray(r.disallowedDevices) && r.disallowedDevices.length > 0)
+      ? r.disallowedDevices.map(d => `<span style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">🚫 ${d.toUpperCase()}</span>`).join(" ")
+      : `<span style="color:#64748b;">Yo'q</span>`;
+
+    const contrastStr = r.isContrast === "yes" ? "💉 Faqat Kontrastli" : (r.isContrast === "no" ? "Oddiy (Kontrastsiz)" : "Barchasi");
+    const targetDevStr = r.targetDeviceId === "any" ? "Ixtiyoriy" : (r.targetDeviceId ? r.targetDeviceId.toUpperCase() : "Ixtiyoriy");
+
+    return `
+      <tr>
+        <td><strong>${escapeHtml(r.name || 'Qoida ' + (idx + 1))}</strong></td>
+        <td><span class="badge ${r.deviceType === 'MRT' ? 'badge-mrt' : (r.deviceType === 'MSKT' ? 'badge-mskt' : 'badge-plain')}">${escapeHtml(r.deviceType || 'ALL')}</span></td>
+        <td><strong style="color:#0284c7;">${escapeHtml(targetDevStr)}</strong></td>
+        <td>${disallowedStr}</td>
+        <td>${escapeHtml(contrastStr)}</td>
+        <td><strong>${r.minServicesCount || 1} ta +</strong></td>
+        <td><span style="font-weight:800; color:#059669; font-family:monospace;">${r.allowedTimeStart || '08:00'} - ${r.allowedTimeEnd || '14:00'}</span></td>
+        <td>
+          <button class="btn btn-sm ${isEn ? 'btn-success' : 'btn-outline'}" onclick="toggleSchedulingRule('${r.id || idx}')" style="padding:2px 8px; font-size:11px;">
+            ${isEn ? '🟢 Faol' : '⚪ O\'chiq'}
+          </button>
+        </td>
+        <td style="text-align: right;">
+          <button class="btn btn-sm btn-outline" onclick="openEditRuleModal('${r.id || idx}')"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button class="btn btn-sm btn-outline" onclick="deleteSchedulingRule('${r.id || idx}')" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function openAddRuleModal() {
+  document.getElementById("ruleModalTitle").innerHTML = `<i class="fa-solid fa-sliders"></i> Yangi Navbat Qoidasi Qo'shish`;
+  document.getElementById("ruleFormIsNew").value = "1";
+  document.getElementById("ruleFormId").value = "rule_" + Date.now();
+  document.getElementById("ruleFormName").value = "";
+  document.getElementById("ruleFormDeviceType").value = "MRT";
+  document.getElementById("ruleFormTargetDevice").value = "mrt1";
+  document.getElementById("ruleFormContrast").value = "yes";
+  document.getElementById("ruleFormMinServices").value = "1";
+  document.getElementById("ruleFormTimeStart").value = "08:00";
+  document.getElementById("ruleFormTimeEnd").value = "14:00";
+  document.getElementById("ruleDisallowMrt2").checked = true;
+  document.getElementById("ruleDisallowMrt1").checked = false;
+  document.getElementById("ruleDisallowMskt1").checked = false;
+  document.getElementById("ruleFormEnabled").checked = true;
+
+  document.getElementById("modalRuleEdit").style.display = "flex";
+}
+
+function openEditRuleModal(ruleId) {
+  const r = schedulingRulesList.find(item => (item.id || '') === ruleId || String(schedulingRulesList.indexOf(item)) === String(ruleId));
+  if (!r) return;
+
+  document.getElementById("ruleModalTitle").innerHTML = `<i class="fa-solid fa-sliders"></i> Qoidani Tahrirlash`;
+  document.getElementById("ruleFormIsNew").value = "0";
+  document.getElementById("ruleFormId").value = r.id || ruleId;
+  document.getElementById("ruleFormName").value = r.name || "";
+  document.getElementById("ruleFormDeviceType").value = r.deviceType || "MRT";
+  document.getElementById("ruleFormTargetDevice").value = r.targetDeviceId || "any";
+  document.getElementById("ruleFormContrast").value = r.isContrast || "yes";
+  document.getElementById("ruleFormMinServices").value = r.minServicesCount || 1;
+  document.getElementById("ruleFormTimeStart").value = r.allowedTimeStart || "08:00";
+  document.getElementById("ruleFormTimeEnd").value = r.allowedTimeEnd || "14:00";
+  
+  const dis = r.disallowedDevices || [];
+  document.getElementById("ruleDisallowMrt2").checked = dis.includes("mrt2");
+  document.getElementById("ruleDisallowMrt1").checked = dis.includes("mrt1");
+  document.getElementById("ruleDisallowMskt1").checked = dis.includes("mskt1");
+  document.getElementById("ruleFormEnabled").checked = r.enabled !== false;
+
+  document.getElementById("modalRuleEdit").style.display = "flex";
+}
+
+function closeRuleModal() {
+  document.getElementById("modalRuleEdit").style.display = "none";
+}
+
+async function handleSaveRuleForm(e) {
+  e.preventDefault();
+  const id = document.getElementById("ruleFormId").value.trim() || ("rule_" + Date.now());
+  const name = document.getElementById("ruleFormName").value.trim();
+  const deviceType = document.getElementById("ruleFormDeviceType").value;
+  const targetDeviceId = document.getElementById("ruleFormTargetDevice").value;
+  const isContrast = document.getElementById("ruleFormContrast").value;
+  const minServicesCount = parseInt(document.getElementById("ruleFormMinServices").value, 10) || 1;
+  const allowedTimeStart = document.getElementById("ruleFormTimeStart").value || "08:00";
+  const allowedTimeEnd = document.getElementById("ruleFormTimeEnd").value || "14:00";
+  const enabled = document.getElementById("ruleFormEnabled").checked;
+
+  const disallowedDevices = [];
+  if (document.getElementById("ruleDisallowMrt2").checked) disallowedDevices.push("mrt2");
+  if (document.getElementById("ruleDisallowMrt1").checked) disallowedDevices.push("mrt1");
+  if (document.getElementById("ruleDisallowMskt1").checked) disallowedDevices.push("mskt1");
+
+  const ruleObj = {
+    id,
+    name,
+    deviceType,
+    targetDeviceId,
+    disallowedDevices,
+    isContrast,
+    minServicesCount,
+    allowedTimeStart,
+    allowedTimeEnd,
+    enabled
+  };
+
+  try {
+    let currentRules = [...schedulingRulesList];
+    const existingIdx = currentRules.findIndex(r => r.id === id);
+    if (existingIdx >= 0) {
+      currentRules[existingIdx] = ruleObj;
+    } else {
+      currentRules.push(ruleObj);
+    }
+
+    await db.ref("settings/scheduling_rules").set(currentRules);
+    closeRuleModal();
+    alert("✅ Navbat qoidasi muvaffaqiyatli saqlandi!");
+  } catch (err) {
+    alert("❌ Saqlashda xatolik: " + err.message);
+  }
+}
+
+async function toggleSchedulingRule(ruleId) {
+  const r = schedulingRulesList.find(item => (item.id || '') === ruleId || String(schedulingRulesList.indexOf(item)) === String(ruleId));
+  if (!r) return;
+
+  r.enabled = !(r.enabled !== false);
+  try {
+    await db.ref("settings/scheduling_rules").set(schedulingRulesList);
+  } catch (e) {
+    alert("Xatolik: " + e.message);
+  }
+}
+
+async function deleteSchedulingRule(ruleId) {
+  if (confirm("Ushbu navbat qoidasini o'chirmoqchimisiz?")) {
+    const filtered = schedulingRulesList.filter(item => (item.id || '') !== ruleId && String(schedulingRulesList.indexOf(item)) !== String(ruleId));
+    try {
+      await db.ref("settings/scheduling_rules").set(filtered);
+      alert("✅ Qoida o'chirildi!");
+    } catch (e) {
+      alert("Xatolik: " + e.message);
+    }
+  }
+}
+
+// 8. TEZKOR KIRISH (IMPERSONATION / FAST ACCESS)
+function launchRegistraturaAsAdmin() {
+  window.open("../app1-registratura/index.html?adminAuth=1", "_blank");
+}
+
+function launchRoomAsAdmin(roomId) {
+  window.open(`../app2-vrach/index.html?adminAuth=1&room=${roomId || 'mrt1'}`, "_blank");
+}
+
 function renderLaborantsTable() {
   const tbody = document.getElementById("laborantsTableBody");
   if (!tbody) return;

@@ -5,6 +5,51 @@ let todayDateStr = "";
 let selectedQueueDate = "";
 let currentPatientsRef = null;
 let laborantsList = [];
+let currentRegistrar = null;
+
+// Standart Operatorlar & Adminlar
+const DEFAULT_OPERATORS = [
+  { login: "TB1", name: "Turatov Hojiakbar", password: "15420", role: "Operator" },
+  { login: "TB2", name: "Saida'loxon Saidaxmadxonov", password: "15420", role: "Operator" },
+  { login: "TB3", name: "Isfandiyor Xaydaraliyev", password: "15420", role: "Operator" }
+];
+
+const DEFAULT_ADMINS = [
+  { login: "ADMIN_SHOXFRUH", name: "Abdurashidov Shoxruh", password: "admin15420", role: "Bosh Administrator" },
+  { login: "ADMIN_NODIRBEK", name: "To'xtamishov Nodirbek", password: "admin15420", role: "Bosh Administrator" }
+];
+
+let operatorsList = [...DEFAULT_OPERATORS];
+
+// Standart Aqlli Taqsimlash Qoidalari (Admin panel orqali boshqariladi)
+const DEFAULT_SCHEDULING_RULES = [
+  {
+    id: "rule_mrt_contrast",
+    name: "MRT Kontrastli tekshiruvlar (Faqat 1-MRT, 08:00 - 14:00)",
+    deviceType: "MRT",
+    targetDeviceId: "mrt1",
+    disallowedDevices: ["mrt2"],
+    isContrast: "yes",
+    minServicesCount: 1,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  },
+  {
+    id: "rule_mskt_multi_contrast",
+    name: "MSKT 3 va undan ortiq soha kontrastli (08:00 - 14:00)",
+    deviceType: "MSKT",
+    targetDeviceId: "mskt1",
+    disallowedDevices: [],
+    isContrast: "yes",
+    minServicesCount: 3,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  }
+];
+
+let dynamicSchedulingRules = [...DEFAULT_SCHEDULING_RULES];
 
 // 📌 UMUMIY TIBBIY QOIDALAR, QARSHI KO'RSATMALAR VA SAVOLNOMA SHABLONLARI
 const DEFAULT_GLOBAL_GUIDELINES = {
@@ -155,6 +200,8 @@ function initApp() {
 
   if (db) {
     setupConnectionMonitor();
+    listenToOperators();
+    listenToSchedulingRules();
     listenToDoctors();
     listenToLaborants();
     listenToPatients(todayDateStr);
@@ -169,8 +216,167 @@ function initApp() {
     if (qDateEl) qDateEl.value = todayDateStr;
     const pDateEl = document.getElementById("patientAppDate");
     if (pDateEl) pDateEl.value = todayDateStr;
+
+    checkRegistrarAuth();
   } else {
     updateConnStatus(false, "Firebase sozlanmagan!");
+    checkRegistrarAuth();
+  }
+}
+
+function listenToOperators() {
+  if (!db) return;
+  db.ref("operators").on("value", snapshot => {
+    const val = snapshot.val();
+    if (val) {
+      operatorsList = Object.values(val);
+    } else {
+      const seed = {};
+      DEFAULT_OPERATORS.forEach(op => { seed[op.login] = op; });
+      db.ref("operators").set(seed);
+      operatorsList = [...DEFAULT_OPERATORS];
+    }
+  });
+}
+
+function listenToSchedulingRules() {
+  if (!db) return;
+  db.ref("settings/scheduling_rules").on("value", snapshot => {
+    const val = snapshot.val();
+    if (val) {
+      dynamicSchedulingRules = Array.isArray(val) ? val : Object.values(val);
+    } else {
+      db.ref("settings/scheduling_rules").set(DEFAULT_SCHEDULING_RULES);
+      dynamicSchedulingRules = [...DEFAULT_SCHEDULING_RULES];
+    }
+  });
+}
+
+function getMatchingSchedulingRule(procedureInfo) {
+  if (!procedureInfo) return null;
+  const isMSKT = procedureInfo.type === "MSKT" || (procedureInfo.service && procedureInfo.service.toUpperCase().includes("MSKT"));
+  const devType = isMSKT ? "MSKT" : "MRT";
+  const isContrast = Boolean(procedureInfo.isContrast);
+  const sCount = procedureInfo.servicesCount || (procedureInfo.servicesList ? procedureInfo.servicesList.length : 1);
+
+  const rules = (dynamicSchedulingRules && dynamicSchedulingRules.length > 0) ? dynamicSchedulingRules : DEFAULT_SCHEDULING_RULES;
+
+  for (const r of rules) {
+    if (!r.enabled) continue;
+    if (r.deviceType && r.deviceType !== "ALL" && r.deviceType !== devType) continue;
+    if (r.isContrast === "yes" && !isContrast) continue;
+    if (r.isContrast === "no" && isContrast) continue;
+    if (r.minServicesCount && sCount < r.minServicesCount) continue;
+    return r;
+  }
+  return null;
+}
+
+// 🔐 REGISTRATURA AUTORIZATSIYA TIZIMI
+function checkRegistrarAuth() {
+  const params = new URLSearchParams(window.location.search);
+  const isAdminFastAuth = params.get("adminAuth") === "1" || sessionStorage.getItem("adminAuthActive") === "1";
+  
+  if (isAdminFastAuth) {
+    currentRegistrar = {
+      login: "ADMIN",
+      name: "Abdurashidov Shoxruh (Bosh Administrator)",
+      role: "Bosh Administrator"
+    };
+    sessionStorage.setItem("adminAuthActive", "1");
+    localStorage.setItem("currentRegistrar", JSON.stringify(currentRegistrar));
+    updateRegistrarUI();
+    hideRegistrarLoginModal();
+    return true;
+  }
+
+  const saved = localStorage.getItem("currentRegistrar");
+  if (saved) {
+    try {
+      currentRegistrar = JSON.parse(saved);
+      updateRegistrarUI();
+      hideRegistrarLoginModal();
+      return true;
+    } catch (e) {}
+  }
+
+  showRegistrarLoginModal();
+  return false;
+}
+
+function showRegistrarLoginModal() {
+  const modal = document.getElementById("registrarLoginModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function hideRegistrarLoginModal() {
+  const modal = document.getElementById("registrarLoginModal");
+  if (modal) modal.style.display = "none";
+}
+
+function handleRegistrarLoginSubmit(e) {
+  if (e) e.preventDefault();
+  const uInput = document.getElementById("regLoginUsername");
+  const pInput = document.getElementById("regLoginPassword");
+  const errBox = document.getElementById("regLoginError");
+
+  const login = uInput ? uInput.value.trim().toUpperCase() : "";
+  const pwd = pInput ? pInput.value.trim() : "";
+
+  if (!login || !pwd) {
+    if (errBox) {
+      errBox.style.display = "block";
+      errBox.innerText = "❌ Iltimos, login va parolni kiriting!";
+    }
+    return;
+  }
+
+  // 1. Admin tekshiruvi
+  const admin = DEFAULT_ADMINS.find(a => a.login.toUpperCase() === login && a.password === pwd);
+  if (admin) {
+    currentRegistrar = admin;
+    localStorage.setItem("currentRegistrar", JSON.stringify(admin));
+    updateRegistrarUI();
+    hideRegistrarLoginModal();
+    if (errBox) errBox.style.display = "none";
+    return;
+  }
+
+  // 2. Operator tekshiruvi
+  const op = operatorsList.find(o => (o.login || '').toUpperCase() === login && o.password === pwd);
+  if (op) {
+    currentRegistrar = op;
+    localStorage.setItem("currentRegistrar", JSON.stringify(op));
+    updateRegistrarUI();
+    hideRegistrarLoginModal();
+    if (errBox) errBox.style.display = "none";
+    return;
+  }
+
+  if (errBox) {
+    errBox.style.display = "block";
+    errBox.innerText = "❌ Login yoki parol noto'g'ri!";
+  }
+}
+
+function logoutRegistrar() {
+  currentRegistrar = null;
+  localStorage.removeItem("currentRegistrar");
+  sessionStorage.removeItem("adminAuthActive");
+  showRegistrarLoginModal();
+}
+
+function updateRegistrarUI() {
+  const nameEl = document.getElementById("headerOperatorName");
+  const roleEl = document.getElementById("headerOperatorRole");
+  const boxEl = document.getElementById("headerOperatorBox");
+
+  if (currentRegistrar) {
+    if (nameEl) nameEl.innerText = currentRegistrar.name || currentRegistrar.login;
+    if (roleEl) roleEl.innerText = `${currentRegistrar.login} (${currentRegistrar.role || 'Operator'})`;
+    if (boxEl) boxEl.style.display = "inline-flex";
+  } else {
+    if (boxEl) boxEl.style.display = "none";
   }
 }
 
@@ -1334,12 +1540,12 @@ function checkSlotConflict(devPatients, newStartMin, newEndMin, excludeTicketId 
   return { hasConflict: false };
 }
 
-function calculateSlotFromPatientsList(devPatients, duration, targetDate = null, schedule = null) {
-  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule);
+function calculateSlotFromPatientsList(devPatients, duration, targetDate = null, schedule = null, timeConstraints = null) {
+  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule, timeConstraints);
 }
 
 // OCHIQ VAQTLAR (GAP) NI TEKSHIRIB ENG YAQUIN BO'SH VAQTNI TOPISH
-function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null) {
+function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null, timeConstraints = null) {
   const dur = parseInt(duration, 10) || 30;
   const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
 
@@ -1352,11 +1558,12 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
 
   // 1. Tanlangan sananing aniq va amaldagi ish grafigini aniqlash (bayram / maxsus kunlarni hisobga olgan holda)
   const effDay = getDayEffectiveSchedule(checkDate, cfg, calendarExceptions);
+  const dayName = effDay.title || effDay.name || "Ish kuni";
 
   // Dam olish kuni yoki bayram tekshiruvi
   if (!effDay.enabled) {
     return {
-      error: `Tanlangan sana (${checkDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
+      error: `Tanlangan sana (${checkDate} - ${dayName}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
       isOffDay: true
     };
   }
@@ -1369,8 +1576,18 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
     };
   }
 
-  const startWorkMin = timeToMinutes(effDay.start || "08:00");
-  const endWorkMin = timeToMinutes(effDay.end || "19:30");
+  let startWorkMin = timeToMinutes(effDay.start || "08:00");
+  let endWorkMin = timeToMinutes(effDay.end || "19:30");
+
+  // Agar qoidalar bo'yicha maxsus vaqt chegarasi (masalan: 08:00 - 14:00) bo'lsa:
+  if (timeConstraints) {
+    if (timeConstraints.allowedTimeStart) {
+      startWorkMin = Math.max(startWorkMin, timeToMinutes(timeConstraints.allowedTimeStart));
+    }
+    if (timeConstraints.allowedTimeEnd) {
+      endWorkMin = Math.min(endWorkMin, timeToMinutes(timeConstraints.allowedTimeEnd));
+    }
+  }
 
   // 3. Bugungi kun bo'lsa -> Hozirgi vaqtdan boshlab qidirish
   let searchStartMin = startWorkMin;
@@ -1380,9 +1597,11 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
     searchStartMin = Math.max(startWorkMin, roundedNowMin);
   }
 
+  const timeLimitDisplay = timeConstraints ? `${timeConstraints.allowedTimeStart || effDay.start} - ${timeConstraints.allowedTimeEnd || effDay.end}` : `${effDay.start || "08:00"} - ${effDay.end || "19:30"}`;
+
   if (searchStartMin + dur > endWorkMin) {
     return {
-      error: `Bugungi ish vaqti (${effDay.title || effDay.name}: ${effDay.end || "19:30"}) tugagan yoki qolgan vaqt tekshiruv uchun yetarli emas! Keyingi ish kunini tanlang.`,
+      error: `Ushbu kunda belgilangan qabul vaqti (${dayName}: ${timeLimitDisplay}) tugagan yoki vaqt yetarli emas! Keyingi ish kunini tanlang.`,
       isWorkEnded: true
     };
   }
@@ -1468,7 +1687,7 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
   }
 
   return {
-    error: `Ushbu kunga barcha navbatlar to'lgan (${dayCfg.name} ish soatlari: ${dayCfg.start} - ${dayCfg.end}). Keyingi ish kunini tanlang!`,
+    error: `Ushbu kunga barcha navbatlar to'lgan (${dayName} ish soatlari: ${timeLimitDisplay}). Keyingi ish kunini tanlang!`,
     isFull: true
   };
 }

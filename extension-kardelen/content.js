@@ -14,7 +14,36 @@ const DEFAULT_DEVICES = [
   { id: "mskt1", name: "MSKT 1", room: "1-MSKT Xonasi", specialty: "Tomografiya (MSKT)", type: "MSKT", color: "#34d399" }
 ];
 
+// Standart Aqlli Taqsimlash Qoidalari (Admin panel orqali boshqariladi)
+const DEFAULT_SCHEDULING_RULES = [
+  {
+    id: "rule_mrt_contrast",
+    name: "MRT Kontrastli tekshiruvlar (Faqat 1-MRT, 08:00 - 14:00)",
+    deviceType: "MRT",
+    targetDeviceId: "mrt1",
+    disallowedDevices: ["mrt2"],
+    isContrast: "yes",
+    minServicesCount: 1,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  },
+  {
+    id: "rule_mskt_multi_contrast",
+    name: "MSKT 3 va undan ortiq soha kontrastli (08:00 - 14:00)",
+    deviceType: "MSKT",
+    targetDeviceId: "mskt1",
+    disallowedDevices: [],
+    isContrast: "yes",
+    minServicesCount: 3,
+    allowedTimeStart: "08:00",
+    allowedTimeEnd: "14:00",
+    enabled: true
+  }
+];
+
 let dynamicDevices = [...DEFAULT_DEVICES];
+let dynamicSchedulingRules = [...DEFAULT_SCHEDULING_RULES];
 let currentUser = null;
 let operatorsList = [...DEFAULT_OPERATORS];
 let selectedPatient = null;
@@ -255,6 +284,7 @@ async function initExtension() {
     await loadDevicesFromFirebase();
     await loadWorkScheduleFromFirebase();
     await loadCalendarExceptionsFromFirebase();
+    await loadSchedulingRulesFromFirebase();
 
     createFloatingBar();
     fetchDeviceQueueCounts().catch(() => {});
@@ -1790,6 +1820,26 @@ function consolidatePreparationAndContraindications(servicesList, fallbackPrep =
   };
 }
 
+function getMatchingSchedulingRule(procedureInfo) {
+  if (!procedureInfo) return null;
+  const isMSKT = procedureInfo.type === "MSKT" || (procedureInfo.service && procedureInfo.service.toUpperCase().includes("MSKT"));
+  const devType = isMSKT ? "MSKT" : "MRT";
+  const isContrast = Boolean(procedureInfo.isContrast);
+  const sCount = procedureInfo.servicesCount || (procedureInfo.servicesList ? procedureInfo.servicesList.length : 1);
+
+  const rules = (dynamicSchedulingRules && dynamicSchedulingRules.length > 0) ? dynamicSchedulingRules : DEFAULT_SCHEDULING_RULES;
+
+  for (const r of rules) {
+    if (!r.enabled) continue;
+    if (r.deviceType && r.deviceType !== "ALL" && r.deviceType !== devType) continue;
+    if (r.isContrast === "yes" && !isContrast) continue;
+    if (r.isContrast === "no" && isContrast) continue;
+    if (r.minServicesCount && sCount < r.minServicesCount) continue;
+    return r;
+  }
+  return null;
+}
+
 function calculateCombinedProcedureInfo(servicesList) {
   if (!servicesList || servicesList.length === 0) {
     return {
@@ -1840,8 +1890,6 @@ function calculateCombinedProcedureInfo(servicesList) {
   }
 
   // 4. VAQT HISOBLASH (Katalogdagi sozlamalar bo'yicha):
-  // - MSKT: Eng kattasi (Math.max)
-  // - MRT: Vaqtlar yig'indisi (Sum)
   let finalDuration = 30;
   let calcMethod = "";
 
@@ -1859,8 +1907,35 @@ function calculateCombinedProcedureInfo(servicesList) {
   const serviceTitle = servicesList.map(s => s.fullName || s.name).join(" + ");
   const serviceCodes = servicesList.map(s => s.code).filter(Boolean).join(", ");
 
-  // 6. Qurilma tanlash (Firebase /doctors ro'yxatidagi dinamik qurilmalardan)
-  const matchingDevices = dynamicDevices.filter(d => d.type === deviceType);
+  // 6. Qurilma tanlash (Firebase /doctors ro'yxatidagi dinamik qurilmalardan va Aqlli Taqsimlash Qoidalaridan)
+  const candidateInfo = {
+    type: deviceType,
+    isContrast: isContrast,
+    servicesCount: servicesList.length,
+    servicesList: servicesList,
+    service: serviceTitle
+  };
+
+  const matchedRule = getMatchingSchedulingRule(candidateInfo);
+
+  let matchingDevices = dynamicDevices.filter(d => d.type === deviceType);
+
+  // Agar qoidada taqiqlangan qurilmalar bo'lsa (masalan: MRT 2 ga kontrast berilmasin):
+  if (matchedRule && Array.isArray(matchedRule.disallowedDevices) && matchedRule.disallowedDevices.length > 0) {
+    matchingDevices = matchingDevices.filter(d => !matchedRule.disallowedDevices.includes(d.id));
+  } else if (deviceType === "MRT" && isContrast) {
+    // Standart xavfsizlik: MRT kontrast hech qachon MRT 2 ga berilmaydi
+    matchingDevices = matchingDevices.filter(d => d.id !== "mrt2" && !d.name.includes("MRT 2") && !d.room.includes("2-MRT"));
+  }
+
+  // Agar qoidada aniq maqsadli qurilma belgilangan bo'lsa (masalan: mrt1 yoki mskt1):
+  if (matchedRule && matchedRule.targetDeviceId && matchedRule.targetDeviceId !== "any") {
+    const targetDev = dynamicDevices.find(d => d.id === matchedRule.targetDeviceId);
+    if (targetDev) {
+      matchingDevices = [targetDev];
+    }
+  }
+
   const availablePool = matchingDevices.length > 0 ? matchingDevices : dynamicDevices;
 
   let recommendedDevice = availablePool[0] || DEFAULT_DEVICES[0];
@@ -1886,7 +1961,8 @@ function calculateCombinedProcedureInfo(servicesList) {
     recommendedDevice: recommendedDevice,
     servicesCount: servicesList.length,
     servicesList: servicesList,
-    calcMethod: calcMethod
+    calcMethod: calcMethod,
+    schedulingRule: matchedRule
   };
 }
 
@@ -1906,13 +1982,31 @@ function isMsktCheck(code, name, rawText) {
 
 let laborantsCatalog = {};
 
-// 7. TEKSHIRUVLAR VA LABORANTLAR KATALOGINI FIREBASE-DAN YUKLASH
+// 7. TEKSHIRUVLAR, QOIDALAR VA LABORANTLAR KATALOGINI FIREBASE-DAN YUKLASH
 async function loadServicesCatalog() {
   try {
     const res = await safeFetch(`${FIREBASE_DB_URL}/services_catalog.json`);
     if (res && res.ok) {
       const data = await res.json();
       if (data) servicesCatalog = data;
+    }
+  } catch (e) {}
+}
+
+async function loadSchedulingRulesFromFirebase() {
+  try {
+    const res = await safeFetch(`${FIREBASE_DB_URL}/settings/scheduling_rules.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data) {
+        dynamicSchedulingRules = Array.isArray(data) ? data : Object.values(data);
+      } else {
+        safeFetch(`${FIREBASE_DB_URL}/settings/scheduling_rules.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(DEFAULT_SCHEDULING_RULES)
+        });
+      }
     }
   } catch (e) {}
 }
@@ -3229,11 +3323,18 @@ async function openSendModal(patientData) {
         <div class="utt-form-group">
           <label for="uttDeviceSelect" id="uttModalLblDevice">Qurilma / Xonani tanlang:</label>
           <select id="uttDeviceSelect">
-            ${dynamicDevices.map(d => `
-              <option value="${d.id}" ${d.id === activeServiceInfo.autoDeviceId ? 'selected' : ''}>
-                ${escapeHtml(d.room || d.name)} (${escapeHtml(d.name)}) - [Navbatda: ${deviceQueues[d.id] || 0} nafar]
-              </option>
-            `).join("")}
+            ${dynamicDevices.map(d => {
+              const matchedRule = getMatchingSchedulingRule(activeServiceInfo);
+              const isDisallowed = matchedRule && matchedRule.disallowedDevices && matchedRule.disallowedDevices.includes(d.id);
+              const isWrongType = d.type !== activeServiceInfo.type;
+              const isDevDisabled = isDisallowed || isWrongType;
+              const disabledNote = isDisallowed ? " 🚫 (Kontrast qabul qilmaydi)" : (isWrongType ? " ⚠️ (Boshqa qurilma turi)" : "");
+              return `
+                <option value="${d.id}" ${d.id === activeServiceInfo.autoDeviceId ? 'selected' : ''} ${isDevDisabled ? 'disabled style="color:#94a3b8;"' : ''}>
+                  ${escapeHtml(d.room || d.name)} (${escapeHtml(d.name)})${disabledNote} - [Navbatda: ${deviceQueues[d.id] || 0} nafar]
+                </option>
+              `;
+            }).join("")}
           </select>
         </div>
 
@@ -3629,6 +3730,8 @@ async function openSendModal(patientData) {
         }
 
         const devId = devSelect ? devSelect.value : (dynamicDevices[0] ? dynamicDevices[0].id : "");
+        const matchedRule = getMatchingSchedulingRule(activeServiceInfo);
+        const timeConstraints = matchedRule ? { allowedTimeStart: matchedRule.allowedTimeStart, allowedTimeEnd: matchedRule.allowedTimeEnd, name: matchedRule.name } : null;
 
         // Firebase-dan tanlangan sana bemorlarini olish
         let dayPatients = [];
@@ -3646,7 +3749,7 @@ async function openSendModal(patientData) {
 
         if (selectedMode === "auto") {
           if (customTimeContainer) customTimeContainer.style.display = "none";
-          currentSlotData = calculateNextAvailableSlotFromList(devPatients, currentDur, selectedDate, currentWorkSchedule);
+          currentSlotData = calculateNextAvailableSlotFromList(devPatients, currentDur, selectedDate, currentWorkSchedule, timeConstraints);
 
           if (currentSlotData.error) {
             isModalSlotValid = false;
@@ -3662,9 +3765,10 @@ async function openSendModal(patientData) {
           isModalSlotValid = true;
 
           if (slotAlert) {
+            const ruleNotice = matchedRule ? ` <span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold; margin-left:4px;">⏱ ${matchedRule.allowedTimeStart} - ${matchedRule.allowedTimeEnd}</span>` : "";
             slotAlert.style.background = "#dcfce7";
             slotAlert.style.color = "#15803d";
-            slotAlert.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${currentSlotData.slotString} (${selectedDate === todayStr ? 'Bugun' : selectedDate} - ${effDay.title || effDay.name})`;
+            slotAlert.innerHTML = `✅ <strong>Eng yaqin bo'sh vaqt:</strong> ${currentSlotData.slotString} (${selectedDate === todayStr ? 'Bugun' : selectedDate} - ${effDay.title || effDay.name})${ruleNotice}`;
           }
           if (btnSend) btnSend.disabled = false;
 
@@ -3692,6 +3796,22 @@ async function openSendModal(patientData) {
                 slotAlert.style.background = "#fee2e2";
                 slotAlert.style.color = "#b91c1c";
                 slotAlert.innerHTML = `❌ <strong>O'tib ketgan vaqt!</strong> Tanlangan vaqt (${startTime}) joriy vaqtdan (${minutesToTime(curMin)}) oldinda. O'tgan soatlarga navbat yozib bo'lmaydi!`;
+              }
+              if (btnSend) btnSend.disabled = true;
+              return;
+            }
+          }
+
+          // Maxsus qoidalar vaqti chegarasi tekshiruvi (masalan: 08:00 - 14:00)
+          if (matchedRule) {
+            const ruleStartMin = timeToMinutes(matchedRule.allowedTimeStart || "08:00");
+            const ruleEndMin = timeToMinutes(matchedRule.allowedTimeEnd || "14:00");
+            if (startMin < ruleStartMin || endMin > ruleEndMin) {
+              isModalSlotValid = false;
+              if (slotAlert) {
+                slotAlert.style.background = "#fee2e2";
+                slotAlert.style.color = "#b91c1c";
+                slotAlert.innerHTML = `❌ <strong>Maxsus qoida chegarasi!</strong> Ushbu tekshiruv (${escapeHtml(matchedRule.name)}) faqat ${matchedRule.allowedTimeStart} dan ${matchedRule.allowedTimeEnd} gacha bo'lgan vaqtda qabul qilinadi!`;
               }
               if (btnSend) btnSend.disabled = true;
               return;
@@ -3854,12 +3974,12 @@ async function openSendModal(patientData) {
   }
 }
 
-function calculateNextAvailableSlotFromList(devPatients, duration, targetDate = null, schedule = null) {
-  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule);
+function calculateNextAvailableSlotFromList(devPatients, duration, targetDate = null, schedule = null, timeConstraints = null) {
+  return findEarliestFreeSlot(devPatients, duration, targetDate, schedule, timeConstraints);
 }
 
 // OCHIQ VAQTLAR (GAP) NI TEKSHIRIB ENG YAQUIN BO'SH VAQTNI TOPISH
-function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null) {
+function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule = null, timeConstraints = null) {
   const dur = parseInt(duration, 10) || 30;
   const cfg = schedule || currentWorkSchedule || DEFAULT_WORK_SCHEDULE;
 
@@ -3872,11 +3992,12 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
 
   // 1. Tanlangan sananing aniq va amaldagi ish grafigini aniqlash (bayram / maxsus kunlarni hisobga olgan holda)
   const effDay = getDayEffectiveSchedule(checkDate, cfg, calendarExceptions);
+  const dayName = effDay.title || effDay.name || "Ish kuni";
 
   // Dam olish kuni yoki bayram tekshiruvi
   if (!effDay.enabled) {
     return {
-      error: `Tanlangan sana (${checkDate} - ${effDay.title || effDay.name}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
+      error: `Tanlangan sana (${checkDate} - ${dayName}) dam olish kuni hisoblanadi. Navbat berish taqiqlangan!`,
       isOffDay: true
     };
   }
@@ -3889,8 +4010,18 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
     };
   }
 
-  const startWorkMin = timeToMinutes(effDay.start || "08:00");
-  const endWorkMin = timeToMinutes(effDay.end || "19:30");
+  let startWorkMin = timeToMinutes(effDay.start || "08:00");
+  let endWorkMin = timeToMinutes(effDay.end || "19:30");
+
+  // Agar qoidalar bo'yicha maxsus vaqt chegarasi (masalan: 08:00 - 14:00) bo'lsa:
+  if (timeConstraints) {
+    if (timeConstraints.allowedTimeStart) {
+      startWorkMin = Math.max(startWorkMin, timeToMinutes(timeConstraints.allowedTimeStart));
+    }
+    if (timeConstraints.allowedTimeEnd) {
+      endWorkMin = Math.min(endWorkMin, timeToMinutes(timeConstraints.allowedTimeEnd));
+    }
+  }
 
   // 3. Bugungi kun bo'lsa -> Hozirgi vaqtdan boshlab qidirish
   let searchStartMin = startWorkMin;
@@ -3900,9 +4031,11 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
     searchStartMin = Math.max(startWorkMin, roundedNowMin);
   }
 
+  const timeLimitDisplay = timeConstraints ? `${timeConstraints.allowedTimeStart || effDay.start} - ${timeConstraints.allowedTimeEnd || effDay.end}` : `${effDay.start || "08:00"} - ${effDay.end || "19:30"}`;
+
   if (searchStartMin + dur > endWorkMin) {
     return {
-      error: `Bugungi ish vaqti (${effDay.title || effDay.name}: ${effDay.end || "19:30"}) tugagan yoki qolgan vaqt yetarli emas! Keyingi ish kunini tanlang.`,
+      error: `Ushbu kunda belgilangan qabul vaqti (${dayName}: ${timeLimitDisplay}) tugagan yoki vaqt yetarli emas! Keyingi ish kunini tanlang.`,
       isWorkEnded: true
     };
   }
@@ -3988,7 +4121,7 @@ function findEarliestFreeSlot(devPatients, duration, targetDate = null, schedule
   }
 
   return {
-    error: `Ushbu kunga barcha navbatlar to'lgan (${dayCfg.name} ish soatlari: ${dayCfg.start} - ${dayCfg.end}). Keyingi ish kunini tanlang!`,
+    error: `Ushbu kunga barcha navbatlar to'lgan (${dayName} ish soatlari: ${timeLimitDisplay}). Keyingi ish kunini tanlang!`,
     isFull: true
   };
 }

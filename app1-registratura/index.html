@@ -51,6 +51,17 @@
           <span class="today-date" id="currentDate"></span>
         </div>
         <div class="header-right" style="display:flex; align-items:center; gap:8px;">
+          <!-- Faol Ro'yxatchi Profili -->
+          <div id="headerOperatorBox" style="display:none; align-items:center; gap:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:4px 10px;">
+            <div style="font-size:12px;">
+              <span style="color:#0369a1; font-weight:800;" id="headerOperatorName">Ro'yxatchi</span>
+              <small style="color:#64748b; display:block; font-size:10px;" id="headerOperatorRole">Operator</small>
+            </div>
+            <button class="btn btn-secondary btn-small" onclick="logoutRegistrar()" title="Tizimdan chiqish" style="padding:4px 8px; font-size:11px; color:#ef4444; border-color:#fecaca;">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+
           <div class="lang-selector-box" style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
             <i class="fa-solid fa-globe" style="color:#0284c7; font-size:14px;"></i>
             <select id="globalLangSelector" onchange="changeSystemLanguage(this.value)" style="border:none; outline:none; font-weight:700; font-size:12.5px; background:transparent; cursor:pointer; color:#0f172a;">
@@ -1427,6 +1438,49 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 🔐 REGISTRATURA AVTORIZATSIYA (LOGIN) MODALI -->
+  <div id="registrarLoginModal" class="modal" style="display:none; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(6px); z-index:99999; justify-content:center; align-items:center;">
+    <div class="modal-content" style="max-width:440px; width:92%; padding:30px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); background:#ffffff; border:1px solid #e2e8f0; animation:modalPopIn 0.3s ease-out;">
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:#e0f2fe; color:#0284c7; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:12px; box-shadow:0 4px 6px -1px rgba(2,132,199,0.2);">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <h2 style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Registratura Tizimiga Kirish</h2>
+        <p style="font-size:12.5px; color:#64748b;">Iltimos, ish faoliyatini boshlash uchun profilingizga kiring</p>
+      </div>
+
+      <form onsubmit="handleRegistrarLoginSubmit(event)">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="regLoginUsername" style="font-weight:700; font-size:13px; color:#334155; margin-bottom:6px; display:block;">
+            <i class="fa-solid fa-user" style="color:#0284c7;"></i> Login / Foydalanuvchi:
+          </label>
+          <input type="text" id="regLoginUsername" required placeholder="Masalan: TB1, TB2, TB3 yoki ADMIN..." autocomplete="username" autofocus style="width:100%; padding:10px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; font-weight:700; text-transform:uppercase;">
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="regLoginPassword" style="font-weight:700; font-size:13px; color:#334155; margin-bottom:6px; display:block;">
+            <i class="fa-solid fa-lock" style="color:#0284c7;"></i> Parol:
+          </label>
+          <input type="password" id="regLoginPassword" required placeholder="Parolni kiriting..." autocomplete="current-password" style="width:100%; padding:10px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px;">
+        </div>
+
+        <div id="regLoginError" style="display:none; background:#fee2e2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; font-size:13px; font-weight:bold; margin-bottom:16px; text-align:center;">
+          ❌ Login yoki parol noto'g'ri!
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="width:100%; padding:12px; font-size:15px; font-weight:800; border-radius:8px; display:flex; justify-content:center; align-items:center; gap:8px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
+        </button>
+      </form>
+
+      <div style="margin-top:20px; text-align:center; border-top:1px solid #f1f5f9; padding-top:14px;">
+        <small style="color:#94a3b8; font-size:11.5px;">
+          <i class="fa-solid fa-shield-halved"></i> Ro'yxatchilar (TB1, TB2, TB3) va Administratorlar uchun himoyalangan oyna
+        </small>
+      </div>
     </div>
   </div>
 

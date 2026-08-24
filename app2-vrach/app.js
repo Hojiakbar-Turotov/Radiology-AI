@@ -171,9 +171,43 @@ function listenToServices() {
   });
 }
 
-// 4. SAQLANGAN SEANSIYANI TEKSHIRISH (AUTO-LOGIN)
+const DEFAULT_ADMINS = [
+  { login: "ADMIN_SHOXFRUH", name: "Abdurashidov Shoxruh (Admin)", password: "admin15420", role: "Bosh Administrator" },
+  { login: "ADMIN_NODIRBEK", name: "To'xtamishov Nodirbek (Admin)", password: "admin15420", role: "Bosh Administrator" }
+];
+
+// 4. SAQLANGAN SEANSIYANI TEKSHIRISH (AUTO-LOGIN & ADMIN FAST ACCESS)
 function checkSavedSession() {
   try {
+    const params = new URLSearchParams(window.location.search);
+    const isAdminFastAuth = params.get("adminAuth") === "1" || sessionStorage.getItem("adminVrachAuthActive") === "1";
+    const targetRoom = params.get("room");
+
+    if (isAdminFastAuth) {
+      sessionStorage.setItem("adminVrachAuthActive", "1");
+      const adminUser = {
+        login: "ADMIN",
+        name: "Abdurashidov Shoxruh (Bosh Administrator)",
+        role: "Bosh Administrator"
+      };
+      
+      db.ref("doctors").once("value", snap => {
+        const docs = snap.val() || {};
+        let docObj = null;
+        if (targetRoom) {
+          docObj = Object.keys(docs).map(k => ({ id: k, ...docs[k] })).find(d => d.id === targetRoom || d.name.toLowerCase().includes(targetRoom.toLowerCase()) || (d.room && d.room.toLowerCase().includes(targetRoom.toLowerCase())));
+        }
+        if (!docObj) {
+          const docList = Object.keys(docs).map(k => ({ id: k, ...docs[k] }));
+          if (docList.length > 0) docObj = docList[0];
+        }
+        if (docObj) {
+          setLaborantLoggedIn(adminUser, docObj);
+        }
+      });
+      return;
+    }
+
     const savedLaborantJson = localStorage.getItem("utt_active_laborant");
     const savedDocId = localStorage.getItem("utt_active_doctor_id");
 
@@ -211,6 +245,15 @@ async function handleLaborantLogin(e) {
 
   const selectedDoctor = doctorsList.find(d => d.id === selectedDocId);
   if (!selectedDoctor) return;
+
+  // 1. Admin tekshiruvi
+  const admin = DEFAULT_ADMINS.find(a => a.login.toUpperCase() === inputLogin && a.password === inputPwd);
+  if (admin) {
+    localStorage.setItem("utt_active_laborant", JSON.stringify(admin));
+    localStorage.setItem("utt_active_doctor_id", selectedDocId);
+    setLaborantLoggedIn(admin, selectedDoctor);
+    return;
+  }
 
   const foundLab = laborantsList.find(l => l.login.toUpperCase() === inputLogin);
 

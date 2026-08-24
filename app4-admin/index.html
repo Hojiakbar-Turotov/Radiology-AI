@@ -90,6 +90,12 @@
           <button class="nav-tab" data-section="liveQueue" onclick="switchAdminSection('liveQueue', this)">
             <i class="fa-solid fa-users-viewfinder"></i> <span>Jonli Navbat (<strong id="badgeLiveCount">0</strong>)</span>
           </button>
+          <button class="nav-tab" data-section="schedulingRules" onclick="switchAdminSection('schedulingRules', this)">
+            <i class="fa-solid fa-sliders"></i> <span>Navbat Qoidalari</span>
+          </button>
+          <button class="nav-tab" data-section="fastAccess" onclick="switchAdminSection('fastAccess', this)">
+            <i class="fa-solid fa-bolt"></i> <span>Tezkor Kirish</span>
+          </button>
           <button class="nav-tab" data-section="users" onclick="switchAdminSection('users', this)">
             <i class="fa-solid fa-user-group"></i> <span>Xodimlar & Xonalar</span>
           </button>
@@ -144,6 +150,12 @@
       </button>
       <button class="m-tab" data-section="liveQueue" onclick="switchAdminSection('liveQueue', this)">
         <i class="fa-solid fa-users-viewfinder"></i><span>Navbat</span>
+      </button>
+      <button class="m-tab" data-section="schedulingRules" onclick="switchAdminSection('schedulingRules', this)">
+        <i class="fa-solid fa-sliders"></i><span>Qoidalar</span>
+      </button>
+      <button class="m-tab" data-section="fastAccess" onclick="switchAdminSection('fastAccess', this)">
+        <i class="fa-solid fa-bolt"></i><span>Kirish</span>
       </button>
       <button class="m-tab" data-section="users" onclick="switchAdminSection('users', this)">
         <i class="fa-solid fa-user-group"></i><span>Xodimlar</span>
@@ -331,10 +343,135 @@
         </div>
       </section>
 
+      <!-- ==================== 2.1 NAVBAT QOIDALARI VA VAQT TAQSIMOTI ==================== -->
+      <section id="secSchedulingRules" class="admin-section">
+        <div class="section-toolbar">
+          <div class="toolbar-title">
+            <h3><i class="fa-solid fa-sliders" style="color: #0284c7;"></i> Aqlli Navbat Taqsimlash Qoidalari</h3>
+            <p style="font-size: 0.85rem; color: #64748b;">Kontrastli tekshiruvlar, sohalar soni va kunning ma'lum soatlariga (08:00 - 14:00) avtomatik yo'naltirish qoidalari</p>
+          </div>
+          <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button class="btn btn-success" onclick="openAddRuleModal()"><i class="fa-solid fa-plus"></i> Yangi Qoida Qo'shish</button>
+          </div>
+        </div>
+
+        <div class="data-table-container" style="margin-top: 14px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Qoida Nomi</th>
+                <th>Qurilma Turi</th>
+                <th>Maqsadli Qurilma</th>
+                <th>Taqiqlangan Qurilmalar</th>
+                <th>Kontrast Sharti</th>
+                <th>Min. Sohalar Soni</th>
+                <th>Ruxsat Etilgan Soatlar</th>
+                <th>Holati</th>
+                <th style="text-align: right;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="schedulingRulesTableBody">
+              <!-- Dinamik qoidalar -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== 2.2 TEZKOR KIRISH VA ADMIN NOMIDAN ISHLASH ==================== -->
+      <section id="secFastAccess" class="admin-section">
+        <div class="section-toolbar">
+          <div class="toolbar-title">
+            <h3><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Barcha Panellarga To'g'ridan-to'g'ri Kirish (Admin Nomidan)</h3>
+            <p style="font-size: 0.85rem; color: #64748b;">Registratura va Laborant xonalariga alohida parol kiritmasdan to'g'ridan-to'g'ri Administrator huquqi bilan kirish</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+          <!-- Registratura kartasi -->
+          <div style="background:#fff; border:1.5px solid #0284c7; border-radius:12px; padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:48px; height:48px; background:#e0f2fe; color:#0284c7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px;">
+                  <i class="fa-solid fa-hospital-user"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">Registratura Paneli</h4>
+                  <span style="font-size:12px; color:#64748b;">Bemorlarni ro'yxatga olish va navbat berish</span>
+                </div>
+              </div>
+              <p style="font-size:12.5px; color:#475569; line-height:1.5;">Administrator nomidan yangi bemor qo'shish, navbat jadvallarini boshqarish va cheklarni chop etish.</p>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="launchRegistraturaAsAdmin()" style="margin-top:14px; padding:10px;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Registraturaga Kirish
+            </button>
+          </div>
+
+          <!-- 1-MRT kartasi -->
+          <div style="background:#fff; border:1.5px solid #38bdf8; border-radius:12px; padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:48px; height:48px; background:#f0f9ff; color:#0284c7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px;">
+                  <i class="fa-solid fa-magnet"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">1-MRT Xonasi</h4>
+                  <span style="font-size:12px; color:#64748b;">Siemens Magnetom (MRT 1)</span>
+                </div>
+              </div>
+              <p style="font-size:12.5px; color:#475569; line-height:1.5;">Kontrastli va oddiy MRT tekshiruvlarini qabul qilish, chaqirish va natijalarni kiritish.</p>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="launchRoomAsAdmin('mrt1')" style="margin-top:14px; padding:10px; background:#0284c7;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 1-MRT Xonasiga Kirish
+            </button>
+          </div>
+
+          <!-- 2-MRT kartasi -->
+          <div style="background:#fff; border:1.5px solid #818cf8; border-radius:12px; padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:48px; height:48px; background:#eef2ff; color:#4f46e5; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px;">
+                  <i class="fa-solid fa-magnet"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">2-MRT Xonasi</h4>
+                  <span style="font-size:12px; color:#64748b;">2-Tomografiya (MRT 2)</span>
+                </div>
+              </div>
+              <p style="font-size:12.5px; color:#475569; line-height:1.5;">Faqat kontrastsiz standart MRT tekshiruvlarini qabul qilish va boshqarish.</p>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="launchRoomAsAdmin('mrt2')" style="margin-top:14px; padding:10px; background:#4f46e5;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 2-MRT Xonasiga Kirish
+            </button>
+          </div>
+
+          <!-- 1-MSKT kartasi -->
+          <div style="background:#fff; border:1.5px solid #34d399; border-radius:12px; padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:48px; height:48px; background:#ecfdf5; color:#059669; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px;">
+                  <i class="fa-solid fa-radiation"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">1-MSKT Xonasi</h4>
+                  <span style="font-size:12px; color:#64748b;">Kompyuter Tomografiyasi (MSKT 1)</span>
+                </div>
+              </div>
+              <p style="font-size:12.5px; color:#475569; line-height:1.5;">MSKT barcha tekshiruvlari va 3+ soha kontrastli tekshiruvlarini boshqarish.</p>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="launchRoomAsAdmin('mskt1')" style="margin-top:14px; padding:10px; background:#059669;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 1-MSKT Xonasiga Kirish
+            </button>
+          </div>
+        </div>
+      </section>
+
       <!-- ==================== 3. XODIMLAR VA XONALAR BOSHQARUVI ==================== -->
       <section id="secUsers" class="admin-section">
         <div class="users-section-tabs">
-          <button class="btn-sub-tab active" data-sub="laborants" onclick="switchUsersSubTab('laborants', this)">
+          <button class="btn-sub-tab active" data-sub="operators" onclick="switchUsersSubTab('operators', this)">
+            <i class="fa-solid fa-headset"></i> Ro'yxatchilar (Operatorlar) (<span id="countOperators">0</span>)
+          </button>
+          <button class="btn-sub-tab" data-sub="laborants" onclick="switchUsersSubTab('laborants', this)">
             <i class="fa-solid fa-user-doctor"></i> Vrach-Laborantlar (<span id="countLaborants">0</span>)
           </button>
           <button class="btn-sub-tab" data-sub="doctors" onclick="switchUsersSubTab('doctors', this)">
@@ -348,8 +485,37 @@
           </button>
         </div>
 
+        <!-- Ro'yxatchilar (Operatorlar) qismi -->
+        <div id="subSecOperators" class="user-sub-section active">
+          <div class="table-actions-bar">
+            <input type="text" id="searchOperatorInput" placeholder="Ro'yxatchi ismi yoki logini bo'yicha qidirish..." oninput="renderOperatorsTable()" style="max-width: 320px;">
+            <button class="btn btn-success" onclick="openAddOperatorModal()" style="margin-left: auto;">
+              <i class="fa-solid fa-user-plus"></i> Yangi Ro'yxatchi Qo'shish
+            </button>
+          </div>
+
+          <div class="data-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Login</th>
+                  <th>FISH (To'liq Ismi)</th>
+                  <th>Lavozimi / Roli</th>
+                  <th>Amaldagi Parol</th>
+                  <th>Holati</th>
+                  <th style="text-align: right;">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="operatorsTableBody">
+                <!-- Dinamik ro'yxatchilar qatorlari -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Laborantlar qismi -->
-        <div id="subSecLaborants" class="user-sub-section active">
+        <div id="subSecLaborants" class="user-sub-section">
           <div class="table-actions-bar">
             <input type="text" id="searchLaborantInput" placeholder="Laborant ismi yoki logini bo'yicha qidirish..." oninput="renderLaborantsTable()" style="max-width: 320px;">
             <button class="btn btn-success" onclick="openAddLaborantModal()" style="margin-left: auto;">
@@ -678,6 +844,133 @@
         <button type="button" class="btn btn-outline" onclick="closeTransferModal()">Bekor qilish</button>
         <button type="button" class="btn btn-primary" onclick="confirmTransferPatient()"><i class="fa-solid fa-check"></i> Ko'chirish</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: RO'YXATCHI (OPERATOR) TAHRIRLASH / QO'SHISH -->
+  <div id="modalOperatorEdit" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3 id="operatorModalTitle"><i class="fa-solid fa-user-plus"></i> Ro'yxatchi (Operator) Ma'lumotlari</h3>
+        <button type="button" class="btn-close" onclick="closeOperatorModal()">&times;</button>
+      </div>
+
+      <form id="operatorEditForm" onsubmit="handleSaveOperatorForm(event)">
+        <input type="hidden" id="opFormIsNew" value="1">
+
+        <div class="form-group">
+          <label for="opFormLogin">Operator Login (Unikal):</label>
+          <input type="text" id="opFormLogin" required placeholder="Masalan: TB4" style="text-transform: uppercase; font-weight: bold;">
+        </div>
+
+        <div class="form-group">
+          <label for="opFormName">To'liq FISH (Ismi):</label>
+          <input type="text" id="opFormName" required placeholder="Masalan: Rahimov Sardor">
+        </div>
+
+        <div class="form-group">
+          <label for="opFormPassword">Kirish Paroli:</label>
+          <input type="text" id="opFormPassword" required placeholder="Parol kiriting" value="15420">
+        </div>
+
+        <div class="form-group">
+          <label for="opFormRole">Roli:</label>
+          <input type="text" id="opFormRole" value="Operator">
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeOperatorModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 6: AQLLI TAQSIMLASH QOIDASINI TAHRIRLASH / QO'SHISH -->
+  <div id="modalRuleEdit" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-sm" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="ruleModalTitle"><i class="fa-solid fa-sliders"></i> Taqsimlash Qoidasi</h3>
+        <button type="button" class="btn-close" onclick="closeRuleModal()">&times;</button>
+      </div>
+
+      <form id="ruleEditForm" onsubmit="handleSaveRuleForm(event)">
+        <input type="hidden" id="ruleFormId" value="">
+        <input type="hidden" id="ruleFormIsNew" value="1">
+
+        <div class="form-group">
+          <label for="ruleFormName">Qoida Nomi:</label>
+          <input type="text" id="ruleFormName" required placeholder="Masalan: MRT Kontrastli tekshiruvlar (Faqat 1-MRT, 08:00 - 14:00)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label for="ruleFormDeviceType">Qurilma Turi:</label>
+            <select id="ruleFormDeviceType">
+              <option value="MRT">MRT</option>
+              <option value="MSKT">MSKT</option>
+              <option value="ALL">Barchasi (MRT va MSKT)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ruleFormTargetDevice">Maqsadli Qurilma:</label>
+            <select id="ruleFormTargetDevice">
+              <option value="any">Ixtiyoriy (Bo'shiga)</option>
+              <option value="mrt1">1-MRT Xonasi (MRT 1)</option>
+              <option value="mrt2">2-MRT Xonasi (MRT 2)</option>
+              <option value="mskt1">1-MSKT Xonasi (MSKT 1)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label for="ruleFormContrast">Kontrast Sharti:</label>
+            <select id="ruleFormContrast">
+              <option value="yes">Faqat Kontrastli (💉)</option>
+              <option value="no">Faqat Kontrastsiz (Oddiy)</option>
+              <option value="any">Farqi yo'q (Barchasi)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ruleFormMinServices">Min. Sohalar Soni:</label>
+            <input type="number" id="ruleFormMinServices" value="1" min="1" max="10" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label for="ruleFormTimeStart">Boshlanish Soati:</label>
+            <input type="time" id="ruleFormTimeStart" value="08:00" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ruleFormTimeEnd">Tugash Soati:</label>
+            <input type="time" id="ruleFormTimeEnd" value="14:00" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ruleFormDisallowed">Taqiqlangan Qurilmalar (Avtomatik berilmasin):</label>
+          <div style="display: flex; gap: 12px; font-size: 0.9rem; margin-top: 4px;">
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="ruleDisallowMrt2" value="mrt2"> 2-MRT (MRT 2)</label>
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="ruleDisallowMrt1" value="mrt1"> 1-MRT (MRT 1)</label>
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="ruleDisallowMskt1" value="mskt1"> 1-MSKT (MSKT 1)</label>
+          </div>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="ruleFormEnabled" checked style="width: auto;">
+          <label for="ruleFormEnabled" style="margin: 0; cursor: pointer;">Qoidani faollashtirish (Yoqilgan)</label>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="closeRuleModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Qoidani Saqlash</button>
+        </div>
+      </form>
     </div>
   </div>
 
