@@ -420,18 +420,6 @@ function renderSchedulesTable() {
       ? `<strong style="color:#0f172a;">${sched.startTime} - ${sched.endTime}</strong>`
       : `<span style="color:#94a3b8;">08:00 - 19:30</span>`;
 
-    const breakTime = (sched && sched.breakStart && sched.breakEnd)
-      ? `<span style="font-size:0.82rem; color:#64748b;">${sched.breakStart} - ${sched.breakEnd}</span>`
-      : `<span style="color:#94a3b8;">-</span>`;
-
-    const roomText = (sched && sched.roomName)
-      ? `<strong style="color:#7c3aed;"><i class="fa-solid fa-door-open"></i> ${escapeHtml(sched.roomName)}</strong>`
-      : `<span style="color:#94a3b8; font-style:italic;">Band qilinmagan</span>`;
-
-    const customDursText = customCount > 0
-      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;"><i class="fa-solid fa-stopwatch"></i> ${customCount} ta maxsus vaqt</span>`
-      : `<span style="color:#94a3b8; font-size:0.8rem;">Standart</span>`;
-
     return `
       <tr>
         <td>
@@ -444,7 +432,6 @@ function renderSchedulesTable() {
           ${overridesText}
         </td>
         <td>${hours}</td>
-        <td>${breakTime}</td>
         <td>${customDursText}</td>
         <td style="text-align: right;">
           <span class="badge ${sched ? 'badge-completed' : 'badge-waiting'}">

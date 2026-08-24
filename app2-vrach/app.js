@@ -1567,18 +1567,12 @@ function toggleDayInputs(dayNum) {
 function copyMondayHoursToAllDays() {
   const startMon = document.getElementById("startDay1")?.value || "08:00";
   const endMon = document.getElementById("endDay1")?.value || "19:30";
-  const breakStartMon = document.getElementById("breakStartDay1")?.value || "";
-  const breakEndMon = document.getElementById("breakEndDay1")?.value || "";
 
   [2, 3, 4, 5, 6, 0].forEach(d => {
     const sEl = document.getElementById(`startDay${d}`);
     const eEl = document.getElementById(`endDay${d}`);
-    const bsEl = document.getElementById(`breakStartDay${d}`);
-    const beEl = document.getElementById(`breakEndDay${d}`);
     if (sEl) sEl.value = startMon;
     if (eEl) eEl.value = endMon;
-    if (bsEl) bsEl.value = breakStartMon;
-    if (beEl) beEl.value = breakEndMon;
   });
 
   alert("✅ Dushanba soatlari barcha kunlarga nusxalandi! Endi har bir kunni xohlagancha o'zgartirishingiz mumkin.");
@@ -1675,8 +1669,6 @@ function openLaborantScheduleModal() {
     const chk = document.getElementById(`schedDay${d}`);
     const sEl = document.getElementById(`startDay${d}`);
     const eEl = document.getElementById(`endDay${d}`);
-    const bsEl = document.getElementById(`breakStartDay${d}`);
-    const beEl = document.getElementById(`breakEndDay${d}`);
 
     const dh = dHours[d];
     const isChecked = dh ? (dh.enabled !== false) : days.includes(d);
@@ -1684,8 +1676,6 @@ function openLaborantScheduleModal() {
     if (chk) chk.checked = isChecked;
     if (sEl) sEl.value = (dh && dh.start) || (mySchedule && mySchedule.startTime) || "08:00";
     if (eEl) eEl.value = (dh && dh.end) || (mySchedule && mySchedule.endTime) || "19:30";
-    if (bsEl) bsEl.value = (dh && dh.breakStart) || (mySchedule && mySchedule.breakStart) || ((d <= 5) ? "13:00" : "");
-    if (beEl) beEl.value = (dh && dh.breakEnd) || (mySchedule && mySchedule.breakEnd) || ((d <= 5) ? "14:00" : "");
 
     toggleDayInputs(d);
   });
@@ -1726,9 +1716,7 @@ async function handleSaveLaborantSchedule(e) {
     dailyHours[d] = {
       enabled: isChecked,
       start: document.getElementById(`startDay${d}`)?.value || "08:00",
-      end: document.getElementById(`endDay${d}`)?.value || "19:30",
-      breakStart: document.getElementById(`breakStartDay${d}`)?.value || "",
-      breakEnd: document.getElementById(`breakEndDay${d}`)?.value || ""
+      end: document.getElementById(`endDay${d}`)?.value || "19:30"
     };
   });
 
