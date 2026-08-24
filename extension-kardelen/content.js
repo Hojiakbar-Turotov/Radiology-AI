@@ -770,7 +770,7 @@ function applyServicesToPatient(patientInfo, servicesList) {
   updateFloatingBarPatientDisplay();
 }
 
-function updateFloatingBarPatientDisplay() {
+async function updateFloatingBarPatientDisplay() {
   const txt = document.getElementById("uttFloatingPatientText");
   const btn = document.getElementById("uttFloatingSendBtn");
   if (!txt || !btn || !selectedPatient) return;
@@ -784,6 +784,52 @@ function updateFloatingBarPatientDisplay() {
     ? I18N_TRANSLATIONS.ticket[currentLang] 
     : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ticket) ? I18N_TRANSLATIONS.ticket['uz'] : {});
 
+  // 1. ALLAQACHON NAVBATGA QO'YILGANLIGINI TEKSHIRISH (NAMUNA RAQAMI BO'YICHA):
+  let existing = null;
+  if (selectedPatient.sampleNumber) {
+    existing = await checkExistingQueueBySample(selectedPatient.sampleNumber, selectedPatient.id);
+  }
+
+  if (existing) {
+    selectedPatient.isAlreadyQueued = true;
+    selectedPatient.existingQueueData = existing;
+
+    const sampleBadge = selectedPatient.sampleNumber ? ` <span style="background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">Namuna: №${escapeHtml(selectedPatient.sampleNumber)}</span>` : "";
+    const pinflBadge = selectedPatient.pinfl ? ` <span style="background:#f1f5f9; color:#475569; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:600;">JSHSHIR: ${escapeHtml(selectedPatient.pinfl)}</span>` : "";
+
+    txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${pinflBadge}: <span style="color:#d97706; font-weight:800;">⚠️ Allaqachon navbatga qo'yilgan!</span> <span style="color:#0284c7; font-weight:700;">(${escapeHtml(existing.doctorName || existing.room)} | ⏱ ${escapeHtml(existing.timeSlot || existing.scheduledTime || existing.time)} | Talon №${escapeHtml(existing.ticketId)})</span>`;
+    
+    btn.disabled = false;
+    btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)";
+    btn.style.boxShadow = "0 2px 8px rgba(217, 119, 6, 0.35)";
+    btn.innerHTML = `🖨️ Talonni Chop Etish (№${escapeHtml(existing.ticketId)})`;
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      printThermalTicketDirect(existing, currentLang);
+      showToast(`🖨️ Navbat taloni chop etilmoqda (Talon №${existing.ticketId}, Vaqt: ${existing.timeSlot || existing.scheduledTime})...`, "success");
+    };
+    return;
+  }
+
+  // Agar yangi bemor bo'lsa (navbatda yo'q):
+  selectedPatient.isAlreadyQueued = false;
+  selectedPatient.existingQueueData = null;
+
+  btn.style.background = "";
+  btn.style.boxShadow = "";
+  btn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!currentUser) {
+      openLoginModal();
+      return;
+    }
+    if (selectedPatient) {
+      openSendModal(selectedPatient);
+    }
+  };
+
   const multiBadge = (selectedPatient.servicesCount > 1) 
     ? ` <span style="background:#0284c7; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${selectedPatient.servicesCount} ${dict.patientsCount || 'ta tekshiruv'}</span>` 
     : (selectedPatient.userSelectedSpecific ? ` <span style="background:#10b981; color:#fff; padding:1px 6px; border-radius:10px; font-size:10px;">${dict.singleService || 'Tanlangan tekshiruv'}</span>` : "");
@@ -791,6 +837,8 @@ function updateFloatingBarPatientDisplay() {
   const typeBadge = selectedPatient.isStationary
     ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.stationary || "🏥 Bo'limda"}: ${escapeHtml(selectedPatient.department || '')}</span>`
     : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
+
+  const sampleBadge = selectedPatient.sampleNumber ? ` <span style="background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">№${escapeHtml(selectedPatient.sampleNumber)}</span>` : "";
 
   const sName = (typeof formatServiceNameWithOriginal === 'function') 
     ? formatServiceNameWithOriginal(selectedPatient.service, currentLang) 
@@ -800,7 +848,7 @@ function updateFloatingBarPatientDisplay() {
     ? formatRoomWithOriginal(selectedPatient.autoDeviceRoom, selectedPatient.autoDeviceName, currentLang) 
     : (selectedPatient.autoDeviceName || "");
 
-  txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(sName)}</span>${multiBadge} <span style="color:#f59e0b;">(${escapeHtml(roomName)} | ⏱ ${selectedPatient.duration} ${dict.durationMin || 'daq'} ${selectedPatient.isContrast ? '💉' : ''})</span>`;
+  txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(sName)}</span>${multiBadge} <span style="color:#f59e0b;">(${escapeHtml(roomName)} | ⏱ ${selectedPatient.duration} ${dict.durationMin || 'daq'} ${selectedPatient.isContrast ? '💉' : ''})</span>`;
   btn.disabled = false;
   btn.innerText = dict.bookQueueBtn || '➕ Navbatga Yozish';
 }
@@ -815,70 +863,129 @@ function extractPatientFromRow(row) {
     // Agar pastki tranzaksiya jadvali bo'lsa (R kodli yoki 7 xonali trans ID):
     const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
     const hasTransId = cells.some(c => /^\d{7,8}$/.test(c.innerText.trim()));
-    if (hasServiceCode && hasTransId) return null;
+    if (hasServiceCode && hasTransId && !cells.some(c => /^\d{14}$/.test(c.innerText.trim()))) return null;
 
-    // Bemor ID sini aniqlash (1 dan 8 xonali son, yil emas)
-    let idIdx = -1;
-    let patientId = "";
-    for (let i = 0; i < cells.length; i++) {
-      const txt = cells[i].innerText.trim();
-      if (/^\d{1,8}$/.test(txt) && txt !== "2024" && txt !== "2025" && txt !== "2026") {
-        idIdx = i;
-        patientId = txt;
-        break;
-      }
-    }
+    // 1. Sarlavha ustunlaridan (th / td) aniq xarita tuzish:
+    let colMap = {
+      doc: -1, id: -1, surname: -1, name: -1, middle: -1,
+      priority: -1, dept: -1, regDate: -1, sample: -1, dob: -1, pinfl: -1
+    };
 
-    if (idIdx === -1) return null;
-
-    let referringDoctor = cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "";
-    let surname = cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "";
-    let name = cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "";
-    let priority = cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "";
-    let department = cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "";
-    let rowDate = cells[idIdx + 5] ? cells[idIdx + 5].innerText.trim() : "";
-
-    // Sarlavha ustunlaridan aniqlashga urinish
     try {
       const table = row.closest("table");
       if (table) {
         const headerRow = table.querySelector("tr");
         if (headerRow) {
           const ths = Array.from(headerRow.querySelectorAll("th, td")).map(th => th.innerText.trim().toLowerCase());
-          const docIdx = ths.findIndex(h => h.includes("shifokor") || h.includes("fayl"));
-          const idColIdx = ths.findIndex(h => h.includes("bemor id") || (h.includes("id") && !h.includes("fayl")));
-          const surIdx = ths.findIndex(h => h.includes("familiya"));
-          const nameIdx = ths.findIndex(h => h.includes("ismi") || h.includes("ism"));
-          const prioIdx = ths.findIndex(h => h.includes("ustuvorlik") || h.includes("ustun"));
-          const deptIdx = ths.findIndex(h => h.includes("bo'lim") || h.includes("bolim"));
-          const dateIdx = ths.findIndex(h => h.includes("sana") || h.includes("royxatga"));
-
-          if (idColIdx !== -1 && cells[idColIdx] && /^\d+$/.test(cells[idColIdx].innerText.trim())) {
-            patientId = cells[idColIdx].innerText.trim();
-          }
-          if (docIdx !== -1 && cells[docIdx]) referringDoctor = cells[docIdx].innerText.trim();
-          if (surIdx !== -1 && cells[surIdx]) surname = cells[surIdx].innerText.trim();
-          if (nameIdx !== -1 && cells[nameIdx]) name = cells[nameIdx].innerText.trim();
-          if (prioIdx !== -1 && cells[prioIdx]) priority = cells[prioIdx].innerText.trim();
-          if (deptIdx !== -1 && cells[deptIdx]) department = cells[deptIdx].innerText.trim();
-          if (dateIdx !== -1 && cells[dateIdx]) rowDate = cells[dateIdx].innerText.trim();
+          ths.forEach((h, idx) => {
+            if (h.includes("shifokor") || h.includes("fayl")) colMap.doc = idx;
+            else if (h.includes("bemor id") || (h.includes("id") && !h.includes("fayl") && !h.includes("namuna"))) colMap.id = idx;
+            else if (h.includes("familiya")) colMap.surname = idx;
+            else if (h.includes("ota") || h.includes("sharif")) colMap.middle = idx;
+            else if (h.includes("ism")) colMap.name = idx;
+            else if (h.includes("ustuvorlik") || h.includes("ustun")) colMap.priority = idx;
+            else if (h.includes("bo'lim") || h.includes("bolim")) colMap.dept = idx;
+            else if (h.includes("namuna")) colMap.sample = idx;
+            else if (h.includes("tug'ilgan") || h.includes("tugilgan") || h.includes("t_kuni") || h.includes("t.kuni")) colMap.dob = idx;
+            else if (h.includes("pinfl") || h.includes("pnfl") || h.includes("jshshir") || h.includes("inps")) colMap.pinfl = idx;
+            else if (h.includes("sana") || h.includes("royxatga")) colMap.regDate = idx;
+          });
         }
       }
     } catch (e) {}
+
+    // Bemor ID sini aniqlash
+    let idIdx = colMap.id !== -1 ? colMap.id : -1;
+    let patientId = "";
+    if (idIdx !== -1 && cells[idIdx] && /^\d{1,8}$/.test(cells[idIdx].innerText.trim())) {
+      patientId = cells[idIdx].innerText.trim();
+    } else {
+      for (let i = 0; i < cells.length; i++) {
+        const txt = cells[i].innerText.trim();
+        if (/^\d{1,8}$/.test(txt) && txt !== "2024" && txt !== "2025" && txt !== "2026" && !/^\d{14}$/.test(txt)) {
+          idIdx = i;
+          patientId = txt;
+          break;
+        }
+      }
+    }
+
+    if (idIdx === -1 || !patientId) return null;
+
+    let referringDoctor = colMap.doc !== -1 && cells[colMap.doc] ? cells[colMap.doc].innerText.trim() : (cells[idIdx - 1] ? cells[idIdx - 1].innerText.trim() : "");
+    let surname = colMap.surname !== -1 && cells[colMap.surname] ? cells[colMap.surname].innerText.trim() : (cells[idIdx + 1] ? cells[idIdx + 1].innerText.trim() : "");
+    let firstName = colMap.name !== -1 && cells[colMap.name] ? cells[colMap.name].innerText.trim() : (cells[idIdx + 2] ? cells[idIdx + 2].innerText.trim() : "");
+    let rawMiddle = colMap.middle !== -1 && cells[colMap.middle] ? cells[colMap.middle].innerText.trim() : (cells[idIdx + 3] ? cells[idIdx + 3].innerText.trim() : "");
+    
+    // Otasining ismi tekshiruvi: Agar XXX bo'lsa yoki bo'sh bo'lsa -> bo'sh qoldirish
+    let middleName = "";
+    if (rawMiddle) {
+      const cleanMid = rawMiddle.toUpperCase().replace(/\s+/g, "");
+      if (cleanMid !== "XXX" && cleanMid !== "X" && cleanMid !== "XX" && cleanMid !== "-" && cleanMid !== "NO" && cleanMid !== "YOQ") {
+        middleName = rawMiddle.trim();
+      }
+    }
+
+    let priority = colMap.priority !== -1 && cells[colMap.priority] ? cells[colMap.priority].innerText.trim() : (cells[idIdx + 4] ? cells[idIdx + 4].innerText.trim() : "");
+    let department = colMap.dept !== -1 && cells[colMap.dept] ? cells[colMap.dept].innerText.trim() : (cells[idIdx + 5] ? cells[idIdx + 5].innerText.trim() : "");
+    let rowDate = colMap.regDate !== -1 && cells[colMap.regDate] ? cells[colMap.regDate].innerText.trim() : (cells[idIdx + 6] ? cells[idIdx + 6].innerText.trim() : "");
+    
+    // Namuna raqami (7 xonali son):
+    let sampleNumber = colMap.sample !== -1 && cells[colMap.sample] ? cells[colMap.sample].innerText.trim() : "";
+    if (!sampleNumber || !/^\d{5,10}$/.test(sampleNumber)) {
+      for (const c of cells) {
+        const txt = c.innerText.trim();
+        if (/^\d{6,8}$/.test(txt) && txt !== patientId && txt !== "2024" && txt !== "2025" && txt !== "2026") {
+          sampleNumber = txt;
+          break;
+        }
+      }
+    }
+
+    // Tug'ilgan sanasi (DD.MM.YYYY):
+    let birthDate = colMap.dob !== -1 && cells[colMap.dob] ? cells[colMap.dob].innerText.trim() : "";
+    if (!birthDate || !/^\d{2}\.\d{2}\.\d{4}$/.test(birthDate)) {
+      for (const c of cells) {
+        const txt = c.innerText.trim();
+        if (/^\d{2}\.\d{2}\.\d{4}$/.test(txt)) {
+          birthDate = txt;
+          break;
+        }
+      }
+    }
+
+    // PINFL / JSHSHIR (14 xonali son):
+    let pinfl = colMap.pinfl !== -1 && cells[colMap.pinfl] ? cells[colMap.pinfl].innerText.trim() : "";
+    if (!pinfl || !/^\d{14}$/.test(pinfl)) {
+      for (const c of cells) {
+        const txt = c.innerText.trim();
+        if (/^\d{14}$/.test(txt)) {
+          pinfl = txt;
+          break;
+        }
+      }
+    }
 
     if (!surname || /^\d+$/.test(surname) || surname.includes(":") || surname.toLowerCase().includes("tranzaksiya") || surname.toLowerCase().includes("kod")) {
       return null;
     }
 
-    const isStationary = priority.toLowerCase().includes("statsionar");
+    // FISH ni to'liq va to'g'ri shakllantirish:
+    const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim();
+
+    const isStationary = priority.toLowerCase().includes("statsionar") || (department && department.toLowerCase().includes("statsionar"));
     const isGreen = isRowFinishedOrGreen(row, cells);
 
     return {
       row: row,
       id: patientId,
-      name: `${surname} ${name}`.trim(),
+      name: fullName,
       surname: surname,
-      firstName: name,
+      firstName: firstName,
+      middleName: middleName,
+      sampleNumber: sampleNumber,
+      birthDate: birthDate,
+      pinfl: pinfl,
       referringDoctor: referringDoctor,
       priority: priority,
       department: isStationary ? department : "",
@@ -890,6 +997,52 @@ function extractPatientFromRow(row) {
   } catch (e) {
     return null;
   }
+}
+
+// 2.2.1 AYNI NAMUNA RAQAMI BILAN OLDINDAN NAVBATGA QO'YILGANLIGINI TEKSHIRISH
+async function checkExistingQueueBySample(sampleNumber, patientId) {
+  if (!sampleNumber && !patientId) return null;
+
+  try {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    // 1. Bugungi kundan qidirish:
+    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data) {
+        for (const [key, p] of Object.entries(data)) {
+          if (p.status !== "cancelled") {
+            if (sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim()) {
+              return { ...p, dbKey: key, appointmentDate: p.appointmentDate || todayStr };
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Ertangi kundan qidirish:
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+    const resTom = await safeFetch(`${FIREBASE_DB_URL}/patients/${tomorrowStr}.json`);
+    if (resTom && resTom.ok) {
+      const dataTom = await resTom.json();
+      if (dataTom) {
+        for (const [key, p] of Object.entries(dataTom)) {
+          if (p.status !== "cancelled") {
+            if (sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim()) {
+              return { ...p, dbKey: key, appointmentDate: p.appointmentDate || tomorrowStr };
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("checkExistingQueueBySample error:", e);
+  }
+  return null;
 }
 
 // 2.3 PASTKI JADVALDAN SHIFOKOR VA SANANI O'QISH
@@ -2828,6 +2981,19 @@ async function openSendModal(patientData) {
         </div>
 
         <div class="utt-patient-info-box">
+          ${patientData.isAlreadyQueued && patientData.existingQueueData ? `
+            <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+              <div style="color:#b45309; font-weight:900; font-size:13px; margin-bottom:4px;">
+                ⚠️ DIQQAT: Ushbu tekshiruv (Namuna №${escapeHtml(patientData.sampleNumber || '')}) allaqachon navbatga qo'yilgan!
+              </div>
+              <div style="font-size:11.5px; color:#334155; line-height:1.5;">
+                <div><strong>Talon raqami:</strong> №${escapeHtml(patientData.existingQueueData.ticketId)}</div>
+                <div><strong>Belgilangan vaqt:</strong> ${escapeHtml(patientData.existingQueueData.timeSlot || patientData.existingQueueData.scheduledTime || patientData.existingQueueData.time)} (${escapeHtml(patientData.existingQueueData.appointmentDate || 'Bugun')})</div>
+                <div><strong>Qurilma / Xona:</strong> ${escapeHtml(patientData.existingQueueData.doctorName || patientData.existingQueueData.room)}</div>
+              </div>
+            </div>
+          ` : ''}
+
           <div class="utt-info-row">
             <span class="utt-info-label" id="uttModalLblOperator">Yo'naltirgan Ro'yxatchi:</span>
             <span class="utt-info-val" style="color:#0284c7;">
@@ -2840,8 +3006,26 @@ async function openSendModal(patientData) {
           </div>
           <div class="utt-info-row">
             <span class="utt-info-label" id="uttModalLblPatName">Bemor F.I.Sh:</span>
-            <span class="utt-info-val">${escapeHtml(patientData.name)}</span>
+            <span class="utt-info-val" style="font-weight:900; color:#0f172a;">${escapeHtml(patientData.name)}</span>
           </div>
+          ${patientData.sampleNumber ? `
+            <div class="utt-info-row">
+              <span class="utt-info-label">Namuna raqami:</span>
+              <span class="utt-info-val" style="color:#4338ca; font-weight:800;">№ ${escapeHtml(patientData.sampleNumber)}</span>
+            </div>
+          ` : ''}
+          ${patientData.birthDate ? `
+            <div class="utt-info-row">
+              <span class="utt-info-label">Tug'ilgan sana:</span>
+              <span class="utt-info-val">${escapeHtml(patientData.birthDate)}</span>
+            </div>
+          ` : ''}
+          ${patientData.pinfl ? `
+            <div class="utt-info-row">
+              <span class="utt-info-label">JSHSHIR (PINFL):</span>
+              <span class="utt-info-val" style="font-family:monospace; font-weight:700; color:#0f172a;">${escapeHtml(patientData.pinfl)}</span>
+            </div>
+          ` : ''}
 
           ${serviceSelectorHtml}
 
@@ -3717,11 +3901,27 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
   const saveDate = targetDate || todayStr;
   const chosenLang = printLang || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
 
+  // 1. QAT'IY TAKRORIY NAVBAT TEKSHIRUVI (NAMUNA RAQAMI BO'YICHA):
+  if (patientData.sampleNumber) {
+    const existing = await checkExistingQueueBySample(patientData.sampleNumber, patientData.id);
+    if (existing) {
+      showToast(`⚠️ Ushbu namuna (№${patientData.sampleNumber}) allaqachon navbatga qo'yilgan! Talon qayta chop etilmoqda...`, "warning");
+      printThermalTicketDirect(existing, chosenLang);
+      return;
+    }
+  }
+
   const slot = timeSlot || await calculateNextAvailableTimeSlot(device.id, patientData.duration || 30);
 
   const payload = {
     ticketId: patientData.id,
     name: patientData.name,
+    surname: patientData.surname || "",
+    firstName: patientData.firstName || "",
+    middleName: patientData.middleName || "",
+    sampleNumber: patientData.sampleNumber || "",
+    birthDate: patientData.birthDate || "",
+    pinfl: patientData.pinfl || "",
     patientType: patientData.patientType || (patientData.isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi"),
     department: patientData.department || "",
     referringDoctor: patientData.referringDoctor || "",
@@ -3750,7 +3950,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     operatorLogin: currentUser ? currentUser.login : "TB1",
     operatorName: currentUser ? currentUser.name : "Operator",
     registeredBy: currentUser ? `${currentUser.login} - ${currentUser.name}` : "TB1 - Turatov Hojiakbar",
-    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : ""),
+    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : "") + (patientData.sampleNumber ? ` [Namuna: ${patientData.sampleNumber}]` : ""),
     status: "waiting",
     timestamp: Date.now(),
     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -3944,6 +4144,27 @@ function printThermalTicketDirect(payload, lang) {
           <span class="label">${escapeHtml(lblPatient)}:</span>
           <span class="val" style="font-size:15px;">${escapeHtml(payload.name)}</span>
         </div>
+
+        ${payload.sampleNumber ? `
+          <div class="row">
+            <span class="label">Namuna №:</span>
+            <span class="val" style="font-size:14px; font-weight:900;">${escapeHtml(payload.sampleNumber)}</span>
+          </div>
+        ` : ''}
+
+        ${payload.birthDate ? `
+          <div class="row">
+            <span class="label">Tug'ilgan sana:</span>
+            <span class="val">${escapeHtml(payload.birthDate)}</span>
+          </div>
+        ` : ''}
+
+        ${payload.pinfl ? `
+          <div class="row">
+            <span class="label">JSHSHIR (PINFL):</span>
+            <span class="val" style="font-family:monospace; font-size:13px; font-weight:900;">${escapeHtml(payload.pinfl)}</span>
+          </div>
+        ` : ''}
 
         <div class="row">
           <span class="label">${escapeHtml(lblPatientType)}:</span>
