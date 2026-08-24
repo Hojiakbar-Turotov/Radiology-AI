@@ -803,7 +803,6 @@ function listenToDoctors() {
         doctorsList.push({ id: key, ...data[key] });
       });
     }
-    renderDoctors();
     updateDoctorSelectOptions();
   });
 }
@@ -2345,10 +2344,9 @@ function applySystemLanguage(langCode = null) {
 
   // 2. Sidebar menyusi
   const navBtns = document.querySelectorAll(".sidebar .nav-menu .nav-item");
-  if (navBtns && navBtns.length >= 3) {
+  if (navBtns && navBtns.length >= 2) {
     navBtns[0].innerHTML = `<i class="fa-solid fa-list-ol"></i> ${dict.sidebarQueue || 'Bemorlar Navbati'}`;
     navBtns[1].innerHTML = `<i class="fa-solid fa-user-plus"></i> ${dict.sidebarNewPatient || "Yangi Bemor Qo'shish"}`;
-    navBtns[2].innerHTML = `<i class="fa-solid fa-desktop"></i> ${dict.sidebarRooms || 'Qurilmalar & Xonalar'}`;
   }
 
   // 3. Statistika kartalari
@@ -2537,28 +2535,7 @@ function exportToCSV() {
   document.body.removeChild(link);
 }
 
-// 9. VRACHLARNI BOSHQARISH
-function renderDoctors() {
-  const container = document.getElementById("doctorsContainer");
-  if (!container) return;
-
-  container.innerHTML = doctorsList.map(doc => `
-    <div class="doctor-card">
-      <span class="room-badge">${escapeHtml(doc.room)}</span>
-      <h3>${escapeHtml(doc.name)}</h3>
-      <p><i class="fa-solid fa-stethoscope"></i> ${escapeHtml(doc.specialty || "Shifokor")}</p>
-      <div style="margin-top:auto; display:flex; gap:8px;">
-        <button class="btn btn-secondary btn-small" onclick="openEditDoctorModal('${doc.id}')">
-          <i class="fa-solid fa-pen"></i> Tahrirlash
-        </button>
-        <button class="btn btn-secondary btn-small" style="color:var(--danger);" onclick="deleteDoctor('${doc.id}')">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-  `).join("");
-}
-
+// 9. VRACHLAR VA QURILMALAR TANLOV OPTSIYALARI
 function updateDoctorSelectOptions() {
   const select = document.getElementById("doctorSelect");
   const filter = document.getElementById("doctorFilter");
@@ -2573,52 +2550,6 @@ function updateDoctorSelectOptions() {
     filter.innerHTML = `<option value="all">Barcha Vrachlar / Xonalar</option>` + doctorsList.map(d => `
       <option value="${d.id}">${escapeHtml(d.room)} - ${escapeHtml(d.name)}</option>
     `).join("");
-  }
-}
-
-function openAddDoctorModal() {
-  document.getElementById("doctorModalTitle").innerText = "Yangi Vrach Qo'shish";
-  document.getElementById("doctorId").value = "";
-  document.getElementById("doctorForm").reset();
-  document.getElementById("doctorModal").classList.add("open");
-}
-
-function openEditDoctorModal(docId) {
-  const doc = doctorsList.find(d => d.id === docId);
-  if (!doc) return;
-  document.getElementById("doctorModalTitle").innerText = "Vrachni Tahrirlash";
-  document.getElementById("doctorId").value = doc.id;
-  document.getElementById("docName").value = doc.name;
-  document.getElementById("docRoom").value = doc.room;
-  document.getElementById("docSpecialty").value = doc.specialty || "";
-  document.getElementById("doctorModal").classList.add("open");
-}
-
-function closeDoctorModal() {
-  document.getElementById("doctorModal").classList.remove("open");
-}
-
-function handleDoctorSubmit(e) {
-  e.preventDefault();
-  const id = document.getElementById("doctorId").value;
-  const name = document.getElementById("docName").value.trim();
-  const room = document.getElementById("docRoom").value.trim();
-  const specialty = document.getElementById("docSpecialty").value.trim();
-
-  const data = { name, room, specialty };
-
-  if (id) {
-    // Tahrirlash
-    db.ref(`doctors/${id}`).update(data).then(() => closeDoctorModal());
-  } else {
-    // Yangi qo'shish
-    db.ref("doctors").push(data).then(() => closeDoctorModal());
-  }
-}
-
-function deleteDoctor(docId) {
-  if (confirm("Ushbu vrachni ro'yxatdan o'chirmoqchimisiz?")) {
-    db.ref(`doctors/${docId}`).remove();
   }
 }
 

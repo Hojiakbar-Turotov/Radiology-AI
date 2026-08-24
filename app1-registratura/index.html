@@ -31,9 +31,6 @@
         <button class="nav-item" onclick="switchTab('new-patient-tab')">
           <i class="fa-solid fa-user-plus"></i> Yangi Bemor Qo'shish
         </button>
-        <button class="nav-item" onclick="switchTab('doctors-tab')">
-          <i class="fa-solid fa-desktop"></i> Qurilmalar & Xonalar
-        </button>
       </nav>
 
       <div class="connection-box">
@@ -372,18 +369,7 @@
         </div>
       </section>
 
-      <!-- 4-TAB: Qurilmalar Boshqaruvi -->
-      <section id="doctors-tab" class="tab-content">
-        <div class="doctors-header">
-          <h2><i class="fa-solid fa-desktop"></i> Qurilmalar va Xonalar Ro'yxati</h2>
-          <button class="btn btn-primary" onclick="openAddDoctorModal()">
-            <i class="fa-solid fa-plus"></i> Yangi Qurilma Qo'shish
-          </button>
-        </div>
-        <div class="doctors-grid" id="doctorsContainer">
-          <!-- Dinamik qurilmalar kartasi -->
-        </div>
-      </section>
+
 
       <!-- 5-TAB: Ish Grafigi & Soatlari Sozlamalari -->
       <section id="schedule-tab" class="tab-content">
@@ -984,34 +970,7 @@
     </div>
   </div>
 
-  <!-- Vrach Qo'shish / Tahrirlash Modali -->
-  <div class="modal" id="doctorModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="doctorModalTitle">Yangi Vrach Qo'shish</h3>
-        <button class="btn-close" onclick="closeDoctorModal()">&times;</button>
-      </div>
-      <form id="doctorForm" onsubmit="handleDoctorSubmit(event)">
-        <input type="hidden" id="doctorId">
-        <div class="form-group">
-          <label for="docName">Vrach F.I.Sh <span class="required">*</span></label>
-          <input type="text" id="docName" required placeholder="Masalan: Dr. Karimov O.A.">
-        </div>
-        <div class="form-group">
-          <label for="docRoom">Xona Raqami <span class="required">*</span></label>
-          <input type="text" id="docRoom" required placeholder="Masalan: 104-xona">
-        </div>
-        <div class="form-group">
-          <label for="docSpecialty">Mutaxassisligi</label>
-          <input type="text" id="docSpecialty" placeholder="Masalan: UTT / UZI Mutaxassisi">
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="closeDoctorModal()">Bekor qilish</button>
-          <button type="submit" class="btn btn-primary">Saqlash</button>
-        </div>
-      </form>
-    </div>
-  </div>
+
 
   <!-- Yangi Tekshiruv Qo'shish / Tahrirlash Modali -->
   <div class="modal" id="serviceModal">
