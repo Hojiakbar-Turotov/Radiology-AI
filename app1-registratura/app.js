@@ -193,7 +193,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initApp() {
-  setTodayDate();
+  const savedLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const langSel = document.getElementById("globalLangSelector");
+  if (langSel) langSel.value = savedLang;
+  
+  applySystemLanguage(savedLang);
   
   // Firebase-ni ishga tushirish
   db = initFirebase();
@@ -819,18 +823,23 @@ function listenToLaborants() {
   });
 }
 
-// Bugungi sana
+// Bugungi sana (Ko'p tilli)
 function setTodayDate() {
+  const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const localeMap = { uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US', kk: 'kk-KZ', tg: 'tg-TJ', tr: 'tr-TR' };
+  const targetLocale = localeMap[currentLang] || 'uz-UZ';
+
   const now = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById("currentDate").innerText = now.toLocaleDateString('uz-UZ', options);
+  const curEl = document.getElementById("currentDate");
+  if (curEl) curEl.innerText = now.toLocaleDateString(targetLocale, options);
   
   // Format: YYYY-MM-DD (Firebase query uchun)
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   todayDateStr = `${y}-${m}-${d}`;
-  selectedQueueDate = todayDateStr;
+  if (!selectedQueueDate) selectedQueueDate = todayDateStr;
 }
 
 function getDateStrWithOffset(offsetDays) {
@@ -956,6 +965,11 @@ function renderQueueTable() {
   const tbody = document.getElementById("queueTableBody");
   if (!tbody) return;
 
+  const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.reg && I18N_TRANSLATIONS.reg[currentLang]) 
+    ? I18N_TRANSLATIONS.reg[currentLang] 
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.reg) ? I18N_TRANSLATIONS.reg['uz'] : {});
+
   const searchQuery = (document.getElementById("searchInput") ? document.getElementById("searchInput").value : "").toLowerCase();
   const docFilter = document.getElementById("doctorFilter") ? document.getElementById("doctorFilter").value : "all";
   const statusFilter = document.getElementById("statusFilter") ? document.getElementById("statusFilter").value : "all";
@@ -972,7 +986,8 @@ function renderQueueTable() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4" style="text-align:center; color:#94a3b8;">${selectedQueueDate} sanasi uchun bemorlar topilmadi</td></tr>`;
+    const emptyMsg = dict.noPatients ? dict.noPatients.replace('{date}', selectedQueueDate) : `${selectedQueueDate} sanasi uchun bemorlar topilmadi`;
+    tbody.innerHTML = `<tr><td colspan="11" class="text-center py-4" style="text-align:center; color:#94a3b8;">${emptyMsg}</td></tr>`;
     return;
   }
 
@@ -1044,46 +1059,49 @@ function renderQueueTable() {
     const timeDisplay = isCancelled
       ? `<div style="color:#94a3b8; font-size:11.5px; text-decoration:line-through;">${escapeHtml(oldSlot)}</div>
          <span style="background:#dcfce7; color:#15803d; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-block; margin-top:2px;">
-           🟢 Bo'shatildi
+           🟢 ${dict.freedSlot || "Bo'shatildi"}
          </span>`
       : (isRecheck
-          ? `<span class="badge" style="background:#7c3aed; color:#fff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:6px; display:inline-block;">⚡ 1-O'rin (Navbatdan tashqari)</span>`
+          ? `<span class="badge" style="background:#7c3aed; color:#fff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:6px; display:inline-block;">⚡ ${dict.outOfQueue || "1-O'rin (Navbatdan tashqari)"}</span>`
           : (p.timeSlot ? `<strong style="color:#0284c7;">${escapeHtml(p.timeSlot)}</strong>` : (p.scheduledTime || p.time || '-')));
+    
     const operatorDisplay = p.registeredBy || (p.operatorLogin ? `${p.operatorLogin} - ${p.operatorName || ''}` : '-');
-    const statusInfo = getStatusBadge(p.status);
+    const statusInfo = getStatusBadge(p.status, currentLang);
     const dateLabel = (p.appointmentDate && p.appointmentDate !== todayDateStr) ? `<div style="font-size:10px; color:#b45309; font-weight:bold;">📅 ${escapeHtml(p.appointmentDate)}</div>` : '';
     const isStat = p.patientType === "Bo'limda yotibdi" || p.isStationary || (p.priority && String(p.priority).toLowerCase().includes("statsionar"));
     const deptSuffix = p.department ? ` (${escapeHtml(p.department)})` : '';
     const patientTypeBadge = isStat
-      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">🏥 Bo'limda yotibdi${deptSuffix}</span>`
-      : `<span class="badge" style="background:#e0f2fe; color:#0284c7; font-weight:700;">🏠 Ambulator${deptSuffix}</span>`;
+      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">🏥 ${currentLang === 'ru' ? 'Стационар' : (currentLang === 'en' ? 'Inpatient' : "Bo'limda yotibdi")}${deptSuffix}</span>`
+      : `<span class="badge" style="background:#e0f2fe; color:#0284c7; font-weight:700;">🏠 ${currentLang === 'ru' ? 'Амбулаторный' : (currentLang === 'en' ? 'Outpatient' : 'Ambulator')}${deptSuffix}</span>`;
+    
     const docDisplay = p.referringDoctor ? `<span style="font-weight:600; color:#0f172a; font-size:12px;">👨‍⚕️ ${escapeHtml(p.referringDoctor)}</span>` : '<span style="color:#94a3b8; font-size:12px;">-</span>';
+    const deferNote = p.deferReason ? `<div style="font-size:10px; color:#c2410c; margin-top:2px;">⚠️ ${escapeHtml(p.deferReason)}</div>` : '';
 
     let actionsHtml = "";
     if (isCancelled) {
       actionsHtml = `
-        <button class="btn btn-secondary btn-small" title="Talonni chop etish" onclick="openPrintModal('${p.id}')">
+        <button class="btn btn-secondary btn-small" title="${dict.printTicket || 'Talonni chop etish'}" onclick="openPrintModal('${p.id}')">
           <i class="fa-solid fa-print"></i>
         </button>
-        <button class="btn btn-secondary btn-small" title="Rozilik anketasini chop etish" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
-          <i class="fa-solid fa-file-contract"></i> Anketa
+        <button class="btn btn-secondary btn-small" title="${dict.printConsent || 'Rozilik anketasini chop etish'}" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
+          <i class="fa-solid fa-file-contract"></i> ${dict.printConsent || 'Anketa'}
         </button>
-        <span style="background:#fee2e2; color:#dc2626; font-size:11px; padding:4px 8px; border-radius:6px; font-weight:bold; display:inline-flex; align-items:center; gap:4px; margin-left:3px;" title="Bemor navbati o'chirilgan">
-          <i class="fa-solid fa-ban"></i> O'chirilgan
+        <span style="background:#fee2e2; color:#dc2626; font-size:11px; padding:4px 8px; border-radius:6px; font-weight:bold; display:inline-flex; align-items:center; gap:4px; margin-left:3px;" title="${dict.cancelledBadge || 'Bemor navbati o\'chirilgan'}">
+          <i class="fa-solid fa-ban"></i> ${dict.cancelledBadge || 'O\'chirilgan'}
         </span>
-        <button class="btn btn-secondary btn-small" title="Qayta tiklash" style="color:#0284c7; margin-left:4px;" onclick="restorePatient('${p.id}')">
+        <button class="btn btn-secondary btn-small" title="${dict.restoreQueue || 'Qayta tiklash'}" style="color:#0284c7; margin-left:4px;" onclick="restorePatient('${p.id}')">
           <i class="fa-solid fa-rotate-left"></i>
         </button>
       `;
     } else {
       actionsHtml = `
-        <button class="btn btn-secondary btn-small" title="Talonni chop etish" onclick="openPrintModal('${p.id}')">
+        <button class="btn btn-secondary btn-small" title="${dict.printTicket || 'Talonni chop etish'}" onclick="openPrintModal('${p.id}')">
           <i class="fa-solid fa-print"></i>
         </button>
-        <button class="btn btn-secondary btn-small" title="Rozilik anketasini chop etish" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
-          <i class="fa-solid fa-file-contract"></i> Anketa
+        <button class="btn btn-secondary btn-small" title="${dict.printConsent || 'Rozilik anketasini chop etish'}" style="color:#15803d; margin-left:3px;" onclick="printConsentForm('${p.id}')">
+          <i class="fa-solid fa-file-contract"></i> ${dict.printConsent || 'Anketa'}
         </button>
-        <button class="btn btn-secondary btn-small" title="Navbatdan o'chirish / Bekor qilish" style="color:var(--danger); margin-left:3px;" onclick="deletePatient('${p.id}')">
+        <button class="btn btn-secondary btn-small" title="${dict.cancelQueue || 'Navbatdan o\'chirish / Bekor qilish'}" style="color:var(--danger); margin-left:3px;" onclick="deletePatient('${p.id}')">
           <i class="fa-solid fa-trash"></i>
         </button>
       `;
@@ -1091,27 +1109,36 @@ function renderQueueTable() {
 
     const arrivedBtnHtml = `
       <button type="button" class="btn btn-small" onclick="toggleArrivedStatus('${p.id}')" title="${p.arrived ? 'Bemor kutish zalida o\'tiribdi (O\'zgartirish uchun bosing)' : 'Bemor hali kelmadi (Kelganini belgilash uchun bosing)'}" style="background:${p.arrived ? '#dcfce7' : '#f1f5f9'}; color:${p.arrived ? '#15803d' : '#64748b'}; border:1px solid ${p.arrived ? '#86efac' : '#cbd5e1'}; font-weight:800; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; min-width:86px; display:inline-flex; align-items:center; justify-content:center; gap:4px;">
-        ${p.arrived ? '🟢 Zalda' : '⏳ Hali kelmadi'}
+        ${p.arrived ? (dict.arrivedInHall || '🟢 Zalda') : (dict.notArrived || '⏳ Hali kelmadi')}
       </button>
     `;
+
+    const translatedService = (typeof formatServiceNameWithOriginal === 'function')
+      ? formatServiceNameWithOriginal(p.service, currentLang)
+      : (p.service || '-');
+
+    const translatedDoctor = (typeof formatRoomWithOriginal === 'function')
+      ? formatRoomWithOriginal(p.doctorName || p.room, currentLang)
+      : (p.doctorName || p.room || '-');
 
     return `
       <tr ${isCancelled ? 'class="row-cancelled"' : ''}>
         <td><span class="ticket-tag" style="${isCancelled ? 'opacity:0.6;' : ''}">${escapeHtml(p.ticketId)}</span></td>
         <td>
           <strong style="${isCancelled ? 'color:#64748b;' : ''}">${escapeHtml(p.name)}</strong>
-          ${isCancelled ? '<span style="color:#ef4444; font-size:10px; font-weight:bold; display:block;">[O\'CHIRILGAN]</span>' : ''}
-          ${p.sampleNumber ? `<span style="display:inline-block; margin-top:2px; margin-right:3px; background:#e0e7ff; color:#3730a3; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700;">Namuna: №${escapeHtml(p.sampleNumber)}</span>` : ''}
+          ${isCancelled ? `<span style="color:#ef4444; font-size:10px; font-weight:bold; display:block;">[${dict.cancelledBadge || "O'CHIRILGAN"}]</span>` : ''}
+          ${p.sampleNumber ? `<span style="display:inline-block; margin-top:2px; margin-right:3px; background:#e0e7ff; color:#3730a3; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700;">${dict.sampleLabel || 'Namuna:'} №${escapeHtml(p.sampleNumber)}</span>` : ''}
           ${(p.muassasa || p.senderInstitution) ? `<span style="display:inline-block; margin-top:2px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700;">🏢 ${escapeHtml(p.muassasa || p.senderInstitution)}</span>` : ''}
           ${dateLabel}
           ${deferNote}
         </td>
         <td>${patientTypeBadge}</td>
-        <td><strong>${escapeHtml(p.doctorName || p.room)}</strong> <small style="color:#64748b;">(${escapeHtml(p.room || '')})</small></td>
-        <td>${escapeHtml(p.service || '-')} ${p.isContrast ? '<span style="color:#ef4444; font-weight:bold; font-size:10px;">[KONTRAST]</span>' : ''}</td>
+        <td><strong>${escapeHtml(translatedDoctor)}</strong> <small style="color:#64748b;">(${escapeHtml(p.room || '')})</small></td>
+        <td>${escapeHtml(translatedService)} ${p.isContrast ? '<span style="color:#ef4444; font-weight:bold; font-size:10px;">[KONTRAST]</span>' : ''}</td>
         <td>${timeDisplay}</td>
         <td>${docDisplay}</td>
         <td><span style="background:#f1f5f9; padding:3px 8px; border-radius:6px; font-size:11.5px; font-weight:600; color:#334155;">👤 ${escapeHtml(operatorDisplay)}</span></td>
+        <td style="text-align:center;">${arrivedBtnHtml}</td>
         <td>
           <span class="badge ${statusInfo.cls}">${statusInfo.label}</span>
           ${(p.laborantName || p.calledByLaborant) ? `
@@ -1127,14 +1154,24 @@ function renderQueueTable() {
   }).join("");
 }
 
-function getStatusBadge(status) {
+function getStatusBadge(status, lang = 'uz') {
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.reg && I18N_TRANSLATIONS.reg[lang]) 
+    ? I18N_TRANSLATIONS.reg[lang] 
+    : {
+      statusWaiting: "Kutmoqda",
+      statusCalling: "Chaqirilmoqda",
+      statusInProgress: "Qabulda",
+      statusCompleted: "Yakunlandi",
+      statusCancelled: "O'chirilgan"
+    };
+
   switch (status) {
-    case "waiting": return { label: "Kutmoqda", cls: "badge-waiting" };
-    case "calling": return { label: "Chaqirilmoqda", cls: "badge-calling" };
-    case "in_progress": return { label: "Qabulda", cls: "badge-in_progress" };
-    case "completed": return { label: "Yakunlandi", cls: "badge-completed" };
-    case "cancelled": return { label: "O'chirilgan", cls: "badge-cancelled" };
-    default: return { label: "Kutmoqda", cls: "badge-waiting" };
+    case "waiting": return { label: dict.statusWaiting || "Kutmoqda", cls: "badge-waiting" };
+    case "calling": return { label: dict.statusCalling || "Chaqirilmoqda", cls: "badge-calling" };
+    case "in_progress": return { label: dict.statusInProgress || "Qabulda", cls: "badge-in_progress" };
+    case "completed": return { label: dict.statusCompleted || "Yakunlandi", cls: "badge-completed" };
+    case "cancelled": return { label: dict.statusCancelled || "O'chirilgan", cls: "badge-cancelled" };
+    default: return { label: dict.statusWaiting || "Kutmoqda", cls: "badge-waiting" };
   }
 }
 
@@ -2290,6 +2327,94 @@ function printConsentFormDirect(payload, lang = null) {
   }
 }
 
+function applySystemLanguage(langCode = null) {
+  const currentLang = langCode || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
+  const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.reg && I18N_TRANSLATIONS.reg[currentLang]) 
+    ? I18N_TRANSLATIONS.reg[currentLang] 
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.reg) ? I18N_TRANSLATIONS.reg['uz'] : {});
+
+  // 1. Title va Header
+  const pageTitle = document.getElementById("pageTitle");
+  if (pageTitle) pageTitle.innerText = dict.pageTitle || "Bugungi Navbat Ro'yxati";
+
+  const btnNewPat = document.getElementById("btnTxtNewPatient");
+  if (btnNewPat) btnNewPat.innerText = dict.btnNewPatient || "Yangi Navbat Berish";
+
+  const btnExp = document.getElementById("btnTxtExportExcel");
+  if (btnExp) btnExp.innerText = dict.btnExportExcel || "Excelga Yuklash";
+
+  // 2. Sidebar menyusi
+  const navBtns = document.querySelectorAll(".sidebar .nav-menu .nav-item");
+  if (navBtns && navBtns.length >= 3) {
+    navBtns[0].innerHTML = `<i class="fa-solid fa-list-ol"></i> ${dict.sidebarQueue || 'Bemorlar Navbati'}`;
+    navBtns[1].innerHTML = `<i class="fa-solid fa-user-plus"></i> ${dict.sidebarNewPatient || "Yangi Bemor Qo'shish"}`;
+    navBtns[2].innerHTML = `<i class="fa-solid fa-desktop"></i> ${dict.sidebarRooms || 'Qurilmalar & Xonalar'}`;
+  }
+
+  // 3. Statistika kartalari
+  const statTitles = document.querySelectorAll(".stats-grid .stat-title");
+  if (statTitles && statTitles.length >= 4) {
+    statTitles[0].innerText = dict.statTotal || "Jami Bemorlar";
+    statTitles[1].innerText = dict.statWaiting || "Kutayotganlar";
+    statTitles[2].innerText = dict.statCalling || "Qabulda";
+    statTitles[3].innerText = dict.statCompleted || "Yakunlandi";
+  }
+
+  // 4. Filtrlar
+  const sInput = document.getElementById("searchInput");
+  if (sInput) sInput.placeholder = dict.searchPlaceholder || "F.I.Sh yoki ID bo'yicha qidirish...";
+
+  const dateLbl = document.querySelector("label[for='queueDateFilter']");
+  if (dateLbl) dateLbl.innerText = dict.dateLabel || "📅 Sana:";
+
+  const quickBtns = document.querySelectorAll(".filter-group .btn-small");
+  if (quickBtns && quickBtns.length >= 2) {
+    quickBtns[0].innerText = dict.todayBtn || "Bugun";
+    quickBtns[1].innerText = dict.tomorrowBtn || "Ertaga";
+  }
+
+  // 5. Holat filteri
+  const stFilter = document.getElementById("statusFilter");
+  if (stFilter && stFilter.options.length >= 6) {
+    stFilter.options[0].text = dict.allStatuses || "Barcha Holatlar";
+    stFilter.options[1].text = dict.statusWaiting || "Kutmoqda";
+    stFilter.options[2].text = dict.statusCalling || "Chaqirilmoqda";
+    stFilter.options[3].text = dict.statusInProgress || "Qabulda";
+    stFilter.options[4].text = dict.statusCompleted || "Yakunlandi";
+    stFilter.options[5].text = dict.statusCancelled || "Bekor qilingan";
+  }
+
+  // 6. Jadval sarlavhalari (TH)
+  const thMap = {
+    "th-ticketId": dict.colId || "ID",
+    "th-name": dict.colPatient || "Bemor F.I.Sh",
+    "th-patientType": dict.colType || "Toifasi / Bo'lim",
+    "th-doctorName": dict.colDevice || "Qurilma & Xona",
+    "th-service": dict.colService || "Tekshiruv",
+    "th-scheduledTime": dict.colTime || "Band Qilingan Vaqt",
+    "th-referringDoctor": dict.colReferring || "Fayl Shifokori",
+    "th-registeredBy": dict.colOperator || "Ro'yxatchi",
+    "th-arrived": dict.colArrived || "Kutish Zalida",
+    "th-status": dict.colStatus || "Holat"
+  };
+
+  Object.keys(thMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const ind = el.querySelector(".sort-indicator");
+      const indHtml = ind ? ind.outerHTML : '';
+      el.innerHTML = `${thMap[id]} ${indHtml}`;
+    }
+  });
+
+  const lastTh = document.querySelector(".data-table thead th:last-child");
+  if (lastTh) lastTh.innerText = dict.colActions || "Amallar";
+
+  // Sana formatini ham tilga moslash
+  setTodayDate();
+  renderQueueTable();
+}
+
 function changeSystemLanguage(langCode) {
   if (typeof setI18nLanguage === 'function') {
     setI18nLanguage(langCode);
@@ -2297,7 +2422,7 @@ function changeSystemLanguage(langCode) {
   const sel = document.getElementById("globalLangSelector");
   if (sel) sel.value = langCode;
 
-  renderQueueTable();
+  applySystemLanguage(langCode);
 }
 
 function deletePatient(patientDbId) {
