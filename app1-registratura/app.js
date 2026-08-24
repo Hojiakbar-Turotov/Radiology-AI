@@ -895,6 +895,8 @@ function renderQueueTable() {
         <td>
           <strong style="${isCancelled ? 'color:#64748b;' : ''}">${escapeHtml(p.name)}</strong>
           ${isCancelled ? '<span style="color:#ef4444; font-size:10px; font-weight:bold; display:block;">[O\'CHIRILGAN]</span>' : ''}
+          ${p.sampleNumber ? `<span style="display:inline-block; margin-top:2px; margin-right:3px; background:#e0e7ff; color:#3730a3; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700;">Namuna: №${escapeHtml(p.sampleNumber)}</span>` : ''}
+          ${(p.muassasa || p.senderInstitution) ? `<span style="display:inline-block; margin-top:2px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700;">🏢 ${escapeHtml(p.muassasa || p.senderInstitution)}</span>` : ''}
           ${dateLabel}
           ${deferNote}
         </td>

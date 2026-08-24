@@ -569,6 +569,8 @@ function renderQueueList() {
               <div class="queue-info">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <span class="queue-patient-title">${escapeHtml(p.name)}</span>
+                  ${(p.muassasa || p.senderInstitution) ? `<span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:4px; padding:1px 5px; font-size:10.5px; font-weight:700;">🏢 ${escapeHtml(p.muassasa || p.senderInstitution)}</span>` : ''}
+                  ${p.sampleNumber ? `<span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:1px 5px; font-size:10.5px; font-weight:700;">№ ${escapeHtml(p.sampleNumber)}</span>` : ''}
                   ${isRecheck ? `<span class="out-of-queue-badge"><i class="fa-solid fa-bolt"></i> Qayta tekshiruv (1-o'rin)</span>` : ''}
                   ${p.isRequeued ? `<span class="requeued-badge"><i class="fa-solid fa-rotate-right"></i> Qayta navbatda</span>` : ''}
                 </div>

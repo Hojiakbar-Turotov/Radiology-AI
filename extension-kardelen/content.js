@@ -965,6 +965,7 @@ async function updateFloatingBarPatientDisplay() {
 
   const typeBadge = ` ` + formatPatientTypeBadge(selectedPatient, currentLang);
   const sampleBadge = selectedPatient.sampleNumber ? ` <span style="background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">№${escapeHtml(selectedPatient.sampleNumber)}</span>` : "";
+  const muassasaBadge = selectedPatient.muassasa ? ` <span style="background:#ecfdf5; color:#065f46; padding:1px 6px; border-radius:4px; font-size:10.5px; font-weight:700; border:1px solid #a7f3d0;">🏢 ${escapeHtml(selectedPatient.muassasa)}</span>` : "";
 
   const sName = (typeof formatServiceNameWithOriginal === 'function') 
     ? formatServiceNameWithOriginal(selectedPatient.service, currentLang) 
@@ -974,7 +975,7 @@ async function updateFloatingBarPatientDisplay() {
     ? formatRoomWithOriginal(selectedPatient.autoDeviceRoom, selectedPatient.autoDeviceName, currentLang) 
     : (selectedPatient.autoDeviceName || "");
 
-  txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(sName)}</span>${multiBadge} <span style="color:#f59e0b;">(${escapeHtml(roomName)} | ⏱ ${selectedPatient.duration} ${dict.durationMin || 'daq'} ${selectedPatient.isContrast ? '💉' : ''})</span>`;
+  txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${muassasaBadge}${typeBadge}: <span style="color:#38bdf8; font-weight:700;">${escapeHtml(sName)}</span>${multiBadge} <span style="color:#f59e0b;">(${escapeHtml(roomName)} | ⏱ ${selectedPatient.duration} ${dict.durationMin || 'daq'} ${selectedPatient.isContrast ? '💉' : ''})</span>`;
   btn.disabled = false;
   btn.innerText = dict.bookQueueBtn || '➕ Navbatga Yozish';
 }
@@ -994,7 +995,8 @@ function extractPatientFromRow(row) {
     // 1. Sarlavha ustunlaridan (th / td) aniq xarita tuzish:
     let colMap = {
       doc: -1, id: -1, surname: -1, name: -1, middle: -1,
-      priority: -1, dept: -1, regDate: -1, sample: -1, dob: -1, pinfl: -1
+      priority: -1, dept: -1, regDate: -1, sample: -1, dob: -1, pinfl: -1,
+      muassasa: -1, connectedDept: -1
     };
 
     try {
@@ -1014,6 +1016,8 @@ function extractPatientFromRow(row) {
             else if (h.includes("namuna")) colMap.sample = idx;
             else if (h.includes("tug'ilgan") || h.includes("tugilgan") || h.includes("t_kuni") || h.includes("t.kuni")) colMap.dob = idx;
             else if (h.includes("pinfl") || h.includes("pnfl") || h.includes("jshshir") || h.includes("inps")) colMap.pinfl = idx;
+            else if (h.includes("muassasa") || h.includes("tashkilot") || h.includes("sugurta") || h.includes("sug'urta") || h.includes("order") || h.includes("rezident") || h.includes("resident")) colMap.muassasa = idx;
+            else if (h.includes("ulangan")) colMap.connectedDept = idx;
             else if (h.includes("sana") || h.includes("royxatga")) colMap.regDate = idx;
           });
         }
@@ -1114,6 +1118,32 @@ function extractPatientFromRow(row) {
       }
     }
 
+    // Yuborgan Muassasa / To'lov turi (Sug'urta Toshkent Shahri, Rezident, Order va h.k.):
+    let muassasa = "";
+    if (colMap.muassasa !== -1 && cells[colMap.muassasa]) {
+      muassasa = cells[colMap.muassasa].innerText.trim();
+    } else {
+      let pinflIndex = colMap.pinfl !== -1 ? colMap.pinfl : -1;
+      if (pinflIndex === -1) {
+        pinflIndex = cells.findIndex(c => /^\d{14}$/.test(c.innerText.trim()));
+      }
+      if (pinflIndex !== -1 && cells[pinflIndex + 1]) {
+        const val = cells[pinflIndex + 1].innerText.trim();
+        if (val && val !== "-" && !val.includes("Ulangan")) {
+          muassasa = val;
+        }
+      }
+      if (!muassasa) {
+        for (const c of cells) {
+          const txt = c.innerText.trim();
+          if (/sug'?urta|rezident|resident|order|shahar|toshkent|viloyat|markaz|dispanser/i.test(txt)) {
+            muassasa = txt;
+            break;
+          }
+        }
+      }
+    }
+
     if (!surname || /^\d+$/.test(surname) || surname.includes(":") || surname.toLowerCase().includes("tranzaksiya") || surname.toLowerCase().includes("kod")) {
       return null;
     }
@@ -1122,7 +1152,6 @@ function extractPatientFromRow(row) {
     const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim();
 
     const isGreen = isRowFinishedOrGreen(row, cells);
-    const instName = extractInstitutionName();
 
     return {
       row: row,
@@ -1134,14 +1163,15 @@ function extractPatientFromRow(row) {
       sampleNumber: sampleNumber,
       birthDate: birthDate,
       pinfl: pinfl,
+      muassasa: muassasa,
+      senderInstitution: muassasa,
       referringDoctor: referringDoctor,
       priority: isStationary ? "Statsionar" : (priority || "Ambulator"),
       department: (department || "").trim(),
       patientType: isStationary ? "Bo'limda yotibdi" : "Ambulator",
       isStationary: isStationary,
       isGreen: isGreen,
-      rowDate: rowDate,
-      institutionName: instName
+      rowDate: rowDate
     };
   } catch (e) {
     return null;
@@ -3138,6 +3168,12 @@ async function openSendModal(patientData) {
               <span class="utt-info-val" style="font-family:monospace; font-weight:700; color:#0f172a;">${escapeHtml(patientData.pinfl)}</span>
             </div>
           ` : ''}
+          ${(patientData.muassasa || patientData.senderInstitution) ? `
+            <div class="utt-info-row">
+              <span class="utt-info-label">Muassasa / To'lov:</span>
+              <span class="utt-info-val" style="font-weight:800; color:#166534;">🏢 ${escapeHtml(patientData.muassasa || patientData.senderInstitution)}</span>
+            </div>
+          ` : ''}
 
           ${serviceSelectorHtml}
 
@@ -4023,6 +4059,8 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     middleName: patientData.middleName || "",
     sampleNumber: patientData.sampleNumber || "",
     serviceQueueNumber: patientData.serviceQueueNumber || patientData.navbatRaqami || "",
+    muassasa: patientData.muassasa || patientData.senderInstitution || "",
+    senderInstitution: patientData.muassasa || patientData.senderInstitution || "",
     institutionName: patientData.institutionName || extractInstitutionName(),
     birthDate: patientData.birthDate || "",
     pinfl: patientData.pinfl || "",
@@ -4055,7 +4093,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     operatorLogin: currentUser ? currentUser.login : "TB1",
     operatorName: currentUser ? currentUser.name : "Operator",
     registeredBy: currentUser ? `${currentUser.login} - ${currentUser.name}` : "TB1 - Turatov Hojiakbar",
-    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : "") + (patientData.sampleNumber ? ` [Namuna: ${patientData.sampleNumber}]` : "") + (patientData.serviceQueueNumber ? ` [Navbat: ${patientData.serviceQueueNumber}]` : ""),
+    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : "") + (patientData.sampleNumber ? ` [Namuna: ${patientData.sampleNumber}]` : "") + (patientData.serviceQueueNumber ? ` [Navbat: ${patientData.serviceQueueNumber}]` : "") + (patientData.muassasa ? ` [Muassasa: ${patientData.muassasa}]` : ""),
     status: "waiting",
     timestamp: Date.now(),
     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -4078,7 +4116,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
         .replace('{device}', device.name)
         .replace('{slot}', slot.slotString)
         .replace('{date}', saveDate);
-      showToast(toastMsg);
+      showToast(toastMsg, "success");
       fetchDeviceQueueCounts().catch(() => {});
       calculateTodayOperatorStats().catch(() => {});
       if (autoTicket) {
@@ -4181,6 +4219,7 @@ function printThermalTicketDirect(payload, lang) {
     const lblBookedTime = dict ? dict.bookedTime : "BAND QILINGAN QABUL VAQTI:";
     const lblAppDate = dict ? dict.appointmentDate : "Qabul Sanasi";
     const lblOperator = dict ? dict.operator : "Ro'yxatga oluvchi";
+    const lblMuassasa = dict ? dict.muassasa : "Muassasa";
     const cleanLbl = (lbl) => (lbl || '').replace(/:+\s*$/, '') + ':';
     const timeNotice = dict ? dict.timeNotice : "* Iltimos, belgilangan vaqtdan 30-40 daqiqa oldin kutish zalida bo'ling!";
     const footerThanks = dict ? dict.footerThanks : "Salomatligingiz biz uchun muhim!";
@@ -4266,6 +4305,13 @@ function printThermalTicketDirect(payload, lang) {
           <span class="label">${escapeHtml(cleanLbl(lblPatientType))}</span>
           <span class="val">${valPatientType}</span>
         </div>
+
+        ${(payload.muassasa || payload.senderInstitution) ? `
+          <div class="row">
+            <span class="label">${escapeHtml(cleanLbl(lblMuassasa || (dict ? dict.senderInstitution : "Muassasa / To'lov")))}</span>
+            <span class="val" style="font-weight:900;">${escapeHtml(payload.muassasa || payload.senderInstitution)}</span>
+          </div>
+        ` : ''}
 
         ${payload.referringDoctor ? `
           <div class="row">
@@ -4548,6 +4594,12 @@ function printConsentFormDirect(payload, lang) {
             <td class="lbl">${escapeHtml(dict ? dict.referringDoc : "Fayl / Yo‘naltirgan shifokor:")}</td>
             <td class="val">${escapeHtml(payload.referringDoctor || '-')}</td>
           </tr>
+          ${(payload.muassasa || payload.senderInstitution) ? `
+            <tr>
+              <td class="lbl">${escapeHtml(dict ? (dict.senderInstitution || "Yuborgan Muassasa / To'lov:") : "Yuborgan Muassasa / To'lov:")}</td>
+              <td class="val" colspan="3"><strong>${escapeHtml(payload.muassasa || payload.senderInstitution)}</strong></td>
+            </tr>
+          ` : ''}
           <tr>
             <td class="lbl">${escapeHtml(dict ? dict.deviceRoom : "Qurilma / Xona:")}</td>
             <td class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</td>

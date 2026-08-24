@@ -16,13 +16,14 @@ const I18N_TRANSLATIONS = {
   // 1. TALON CHOP ETISH (80mm Xprinter)
   ticket: {
     uz: {
-      centerName: "ONKOLOGIYA VA RADIOLOGIYA MARKAZI",
+      centerName: "RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI",
       ticketTitle: "Elektron Navbat Taloni",
       patient: "Bemor:",
       patientType: "Bemor toifasi:",
       stationary: "🏥 Bo'limda yotibdi",
       ambulatory: "🏠 Ambulator",
       referringDoctor: "Fayl shifokori:",
+      senderInstitution: "Muassasa / To'lov:",
       roomDevice: "Xona / Qurilma:",
       service: "Tekshiruv:",
       bookedTime: "BAND QILINGAN QABUL VAQTI:",
@@ -35,13 +36,14 @@ const I18N_TRANSLATIONS = {
       onlineResults: "📱 Javoblarni onlayn olish uchun:"
     },
     ru: {
-      centerName: "ЦЕНТР ОНКОЛОГИИ И РАДИОЛОГИИ",
+      centerName: "РЕСПУБЛИКАНСКИЙ СПЕЦИАЛИЗИРОВАННЫЙ НАУЧНО-ПРАКТИЧЕСКИЙ МЕДИЦИНСКИЙ ЦЕНТР ОНКОЛОГИИ И РАДИОЛОГИИ",
       ticketTitle: "Электронный талон очереди",
       patient: "Пациент:",
       patientType: "Категория пациента:",
       stationary: "🏥 Стационар",
       ambulatory: "🏠 Амбулаторный",
       referringDoctor: "Направивший врач:",
+      senderInstitution: "Учреждение / Оплата:",
       roomDevice: "Кабинет / Аппарат:",
       service: "Исследование:",
       bookedTime: "ЗАБРОНИРОВАННОЕ ВРЕМЯ ПРИЁМА:",
@@ -54,13 +56,14 @@ const I18N_TRANSLATIONS = {
       onlineResults: "📱 Чтобы получить результаты онлайн:"
     },
     en: {
-      centerName: "ONCOLOGY & RADIOLOGY CENTER",
+      centerName: "REPUBLICAN SPECIALIZED SCIENTIFIC AND PRACTICAL MEDICAL CENTER OF ONCOLOGY AND RADIOLOGY",
       ticketTitle: "Electronic Queue Ticket",
       patient: "Patient:",
       patientType: "Patient Category:",
       stationary: "🏥 Inpatient (Ward)",
       ambulatory: "🏠 Outpatient (Ambulatory)",
       referringDoctor: "Referring Doctor:",
+      senderInstitution: "Institution / Payment:",
       roomDevice: "Room / Device:",
       service: "Examination:",
       bookedTime: "BOOKED APPOINTMENT TIME:",
@@ -73,13 +76,14 @@ const I18N_TRANSLATIONS = {
       onlineResults: "📱 To get results online:"
     },
     kk: {
-      centerName: "ОНКОЛОГИЯ ЖӘНЕ РАДИОЛОГИЯ ОРТАЛЫҒЫ",
+      centerName: "РЕСПУБЛИКАЛЫҚ МАМАНДАНДЫРЫЛҒАН ОНКОЛОГИЯ ЖӘНЕ РАДИОЛОГИЯ ҒЫЛЫМИ-ПРАКТИКАЛЫҚ МЕДИЦИНАЛЫҚ ОРТАЛЫҒЫ",
       ticketTitle: "Электронды кезек талоны",
       patient: "Науқас:",
       patientType: "Науқас санаты:",
       stationary: "🏥 Бөлімшеде (Стационар)",
       ambulatory: "🏠 Үйінен келуші (Амбулаториялық)",
       referringDoctor: "Жолдаған дәрігер:",
+      senderInstitution: "Мекеме / Төлем:",
       roomDevice: "Бөлме / Құрылғы:",
       service: "Зерттеу:",
       bookedTime: "БРОНДАЛҒАН ҚАБЫЛДАУ УАҚЫТЫ:",
@@ -92,13 +96,14 @@ const I18N_TRANSLATIONS = {
       onlineResults: "📱 Нәтижелерді онлайн алу үшін:"
     },
     tg: {
-      centerName: "МАРКАЗИ ОНКОЛОГИЯ ВА РАДИОЛОГИЯ",
+      centerName: "МАРКАЗИ ИЛМИЮ АМАЛИИ ТИББИИ ИХТИСОСИИ ҶУМҲУРИЯВИИ ОНКОЛОГИЯ ВА РАДИОЛОГИЯ",
       ticketTitle: "Талони электронии навбат",
       patient: "Бемор:",
       patientType: "Гурӯҳи бемор:",
       stationary: "🏥 Дар шуъба (Статсионар)",
       ambulatory: "🏠 Аз хона (Амбулаторӣ)",
       referringDoctor: "Духтури роҳхатдиҳанда:",
+      senderInstitution: "Муассиса / Пардохт:",
       roomDevice: "Ҳуҷра / Дастгоҳ:",
       service: "Ташхис:",
       bookedTime: "ВАҚТИ ҚАБУЛИ БАНДШУДА:",
@@ -111,13 +116,14 @@ const I18N_TRANSLATIONS = {
       onlineResults: "📱 Барои гирифтани натиҷаҳо онлайн:"
     },
     tr: {
-      centerName: "ONKOLOJİ VE RADYOLOJİ MERKEZİ",
+      centerName: "CUMHURİYET UZMANLAŞMIŞ ONKOLOJİ VE RADYOLOJİ BİLİMSEL-UYGULAMALI TIP MERKEZİ",
       ticketTitle: "Elektronik Sıra Bileti",
       patient: "Hasta:",
       patientType: "Hasta Kategorisi:",
       stationary: "🏥 Yatan Hasta (Servis)",
       ambulatory: "🏠 Ayaktan Hasta",
       referringDoctor: "Yönlendiren Hekim:",
+      senderInstitution: "Kurum / Ödeme:",
       roomDevice: "Oda / Cihaz:",
       service: "Tetkik:",
       bookedTime: "RANDEVU SAATİ:",
