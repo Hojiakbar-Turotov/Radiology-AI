@@ -2030,27 +2030,18 @@ function calculateCombinedProcedureInfo(servicesList) {
   const isContrast = servicesList.some(s => s.isContrast);
   const contrastLabel = isContrast ? "💉 Kontrastli" : "Oddiy (Kontrastsiz)";
 
-  // 3. Tayyorgarlik va Qarshi ko'rsatmalarni aqlli birlashtirish
-  const consolidated = consolidatePreparationAndContraindications(servicesList);
+  // 3. Tayyorgarlik va Qarshi ko'rsatmalarni to'liq saqlash
   let combinedPrepString = "";
   let combinedContraString = "";
 
-  if (consolidated.isMultiple) {
-    const parts = [];
-    if (consolidated.generalPrepList.length > 0) {
-      parts.push(consolidated.generalPrepList.join(" "));
-    }
-    const specParts = consolidated.specificServicesPrep
-      .filter(s => s.specificPoints.length > 0)
-      .map(s => `${s.name}: ${s.specificPoints.join(" ")}`);
-    if (specParts.length > 0) {
-      parts.push(specParts.join(" | "));
-    }
-    combinedPrepString = parts.join(" ");
-    combinedContraString = consolidated.consolidatedContraList.join(" ");
+  if (servicesList.length === 1) {
+    combinedPrepString = (servicesList[0].preparation || "").trim();
+    combinedContraString = (servicesList[0].contraindications || "").trim();
   } else {
-    combinedPrepString = consolidated.singlePrep || "";
-    combinedContraString = consolidated.singleContra || "";
+    const preps = servicesList.map(s => (s.preparation || "").trim()).filter(Boolean);
+    const contras = servicesList.map(s => (s.contraindications || "").trim()).filter(Boolean);
+    combinedPrepString = preps.join("\n");
+    combinedContraString = contras.join("\n");
   }
 
   // 4. VAQT HISOBLASH (Katalogdagi sozlamalar bo'yicha):

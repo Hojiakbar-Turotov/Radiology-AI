@@ -1376,101 +1376,123 @@ function translateQuestionsList(questions, lang = 'uz') {
 
 // 11. KO'P TILLI TIBBIY KO'RSATMALAR HTML FORMATER (80mm Talon uchun)
 function formatConsolidatedGuidelinesHtml(payload, lang = 'uz', customConfig = null) {
+  if (!payload) return "";
   const L = lang || payload.printLang || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
   const gDict = (customConfig && customConfig.guidelines && customConfig.guidelines[L]) 
     ? customConfig.guidelines[L] 
-    : ((I18N_TRANSLATIONS.guidelines && I18N_TRANSLATIONS.guidelines[L]) ? I18N_TRANSLATIONS.guidelines[L] : I18N_TRANSLATIONS.guidelines['uz']);
+    : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.guidelines && I18N_TRANSLATIONS.guidelines[L]) 
+        ? I18N_TRANSLATIONS.guidelines[L] 
+        : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.guidelines) ? I18N_TRANSLATIONS.guidelines['uz'] : {
+            boxTitle: "TIBBIY KO'RSATMALAR VA ESLATMA",
+            singlePrepTitle: "📋 Tayyorgarlik:",
+            generalPrepTitle: "📋 Umumiy Tayyorgarlik:",
+            contraTitle: "🚫 Qarshi ko'rsatmalar:"
+          }));
 
-  const prep = payload.preparation || "";
-  const contra = payload.contraindications || "";
+  const prep = (payload.preparation || "").trim();
+  const contra = (payload.contraindications || "").trim();
   const sList = payload.servicesList || [];
-
   const isMultiple = (sList && sList.length > 1);
 
-  let generalPrepList = [];
-  let contraList = [];
-  let fastingHours = 6;
+  let prepLines = [];
+  let contraLines = [];
 
-  const combinedText = (prep + " " + contra + " " + sList.map(s => (s.preparation || '') + ' ' + (s.contraindications || '')).join(' ')).toLowerCase();
-
-  // 1. Och qorin tekshiruvi
-  if (combinedText.includes("och qorin") || combinedText.includes("och qol") || combinedText.includes("натощак") || combinedText.includes("fasting") || combinedText.includes("ochlik") || combinedText.includes("ovqatlanmasdan")) {
-    const match = combinedText.match(/(\d+)\s*[-–—to]?\s*(\d+)?\s*soat/i) || combinedText.match(/(\d+)\s*часов/i) || combinedText.match(/(\d+)\s*hours/i);
-    if (match) {
-      fastingHours = parseInt(match[2] || match[1], 10) || 6;
-    }
-    generalPrepList.push(gDict.fasting.replace('{H}', fastingHours));
+  function parseTextToLines(text) {
+    if (!text || text === "—" || text === "-") return [];
+    return text.split(/\r?\n/)
+      .map(line => line.trim().replace(/^[•\-\*]\s*/, '').trim())
+      .filter(line => line.length > 1);
   }
 
-  // 2. Qon tahlillari va Metformin
-  if (combinedText.includes("kreatinin") || combinedText.includes("mochevina") || combinedText.includes("креатинин") || combinedText.includes("creatinine") || payload.isContrast || combinedText.includes("kontrast")) {
-    generalPrepList.push(gDict.bloodTest);
-    generalPrepList.push(gDict.metformin);
-    generalPrepList.push(gDict.postHydration);
+  // 1. Agar payload.preparation mavjud bo'lsa:
+  if (prep) {
+    prepLines.push(...parseTextToLines(prep));
   }
 
-  // 3. Metall buyumlar
-  if (combinedText.includes("metall") || combinedText.includes("металл") || combinedText.includes("metal") || combinedText.includes("implant") || combinedText.includes("soat")) {
-    generalPrepList.push(gDict.metalWarning);
+  // 2. Agar payload.contraindications mavjud bo'lsa:
+  if (contra) {
+    contraLines.push(...parseTextToLines(contra));
   }
 
-  // 4. Qarshi ko'rsatmalar
-  if (combinedText.includes("yod") || combinedText.includes("kontrast") || combinedText.includes("йод") || combinedText.includes("contrast") || payload.isContrast || combinedText.includes("allergiya")) {
-    contraList.push(gDict.allergy);
-    contraList.push(gDict.kidney);
-    contraList.push(gDict.hyperthyroidism);
-    contraList.push(gDict.pregnancy);
+  // 3. Agar bir nechta tekshiruvlar ro'yxati (sList) bo'lsa va yuqoridagi bo'sh bo'lsa:
+  if (sList.length > 0 && prepLines.length === 0) {
+    sList.forEach(s => {
+      const sPrep = parseTextToLines(s.preparation);
+      const sName = s.fullName || s.name || "";
+      sPrep.forEach(p => {
+        prepLines.push(sList.length > 1 ? `[${sName}] ${p}` : p);
+      });
+      const sContra = parseTextToLines(s.contraindications);
+      contraLines.push(...sContra);
+    });
   }
 
-  // 5. Kardiostimulyator
-  if (combinedText.includes("kardiostimulyator") || combinedText.includes("stimulyator") || combinedText.includes("кардиостимулятор") || combinedText.includes("pacemaker")) {
-    contraList.push(gDict.pacemaker);
-  }
-
-  // Fallback if none matched
-  if (generalPrepList.length === 0 && prep) {
-    if (L === 'uz') {
-      generalPrepList.push(prep);
-    } else {
-      generalPrepList.push(gDict.fasting.replace('{H}', '6'));
-      if (payload.isContrast) generalPrepList.push(gDict.bloodTest);
-    }
-  }
-  if (contraList.length === 0 && contra) {
-    if (L === 'uz') {
-      contraList.push(contra);
-    } else {
-      if (payload.isContrast) contraList.push(gDict.allergy);
-      contraList.push(gDict.pregnancy);
+  // 4. Agar umumiy bazada ham tayyorgarlik bo'sh bo'lsa, xavfsizlik uchun tekshiruv turiga mos minimal eslatma:
+  if (prepLines.length === 0) {
+    if (payload.isContrast) {
+      prepLines.push(gDict.fasting ? gDict.fasting.replace('{H}', '4-6') : "4-6 soat och qoringa kelish.");
+      if (gDict.bloodTest) prepLines.push(gDict.bloodTest);
+      if (gDict.metformin) prepLines.push(gDict.metformin);
+      if (gDict.postHydration) prepLines.push(gDict.postHydration);
+    } else if (payload.deviceType === "MRT" || (payload.doctorName && payload.doctorName.includes("MRT"))) {
+      if (gDict.metalWarning) prepLines.push(gDict.metalWarning);
     }
   }
 
-  if (generalPrepList.length === 0 && contraList.length === 0) {
+  if (contraLines.length === 0) {
+    if (payload.isContrast) {
+      if (gDict.allergy) contraLines.push(gDict.allergy);
+      if (gDict.kidney) contraLines.push(gDict.kidney);
+      if (gDict.pregnancy) contraLines.push(gDict.pregnancy);
+    } else if (payload.deviceType === "MRT" || (payload.doctorName && payload.doctorName.includes("MRT"))) {
+      if (gDict.pacemaker) contraLines.push(gDict.pacemaker);
+    }
+  }
+
+  // Deduplikatsiya
+  const seenP = new Set();
+  prepLines = prepLines.filter(p => {
+    const norm = p.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (seenP.has(norm)) return false;
+    seenP.add(norm);
+    return true;
+  });
+
+  const seenC = new Set();
+  contraLines = contraLines.filter(c => {
+    const norm = c.toLowerCase().replace(/[^a-z0-9а-яёўқғҳ]/gi, '');
+    if (seenC.has(norm)) return false;
+    seenC.add(norm);
+    return true;
+  });
+
+  if (prepLines.length === 0 && contraLines.length === 0) {
     return "";
   }
 
-  // Unikallashtirish
-  generalPrepList = [...new Set(generalPrepList)];
-  contraList = [...new Set(contraList)];
+  function esc(s) {
+    if (!s) return "";
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
 
   return `
-    <div class="guide-box" style="border: 2px solid #000; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 12px; line-height: 1.35; text-align: left; color: #000 !important;">
-      <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000 !important; border-bottom: 2px dashed #000; padding-bottom: 3px;">
-        ${gDict.boxTitle}
+    <div class="guide-box" style="border: 2px solid #000; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 11px; line-height: 1.35; text-align: left; color: #000 !important;">
+      <div style="font-size: 11.5px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; text-align: center; color: #000 !important; border-bottom: 2px dashed #000; padding-bottom: 3px;">
+        ${esc(gDict.boxTitle || "TIBBIY KO'RSATMALAR VA ESLATMA")}
       </div>
-      ${generalPrepList.length > 0 ? `
-        <div style="margin-top: 4px; font-size: 12px;">
-          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${isMultiple ? gDict.generalPrepTitle : (gDict.singlePrepTitle || '📋 Tayyorgarlik:')}</div>
+      ${prepLines.length > 0 ? `
+        <div style="margin-top: 4px; font-size: 11px;">
+          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${esc(isMultiple ? (gDict.generalPrepTitle || '📋 Umumiy Tayyorgarlik:') : (gDict.singlePrepTitle || '📋 Tayyorgarlik:'))}</div>
           <div style="padding-left: 2px; line-height: 1.35;">
-            ${generalPrepList.map(g => `<div style="margin-top:2px;">• ${g}</div>`).join('')}
+            ${prepLines.map(g => `<div style="margin-top:2px;">• ${esc(g)}</div>`).join('')}
           </div>
         </div>
       ` : ''}
-      ${contraList.length > 0 ? `
-        <div style="margin-top: 6px; font-size: 12px;">
-          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${gDict.contraTitle}</div>
+      ${contraLines.length > 0 ? `
+        <div style="margin-top: 5px; font-size: 11px;">
+          <div style="font-weight: 900; margin-bottom: 2px; color:#000 !important;">${esc(gDict.contraTitle || "🚫 Qarshi ko'rsatmalar:")}</div>
           <div style="padding-left: 2px; line-height: 1.35;">
-            ${contraList.map(c => `<div style="margin-top:2px;">• ${c}</div>`).join('')}
+            ${contraLines.map(c => `<div style="margin-top:2px;">• ${esc(c)}</div>`).join('')}
           </div>
         </div>
       ` : ''}
