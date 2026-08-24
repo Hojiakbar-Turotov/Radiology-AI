@@ -47,6 +47,7 @@ let dynamicSchedulingRules = [...DEFAULT_SCHEDULING_RULES];
 let currentUser = null;
 let operatorsList = [...DEFAULT_OPERATORS];
 let selectedPatient = null;
+let isExtensionEnabled = true;
 
 // Barcha rasmiy MRT va MSKT tekshiruv kodlari va ma'lumotlari bazasi
 const STATIC_MRT_MSKT_SERVICES = {
@@ -376,6 +377,26 @@ if (window === window.top && isKardelenEnvironment()) {
 
 async function initExtension() {
   try {
+    if (chrome.storage && chrome.storage.local) {
+      const res = await chrome.storage.local.get("utt_extension_enabled");
+      if (res && res.utt_extension_enabled !== undefined) {
+        isExtensionEnabled = Boolean(res.utt_extension_enabled);
+      }
+    }
+
+    if (chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes.utt_extension_enabled !== undefined) {
+          isExtensionEnabled = Boolean(changes.utt_extension_enabled.newValue);
+          applyExtensionEnabledState();
+        }
+        if (area === "local" && changes.utt_current_user !== undefined) {
+          currentUser = changes.utt_current_user.newValue || null;
+          updateFloatingBar();
+        }
+      });
+    }
+
     await checkUserAuth();
     loadOperatorsFromFirebase().catch(() => {});
     await loadServicesCatalog();
@@ -402,11 +423,23 @@ async function initExtension() {
   }
 }
 
+function applyExtensionEnabledState() {
+  const bar = document.getElementById("uttFloatingBar");
+  if (!isExtensionEnabled) {
+    if (bar) bar.style.display = "none";
+    closeSendModal();
+  } else {
+    if (bar) bar.style.display = "flex";
+    updateFloatingBar();
+  }
+}
+
 let lastObservedPatientId = "";
 let lastObservedServicesHash = "";
 
 function syncPatientAndServicesFromDom() {
   try {
+    if (!isExtensionEnabled) return;
     // Agar modal ochiq bo'lsa yoki foydalanuvchi alohida tekshiruv tanlagan bo'lsa, xalaqit bermaymiz
     if (document.querySelector(".utt-modal-overlay") || (selectedPatient && selectedPatient.userSelectedSpecific)) return;
     if (!lastPatientInfo || !lastPatientInfo.id || lastPatientInfo.id === "—") return;
@@ -502,6 +535,9 @@ function createFloatingBar() {
     const bar = document.createElement("div");
     bar.id = "uttFloatingBar";
     bar.className = "utt-floating-bar";
+    if (!isExtensionEnabled) {
+      bar.style.display = "none";
+    }
 
     document.body.appendChild(bar);
     updateFloatingBar();
@@ -701,6 +737,8 @@ function extractInstitutionName() {
 // 2. PASSIV CLICK TINGLOVCHI
 function handlePassiveRowClick(e) {
   try {
+    if (!isExtensionEnabled) return;
+
     // Agar kengaytmaning o'zini floating bari yoki modal oynalari bosilsa, tegmaymiz:
     if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay") || e.target.closest(".utt-login-modal") || e.target.closest(".utt-toast")) {
       return;

@@ -1,5 +1,5 @@
 /**
- * Extension Popup - Avtorizatsiya & Profil Boshqaruvi
+ * Extension Popup - Avtorizatsiya, Kengaytma Holati & Profil Boshqaruvi
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
@@ -12,15 +12,64 @@ const DEFAULT_OPERATORS = [
 
 let currentUser = null;
 let operatorsList = [...DEFAULT_OPERATORS];
+let isExtensionEnabled = true;
 
 document.addEventListener("DOMContentLoaded", () => {
   initPopup();
 });
 
 async function initPopup() {
+  await loadExtensionState();
   await loadOperators();
   await loadCurrentUser();
   setupEvents();
+}
+
+async function loadExtensionState() {
+  try {
+    if (chrome.storage && chrome.storage.local) {
+      const res = await chrome.storage.local.get("utt_extension_enabled");
+      if (res && res.utt_extension_enabled !== undefined) {
+        isExtensionEnabled = Boolean(res.utt_extension_enabled);
+      }
+    }
+  } catch (e) {}
+  renderExtensionState();
+}
+
+function renderExtensionState() {
+  const card = document.getElementById("extStatusCard");
+  const badge = document.getElementById("extStatusBadge");
+  const desc = document.getElementById("extStatusDesc");
+  const btn = document.getElementById("btnToggleExt");
+
+  if (!card || !badge || !desc || !btn) return;
+
+  if (isExtensionEnabled) {
+    card.className = "card-box status-card";
+    badge.className = "status-badge active";
+    badge.innerHTML = "🟢 Faol";
+    desc.innerText = "Kardelen tizimidan bemorlarni avtomatik aniqlash va navbatga yozish yoqilgan.";
+    btn.className = "btn-toggle-ext active";
+    btn.innerHTML = '<i class="fa-solid fa-pause"></i> Vaqtincha O\'chirish (To\'xtatish)';
+  } else {
+    card.className = "card-box status-card disabled";
+    badge.className = "status-badge disabled";
+    badge.innerHTML = "🔴 To'xtatilgan";
+    desc.innerText = "Kengaytma faoliyati vaqtincha to'xtatilgan. Kardelen oynasida navbat paneli ko'rinmaydi.";
+    btn.className = "btn-toggle-ext disabled";
+    btn.innerHTML = '<i class="fa-solid fa-play"></i> Kengaytmani Ishga Tushirish';
+  }
+}
+
+async function toggleExtensionState() {
+  isExtensionEnabled = !isExtensionEnabled;
+  try {
+    if (chrome.storage && chrome.storage.local) {
+      await chrome.storage.local.set({ utt_extension_enabled: isExtensionEnabled });
+    }
+  } catch (e) {}
+  renderExtensionState();
 }
 
 async function loadOperators() {
@@ -63,13 +112,14 @@ function renderView() {
     document.getElementById("opAvatar").innerText = currentUser.login;
     document.getElementById("opName").innerText = currentUser.name;
     document.getElementById("opBadge").innerText = `Operator (${currentUser.login})`;
+    renderExtensionState();
   }
 }
 
 function setupEvents() {
   document.getElementById("btnDoPopupLogin").onclick = doLogin;
   document.getElementById("btnPopupLogout").onclick = doLogout;
-  document.getElementById("btnQuickSend").onclick = doQuickSend;
+  document.getElementById("btnToggleExt").onclick = toggleExtensionState;
   document.getElementById("btnPopSavePwd").onclick = doChangePassword;
 
   const sel = document.getElementById("popupLangSelector");
@@ -133,128 +183,43 @@ async function fetchTodayStats() {
   } catch (e) {}
 }
 
-async function doQuickSend() {
+async function doChangePassword() {
   if (!currentUser) return;
 
-  const id = document.getElementById("quickId").value.trim();
-  const name = document.getElementById("quickName").value.trim();
-  const service = document.getElementById("quickService").value.trim() || "Bosh Miya Tomografiyasi";
-  const deviceId = document.getElementById("quickDevice").value;
-
-  if (!id || !name) {
-    alert("Iltimos, bemor ID va Ismini kiriting!");
-    return;
-  }
-
-  const deviceMap = {
-    mrt1: { name: "MRT 1", room: "1-MRT Xonasi", type: "MRT" },
-    mrt2: { name: "MRT 2", room: "2-MRT Xonasi", type: "MRT" },
-    mskt1: { name: "MSKT 1", room: "1-MSKT Xonasi", type: "MSKT" }
-  };
-
-  const dev = deviceMap[deviceId] || deviceMap.mrt1;
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const todayStr = `${y}-${m}-${d}`;
-
-  const timeSlot = await calculatePopupTimeSlot(deviceId, 30);
-
-  const printLang = (document.getElementById("popupLangSelector")?.value) || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz');
-
-  const payload = {
-    ticketId: id,
-    name: name,
-    doctorId: deviceId,
-    doctorName: dev.name,
-    room: dev.room,
-    deviceType: dev.type,
-    service: service,
-    duration: 30,
-    scheduledTime: timeSlot.startTime,
-    endTime: timeSlot.endTime,
-    timeSlot: timeSlot.slotString,
-    printLang: printLang,
-    operatorLogin: currentUser.login,
-    operatorName: currentUser.name,
-    registeredBy: `${currentUser.login} - ${currentUser.name}`,
-    notes: "Popup orqali yuborildi",
-    status: "waiting",
-    timestamp: Date.now(),
-    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  };
-
-  try {
-    const res = await fetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      alert(`✅ ${name} (ID: ${id}) ${dev.name}ga ${timeSlot.slotString} vaqtiga yozildi!`);
-      document.getElementById("quickId").value = "";
-      document.getElementById("quickName").value = "";
-      fetchTodayStats();
-    }
-  } catch (err) {
-    alert("Xatolik: " + err.message);
-  }
-}
-
-async function calculatePopupTimeSlot(deviceId, duration) {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const todayStr = `${y}-${m}-${d}`;
-
-  function addMinutes(t, mins) {
-    const [h, m] = t.split(":").map(Number);
-    const total = h * 60 + m + mins;
-    return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-  }
-
-  try {
-    const res = await fetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`);
-    if (!res.ok) return { startTime: "08:00", endTime: addMinutes("08:00", duration), slotString: `08:00 - ${addMinutes("08:00", duration)}` };
-    const data = await res.json();
-    let devPatients = [];
-    if (data) {
-      Object.values(data).forEach(p => {
-        if (p.doctorId === deviceId && p.status !== "cancelled") devPatients.push(p);
-      });
-    }
-    if (devPatients.length === 0) {
-      return { startTime: "08:00", endTime: addMinutes("08:00", duration), slotString: `08:00 - ${addMinutes("08:00", duration)}` };
-    }
-    devPatients.sort((a, b) => (a.scheduledTime || "08:00").localeCompare(b.scheduledTime || "08:00"));
-    const lastP = devPatients[devPatients.length - 1];
-    const nextStart = lastP.endTime || addMinutes(lastP.scheduledTime || "08:00", lastP.duration || 30);
-    const nextEnd = addMinutes(nextStart, duration);
-    return { startTime: nextStart, endTime: nextEnd, slotString: `${nextStart} - ${nextEnd}` };
-  } catch (e) {
-    return { startTime: "08:00", endTime: addMinutes("08:00", duration), slotString: `08:00 - ${addMinutes("08:00", duration)}` };
-  }
-}
-
-async function doChangePassword() {
   const oldP = document.getElementById("popOldPwd").value.trim();
   const newP = document.getElementById("popNewPwd").value.trim();
+  const confirmP = document.getElementById("popConfirmPwd").value.trim();
   const msgEl = document.getElementById("popPwdMsg");
+
+  if (!oldP || !newP || !confirmP) {
+    msgEl.style.display = "block";
+    msgEl.style.background = "#fee2e2";
+    msgEl.style.color = "#b91c1c";
+    msgEl.innerText = "❌ Iltimos, barcha parollarni kiriting!";
+    return;
+  }
 
   if (String(currentUser.password) !== String(oldP)) {
     msgEl.style.display = "block";
-    msgEl.style.color = "#ef4444";
-    msgEl.innerText = "Eski parol noto'g'ri!";
+    msgEl.style.background = "#fee2e2";
+    msgEl.style.color = "#b91c1c";
+    msgEl.innerText = "❌ Eski parol noto'g'ri!";
     return;
   }
 
-  if (!newP || newP.length < 3) {
+  if (newP.length < 3) {
     msgEl.style.display = "block";
-    msgEl.style.color = "#ef4444";
-    msgEl.innerText = "Yangi parol kamida 3 ta belgi bo'lsin!";
+    msgEl.style.background = "#fee2e2";
+    msgEl.style.color = "#b91c1c";
+    msgEl.innerText = "❌ Yangi parol kamida 3 ta belgidan iborat bo'lsin!";
+    return;
+  }
+
+  if (newP !== confirmP) {
+    msgEl.style.display = "block";
+    msgEl.style.background = "#fee2e2";
+    msgEl.style.color = "#b91c1c";
+    msgEl.innerText = "❌ Yangi parollar bir-biriga mos kelmadi!";
     return;
   }
 
@@ -267,13 +232,15 @@ async function doChangePassword() {
     await fetch(`${FIREBASE_DB_URL}/operators/${currentUser.login}.json`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: newP })
+      body: JSON.stringify({ password: newP, lastUpdated: Date.now() })
     });
   } catch (e) {}
 
   msgEl.style.display = "block";
-  msgEl.style.color = "#10b981";
-  msgEl.innerText = "Parol saqlandi!";
+  msgEl.style.background = "#dcfce7";
+  msgEl.style.color = "#15803d";
+  msgEl.innerText = "✅ Parol muvaffaqiyatli o'zgartirildi!";
   document.getElementById("popOldPwd").value = "";
   document.getElementById("popNewPwd").value = "";
+  document.getElementById("popConfirmPwd").value = "";
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MRT & MSKT Navbat Paneli</title>
+  <title>MRT & MSKT Ro'yxatchi Paneli</title>
   <link rel="stylesheet" href="popup.css">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,13 +16,13 @@
       <div class="popup-header">
         <div class="popup-title">
           <h3>🔒 Tizimga Kirish</h3>
-          <p>MRT & MSKT Navbat Tizimi</p>
+          <p>MRT & MSKT Ro'yxatchi Paneli</p>
         </div>
       </div>
 
       <div class="card-box">
         <div class="form-row">
-          <label for="loginOperatorSelect">Operator:</label>
+          <label for="loginOperatorSelect">Ro'yxatchi (Operator):</label>
           <select id="loginOperatorSelect">
             <option value="TB1">TB1 — Turatov Hojiakbar</option>
             <option value="TB2">TB2 — Saida'loxon Saidaxmadxonov</option>
@@ -31,7 +31,7 @@
         </div>
 
         <div class="form-row">
-          <label for="loginPassword">Parol:</label>
+          <label for="loginPassword">Kirish Paroli:</label>
           <input type="password" id="loginPassword" placeholder="Parol (standart: 15420)">
         </div>
 
@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <!-- 2. LOGIN QILINGAN HOLAT (PROFIL & TEZKOR BOSHQARUV) -->
+    <!-- 2. LOGIN QILINGAN HOLAT (PROFIL, HOLAT & PAROL O'ZGARTIRISH) -->
     <div id="mainView" style="display: none;">
       <!-- Operator Header -->
       <div class="operator-bar">
@@ -61,37 +61,56 @@
         </button>
       </div>
 
+      <!-- Kengaytma Holati (ON / OFF SWITCH) -->
+      <div class="card-box status-card" id="extStatusCard">
+        <div class="status-header">
+          <span class="status-title"><i class="fa-solid fa-power-off"></i> Kengaytma Holati:</span>
+          <span class="status-badge active" id="extStatusBadge">🟢 Faol</span>
+        </div>
+        <p class="status-desc" id="extStatusDesc">
+          Kardelen tizimidan bemorlarni avtomatik aniqlash va navbatga yozish yoqilgan.
+        </p>
+        <button type="button" class="btn-toggle-ext active" id="btnToggleExt">
+          <i class="fa-solid fa-pause"></i> Vaqtincha O'chirish (To'xtatish)
+        </button>
+      </div>
+
       <!-- Bugungi Statistika -->
       <div class="stat-box">
         <span><i class="fa-solid fa-clipboard-check"></i> Bugun yuborilgan bemorlar:</span>
         <strong id="opTodayCount">0 nafar</strong>
       </div>
 
-      <!-- Tezkor Qo'lda Yuborish -->
+      <!-- TB Ro'yxatchi Parolini O'zgartirish -->
       <div class="card-box">
-        <h4><i class="fa-solid fa-user-plus"></i> Qo'lda Bemor Yuborish</h4>
+        <h4><i class="fa-solid fa-key" style="color: #f59e0b;"></i> Parolni O'zgartirish</h4>
+        
         <div class="form-row">
-          <label>Bemor ID:</label>
-          <input type="text" id="quickId" placeholder="Masalan: 5245">
+          <label>Amaldagi eski parol:</label>
+          <input type="password" id="popOldPwd" placeholder="Eski parolni kiriting">
         </div>
+
         <div class="form-row">
-          <label>Bemor F.I.Sh:</label>
-          <input type="text" id="quickName" placeholder="Familiya Ismi">
+          <label>Yangi parol:</label>
+          <input type="password" id="popNewPwd" placeholder="Yangi parolni kiriting (min 3 ta belgi)">
         </div>
+
         <div class="form-row">
-          <label>Tekshiruv:</label>
-          <input type="text" id="quickService" placeholder="Bosh Miya MRT / MSKT">
+          <label>Yangi parolni takrorlang:</label>
+          <input type="password" id="popConfirmPwd" placeholder="Yangi parolni qayta kiriting">
         </div>
-        <div class="form-row">
-          <label>Qurilma / Xona:</label>
-          <select id="quickDevice">
-            <option value="mrt1">MRT 1 (1-MRT Xonasi)</option>
-            <option value="mrt2">MRT 2 (2-MRT Xonasi)</option>
-            <option value="mskt1">MSKT 1 (1-MSKT Xonasi)</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label for="popupLangSelector">Chop etish tili:</label>
+
+        <div id="popPwdMsg" class="error-msg" style="display: none; padding: 6px; border-radius: 6px; text-align: center; margin-bottom: 6px;"></div>
+
+        <button type="button" class="btn-primary" id="btnPopSavePwd" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+          <i class="fa-solid fa-floppy-disk"></i> Parolni Saqlash
+        </button>
+      </div>
+
+      <!-- Til Tanlash -->
+      <div class="card-box" style="padding: 10px 12px;">
+        <div class="form-row" style="margin-bottom: 0;">
+          <label for="popupLangSelector" style="margin-bottom: 4px;"><i class="fa-solid fa-globe"></i> Chop etish va interfeys tili:</label>
           <select id="popupLangSelector">
             <option value="uz">🇺🇿 O'zbekcha</option>
             <option value="ru">🇷🇺 Русский</option>
@@ -101,30 +120,6 @@
             <option value="tr">🇹🇷 Türkçe</option>
           </select>
         </div>
-        <button type="button" class="btn-primary" id="btnQuickSend">
-          <i class="fa-solid fa-paper-plane"></i> Navbatga Qo'shish
-        </button>
-      </div>
-
-      <!-- Parolni o'zgartirish tugmasi / akkordeon -->
-      <div class="card-box">
-        <details>
-          <summary style="cursor: pointer; font-weight: 700; font-size: 12px; color: #0284c7;">
-            <i class="fa-solid fa-key"></i> Parolni O'zgartirish
-          </summary>
-          <div style="margin-top: 10px;">
-            <div class="form-row">
-              <label>Eski parol:</label>
-              <input type="password" id="popOldPwd" placeholder="Hozirgi parol">
-            </div>
-            <div class="form-row">
-              <label>Yangi parol:</label>
-              <input type="password" id="popNewPwd" placeholder="Yangi parol">
-            </div>
-            <div id="popPwdMsg" class="error-msg" style="display: none;"></div>
-            <button type="button" class="btn-secondary" id="btnPopSavePwd">Saqlash</button>
-          </div>
-        </details>
       </div>
     </div>
 
