@@ -846,10 +846,11 @@ function renderQueueTable() {
     const operatorDisplay = p.registeredBy || (p.operatorLogin ? `${p.operatorLogin} - ${p.operatorName || ''}` : '-');
     const statusInfo = getStatusBadge(p.status);
     const dateLabel = (p.appointmentDate && p.appointmentDate !== todayDateStr) ? `<div style="font-size:10px; color:#b45309; font-weight:bold;">📅 ${escapeHtml(p.appointmentDate)}</div>` : '';
-    const deferNote = p.recheckReason ? `<div style="font-size:10px; color:#7c3aed; font-weight:bold;" title="Qayta tekshiruv sababi: ${escapeHtml(p.recheckReason)}">⚡ Qayta tekshiruv: ${escapeHtml(p.recheckReason)}</div>` : (p.rescheduleReason ? `<div style="font-size:10px; color:#64748b;" title="Voz kechish sababi: ${escapeHtml(p.rescheduleReason)}">⚠️ ${escapeHtml(p.rescheduleReason)}</div>` : '');
-    const patientTypeBadge = p.patientType === "Bo'limda yotibdi"
-      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">🏥 Bo'limda ${p.department ? `(${escapeHtml(p.department)})` : ''}</span>`
-      : `<span class="badge" style="background:#e0f2fe; color:#0284c7; font-weight:700;">🏠 Ambulator</span>`;
+    const isStat = p.patientType === "Bo'limda yotibdi" || p.isStationary || (p.priority && String(p.priority).toLowerCase().includes("statsionar"));
+    const deptSuffix = p.department ? ` (${escapeHtml(p.department)})` : '';
+    const patientTypeBadge = isStat
+      ? `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">🏥 Bo'limda yotibdi${deptSuffix}</span>`
+      : `<span class="badge" style="background:#e0f2fe; color:#0284c7; font-weight:700;">🏠 Ambulator${deptSuffix}</span>`;
     const docDisplay = p.referringDoctor ? `<span style="font-weight:600; color:#0f172a; font-size:12px;">👨‍⚕️ ${escapeHtml(p.referringDoctor)}</span>` : '<span style="color:#94a3b8; font-size:12px;">-</span>';
 
     let actionsHtml = "";
@@ -1483,7 +1484,7 @@ async function handlePatientSubmit(event) {
   const name = document.getElementById("patientName").value.trim();
   const ticketId = document.getElementById("patientId").value.trim();
   const patientType = document.getElementById("patientTypeSelect") ? document.getElementById("patientTypeSelect").value : "Ambulator";
-  const department = patientType === "Bo'limda yotibdi" ? (document.getElementById("patientDepartment") ? document.getElementById("patientDepartment").value.trim() : "") : "";
+  const department = document.getElementById("patientDepartment") ? document.getElementById("patientDepartment").value.trim() : "";
   const referringDoctor = document.getElementById("patientReferringDoctor") ? document.getElementById("patientReferringDoctor").value.trim() : "";
   const phone = document.getElementById("patientPhone").value.trim();
   const age = document.getElementById("patientAge").value.trim();
@@ -1687,9 +1688,11 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
     }
   }
   
-  const typeText = patient.patientType === "Bo'limda yotibdi"
-    ? `${dict ? dict.stationary : "🏥 Bo'limda yotibdi"} ${patient.department ? `(${patient.department})` : ''}`
-    : (dict ? dict.ambulatory : "🏠 Ambulator");
+  const isStat = patient.patientType === "Bo'limda yotibdi" || patient.isStationary || (patient.priority && String(patient.priority).toLowerCase().includes("statsionar"));
+  const deptSuffix = patient.department ? ` (${patient.department})` : '';
+  const typeText = isStat
+    ? `${dict ? dict.stationary : "🏥 Bo'limda yotibdi"}${deptSuffix}`
+    : `${dict ? dict.ambulatory : "🏠 Ambulator"}${deptSuffix}`;
   const typeEl = document.getElementById("ticketPrintPatientType");
   if (typeEl) typeEl.innerText = typeText;
 
@@ -1826,9 +1829,11 @@ function printConsentFormDirect(payload, lang = null) {
       `;
     }).join("");
 
-    const typeText = payload.patientType === "Bo'limda yotibdi"
-      ? `${dict ? dict.stationary : "Bo'limda yotibdi"} ${payload.department ? `(${payload.department})` : ''}`
-      : (dict ? dict.ambulatory : "Ambulator");
+    const isStat = payload.patientType === "Bo'limda yotibdi" || payload.isStationary || (payload.priority && String(payload.priority).toLowerCase().includes("statsionar"));
+    const deptSuffix = payload.department ? ` (${payload.department})` : '';
+    const typeText = isStat
+      ? `${dict ? dict.stationary : "Bo'limda yotibdi"}${deptSuffix}`
+      : `${dict ? dict.ambulatory : "Ambulator"}${deptSuffix}`;
 
     // 1. Nashr sanasi
     let rawQueueDate = payload.appointmentDate || payload.date || (typeof selectedQueueDate !== 'undefined' ? selectedQueueDate : '') || (typeof todayDateStr !== 'undefined' ? todayDateStr : '') || '';
