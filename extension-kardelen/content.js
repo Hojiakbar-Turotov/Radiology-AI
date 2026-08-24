@@ -47,6 +47,105 @@ let dynamicSchedulingRules = [...DEFAULT_SCHEDULING_RULES];
 let currentUser = null;
 let operatorsList = [...DEFAULT_OPERATORS];
 let selectedPatient = null;
+
+// Barcha rasmiy MRT va MSKT tekshiruv kodlari va ma'lumotlari bazasi
+const STATIC_MRT_MSKT_SERVICES = {
+  // MSKT Xizmatlari
+  "R134": { code: "R134", name: "Bosh Miya MSKT Tekshiruvi (Kontrast Moddasiz)", type: "MSKT", isContrast: false, duration: 30 },
+  "R135": { code: "R135", name: "Bosh Miya Mskt Tekshiruvi (Vena ichi Kontrast Modda Bilan)", type: "MSKT", isContrast: true, duration: 30 },
+  "R136": { code: "R136", name: "Gipofiz bezining kontrast moddasiz MSKT tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R137": { code: "R137", name: "Gipofiz bezining vena ichi kontrast moddasi bilan MSKT tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R138": { code: "R138", name: "Bosh-Boyin Kontrast Moddasiz MSKT Tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R139": { code: "R139", name: "Bosh-Boyin Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R140": { code: "R140", name: "Kokrak qafasi organlarini kontrast moddasiz MSKT tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R141": { code: "R141", name: "Kokrak qafasi organlarini kontrast moddasi bilan MSKT tekshiruvi PER OS", type: "MSKT", isContrast: true, duration: 30 },
+  "R142": { code: "R142", name: "Kokrak qafasi organlarini vena ichi Kontrast Moddasi Bilan MSKT Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R143": { code: "R143", name: "Qorin boshligi va qorin Pardaorti Azolarini Kontrast Moddasiz Mskt Tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R144": { code: "R144", name: "Qorin Boshligi Va Qorin Pardaorti Azolarini Kontrast Moddasi Bilan Mskt Tekshiruvi Per Os", type: "MSKT", isContrast: true, duration: 30 },
+  "R145": { code: "R145", name: "Qorin Boshligi Va Qorin Pardaorti Azolarini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R146": { code: "R146", name: "Kichik tos azolarini kontrast moddasiz MSKT tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R147": { code: "R147", name: "Kichik Tos Azolarini Kontrast Moddasi Bilan Mskt Tekshiruvi Per Os", type: "MSKT", isContrast: true, duration: 30 },
+  "R148": { code: "R148", name: "Kichik Tos Azolarini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R149": { code: "R149", name: "Buyrak Usti Bezini Kontrast Moddasiz Mskt Tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R150": { code: "R150", name: "Buyrak Usti Bezini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R151": { code: "R151", name: "Umurtqa pogonasi (1-bolimi)ni kontrast moddasiz MSKT tekshiruvi", type: "MSKT", isContrast: false, duration: 30 },
+  "R152": { code: "R152", name: "Umurtqa Pogonasi (1-Bolimi) ni Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi", type: "MSKT", isContrast: true, duration: 30 },
+  "R153": { code: "R153", name: "Bogimlar Mskt Tekshiruvi (1 Soha)", type: "MSKT", isContrast: false, duration: 30 },
+  "R154": { code: "R154", name: "Qol Va Oyoqlarning Kontrast Moddasiz Mskt Tekshiruvi (1 Soha)", type: "MSKT", isContrast: false, duration: 30 },
+  "R155": { code: "R155", name: "Qol Va Oyoqlarning Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi (1 Soha)", type: "MSKT", isContrast: true, duration: 30 },
+
+  // MRT Xizmatlari
+  "R157": { code: "R157", name: "Bosh Miya Mrt Kontrastsiz", type: "MRT", isContrast: false, duration: 30 },
+  "R158": { code: "R158", name: "Bosh Miya Mrt Kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R159": { code: "R159", name: "Bosh Miya Mrt Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R160": { code: "R160", name: "Bosh Miya Mrt + Trayektografiya Kontrastsiz", type: "MRT", isContrast: false, duration: 30 },
+  "R161": { code: "R161", name: "Gipofiz MRT + kontrast", type: "MRT", isContrast: true, duration: 30 },
+  "R162": { code: "R162", name: "Bosh Miya Angiografiya Mrt (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R163": { code: "R163", name: "Bosh Miya Angiografiya Mrt MPA/MPB", type: "MRT", isContrast: false, duration: 30 },
+  "R164": { code: "R164", name: "Koz va orbita MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R165": { code: "R165", name: "Yestaxeviy nay va Ichki quloq Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R166": { code: "R166", name: "Boyin Umurtqalari Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R167": { code: "R167", name: "Kokrak umurtqalari MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R168": { code: "R168", name: "Bel Umurtqalari Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R169": { code: "R169", name: "Butun umurtqa MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R170": { code: "R170", name: "Spinal Kanal Va Jigar Nervlari Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R171": { code: "R171", name: "Boyin qon Tomirlari Angiografiya Mrt (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R172": { code: "R172", name: "Boyin qon Tomirlari Angiografiya Mrt", type: "MRT", isContrast: true, duration: 30 },
+  "R173": { code: "R173", name: "Yurak Mrt Kontrastsiz", type: "MRT", isContrast: false, duration: 30 },
+  "R174": { code: "R174", name: "Yurak qon Tomirlari Angiografiya Mrt (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R175": { code: "R175", name: "Yurak qon Tomirlari Angiografiya Mrt", type: "MRT", isContrast: true, duration: 30 },
+  "R177": { code: "R177", name: "Jigar Mrt Kontrastsiz", type: "MRT", isContrast: false, duration: 30 },
+  "R178": { code: "R178", name: "Jigar MRT Kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R179": { code: "R179", name: "Jigar Mrt Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R180": { code: "R180", name: "Oshqozon Osti Bezi Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R181": { code: "R181", name: "Buyraklar Va Siydik Chiqarish Yollari Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R182": { code: "R182", name: "Kichik chanoq azolari MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R183": { code: "R183", name: "Yelka bogimi Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R184": { code: "R184", name: "Qol-Kaft Bogimi MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R185": { code: "R185", name: "Tizza Bogimi MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R186": { code: "R186", name: "Tirsak Bogimi Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R187": { code: "R187", name: "Tovon/ boldir-tovon bogimi MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R188": { code: "R188", name: "Chanoq Son Bogimi MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R189": { code: "R189", name: "Chanoq Son Bogimi Mrt Kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R190": { code: "R190", name: "Chanoq Son Bogimi Mrt Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R191": { code: "R191", name: "Sut Bezlari MRT Kontrastsiz", type: "MRT", isContrast: false, duration: 30 },
+  "R192": { code: "R192", name: "Sut Bezlari Mrt Kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R193": { code: "R193", name: "Sut Bezlari Mrt Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R194": { code: "R194", name: "Ong va chap oyoq qon tomirlari Mrt kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R195": { code: "R195", name: "Ong va chap Oyoq qon tomirlari Mrt Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R196": { code: "R196", name: "Ong va chap qol qon tomirlari Mrt Kontrast Bilan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R197": { code: "R197", name: "Ong va chap qol qon tomirlari MRT Kontrast Bilan", type: "MRT", isContrast: true, duration: 30 },
+  "R198": { code: "R198", name: "Butun Tanani Skrining Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R199": { code: "R199", name: "Sinusit Va Burun boshliqlari MRT (Yuz-Jag Bogimlari)", type: "MRT", isContrast: false, duration: 30 },
+  "R200": { code: "R200", name: "Boyin Limfa Tugunlari Mrt", type: "MRT", isContrast: false, duration: 30 },
+  "R201": { code: "R201", name: "Mrt kichik tos azolari + V/V Kontrastlashgan (Shprits-Injektorda)", type: "MRT", isContrast: true, duration: 30 },
+  "R202": { code: "R202", name: "Mrt kichik tos azolari + V/V Kontrastirovanie", type: "MRT", isContrast: true, duration: 30 },
+  "R203": { code: "R203", name: "Qorin boshligi azolarining MRTsi+tomir ichiga kontrast modda", type: "MRT", isContrast: true, duration: 30 },
+  "R204": { code: "R204", name: "Mrt qorin boshligi azolari + V/V Kontrast", type: "MRT", isContrast: true, duration: 30 },
+  "R205": { code: "R205", name: "Mrt Yumshoq toqima azolari", type: "MRT", isContrast: false, duration: 30 },
+  "R206": { code: "R206", name: "Orqa miya MRT si+Traktografiya", type: "MRT", isContrast: false, duration: 30 },
+  "R207": { code: "R207", name: "Plyonka nusxasi, Disk I Xulosa", type: "MRT", isContrast: false, duration: 15 },
+  "R208": { code: "R208", name: "Disk nusxasi (yoki qoshimcha)", type: "MRT", isContrast: false, duration: 10 },
+  "R209": { code: "R209", name: "Bosh miyaning va bosh sohasidagi yumshoq to`qimalarning MRT si", type: "MRT", isContrast: false, duration: 30 },
+  "R210": { code: "R210", name: "Bosh miyaning va bosh sohasidagi yumshoq to`qimalarning MRTsi, T1 rejimida", type: "MRT", isContrast: false, duration: 30 },
+  "R211": { code: "R211", name: "Mrt bosh miya I Bosh miya yumshoq toqima T1 + Contrast", type: "MRT", isContrast: true, duration: 30 },
+  "R212": { code: "R212", name: "Mrt bosh miya+ kontrastsiz Mr-Arterio I Venografiya", type: "MRT", isContrast: false, duration: 30 },
+  "R213": { code: "R213", name: "Bosh miyaning MRT si+FIESTA rejimida", type: "MRT", isContrast: false, duration: 30 },
+  "R214": { code: "R214", name: "Bosh miyaning MRT si+DTI", type: "MRT", isContrast: false, duration: 30 },
+  "R215": { code: "R215", name: "Orqa miyaning o'rta uchdan bir qismi+umurtqa pogonasining MRT si", type: "MRT", isContrast: false, duration: 30 },
+  "R216": { code: "R216", name: "Bel sohasi uchinchi (L3) darajadagi orqa miya+umurtqa pogonasining MRT tekshiruvi", type: "MRT", isContrast: false, duration: 30 },
+  "R217": { code: "R217", name: "Son bo`g`imlari va orqa chanoq (iliyosakral) bo'g'imlarining MRT si", type: "MRT", isContrast: false, duration: 30 },
+  "R218": { code: "R218", name: "Orqa miyaning yuqori uchdan bir qismi+umurtqa pogonasining (MRT)si", type: "MRT", isContrast: true, duration: 30 },
+  "R219": { code: "R219", name: "Orqa miyaning yuqori uchdan bir qismi+umurtqa pogonasining (MRT)si", type: "MRT", isContrast: true, duration: 30 },
+  "R220": { code: "R220", name: "Orqa miyaning orta uchdan bir qismi+umurtqa pogonasining (MRT)si", type: "MRT", isContrast: true, duration: 30 },
+  "R221": { code: "R221", name: "Orqa miyaning orta uchdan bir qismi+umurtqa pogonasining (MRT)si", type: "MRT", isContrast: true, duration: 30 },
+  "R222": { code: "R222", name: "Orqa miyaning pastki uchdan bir qismi+umurtqa pogonasining (MRT)si", type: "MRT", isContrast: true, duration: 30 },
+  "R223": { code: "R223", name: "Orqa miyaning pastki uchdan bir qismi+umurtqa pogonasining MRT si", type: "MRT", isContrast: true, duration: 30 },
+  "R4896": { code: "R4896", name: "Qorin boshligi MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R4920": { code: "R4920", name: "Boyin yumshoq toqimalari MRT", type: "MRT", isContrast: false, duration: 30 },
+  "R4929": { code: "R4929", name: "Bosh miya yumshoq toqima MRT/ MRT yuz qismi", type: "MRT", isContrast: false, duration: 30 }
+};
+
 let servicesCatalog = {};
 let deviceQueues = {};
 let todayOperatorQueueCount = 0;
@@ -707,7 +806,26 @@ function handleSpecificBottomServiceClick(row, cells) {
       return;
     }
 
-    let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
+    let candidateCode = "";
+    for (const cell of cells) {
+      const cText = cell.innerText.trim();
+      const m = cText.match(/^R\s*(\d{1,5})$/i);
+      if (m) {
+        candidateCode = "R" + m[1];
+        break;
+      }
+    }
+    if (!candidateCode) {
+      for (const cell of cells) {
+        const cText = cell.innerText.trim();
+        const m = cText.match(/\b(R\d{1,5})\b/i);
+        if (m) {
+          candidateCode = m[1].toUpperCase();
+          break;
+        }
+      }
+    }
+
     let candidateName = "";
     let serviceDoctor = "";
     let serviceDate = "";
@@ -724,7 +842,7 @@ function handleSpecificBottomServiceClick(row, cells) {
         serviceDate = c;
         continue;
       }
-      if (/^R\d{2,5}$/i.test(c)) continue;
+      if (/^R\s*\d{1,5}$/i.test(c)) continue;
       if (c === "-" || c === "") continue;
       if (c.includes("To'lanmagan") || c.includes("Tolanmagan") || c.includes("To'langan")) continue;
 
@@ -745,7 +863,8 @@ function handleSpecificBottomServiceClick(row, cells) {
       const btn = document.getElementById("uttFloatingSendBtn");
       const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
       const tmpl = rules.nonMrtMsktMessage || "Faqat MRT va MSKT tekshiruvlariga navbat beriladi ({service} — MRT/MSKT emas).";
-      const msg = tmpl.replace("{service}", candidateName || candidateCode || 'Tekshiruv');
+      const displayLabel = candidateCode ? `${candidateCode} - ${candidateName}` : candidateName;
+      const msg = tmpl.replace("{service}", displayLabel || 'Tekshiruv');
       if (txt && btn) {
         txt.innerHTML = `<span style="color:#ef4444; font-weight:800; font-size:13px;">⚠️ ${escapeHtml(msg)}</span>`;
         btn.disabled = true;
@@ -1215,7 +1334,7 @@ async function checkExistingQueueBySample(sampleNumber, patientId, serviceQueueN
   try {
     const datesToCheck = [];
     const now = new Date();
-    for (let offset = -1; offset <= 2; offset++) {
+    for (let offset = -3; offset <= 7; offset++) {
       const d = new Date(now);
       d.setDate(d.getDate() + offset);
       datesToCheck.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
@@ -1230,7 +1349,9 @@ async function checkExistingQueueBySample(sampleNumber, patientId, serviceQueueN
             if (p.status !== "cancelled") {
               const matchSample = sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim();
               const matchQueue = serviceQueueNumber && p.serviceQueueNumber && String(p.serviceQueueNumber).trim() === String(serviceQueueNumber).trim();
-              const matchPatient = patientId && p.id && String(p.id).trim() === String(patientId).trim() && (p.serviceCode && selectedPatient && p.serviceCode === selectedPatient.serviceCode);
+              const matchPatient = patientId && p.id && String(p.id).trim() === String(patientId).trim() && (
+                !selectedPatient || !selectedPatient.serviceCode || !p.serviceCode || p.serviceCode === selectedPatient.serviceCode
+              );
 
               if (matchSample || matchQueue || matchPatient) {
                 return { ...p, dbKey: key, appointmentDate: p.appointmentDate || dateStr };
@@ -1370,8 +1491,25 @@ function isGroupHeaderOrNavigation(text) {
 
 // 3.1 FAQAT MRT VA MSKT TEKSHIRUVI EKANLIGINI TEKSHIRISH (BOSHQALARINI RAD ETISH)
 function isMrtOrMsktService(code, name, rawText = "") {
-  const fullText = `${code || ''} ${name || ''} ${rawText || ''}`.toLowerCase();
+  const cleanCode = (code || "").trim().toUpperCase();
+  const fullText = `${cleanCode} ${name || ''} ${rawText || ''}`.toLowerCase();
 
+  // 1. Agar R-kod mavjud bo'lsa (R92, R191, R134 va h.k.) -> QAT'IY KOD BO'YICHA TEKSHIRISH:
+  if (cleanCode && /^R\d{1,5}$/i.test(cleanCode)) {
+    const key = cleanCode.replace(/[^a-zA-Z0-9]/g, "_");
+    const entry = (servicesCatalog && (servicesCatalog[key] || Object.values(servicesCatalog).find(s => (s.code || '').toUpperCase() === cleanCode)))
+      || STATIC_MRT_MSKT_SERVICES[cleanCode];
+
+    if (entry) {
+      return entry.type === "MRT" || entry.type === "MSKT";
+    }
+
+    // Kod berilgan (masalan: R92 - Ultratovush, R10, R55 va boshqalar), lekin MRT/MSKT katalogida YO'Q:
+    // Demak bu UTT, Rentgen, EKG, Laboratoriya va h.k. -> QAT'IYAN FALSE!
+    return false;
+  }
+
+  // 2. Bloklangan no-MRT kalit so'zlari (Ultratovush, UZI, Rentgen, EKG, Laboratoriya...)
   const rules = (globalGuidelines && globalGuidelines.referralRules) ? globalGuidelines.referralRules : DEFAULT_GLOBAL_GUIDELINES.referralRules;
   const nonMrtKeywords = (rules && rules.blockedKeywords && rules.blockedKeywords.length > 0)
     ? rules.blockedKeywords
@@ -1380,29 +1518,13 @@ function isMrtOrMsktService(code, name, rawText = "") {
   for (const kw of nonMrtKeywords) {
     const cleanKw = String(kw).trim().toLowerCase();
     if (cleanKw && fullText.includes(cleanKw)) {
-      // Istisno: agar matnda aniq MRT yoki MSKT bo'lmasa -> MRT/MSKT emas:
       if (!fullText.includes("mrt") && !fullText.includes("mskt") && !fullText.includes("msct") && !fullText.includes("tomografiya(msct)")) {
         return false;
       }
     }
   }
 
-  // 2. Agar registratura katalogida (services_catalog) mavjud bo'lsa:
-  const catalogEntry = getServiceCatalogEntry(code, name);
-  if (catalogEntry) {
-    if (catalogEntry.type === "MRT" || catalogEntry.type === "MSKT") {
-      return true;
-    }
-    return false;
-  }
-
-  // 3. Kod yoki nom bo'yicha MRT/MSKT tekshiruvi:
-  const c = (code || "").toUpperCase();
-  const num = parseInt(c.replace(/\D/g, ""), 10);
-  if (!isNaN(num) && ((num >= 134 && num <= 155) || (num >= 157 && num <= 200))) {
-    return true;
-  }
-
+  // 3. Agar kod bo'lmasa, faqat nomi aniq MRT yoki MSKT bo'lsa ruxsat beriladi:
   if (fullText.includes("mrt") || fullText.includes("mri") || fullText.includes("mskt") || fullText.includes("msct") || fullText.includes("tomografiya(msct)")) {
     return true;
   }
@@ -1454,9 +1576,27 @@ function findAllCurrentServicesPassively() {
         continue; // Faqat o'tkazilmagan (oq yoki boshqa rangdagi) tekshiruvlarni olamiz!
       }
 
-      // 1. Kodni aniqlash (R184, R143, R157 va h.k.)
-      let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
-      
+      // 1. Kodni aniqlash (R184, R143, R157, R92 va h.k.)
+      let candidateCode = "";
+      for (const cell of cells) {
+        const cText = cell.innerText.trim();
+        const m = cText.match(/^R\s*(\d{1,5})$/i);
+        if (m) {
+          candidateCode = "R" + m[1];
+          break;
+        }
+      }
+      if (!candidateCode) {
+        for (const cell of cells) {
+          const cText = cell.innerText.trim();
+          const m = cText.match(/\b(R\d{1,5})\b/i);
+          if (m) {
+            candidateCode = m[1].toUpperCase();
+            break;
+          }
+        }
+      }
+
       // 2. Navbat raqamini aniqlash (7 xonali son, e.g. 3871650)
       let serviceQueueNumber = "";
       for (const c of cells) {
@@ -1471,9 +1611,9 @@ function findAllCurrentServicesPassively() {
       let candidateName = "";
       for (const c of cells) {
         const cText = c.innerText.trim();
-        if (/^\d+$/.test(cText)) continue; // Har qanday sof raqamlarni (ID, 3998, 0, 1 va h.k.) QAT'IYAN RAD ETISH
+        if (/^\d+$/.test(cText)) continue;
         if (/\d{2}\.\d{2}\.\d{4}/.test(cText)) continue;
-        if (/^R\d{2,5}$/i.test(cText)) continue;
+        if (/^R\s*\d{1,5}$/i.test(cText)) continue;
         if (cText === "-" || cText === "") continue;
         if (cText.includes("Atabekov") || cText.includes("Azimov") || cText.includes("Dr.") || cText.includes("To'lanmagan") || cText.includes("Tolanmagan") || cText.includes("To'langan")) continue;
 
@@ -1486,7 +1626,8 @@ function findAllCurrentServicesPassively() {
       // 4. AGAR BU TEKSHIRUV MRT YOKI MSKT BO'LMASA -> QAT'IYAN RAD ETAMIZ!
       if (!isMrtOrMsktService(candidateCode, candidateName, text)) {
         nonMrtMsktServicesCount++;
-        if (candidateName) nonMrtMsktNames.push(candidateName);
+        const displayLabel = candidateCode ? `${candidateCode} - ${candidateName}` : candidateName;
+        if (displayLabel) nonMrtMsktNames.push(displayLabel);
         continue; // Faqat MRT va MSKT tekshiruvlarini qabul qilamiz!
       }
 
@@ -1543,32 +1684,31 @@ function getServiceCatalogEntry(serviceCode, serviceName) {
   const rawCode = (serviceCode || "").trim().toUpperCase();
   const rawName = (serviceName || "").trim();
 
-  // Agar faqat sonlardan iborat bo'lsa -> rad etish
-  if (/^\d+$/.test(rawName) && (!rawCode || rawCode === "0")) {
+  // 1. Agar R-kod mavjud bo'lsa (R191, R134, R92 va h.k.)
+  // FAQAT VA FAQAT SHU KOD BO'YICHA QIDIRILADI:
+  if (rawCode && /^R\d{1,5}$/i.test(rawCode)) {
+    const key = rawCode.replace(/[^a-zA-Z0-9]/g, "_");
+    if (servicesCatalog && servicesCatalog[key]) return servicesCatalog[key];
+    for (const s of Object.values(servicesCatalog || {})) {
+      if (s.code && s.code.toUpperCase() === rawCode) return s;
+    }
+    if (STATIC_MRT_MSKT_SERVICES[rawCode]) {
+      return STATIC_MRT_MSKT_SERVICES[rawCode];
+    }
+    // Agar ushbu R-kod MRT/MSKT katalogida bo'lmasa (masalan R92),
+    // boshqa kodga (masalan R191 ga) moslashtirish QAT'IYAN MAN ETILADI:
     return null;
   }
 
+  // 2. Agar kod umuman bo'lmasa, faqat nomi aniq MRT/MSKT bo'lgan holda qidirish:
   const cleanName = rawName.toLowerCase()
     .replace(/[^a-z0-9а-яё\s]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  // 1. R-kod bo'yicha qidirish (R157, R184, R143 va h.k.)
-  if (rawCode && /^R\d{2,5}$/i.test(rawCode)) {
-    const key = rawCode.replace(/[^a-zA-Z0-9]/g, "_");
-    if (servicesCatalog[key]) return servicesCatalog[key];
-    for (const s of Object.values(servicesCatalog)) {
-      if (s.code && s.code.toUpperCase() === rawCode) return s;
-    }
-  }
-
-  // 2. Nomi bo'yicha qidirish
-  if (cleanName && cleanName.length > 3) {
-    const words = cleanName.split(" ").filter(w => w.length > 2 && w !== "tekshiruvi" && w !== "bilan");
-    let bestScore = 0;
-    let matched = null;
-
-    for (const s of Object.values(servicesCatalog)) {
+  if (cleanName && cleanName.length > 3 && (cleanName.includes("mrt") || cleanName.includes("mskt") || cleanName.includes("msct") || cleanName.includes("tomografiya"))) {
+    const allList = Object.values(servicesCatalog || {}).length > 0 ? Object.values(servicesCatalog) : Object.values(STATIC_MRT_MSKT_SERVICES);
+    for (const s of allList) {
       if (!s.name) continue;
       const sNameClean = s.name.toLowerCase()
         .replace(/[^a-z0-9а-яё\s]/gi, " ")
@@ -1578,21 +1718,7 @@ function getServiceCatalogEntry(serviceCode, serviceName) {
       if (sNameClean === cleanName || sNameClean.includes(cleanName) || cleanName.includes(sNameClean)) {
         return s;
       }
-
-      let score = 0;
-      for (const w of words) {
-        if (sNameClean.includes(w)) {
-          score += (w === "angio" || w === "kontrast" || w === "gipofiz" || w === "umurtqa" || w === "traktografiya" || w === "tos" || w === "kokrak" || w === "kaft" || w === "qol" || w === "tizza") ? 3 : 1;
-        }
-      }
-
-      if (score > bestScore && score >= 2) {
-        bestScore = score;
-        matched = s;
-      }
     }
-
-    if (matched) return matched;
   }
 
   return null;
