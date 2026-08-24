@@ -4306,13 +4306,6 @@ function printThermalTicketDirect(payload, lang) {
           <span class="val">${valPatientType}</span>
         </div>
 
-        ${(payload.muassasa || payload.senderInstitution) ? `
-          <div class="row">
-            <span class="label">${escapeHtml(cleanLbl(lblMuassasa || (dict ? dict.senderInstitution : "Muassasa / To'lov")))}</span>
-            <span class="val" style="font-weight:900;">${escapeHtml(payload.muassasa || payload.senderInstitution)}</span>
-          </div>
-        ` : ''}
-
         ${payload.referringDoctor ? `
           <div class="row">
             <span class="label">${escapeHtml(cleanLbl(lblReferringDoc))}</span>
@@ -4594,12 +4587,6 @@ function printConsentFormDirect(payload, lang) {
             <td class="lbl">${escapeHtml(dict ? dict.referringDoc : "Fayl / Yo‘naltirgan shifokor:")}</td>
             <td class="val">${escapeHtml(payload.referringDoctor || '-')}</td>
           </tr>
-          ${(payload.muassasa || payload.senderInstitution) ? `
-            <tr>
-              <td class="lbl">${escapeHtml(dict ? (dict.senderInstitution || "Yuborgan Muassasa / To'lov:") : "Yuborgan Muassasa / To'lov:")}</td>
-              <td class="val" colspan="3"><strong>${escapeHtml(payload.muassasa || payload.senderInstitution)}</strong></td>
-            </tr>
-          ` : ''}
           <tr>
             <td class="lbl">${escapeHtml(dict ? dict.deviceRoom : "Qurilma / Xona:")}</td>
             <td class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</td>
