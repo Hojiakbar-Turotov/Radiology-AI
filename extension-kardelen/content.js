@@ -4105,8 +4105,11 @@ function printThermalTicketDirect(payload, lang) {
     const lblBookedTime = dict ? dict.bookedTime : "BAND QILINGAN QABUL VAQTI:";
     const lblAppDate = dict ? dict.appointmentDate : "Qabul Sanasi";
     const lblOperator = dict ? dict.operator : "Ro'yxatga oluvchi";
-    const timeNotice = dict ? dict.timeNotice : "Iltimos, 30-40 minut oldin MRT & MSKT kutish joyida bo'ling va kelganingiz haqida ro'yxatchilardan birini ogohlantiring!";
-    const footerThanks = dict ? dict.footerThanks : "Salomat bo'ling!";
+    const cleanLbl = (lbl) => (lbl || '').replace(/:+\s*$/, '') + ':';
+    const timeNotice = dict ? dict.timeNotice : "* Iltimos, belgilangan vaqtdan 30-40 daqiqa oldin kutish zalida bo'ling!";
+    const footerThanks = dict ? dict.footerThanks : "Salomatligingiz biz uchun muhim!";
+
+    const TELEGRAM_QR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="115" height="115" style="display:block; margin:0 auto;"><rect style="fill:#ffffff" x="0" y="0" width="100" height="100" /><path style="fill:#000000" d="M 0,0 l 4,0 0,4 -4,0 z M 4,0 l 4,0 0,4 -4,0 z M 8,0 l 4,0 0,4 -4,0 z M 12,0 l 4,0 0,4 -4,0 z M 16,0 l 4,0 0,4 -4,0 z M 20,0 l 4,0 0,4 -4,0 z M 24,0 l 4,0 0,4 -4,0 z M 36,0 l 4,0 0,4 -4,0 z M 52,0 l 4,0 0,4 -4,0 z M 56,0 l 4,0 0,4 -4,0 z M 60,0 l 4,0 0,4 -4,0 z M 64,0 l 4,0 0,4 -4,0 z M 72,0 l 4,0 0,4 -4,0 z M 76,0 l 4,0 0,4 -4,0 z M 80,0 l 4,0 0,4 -4,0 z M 84,0 l 4,0 0,4 -4,0 z M 88,0 l 4,0 0,4 -4,0 z M 92,0 l 4,0 0,4 -4,0 z M 96,0 l 4,0 0,4 -4,0 z M 0,4 l 4,0 0,4 -4,0 z M 24,4 l 4,0 0,4 -4,0 z M 32,4 l 4,0 0,4 -4,0 z M 36,4 l 4,0 0,4 -4,0 z M 44,4 l 4,0 0,4 -4,0 z M 48,4 l 4,0 0,4 -4,0 z M 52,4 l 4,0 0,4 -4,0 z M 56,4 l 4,0 0,4 -4,0 z M 60,4 l 4,0 0,4 -4,0 z M 64,4 l 4,0 0,4 -4,0 z M 72,4 l 4,0 0,4 -4,0 z M 96,4 l 4,0 0,4 -4,0 z M 0,8 l 4,0 0,4 -4,0 z M 8,8 l 4,0 0,4 -4,0 z M 12,8 l 4,0 0,4 -4,0 z M 16,8 l 4,0 0,4 -4,0 z M 24,8 l 4,0 0,4 -4,0 z M 36,8 l 4,0 0,4 -4,0 z M 40,8 l 4,0 0,4 -4,0 z M 44,8 l 4,0 0,4 -4,0 z M 56,8 l 4,0 0,4 -4,0 z M 72,8 l 4,0 0,4 -4,0 z M 80,8 l 4,0 0,4 -4,0 z M 84,8 l 4,0 0,4 -4,0 z M 88,8 l 4,0 0,4 -4,0 z M 96,8 l 4,0 0,4 -4,0 z M 0,12 l 4,0 0,4 -4,0 z M 8,12 l 4,0 0,4 -4,0 z M 12,12 l 4,0 0,4 -4,0 z M 16,12 l 4,0 0,4 -4,0 z M 24,12 l 4,0 0,4 -4,0 z M 32,12 l 4,0 0,4 -4,0 z M 36,12 l 4,0 0,4 -4,0 z M 44,12 l 4,0 0,4 -4,0 z M 60,12 l 4,0 0,4 -4,0 z M 64,12 l 4,0 0,4 -4,0 z M 72,12 l 4,0 0,4 -4,0 z M 80,12 l 4,0 0,4 -4,0 z M 84,12 l 4,0 0,4 -4,0 z M 88,12 l 4,0 0,4 -4,0 z M 96,12 l 4,0 0,4 -4,0 z M 0,16 l 4,0 0,4 -4,0 z M 8,16 l 4,0 0,4 -4,0 z M 12,16 l 4,0 0,4 -4,0 z M 16,16 l 4,0 0,4 -4,0 z M 24,16 l 4,0 0,4 -4,0 z M 40,16 l 4,0 0,4 -4,0 z M 48,16 l 4,0 0,4 -4,0 z M 56,16 l 4,0 0,4 -4,0 z M 64,16 l 4,0 0,4 -4,0 z M 72,16 l 4,0 0,4 -4,0 z M 80,16 l 4,0 0,4 -4,0 z M 84,16 l 4,0 0,4 -4,0 z M 88,16 l 4,0 0,4 -4,0 z M 96,16 l 4,0 0,4 -4,0 z M 0,20 l 4,0 0,4 -4,0 z M 24,20 l 4,0 0,4 -4,0 z M 32,20 l 4,0 0,4 -4,0 z M 40,20 l 4,0 0,4 -4,0 z M 60,20 l 4,0 0,4 -4,0 z M 72,20 l 4,0 0,4 -4,0 z M 96,20 l 4,0 0,4 -4,0 z M 0,24 l 4,0 0,4 -4,0 z M 4,24 l 4,0 0,4 -4,0 z M 8,24 l 4,0 0,4 -4,0 z M 12,24 l 4,0 0,4 -4,0 z M 16,24 l 4,0 0,4 -4,0 z M 20,24 l 4,0 0,4 -4,0 z M 24,24 l 4,0 0,4 -4,0 z M 32,24 l 4,0 0,4 -4,0 z M 40,24 l 4,0 0,4 -4,0 z M 48,24 l 4,0 0,4 -4,0 z M 56,24 l 4,0 0,4 -4,0 z M 64,24 l 4,0 0,4 -4,0 z M 72,24 l 4,0 0,4 -4,0 z M 76,24 l 4,0 0,4 -4,0 z M 80,24 l 4,0 0,4 -4,0 z M 84,24 l 4,0 0,4 -4,0 z M 88,24 l 4,0 0,4 -4,0 z M 92,24 l 4,0 0,4 -4,0 z M 96,24 l 4,0 0,4 -4,0 z M 48,28 l 4,0 0,4 -4,0 z M 64,28 l 4,0 0,4 -4,0 z M 0,32 l 4,0 0,4 -4,0 z M 4,32 l 4,0 0,4 -4,0 z M 8,32 l 4,0 0,4 -4,0 z M 12,32 l 4,0 0,4 -4,0 z M 16,32 l 4,0 0,4 -4,0 z M 24,32 l 4,0 0,4 -4,0 z M 28,32 l 4,0 0,4 -4,0 z M 32,32 l 4,0 0,4 -4,0 z M 36,32 l 4,0 0,4 -4,0 z M 40,32 l 4,0 0,4 -4,0 z M 48,32 l 4,0 0,4 -4,0 z M 68,32 l 4,0 0,4 -4,0 z M 76,32 l 4,0 0,4 -4,0 z M 84,32 l 4,0 0,4 -4,0 z M 92,32 l 4,0 0,4 -4,0 z M 0,36 l 4,0 0,4 -4,0 z M 4,36 l 4,0 0,4 -4,0 z M 12,36 l 4,0 0,4 -4,0 z M 16,36 l 4,0 0,4 -4,0 z M 20,36 l 4,0 0,4 -4,0 z M 28,36 l 4,0 0,4 -4,0 z M 36,36 l 4,0 0,4 -4,0 z M 56,36 l 4,0 0,4 -4,0 z M 64,36 l 4,0 0,4 -4,0 z M 92,36 l 4,0 0,4 -4,0 z M 0,40 l 4,0 0,4 -4,0 z M 12,40 l 4,0 0,4 -4,0 z M 24,40 l 4,0 0,4 -4,0 z M 32,40 l 4,0 0,4 -4,0 z M 36,40 l 4,0 0,4 -4,0 z M 44,40 l 4,0 0,4 -4,0 z M 48,40 l 4,0 0,4 -4,0 z M 60,40 l 4,0 0,4 -4,0 z M 64,40 l 4,0 0,4 -4,0 z M 68,40 l 4,0 0,4 -4,0 z M 84,40 l 4,0 0,4 -4,0 z M 92,40 l 4,0 0,4 -4,0 z M 96,40 l 4,0 0,4 -4,0 z M 0,44 l 4,0 0,4 -4,0 z M 4,44 l 4,0 0,4 -4,0 z M 8,44 l 4,0 0,4 -4,0 z M 36,44 l 4,0 0,4 -4,0 z M 40,44 l 4,0 0,4 -4,0 z M 44,44 l 4,0 0,4 -4,0 z M 52,44 l 4,0 0,4 -4,0 z M 64,44 l 4,0 0,4 -4,0 z M 76,44 l 4,0 0,4 -4,0 z M 96,44 l 4,0 0,4 -4,0 z M 4,48 l 4,0 0,4 -4,0 z M 8,48 l 4,0 0,4 -4,0 z M 12,48 l 4,0 0,4 -4,0 z M 16,48 l 4,0 0,4 -4,0 z M 24,48 l 4,0 0,4 -4,0 z M 32,48 l 4,0 0,4 -4,0 z M 36,48 l 4,0 0,4 -4,0 z M 44,48 l 4,0 0,4 -4,0 z M 56,48 l 4,0 0,4 -4,0 z M 68,48 l 4,0 0,4 -4,0 z M 72,48 l 4,0 0,4 -4,0 z M 76,48 l 4,0 0,4 -4,0 z M 80,48 l 4,0 0,4 -4,0 z M 88,48 l 4,0 0,4 -4,0 z M 92,48 l 4,0 0,4 -4,0 z M 96,48 l 4,0 0,4 -4,0 z M 0,52 l 4,0 0,4 -4,0 z M 28,52 l 4,0 0,4 -4,0 z M 32,52 l 4,0 0,4 -4,0 z M 40,52 l 4,0 0,4 -4,0 z M 48,52 l 4,0 0,4 -4,0 z M 52,52 l 4,0 0,4 -4,0 z M 64,52 l 4,0 0,4 -4,0 z M 76,52 l 4,0 0,4 -4,0 z M 84,52 l 4,0 0,4 -4,0 z M 92,52 l 4,0 0,4 -4,0 z M 0,56 l 4,0 0,4 -4,0 z M 16,56 l 4,0 0,4 -4,0 z M 20,56 l 4,0 0,4 -4,0 z M 24,56 l 4,0 0,4 -4,0 z M 32,56 l 4,0 0,4 -4,0 z M 52,56 l 4,0 0,4 -4,0 z M 60,56 l 4,0 0,4 -4,0 z M 68,56 l 4,0 0,4 -4,0 z M 76,56 l 4,0 0,4 -4,0 z M 80,56 l 4,0 0,4 -4,0 z M 84,56 l 4,0 0,4 -4,0 z M 92,56 l 4,0 0,4 -4,0 z M 96,56 l 4,0 0,4 -4,0 z M 0,60 l 4,0 0,4 -4,0 z M 8,60 l 4,0 0,4 -4,0 z M 12,60 l 4,0 0,4 -4,0 z M 36,60 l 4,0 0,4 -4,0 z M 48,60 l 4,0 0,4 -4,0 z M 68,60 l 4,0 0,4 -4,0 z M 72,60 l 4,0 0,4 -4,0 z M 76,60 l 4,0 0,4 -4,0 z M 80,60 l 4,0 0,4 -4,0 z M 96,60 l 4,0 0,4 -4,0 z M 0,64 l 4,0 0,4 -4,0 z M 12,64 l 4,0 0,4 -4,0 z M 20,64 l 4,0 0,4 -4,0 z M 24,64 l 4,0 0,4 -4,0 z M 48,64 l 4,0 0,4 -4,0 z M 52,64 l 4,0 0,4 -4,0 z M 56,64 l 4,0 0,4 -4,0 z M 60,64 l 4,0 0,4 -4,0 z M 64,64 l 4,0 0,4 -4,0 z M 68,64 l 4,0 0,4 -4,0 z M 72,64 l 4,0 0,4 -4,0 z M 76,64 l 4,0 0,4 -4,0 z M 80,64 l 4,0 0,4 -4,0 z M 88,64 l 4,0 0,4 -4,0 z M 32,68 l 4,0 0,4 -4,0 z M 40,68 l 4,0 0,4 -4,0 z M 64,68 l 4,0 0,4 -4,0 z M 80,68 l 4,0 0,4 -4,0 z M 84,68 l 4,0 0,4 -4,0 z M 0,72 l 4,0 0,4 -4,0 z M 4,72 l 4,0 0,4 -4,0 z M 8,72 l 4,0 0,4 -4,0 z M 12,72 l 4,0 0,4 -4,0 z M 16,72 l 4,0 0,4 -4,0 z M 20,72 l 4,0 0,4 -4,0 z M 24,72 l 4,0 0,4 -4,0 z M 32,72 l 4,0 0,4 -4,0 z M 40,72 l 4,0 0,4 -4,0 z M 44,72 l 4,0 0,4 -4,0 z M 48,72 l 4,0 0,4 -4,0 z M 64,72 l 4,0 0,4 -4,0 z M 72,72 l 4,0 0,4 -4,0 z M 80,72 l 4,0 0,4 -4,0 z M 88,72 l 4,0 0,4 -4,0 z M 92,72 l 4,0 0,4 -4,0 z M 96,72 l 4,0 0,4 -4,0 z M 0,76 l 4,0 0,4 -4,0 z M 24,76 l 4,0 0,4 -4,0 z M 36,76 l 4,0 0,4 -4,0 z M 44,76 l 4,0 0,4 -4,0 z M 64,76 l 4,0 0,4 -4,0 z M 80,76 l 4,0 0,4 -4,0 z M 84,76 l 4,0 0,4 -4,0 z M 0,80 l 4,0 0,4 -4,0 z M 8,80 l 4,0 0,4 -4,0 z M 12,80 l 4,0 0,4 -4,0 z M 16,80 l 4,0 0,4 -4,0 z M 24,80 l 4,0 0,4 -4,0 z M 32,80 l 4,0 0,4 -4,0 z M 36,80 l 4,0 0,4 -4,0 z M 40,80 l 4,0 0,4 -4,0 z M 44,80 l 4,0 0,4 -4,0 z M 60,80 l 4,0 0,4 -4,0 z M 64,80 l 4,0 0,4 -4,0 z M 68,80 l 4,0 0,4 -4,0 z M 72,80 l 4,0 0,4 -4,0 z M 76,80 l 4,0 0,4 -4,0 z M 80,80 l 4,0 0,4 -4,0 z M 88,80 l 4,0 0,4 -4,0 z M 96,80 l 4,0 0,4 -4,0 z M 0,84 l 4,0 0,4 -4,0 z M 8,84 l 4,0 0,4 -4,0 z M 12,84 l 4,0 0,4 -4,0 z M 16,84 l 4,0 0,4 -4,0 z M 24,84 l 4,0 0,4 -4,0 z M 32,84 l 4,0 0,4 -4,0 z M 36,84 l 4,0 0,4 -4,0 z M 40,84 l 4,0 0,4 -4,0 z M 48,84 l 4,0 0,4 -4,0 z M 52,84 l 4,0 0,4 -4,0 z M 64,84 l 4,0 0,4 -4,0 z M 68,84 l 4,0 0,4 -4,0 z M 72,84 l 4,0 0,4 -4,0 z M 80,84 l 4,0 0,4 -4,0 z M 84,84 l 4,0 0,4 -4,0 z M 88,84 l 4,0 0,4 -4,0 z M 92,84 l 4,0 0,4 -4,0 z M 96,84 l 4,0 0,4 -4,0 z M 0,88 l 4,0 0,4 -4,0 z M 8,88 l 4,0 0,4 -4,0 z M 12,88 l 4,0 0,4 -4,0 z M 16,88 l 4,0 0,4 -4,0 z M 24,88 l 4,0 0,4 -4,0 z M 32,88 l 4,0 0,4 -4,0 z M 40,88 l 4,0 0,4 -4,0 z M 52,88 l 4,0 0,4 -4,0 z M 56,88 l 4,0 0,4 -4,0 z M 64,88 l 4,0 0,4 -4,0 z M 84,88 l 4,0 0,4 -4,0 z M 88,88 l 4,0 0,4 -4,0 z M 96,88 l 4,0 0,4 -4,0 z M 0,92 l 4,0 0,4 -4,0 z M 24,92 l 4,0 0,4 -4,0 z M 32,92 l 4,0 0,4 -4,0 z M 36,92 l 4,0 0,4 -4,0 z M 48,92 l 4,0 0,4 -4,0 z M 52,92 l 4,0 0,4 -4,0 z M 60,92 l 4,0 0,4 -4,0 z M 64,92 l 4,0 0,4 -4,0 z M 68,92 l 4,0 0,4 -4,0 z M 72,92 l 4,0 0,4 -4,0 z M 76,92 l 4,0 0,4 -4,0 z M 80,92 l 4,0 0,4 -4,0 z M 84,92 l 4,0 0,4 -4,0 z M 96,92 l 4,0 0,4 -4,0 z M 0,96 l 4,0 0,4 -4,0 z M 4,96 l 4,0 0,4 -4,0 z M 8,96 l 4,0 0,4 -4,0 z M 12,96 l 4,0 0,4 -4,0 z M 16,96 l 4,0 0,4 -4,0 z M 20,96 l 4,0 0,4 -4,0 z M 24,96 l 4,0 0,4 -4,0 z M 32,96 l 4,0 0,4 -4,0 z M 40,96 l 4,0 0,4 -4,0 z M 48,96 l 4,0 0,4 -4,0 z M 56,96 l 4,0 0,4 -4,0 z M 60,96 l 4,0 0,4 -4,0 z M 68,96 l 4,0 0,4 -4,0 z M 72,96 l 4,0 0,4 -4,0 z M 76,96 l 4,0 0,4 -4,0 z M 80,96 l 4,0 0,4 -4,0 z M 84,96 l 4,0 0,4 -4,0 z M 88,96 l 4,0 0,4 -4,0 z M 92,96 l 4,0 0,4 -4,0 z M 96,96 l 4,0 0,4 -4,0 z" /></svg>`;
 
     doc.write(`
       <!DOCTYPE html>
@@ -4129,24 +4132,24 @@ function printThermalTicketDirect(payload, lang) {
           .sub-header { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #000 !important; }
           .divider { border-top: 2px dashed #000; margin: 8px 0; }
           .ticket-id { font-size: 38px; font-weight: 900; letter-spacing: 2px; margin: 6px 0; color: #000 !important; border: 2px solid #000; border-radius: 8px; padding: 4px 8px; }
-          .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 700; margin-bottom: 5px; line-height: 1.3; color: #000 !important; }
-          .label { color: #000 !important; font-size: 13px; font-weight: 700; }
-          .val { font-weight: 900; text-align: right; max-width: 65%; color: #000 !important; word-break: break-word; }
+          .row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; border-bottom: 1px dotted #ccc; padding-bottom: 3px; }
+          .label { font-weight: 700; color: #000 !important; }
+          .val { font-weight: 900; text-align: right; color: #000 !important; max-width: 60%; }
           .slot-box {
             border: 2px solid #000;
-            border-radius: 6px;
-            padding: 8px 6px;
+            border-radius: 8px;
+            padding: 8px 4px;
             margin: 8px 0;
             text-align: center;
             background: #fff;
           }
-          .slot-title { font-size: 12px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #000 !important; }
-          .slot-time { font-size: 24px; font-weight: 900; margin-top: 3px; color: #000 !important; }
+          .slot-title { font-size: 11px; font-weight: 900; color: #000 !important; letter-spacing: 0.5px; margin-bottom: 2px; }
+          .slot-time { font-size: 26px; font-weight: 900; color: #000 !important; letter-spacing: 1px; }
           .guide-box {
-            border: 2px solid #000;
-            border-radius: 4px;
+            border: 1.5px solid #000;
+            border-radius: 6px;
             padding: 6px 8px;
-            margin-bottom: 6px;
+            margin-top: 6px;
             font-size: 12px;
             font-weight: 700;
             line-height: 1.3;
@@ -4172,7 +4175,7 @@ function printThermalTicketDirect(payload, lang) {
         <div class="center ticket-id">${escapeHtml(payload.ticketId)}</div>
 
         <div class="row">
-          <span class="label">${escapeHtml(lblPatient)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblPatient))}</span>
           <span class="val" style="font-size:15px;">${escapeHtml(payload.name)}</span>
         </div>
 
@@ -4184,45 +4187,45 @@ function printThermalTicketDirect(payload, lang) {
         ` : ''}
 
         <div class="row">
-          <span class="label">${escapeHtml(lblPatientType)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblPatientType))}</span>
           <span class="val">${valPatientType}</span>
         </div>
 
         ${payload.referringDoctor ? `
           <div class="row">
-            <span class="label">${escapeHtml(lblReferringDoc)}:</span>
+            <span class="label">${escapeHtml(cleanLbl(lblReferringDoc))}</span>
             <span class="val">${escapeHtml(payload.referringDoctor)}</span>
           </div>
         ` : ''}
 
         <div class="row">
-          <span class="label">${escapeHtml(lblRoomDevice)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblRoomDevice))}</span>
           <span class="val">${escapeHtml((typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(payload.room, payload.doctorName, L) : `${payload.room || '-'} (${payload.doctorName || '-'})`)}</span>
         </div>
 
         <div class="row">
-          <span class="label">${escapeHtml(lblService)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblService))}</span>
           <span class="val">${escapeHtml((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(payload.service, L) : payload.service)} ${payload.isContrast ? (dict ? dict.contrastBadge : '[KONTRASTLI]') : ''}</span>
         </div>
 
         <div class="slot-box">
-          <div class="slot-title">${escapeHtml(lblBookedTime)}</div>
+          <div class="slot-title">${escapeHtml(cleanLbl(lblBookedTime))}</div>
           <div class="slot-time">${escapeHtml(payload.timeSlot || payload.scheduledTime)}</div>
         </div>
 
         <div class="row">
-          <span class="label">${escapeHtml(lblAppDate)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblAppDate))}</span>
           <span class="val" style="color:#000; font-weight:900; font-size:14px;">${escapeHtml(payload.appointmentDate || '')}</span>
         </div>
 
         <div class="row">
-          <span class="label">${escapeHtml(lblOperator)}:</span>
+          <span class="label">${escapeHtml(cleanLbl(lblOperator))}</span>
           <span class="val">${escapeHtml(payload.registeredBy || payload.operatorLogin)}</span>
         </div>
 
         ${payload.rescheduleReason ? `
           <div class="row" style="font-size:12px; font-weight:bold; color:#000;">
-            <span class="label">${escapeHtml(dict ? dict.reasonLabel : "Sabab:")}</span>
+            <span class="label">${escapeHtml(cleanLbl(dict ? dict.reasonLabel : "Sabab:"))}</span>
             <span class="val">${escapeHtml((typeof translateDeferReason === 'function') ? translateDeferReason(payload.rescheduleReason, L) : payload.rescheduleReason)}</span>
           </div>
         ` : ''}
@@ -4239,9 +4242,7 @@ function printThermalTicketDirect(payload, lang) {
           <div style="font-size:11px; font-weight:900; text-transform:uppercase; color:#000; margin-bottom:4px; line-height:1.2;">
             ${escapeHtml(dict && dict.onlineResults ? dict.onlineResults : "📱 JAVOBLARNI ONLAYN OLISH:")}
           </div>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=0&data=https://t.me/rons_2026" 
-               alt="Telegram: @rons_2026" 
-               style="width:110px; height:110px; display:block; margin:0 auto;" />
+          ${TELEGRAM_QR_SVG}
           <div style="font-size:12px; font-weight:900; color:#000; margin-top:4px; letter-spacing:0.5px;">
             Telegram: @rons_2026
           </div>

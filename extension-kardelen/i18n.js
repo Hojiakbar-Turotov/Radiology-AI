@@ -29,7 +29,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Qabul Sanasi:",
       operator: "Ro'yxatga oluvchi:",
       reasonLabel: "Sabab:",
-      timeNotice: "* Iltimos, belgilangan vaqtdan 15 daqiqa oldin xona oldida bo'ling!",
+      timeNotice: "* Iltimos, belgilangan vaqtdan 30-40 daqiqa oldin kutish zalida bo'ling!",
       footerThanks: "Salomatligingiz biz uchun muhim!",
       contrastBadge: "[KONTRASTLI]",
       onlineResults: "📱 Javoblarni onlayn olish uchun:"
@@ -48,7 +48,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Дата приёма:",
       operator: "Регистратор:",
       reasonLabel: "Причина переноса:",
-      timeNotice: "* Пожалуйста, будьте у кабинета за 15 минут до назначенного времени!",
+      timeNotice: "* Пожалуйста, будьте в зале ожидания за 30-40 минут до назначенного времени!",
       footerThanks: "Ваше здоровье — наша главная ценность!",
       contrastBadge: "[С КОНТРАСТОМ]",
       onlineResults: "📱 Чтобы получить результаты онлайн:"
@@ -67,7 +67,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Appointment Date:",
       operator: "Registrar:",
       reasonLabel: "Reason for Reschedule:",
-      timeNotice: "* Please arrive 15 minutes before your scheduled appointment!",
+      timeNotice: "* Please arrive in the waiting room 30-40 minutes before your scheduled appointment!",
       footerThanks: "Your health is our greatest priority!",
       contrastBadge: "[WITH CONTRAST]",
       onlineResults: "📱 To get results online:"
@@ -86,7 +86,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Қабылдау күні:",
       operator: "Тіркеуші:",
       reasonLabel: "Себебі:",
-      timeNotice: "* Белгіленген уақыттан 15 минут бұрын келіп күтуіңізді сұраймыз!",
+      timeNotice: "* Белгіленген уақыттан 30-40 минут бұрын күту залында болуыңызды сұраймыз!",
       footerThanks: "Денсаулығыңыз біз үшін маңызды!",
       contrastBadge: "[КОНТРАСТПЕН]",
       onlineResults: "📱 Нәтижелерді онлайн алу үшін:"
@@ -105,7 +105,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Санаи қабул:",
       operator: "Бақайдгиранда:",
       reasonLabel: "Сабаби гузаронидан:",
-      timeNotice: "* Лутфан 15 дақиқа пеш аз вақти муайяншуда дар назди ҳуҷра бошед!",
+      timeNotice: "* Лутфан 30-40 дақиқа пеш аз вақти таъйиншуда дар толори интизорӣ бошед!",
       footerThanks: "Саломатии шумо барои мо муҳим аст!",
       contrastBadge: "[БО КОНТРАСТ]",
       onlineResults: "📱 Барои гирифтани натиҷаҳо онлайн:"
@@ -124,7 +124,7 @@ const I18N_TRANSLATIONS = {
       appointmentDate: "Randevu Tarihi:",
       operator: "Kayıt Görevlisi:",
       reasonLabel: "Erteleme Gerekçesi:",
-      timeNotice: "* Lütfen randevu saatinizden 15 dakika önce bekleme alanında olunuz!",
+      timeNotice: "* Lütfen randevu saatinizden 30-40 dakika önce bekleme salonunda olunuz!",
       footerThanks: "Sağlığınız bizim için değerlidir!",
       contrastBadge: "[KONTRASTLI]",
       onlineResults: "📱 Sonuçları çevrimiçi almak için:"
