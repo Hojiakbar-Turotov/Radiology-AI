@@ -527,40 +527,73 @@ function getSelectedPatientFromDom() {
   return null;
 }
 
+// Pastki jadval sanasi/vaqti va shifokoriga mos keladigan bemorni yuqori jadvaldan aniq topish
+function findPatientMatchingService(serviceDoctor, serviceDate) {
+  try {
+    const patients = getAllTopTablePatients().filter(p => !p.isGreen);
+    if (patients.length === 0) return null;
+
+    if (serviceDate) {
+      // 1. Aniq sana va vaqt (masalan '24.08.2026 09:47'):
+      const timePrefix = serviceDate.substring(0, 16);
+      const exactTimeMatch = patients.find(p => p.rowDate && p.rowDate.includes(timePrefix));
+      if (exactTimeMatch) return exactTimeMatch;
+
+      // 2. Shifokor familiyasi va sana bo'yicha moslash:
+      if (serviceDoctor) {
+        const docSurname = serviceDoctor.replace(/^Dr\.\s*/i, '').split(" ")[0].toLowerCase();
+        const dateDay = serviceDate.substring(0, 10);
+        const matchBoth = patients.find(p => {
+          const pDoc = (p.referringDoctor || "").toLowerCase();
+          const pDate = p.rowDate || "";
+          return pDoc.includes(docSurname) && pDate.includes(dateDay);
+        });
+        if (matchBoth) return matchBoth;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 // 2. PASSIV CLICK TINGLOVCHI
 function handlePassiveRowClick(e) {
   try {
     // Agar kengaytmaning o'zini floating bari yoki modal oynalari bosilsa, tegmaymiz:
-    if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay") || e.target.closest(".utt-login-modal")) {
+    if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay") || e.target.closest(".utt-login-modal") || e.target.closest(".utt-toast")) {
       return;
+    }
+
+    // 1. Agar foydalanuvchi qidiruv, menyu, sana o'zgartirish yoki paginatsiya tugmalarini bossa -> panelni tozalash:
+    const isActionControl = e.target.closest(
+      "input[type='submit'], input[type='button'], " +
+      "a[href*='Search'], a[href*='Filter'], a[href*='Page'], " +
+      "[id*='Search'], [id*='search'], [id*='filter'], [id*='Filter'], [id*='btnSearch'], " +
+      ".dxbButton, .dxb, .dxpCtrl, .dxp-num, .dxp-button, " +
+      "[class*='menu'], [class*='tab'], [class*='Tab'], [class*='Menu']"
+    );
+
+    if (isActionControl && !e.target.closest("td.dxgv, td[class*='dxgvDataRow']")) {
+      const row = e.target.closest("tr");
+      if (!row || row.querySelector("th") || row.classList.contains("dxgvGroupRow_DevEx") || row.classList.contains("dxgvFilterRow_DevEx") || row.classList.contains("dxgvPagerRow_DevEx") || (row.className && /GroupRow|FilterRow|Header|PagerRow/i.test(row.className))) {
+        resetFloatingBar();
+        return;
+      }
     }
 
     const row = e.target.closest("tr");
+    if (!row) return;
 
-    // 1. Agar foydalanuvchi jadval qatoridan tashqari boshqa tugmalar/maydonlarni bossa:
-    // (Masalan: Qidiruv, Sana kiritish, Kalendar, Chap menyu, Paginatsiya, Boshqa tugmalar):
-    if (!row) {
-      resetFloatingBar();
-      return;
-    }
-
-    // 2. Agar bosilgan qator sarlavha (TH), guruhlash qatori (masalan MRT (17)), filter yoki paginatsiya qatori bo'lsa:
+    // Agar bosilgan qator sarlavha (TH), guruhlash qatori (masalan MRT (17)), filter yoki paginatsiya qatori bo'lsa:
     if (row.querySelector("th") || row.classList.contains("dxgvGroupRow_DevEx") || row.classList.contains("dxgvFilterRow_DevEx") || row.classList.contains("dxgvPagerRow_DevEx") || (row.className && /GroupRow|FilterRow|Header|PagerRow/i.test(row.className))) {
       resetFloatingBar();
       return;
     }
 
     const rowText = (row.innerText || "").trim();
-    if (!rowText) {
-      resetFloatingBar();
-      return;
-    }
+    if (!rowText) return;
 
     const cells = Array.from(row.querySelectorAll("td"));
-    if (cells.length < 3) {
-      resetFloatingBar();
-      return;
-    }
+    if (cells.length < 3) return;
 
     // A) AGAR FOYDALANUVCHI PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
     const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
@@ -612,9 +645,6 @@ function handlePassiveRowClick(e) {
       });
       return;
     }
-
-    // Boshqa har qanday noaniq qator bosilganda panelni bo'shatamiz:
-    resetFloatingBar();
 
   } catch (err) {
     console.warn("Passive click handler caught:", err);
@@ -700,10 +730,13 @@ function handleSpecificBottomServiceClick(row, cells) {
       transactionDate: serviceDate
     };
 
-    // Bemor ma'lumotini aniq olish (foydalanuvchi bosgan bemor yoki faol qator):
+    // Bemor ma'lumotini aniq topish:
+    // 1. Oxirgi bosilgan bemor (lastPatientInfo)
+    // 2. Kardelen'dagi faol tanlangan qator (getSelectedPatientFromDom)
+    // 3. Pastki jadval sanasi/vaqti va shifokoriga mos keladigan bemor (findPatientMatchingService)
     let pInfo = (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—") 
       ? { ...lastPatientInfo } 
-      : getSelectedPatientFromDom();
+      : (getSelectedPatientFromDom() || findPatientMatchingService(serviceDoctor, serviceDate));
 
     if (!pInfo) {
       resetFloatingBar(`<span style="color:#f59e0b; font-weight:700;">⚠️ Avval yuqori jadvaldan bemor qatorini bosing</span>`);
