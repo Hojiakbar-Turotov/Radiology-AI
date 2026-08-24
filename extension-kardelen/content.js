@@ -4145,24 +4145,10 @@ function printThermalTicketDirect(payload, lang) {
           <span class="val" style="font-size:15px;">${escapeHtml(payload.name)}</span>
         </div>
 
-        ${payload.sampleNumber ? `
-          <div class="row">
-            <span class="label">Namuna №:</span>
-            <span class="val" style="font-size:14px; font-weight:900;">${escapeHtml(payload.sampleNumber)}</span>
-          </div>
-        ` : ''}
-
         ${payload.birthDate ? `
           <div class="row">
             <span class="label">Tug'ilgan sana:</span>
             <span class="val">${escapeHtml(payload.birthDate)}</span>
-          </div>
-        ` : ''}
-
-        ${payload.pinfl ? `
-          <div class="row">
-            <span class="label">JSHSHIR (PINFL):</span>
-            <span class="val" style="font-family:monospace; font-size:13px; font-weight:900;">${escapeHtml(payload.pinfl)}</span>
           </div>
         ` : ''}
 

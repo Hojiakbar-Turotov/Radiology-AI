@@ -1675,17 +1675,6 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   document.getElementById("ticketPrintNum").innerText = patient.ticketId || "ID";
   document.getElementById("ticketPrintName").innerText = patient.name || "-";
 
-  const sampleRow = document.getElementById("ticketPrintSampleRow");
-  const sampleEl = document.getElementById("ticketPrintSampleNumber");
-  if (sampleRow && sampleEl) {
-    if (patient.sampleNumber) {
-      sampleRow.style.display = "flex";
-      sampleEl.innerText = patient.sampleNumber;
-    } else {
-      sampleRow.style.display = "none";
-    }
-  }
-
   const dobRow = document.getElementById("ticketPrintDobRow");
   const dobEl = document.getElementById("ticketPrintBirthDate");
   if (dobRow && dobEl) {
@@ -1694,17 +1683,6 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
       dobEl.innerText = patient.birthDate;
     } else {
       dobRow.style.display = "none";
-    }
-  }
-
-  const pinflRow = document.getElementById("ticketPrintPinflRow");
-  const pinflEl = document.getElementById("ticketPrintPinfl");
-  if (pinflRow && pinflEl) {
-    if (patient.pinfl) {
-      pinflRow.style.display = "flex";
-      pinflEl.innerText = patient.pinfl;
-    } else {
-      pinflRow.style.display = "none";
     }
   }
   
