@@ -555,6 +555,20 @@ function findPatientMatchingService(serviceDoctor, serviceDate) {
   return null;
 }
 
+function extractInstitutionName() {
+  try {
+    const titleEl = document.querySelector("#header, .header, .title, [class*='header'], [id*='header']");
+    if (titleEl && titleEl.innerText) {
+      const match = titleEl.innerText.match(/RESPUBLIKA[^\n\r]+/i) || titleEl.innerText.match(/ONKOLOGIYA[^\n\r]+/i);
+      if (match) return match[0].trim();
+    }
+    const bodyText = document.body ? document.body.innerText.substring(0, 1500) : "";
+    const m = bodyText.match(/RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI/i);
+    if (m) return m[0].trim();
+  } catch (e) {}
+  return "RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI";
+}
+
 // 2. PASSIV CLICK TINGLOVCHI
 function handlePassiveRowClick(e) {
   try {
@@ -572,12 +586,9 @@ function handlePassiveRowClick(e) {
       "[class*='menu'], [class*='tab'], [class*='Tab'], [class*='Menu']"
     );
 
-    if (isActionControl && !e.target.closest("td.dxgv, td[class*='dxgvDataRow']")) {
-      const row = e.target.closest("tr");
-      if (!row || row.querySelector("th") || row.classList.contains("dxgvGroupRow_DevEx") || row.classList.contains("dxgvFilterRow_DevEx") || row.classList.contains("dxgvPagerRow_DevEx") || (row.className && /GroupRow|FilterRow|Header|PagerRow/i.test(row.className))) {
-        resetFloatingBar();
-        return;
-      }
+    if (isActionControl && !e.target.closest("tr")) {
+      resetFloatingBar();
+      return;
     }
 
     const row = e.target.closest("tr");
@@ -595,17 +606,7 @@ function handlePassiveRowClick(e) {
     const cells = Array.from(row.querySelectorAll("td"));
     if (cells.length < 3) return;
 
-    // A) AGAR FOYDALANUVCHI PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
-    const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
-    const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}/.test(c.innerText.trim()));
-    const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
-
-    if (hasTransId && (hasTransDate || hasServiceCode)) {
-      handleSpecificBottomServiceClick(row, cells);
-      return;
-    }
-
-    // B) AGAR YUQORI JADVALDAGI BEMOR QATORI BO'LSA:
+    // 1-QADAM: YUQORI JADVALDAGI BEMOR QATORI TEKSHIRUVI (USTUVOR!)
     const patient = extractPatientFromRow(row);
     if (patient) {
       if (patient.isGreen) {
@@ -633,7 +634,7 @@ function handlePassiveRowClick(e) {
       applyServicesToPatient(patient, servicesList);
 
       // Kardelen pastki jadvalni AJAX orqali kechroq yuklaganda avtomatik yangilash:
-      [150, 300, 600, 1000].forEach(delay => {
+      [150, 300, 600, 1000, 1500].forEach(delay => {
         setTimeout(() => {
           if (lastPatientInfo && lastPatientInfo.id === patient.id && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
             const freshServices = findAllCurrentServicesPassively();
@@ -643,6 +644,16 @@ function handlePassiveRowClick(e) {
           }
         }, delay);
       });
+      return;
+    }
+
+    // 2-QADAM: PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
+    const hasServiceCode = cells.some(c => /^R\d{2,5}$/i.test(c.innerText.trim()));
+    const hasTransDate = cells.some(c => /\d{2}\.\d{2}\.\d{4}/.test(c.innerText.trim()));
+    const isBottomTable = Boolean(row.closest("table") && (row.closest("table").innerText.includes("Xizmatlar Nomi") || row.closest("table").innerText.includes("Tranzaksiya") || row.closest("table").innerText.includes("Navbat raqami")));
+
+    if (hasServiceCode || (hasTransDate && isBottomTable)) {
+      handleSpecificBottomServiceClick(row, cells);
       return;
     }
 
@@ -670,9 +681,14 @@ function handleSpecificBottomServiceClick(row, cells) {
     let candidateName = "";
     let serviceDoctor = "";
     let serviceDate = "";
+    let serviceQueueNumber = "";
 
     for (const cell of cells) {
       const c = cell.innerText.trim();
+      if (/^\d{6,9}$/.test(c)) {
+        if (!serviceQueueNumber) serviceQueueNumber = c;
+        continue;
+      }
       if (/^\d+$/.test(c)) continue;
       if (/\d{2}\.\d{2}\.\d{4}/.test(c)) {
         serviceDate = c;
@@ -727,13 +743,11 @@ function handleSpecificBottomServiceClick(row, cells) {
       isContrast: isContrast,
       isMSKT: isMSKT,
       type: isMSKT ? "MSKT" : "MRT",
-      transactionDate: serviceDate
+      transactionDate: serviceDate,
+      serviceQueueNumber: serviceQueueNumber
     };
 
     // Bemor ma'lumotini aniq topish:
-    // 1. Oxirgi bosilgan bemor (lastPatientInfo)
-    // 2. Kardelen'dagi faol tanlangan qator (getSelectedPatientFromDom)
-    // 3. Pastki jadval sanasi/vaqti va shifokoriga mos keladigan bemor (findPatientMatchingService)
     let pInfo = (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—") 
       ? { ...lastPatientInfo } 
       : (getSelectedPatientFromDom() || findPatientMatchingService(serviceDoctor, serviceDate));
@@ -747,6 +761,8 @@ function handleSpecificBottomServiceClick(row, cells) {
       pInfo.referringDoctor = serviceDoctor;
     }
 
+    pInfo.institutionName = pInfo.institutionName || extractInstitutionName();
+    pInfo.serviceQueueNumber = serviceQueueNumber || pInfo.serviceQueueNumber || "";
     lastPatientInfo = pInfo;
 
     // 3. SO'ROV MUDDATINI TEKSHIRISH
@@ -784,7 +800,8 @@ function handleSpecificBottomServiceClick(row, cells) {
       servicesList: [specificService],
       allPatientServices: allServices.length > 0 ? allServices : [specificService],
       calcMethod: combo.calcMethod,
-      userSelectedSpecific: true
+      userSelectedSpecific: true,
+      serviceQueueNumber: serviceQueueNumber
     };
 
     updateFloatingBarPatientDisplay();
@@ -895,10 +912,10 @@ async function updateFloatingBarPatientDisplay() {
     ? I18N_TRANSLATIONS.ext[currentLang] 
     : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
 
-  // 1. ALLAQACHON NAVBATGA QO'YILGANLIGINI TEKSHIRISH (NAMUNA RAQAMI BO'YICHA):
+  // 1. ALLAQACHON NAVBATGA QO'YILGANLIGINI TEKSHIRISH (NAMUNA RAQAMI YOKI NAVBAT RAQAMI BO'YICHA):
   let existing = null;
-  if (selectedPatient.sampleNumber) {
-    existing = await checkExistingQueueBySample(selectedPatient.sampleNumber, selectedPatient.id);
+  if (selectedPatient.sampleNumber || selectedPatient.serviceQueueNumber || selectedPatient.id) {
+    existing = await checkExistingQueueBySample(selectedPatient.sampleNumber, selectedPatient.id, selectedPatient.serviceQueueNumber);
   }
 
   if (existing) {
@@ -906,9 +923,10 @@ async function updateFloatingBarPatientDisplay() {
     selectedPatient.existingQueueData = existing;
 
     const sampleBadge = selectedPatient.sampleNumber ? ` <span style="background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">Namuna: №${escapeHtml(selectedPatient.sampleNumber)}</span>` : "";
+    const queueBadge = selectedPatient.serviceQueueNumber ? ` <span style="background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">Navbat: №${escapeHtml(selectedPatient.serviceQueueNumber)}</span>` : "";
     const pinflBadge = selectedPatient.pinfl ? ` <span style="background:#f1f5f9; color:#475569; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:600;">JSHSHIR: ${escapeHtml(selectedPatient.pinfl)}</span>` : "";
 
-    txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${pinflBadge}: <span style="color:#d97706; font-weight:800;">⚠️ Allaqachon navbatga qo'yilgan!</span> <span style="color:#0284c7; font-weight:700;">(${escapeHtml(existing.doctorName || existing.room)} | ⏱ ${escapeHtml(existing.timeSlot || existing.scheduledTime || existing.time)} | Talon №${escapeHtml(existing.ticketId)})</span>`;
+    txt.innerHTML = `<strong>${selectedPatient.id} - ${escapeHtml(selectedPatient.name)}</strong>${sampleBadge}${queueBadge}${pinflBadge}: <span style="color:#d97706; font-weight:800;">⚠️ Allaqachon navbatga qo'yilgan!</span> <span style="color:#0284c7; font-weight:700;">(${escapeHtml(existing.doctorName || existing.room)} | ⏱ ${escapeHtml(existing.timeSlot || existing.scheduledTime || existing.time)} | Talon №${escapeHtml(existing.ticketId)})</span>`;
     
     btn.disabled = false;
     btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)";
@@ -1104,6 +1122,7 @@ function extractPatientFromRow(row) {
     const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim();
 
     const isGreen = isRowFinishedOrGreen(row, cells);
+    const instName = extractInstitutionName();
 
     return {
       row: row,
@@ -1121,48 +1140,41 @@ function extractPatientFromRow(row) {
       patientType: isStationary ? "Bo'limda yotibdi" : "Ambulator",
       isStationary: isStationary,
       isGreen: isGreen,
-      rowDate: rowDate
+      rowDate: rowDate,
+      institutionName: instName
     };
   } catch (e) {
     return null;
   }
 }
 
-// 2.2.1 AYNI NAMUNA RAQAMI BILAN OLDINDAN NAVBATGA QO'YILGANLIGINI TEKSHIRISH
-async function checkExistingQueueBySample(sampleNumber, patientId) {
-  if (!sampleNumber && !patientId) return null;
+// 2.2.1 AYNI NAMUNA RAQAMI YOKI NAVBAT RAQAMI BILAN OLDINDAN NAVBATGA QO'YILGANLIGINI TEKSHIRISH
+async function checkExistingQueueBySample(sampleNumber, patientId, serviceQueueNumber = "") {
+  if (!sampleNumber && !patientId && !serviceQueueNumber) return null;
 
   try {
+    const datesToCheck = [];
     const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    
-    // 1. Bugungi kundan qidirish:
-    const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${todayStr}.json`);
-    if (res && res.ok) {
-      const data = await res.json();
-      if (data) {
-        for (const [key, p] of Object.entries(data)) {
-          if (p.status !== "cancelled") {
-            if (sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim()) {
-              return { ...p, dbKey: key, appointmentDate: p.appointmentDate || todayStr };
-            }
-          }
-        }
-      }
+    for (let offset = -1; offset <= 2; offset++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + offset);
+      datesToCheck.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
     }
 
-    // 2. Ertangi kundan qidirish:
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-    const resTom = await safeFetch(`${FIREBASE_DB_URL}/patients/${tomorrowStr}.json`);
-    if (resTom && resTom.ok) {
-      const dataTom = await resTom.json();
-      if (dataTom) {
-        for (const [key, p] of Object.entries(dataTom)) {
-          if (p.status !== "cancelled") {
-            if (sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim()) {
-              return { ...p, dbKey: key, appointmentDate: p.appointmentDate || tomorrowStr };
+    for (const dateStr of datesToCheck) {
+      const res = await safeFetch(`${FIREBASE_DB_URL}/patients/${dateStr}.json`);
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data) {
+          for (const [key, p] of Object.entries(data)) {
+            if (p.status !== "cancelled") {
+              const matchSample = sampleNumber && p.sampleNumber && String(p.sampleNumber).trim() === String(sampleNumber).trim();
+              const matchQueue = serviceQueueNumber && p.serviceQueueNumber && String(p.serviceQueueNumber).trim() === String(serviceQueueNumber).trim();
+              const matchPatient = patientId && p.id && String(p.id).trim() === String(patientId).trim() && (p.serviceCode && selectedPatient && p.serviceCode === selectedPatient.serviceCode);
+
+              if (matchSample || matchQueue || matchPatient) {
+                return { ...p, dbKey: key, appointmentDate: p.appointmentDate || dateStr };
+              }
             }
           }
         }
@@ -1385,7 +1397,17 @@ function findAllCurrentServicesPassively() {
       // 1. Kodni aniqlash (R184, R143, R157 va h.k.)
       let candidateCode = cells.find(c => /^R\d{2,5}$/i.test(c.innerText.trim()))?.innerText.trim() || "";
       
-      // 2. Xizmat nomini aniqlash (Raqamlar, sanalar va shifokor nomlari chiqarib tashlanadi)
+      // 2. Navbat raqamini aniqlash (7 xonali son, e.g. 3871650)
+      let serviceQueueNumber = "";
+      for (const c of cells) {
+        const cText = c.innerText.trim();
+        if (/^\d{6,9}$/.test(cText)) {
+          serviceQueueNumber = cText;
+          break;
+        }
+      }
+
+      // 3. Xizmat nomini aniqlash (Raqamlar, sanalar va shifokor nomlari chiqarib tashlanadi)
       let candidateName = "";
       for (const c of cells) {
         const cText = c.innerText.trim();
@@ -1401,7 +1423,7 @@ function findAllCurrentServicesPassively() {
         }
       }
 
-      // 3. AGAR BU TEKSHIRUV MRT YOKI MSKT BO'LMASA -> QAT'IYAN RAD ETAMIZ!
+      // 4. AGAR BU TEKSHIRUV MRT YOKI MSKT BO'LMASA -> QAT'IYAN RAD ETAMIZ!
       if (!isMrtOrMsktService(candidateCode, candidateName, text)) {
         nonMrtMsktServicesCount++;
         if (candidateName) nonMrtMsktNames.push(candidateName);
@@ -1437,7 +1459,8 @@ function findAllCurrentServicesPassively() {
             isContrast: isContrast,
             isMSKT: isMSKT,
             type: isMSKT ? "MSKT" : "MRT",
-            transactionDate: candidateTransDate
+            transactionDate: candidateTransDate,
+            serviceQueueNumber: serviceQueueNumber
           });
         }
       }
@@ -3980,11 +4003,11 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
   const saveDate = targetDate || todayStr;
   const chosenLang = printLang || (typeof getI18nLanguage === 'function' ? getI18nLanguage() : 'uz') || 'uz';
 
-  // 1. QAT'IY TAKRORIY NAVBAT TEKSHIRUVI (NAMUNA RAQAMI BO'YICHA):
-  if (patientData.sampleNumber) {
-    const existing = await checkExistingQueueBySample(patientData.sampleNumber, patientData.id);
+  // 1. QAT'IY TAKRORIY NAVBAT TEKSHIRUVI (NAMUNA RAQAMI VA NAVBAT RAQAMI BO'YICHA):
+  if (patientData.sampleNumber || patientData.serviceQueueNumber || patientData.id) {
+    const existing = await checkExistingQueueBySample(patientData.sampleNumber, patientData.id, patientData.serviceQueueNumber);
     if (existing) {
-      showToast(`⚠️ Ushbu namuna (№${patientData.sampleNumber}) allaqachon navbatga qo'yilgan! Talon qayta chop etilmoqda...`, "warning");
+      showToast(`⚠️ Ushbu tekshiruv (№${patientData.sampleNumber || patientData.serviceQueueNumber || patientData.id}) allaqachon navbatga qo'yilgan! Talon qayta chop etilmoqda...`, "warning");
       printThermalTicketDirect(existing, chosenLang);
       return;
     }
@@ -3999,6 +4022,8 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     firstName: patientData.firstName || "",
     middleName: patientData.middleName || "",
     sampleNumber: patientData.sampleNumber || "",
+    serviceQueueNumber: patientData.serviceQueueNumber || patientData.navbatRaqami || "",
+    institutionName: patientData.institutionName || extractInstitutionName(),
     birthDate: patientData.birthDate || "",
     pinfl: patientData.pinfl || "",
     patientType: (patientData.isStationary || (patientData.priority && String(patientData.priority).toLowerCase().includes("statsionar")) || (patientData.patientType && String(patientData.patientType).toLowerCase().includes("bo'limda"))) ? "Bo'limda yotibdi" : "Ambulator",
@@ -4030,7 +4055,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     operatorLogin: currentUser ? currentUser.login : "TB1",
     operatorName: currentUser ? currentUser.name : "Operator",
     registeredBy: currentUser ? `${currentUser.login} - ${currentUser.name}` : "TB1 - Turatov Hojiakbar",
-    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : "") + (patientData.sampleNumber ? ` [Namuna: ${patientData.sampleNumber}]` : ""),
+    notes: "Kardelen orqali yozildi" + (deferReason ? ` [Sabab: ${deferReason}]` : "") + (patientData.sampleNumber ? ` [Namuna: ${patientData.sampleNumber}]` : "") + (patientData.serviceQueueNumber ? ` [Navbat: ${patientData.serviceQueueNumber}]` : ""),
     status: "waiting",
     timestamp: Date.now(),
     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
