@@ -4202,6 +4202,20 @@ function printThermalTicketDirect(payload, lang) {
           ${formatConsolidatedGuidelinesHtml(payload, L)}
         ` : ''}
 
+        <!-- TELEGRAM QR CODE: JAVOBLARNI ONLAYN OLISH UCHUN -->
+        <div class="divider"></div>
+        <div class="qr-box" style="text-align:center; margin:6px auto 4px auto; padding:6px 8px; border:2px solid #000; border-radius:6px; max-width:180px;">
+          <div style="font-size:11px; font-weight:900; text-transform:uppercase; color:#000; margin-bottom:4px; line-height:1.2;">
+            ${escapeHtml(dict && dict.onlineResults ? dict.onlineResults : "📱 JAVOBLARNI ONLAYN OLISH:")}
+          </div>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=0&data=https://t.me/rons_2026" 
+               alt="Telegram: @rons_2026" 
+               style="width:110px; height:110px; display:block; margin:0 auto;" />
+          <div style="font-size:12px; font-weight:900; color:#000; margin-top:4px; letter-spacing:0.5px;">
+            Telegram: @rons_2026
+          </div>
+        </div>
+
         <div class="divider"></div>
         <div class="footer">
           ${escapeHtml(timeNotice)}<br>

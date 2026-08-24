@@ -1671,6 +1671,7 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   if (document.getElementById("ticketPrintLblTime") && dict) document.getElementById("ticketPrintLblTime").innerText = dict.appointmentDate;
   if (document.getElementById("ticketPrintFooterNotice") && dict) document.getElementById("ticketPrintFooterNotice").innerText = dict.timeNotice;
   if (document.getElementById("ticketPrintFooterThanks") && dict) document.getElementById("ticketPrintFooterThanks").innerText = dict.footerThanks;
+  if (document.getElementById("ticketPrintLblOnlineResults") && dict) document.getElementById("ticketPrintLblOnlineResults").innerText = dict.onlineResults || "📱 JAVOBLARNI ONLAYN OLISH:";
 
   document.getElementById("ticketPrintNum").innerText = patient.ticketId || "ID";
   document.getElementById("ticketPrintName").innerText = patient.name || "-";

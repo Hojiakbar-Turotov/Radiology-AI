@@ -31,7 +31,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Sabab:",
       timeNotice: "* Iltimos, belgilangan vaqtdan 15 daqiqa oldin xona oldida bo'ling!",
       footerThanks: "Salomatligingiz biz uchun muhim!",
-      contrastBadge: "[KONTRASTLI]"
+      contrastBadge: "[KONTRASTLI]",
+      onlineResults: "📱 Javoblarni onlayn olish uchun:"
     },
     ru: {
       centerName: "ЦЕНТР ОНКОЛОГИИ И РАДИОЛОГИИ",
@@ -49,7 +50,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Причина переноса:",
       timeNotice: "* Пожалуйста, будьте у кабинета за 15 минут до назначенного времени!",
       footerThanks: "Ваше здоровье — наша главная ценность!",
-      contrastBadge: "[С КОНТРАСТОМ]"
+      contrastBadge: "[С КОНТРАСТОМ]",
+      onlineResults: "📱 Чтобы получить результаты онлайн:"
     },
     en: {
       centerName: "ONCOLOGY & RADIOLOGY CENTER",
@@ -67,7 +69,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Reason for Reschedule:",
       timeNotice: "* Please arrive 15 minutes before your scheduled appointment!",
       footerThanks: "Your health is our greatest priority!",
-      contrastBadge: "[WITH CONTRAST]"
+      contrastBadge: "[WITH CONTRAST]",
+      onlineResults: "📱 To get results online:"
     },
     kk: {
       centerName: "ОНКОЛОГИЯ ЖӘНЕ РАДИОЛОГИЯ ОРТАЛЫҒЫ",
@@ -85,7 +88,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Себебі:",
       timeNotice: "* Белгіленген уақыттан 15 минут бұрын келіп күтуіңізді сұраймыз!",
       footerThanks: "Денсаулығыңыз біз үшін маңызды!",
-      contrastBadge: "[КОНТРАСТПЕН]"
+      contrastBadge: "[КОНТРАСТПЕН]",
+      onlineResults: "📱 Нәтижелерді онлайн алу үшін:"
     },
     tg: {
       centerName: "МАРКАЗИ ОНКОЛОГИЯ ВА РАДИОЛОГИЯ",
@@ -103,7 +107,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Сабаби гузаронидан:",
       timeNotice: "* Лутфан 15 дақиқа пеш аз вақти муайяншуда дар назди ҳуҷра бошед!",
       footerThanks: "Саломатии шумо барои мо муҳим аст!",
-      contrastBadge: "[БО КОНТРАСТ]"
+      contrastBadge: "[БО КОНТРАСТ]",
+      onlineResults: "📱 Барои гирифтани натиҷаҳо онлайн:"
     },
     tr: {
       centerName: "ONKOLOJİ VE RADYOLOJİ MERKEZİ",
@@ -121,7 +126,8 @@ const I18N_TRANSLATIONS = {
       reasonLabel: "Erteleme Gerekçesi:",
       timeNotice: "* Lütfen randevu saatinizden 15 dakika önce bekleme alanında olunuz!",
       footerThanks: "Sağlığınız bizim için değerlidir!",
-      contrastBadge: "[KONTRASTLI]"
+      contrastBadge: "[KONTRASTLI]",
+      onlineResults: "📱 Sonuçları çevrimiçi almak için:"
     }
   },
 
