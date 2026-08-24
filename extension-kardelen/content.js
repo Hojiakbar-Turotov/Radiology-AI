@@ -280,24 +280,22 @@ function syncPatientAndServicesFromDom() {
   try {
     // Agar modal ochiq bo'lsa yoki foydalanuvchi alohida tekshiruv tanlagan bo'lsa, xalaqit bermaymiz
     if (document.querySelector(".utt-modal-overlay") || (selectedPatient && selectedPatient.userSelectedSpecific)) return;
+    if (!lastPatientInfo || !lastPatientInfo.id || lastPatientInfo.id === "—") return;
 
-    const activePatient = findActivePatientFromTopTable();
-    if (!activePatient) return;
-
+    // Faqat oxirgi tanlangan bemor uchun pastki jadval xizmatlarini yangilaymiz (agar o'zgargan bo'lsa):
     const currentServices = findAllCurrentServicesPassively();
-    const servicesHash = currentServices.map(s => s.code || s.name).join(",");
+    if (currentServices.length === 0) return;
 
-    if (activePatient.id !== lastObservedPatientId || servicesHash !== lastObservedServicesHash) {
-      lastObservedPatientId = activePatient.id;
+    const servicesHash = currentServices.map(s => s.code || s.name).join(",");
+    if (servicesHash !== lastObservedServicesHash) {
       lastObservedServicesHash = servicesHash;
-      lastPatientInfo = activePatient;
-      applyServicesToPatient(activePatient, currentServices);
+      applyServicesToPatient(lastPatientInfo, currentServices);
     }
   } catch (e) {}
 }
 
 function setupPeriodicSync() {
-  setInterval(syncPatientAndServicesFromDom, 800);
+  setInterval(syncPatientAndServicesFromDom, 1000);
 }
 
 async function loadWorkScheduleFromFirebase() {
@@ -496,21 +494,73 @@ function updateFloatingBar() {
   } catch (e) {}
 }
 
+function resetFloatingBar(customMessage = "") {
+  selectedPatient = null;
+  lastPatientInfo = null;
+  lastObservedPatientId = "";
+  lastObservedServicesHash = "";
+
+  const txt = document.getElementById("uttFloatingPatientText");
+  const btn = document.getElementById("uttFloatingSendBtn");
+  if (txt && btn) {
+    const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
+    const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
+      ? I18N_TRANSLATIONS.ext[currentLang] 
+      : {};
+    
+    txt.innerHTML = customMessage || `<span style="color:#94a3b8; font-weight:600; font-size:12.5px;">${dict.clickPatientRow || "Jadvaldan bemor qatorini bosing"}</span>`;
+    btn.disabled = true;
+    btn.style.background = "";
+    btn.style.boxShadow = "";
+    btn.innerText = dict.bookQueueBtn || '➕ Navbatga Yozish';
+  }
+}
+
+function getSelectedPatientFromDom() {
+  try {
+    const focusedRow = document.querySelector("tr.dxgvFocusedRow_DevEx, tr.dxgvSelectedRow_DevEx, tr[class*='FocusedRow'], tr[class*='SelectedRow'], tr.selected, tr.active");
+    if (focusedRow) {
+      const p = extractPatientFromRow(focusedRow);
+      if (p && !p.isGreen) return p;
+    }
+  } catch (e) {}
+  return null;
+}
+
 // 2. PASSIV CLICK TINGLOVCHI
 function handlePassiveRowClick(e) {
   try {
-    if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay")) {
+    // Agar kengaytmaning o'zini floating bari yoki modal oynalari bosilsa, tegmaymiz:
+    if (e.target.closest("#uttFloatingBar") || e.target.closest(".utt-modal-overlay") || e.target.closest(".utt-login-modal")) {
       return;
     }
 
     const row = e.target.closest("tr");
-    if (!row) return;
+
+    // 1. Agar foydalanuvchi jadval qatoridan tashqari boshqa tugmalar/maydonlarni bossa:
+    // (Masalan: Qidiruv, Sana kiritish, Kalendar, Chap menyu, Paginatsiya, Boshqa tugmalar):
+    if (!row) {
+      resetFloatingBar();
+      return;
+    }
+
+    // 2. Agar bosilgan qator sarlavha (TH), guruhlash qatori (masalan MRT (17)), filter yoki paginatsiya qatori bo'lsa:
+    if (row.querySelector("th") || row.classList.contains("dxgvGroupRow_DevEx") || row.classList.contains("dxgvFilterRow_DevEx") || row.classList.contains("dxgvPagerRow_DevEx") || (row.className && /GroupRow|FilterRow|Header|PagerRow/i.test(row.className))) {
+      resetFloatingBar();
+      return;
+    }
 
     const rowText = (row.innerText || "").trim();
-    if (!rowText) return;
+    if (!rowText) {
+      resetFloatingBar();
+      return;
+    }
 
     const cells = Array.from(row.querySelectorAll("td"));
-    if (cells.length < 3) return;
+    if (cells.length < 3) {
+      resetFloatingBar();
+      return;
+    }
 
     // A) AGAR FOYDALANUVCHI PASTKI JADVALDAGI ANIQ BIR TEKSHIRUVGA BOSGAN BO'LSA:
     const hasTransId = cells.some(c => /^\d{6,8}$/.test(c.innerText.trim()));
@@ -527,6 +577,9 @@ function handlePassiveRowClick(e) {
     if (patient) {
       if (patient.isGreen) {
         selectedPatient = null;
+        lastPatientInfo = null;
+        lastObservedPatientId = "";
+        lastObservedServicesHash = "";
         const txt = document.getElementById("uttFloatingPatientText");
         const btn = document.getElementById("uttFloatingSendBtn");
         if (txt && btn) {
@@ -536,7 +589,11 @@ function handlePassiveRowClick(e) {
         return;
       }
 
+      // Qat'iy ushbu bosilgan bemorni saqlaymiz:
       lastPatientInfo = patient;
+      selectedPatient = patient;
+      lastObservedPatientId = patient.id;
+      lastObservedServicesHash = "";
 
       // Pastki jadvaldagi xizmatlarni o'qish va qo'llash
       const servicesList = findAllCurrentServicesPassively();
@@ -555,6 +612,9 @@ function handlePassiveRowClick(e) {
       });
       return;
     }
+
+    // Boshqa har qanday noaniq qator bosilganda panelni bo'shatamiz:
+    resetFloatingBar();
 
   } catch (err) {
     console.warn("Passive click handler caught:", err);
@@ -640,19 +700,14 @@ function handleSpecificBottomServiceClick(row, cells) {
       transactionDate: serviceDate
     };
 
-    // Bemor ma'lumotini aniq topish (shifokor va sana bo'yicha yuqori jadvaldan moslash)
-    let pInfo = findActivePatientFromTopTable(serviceDoctor, serviceDate) || lastPatientInfo || selectedPatient;
+    // Bemor ma'lumotini aniq olish (foydalanuvchi bosgan bemor yoki faol qator):
+    let pInfo = (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—") 
+      ? { ...lastPatientInfo } 
+      : getSelectedPatientFromDom();
+
     if (!pInfo) {
-      pInfo = {
-        id: "—",
-        name: "Tanlangan bemor",
-        referringDoctor: serviceDoctor,
-        priority: "",
-        department: "",
-        patientType: "Ambulator",
-        isStationary: false,
-        rowDate: serviceDate
-      };
+      resetFloatingBar(`<span style="color:#f59e0b; font-weight:700;">⚠️ Avval yuqori jadvaldan bemor qatorini bosing</span>`);
+      return;
     }
 
     if (serviceDoctor && !pInfo.referringDoctor) {
@@ -695,13 +750,14 @@ function handleSpecificBottomServiceClick(row, cells) {
       servicesCount: 1,
       servicesList: [specificService],
       allPatientServices: allServices.length > 0 ? allServices : [specificService],
-      calcMethod: "Foydalanuvchi tanlagan alohida tekshiruv",
+      calcMethod: combo.calcMethod,
       userSelectedSpecific: true
     };
 
     updateFloatingBarPatientDisplay();
-  } catch (e) {
-    console.warn("handleSpecificBottomServiceClick error:", e);
+
+  } catch (err) {
+    console.warn("handleSpecificBottomServiceClick error:", err);
   }
 }
 
@@ -1130,54 +1186,16 @@ function getAllTopTablePatients() {
   return patients;
 }
 
-// 2.5 YUQORI JADVALDAN HAQIQIY TANLANGAN VA MOS BEMORNI TOPISH
+// 2.5 YUQORI JADVALDAN HAQIQIY TANLANGAN BEMORNI TOPISH
 function findActivePatientFromTopTable(specificDoctor = "", specificDate = "") {
   try {
-    const patients = getAllTopTablePatients();
-    if (patients.length === 0) return null;
-
-    const { bottomDoctor, bottomDate } = parseBottomTableDoctorAndDate();
-    const docToMatch = (specificDoctor || bottomDoctor || "").trim();
-    const dateToMatch = (specificDate || bottomDate || "").trim();
-
-    // 1. Pastki jadval shifokori VA sanasi bo'yicha aniq moslash:
-    if (docToMatch || dateToMatch) {
-      if (docToMatch && dateToMatch) {
-        const docSurname = docToMatch.replace(/^Dr\.\s*/i, '').split(" ")[0].toLowerCase();
-        const datePrefix = dateToMatch.substring(0, 10);
-        const matchBoth = patients.find(p => {
-          if (p.isGreen) return false;
-          const pDoc = p.referringDoctor.toLowerCase();
-          const pDate = p.rowDate;
-          return pDoc.includes(docSurname) && pDate.includes(datePrefix);
-        });
-        if (matchBoth) return matchBoth;
-      }
-
-      if (docToMatch) {
-        const docSurname = docToMatch.replace(/^Dr\.\s*/i, '').split(" ")[0].toLowerCase();
-        const matchDoc = patients.find(p => !p.isGreen && p.referringDoctor.toLowerCase().includes(docSurname));
-        if (matchDoc) return matchDoc;
-      }
-
-      if (dateToMatch) {
-        const fullDateMatch = patients.find(p => !p.isGreen && p.rowDate.includes(dateToMatch.substring(0, 16)));
-        if (fullDateMatch) return fullDateMatch;
-        const datePrefix = dateToMatch.substring(0, 10);
-        const dayMatch = patients.find(p => !p.isGreen && p.rowDate.includes(datePrefix));
-        if (dayMatch) return dayMatch;
-      }
+    // 1. Foydalanuvchi oxirgi bosgan bemor (aniq va ustuvor):
+    if (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—" && !lastPatientInfo.isGreen) {
+      return lastPatientInfo;
     }
-
-    // 2. Foydalanuvchi oxirgi bosgan bemor (agar ro'yxatda mavjud bo'lsa):
-    if (lastPatientInfo && lastPatientInfo.id && lastPatientInfo.id !== "—") {
-      const matchLast = patients.find(p => p.id === lastPatientInfo.id && !p.isGreen);
-      if (matchLast) return matchLast;
-    }
-
-    // 3. Birinchi yashil bo'lmagan bemor:
-    const nonGreen = patients.filter(p => !p.isGreen);
-    return nonGreen.length > 0 ? nonGreen[0] : patients[0];
+    // 2. Kardelen jadvalida tanlangan (focused/selected) qator:
+    const domPatient = getSelectedPatientFromDom();
+    if (domPatient) return domPatient;
   } catch (e) {
     console.warn("findActivePatientFromTopTable error:", e);
   }
