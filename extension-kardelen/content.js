@@ -649,7 +649,7 @@ function handleSpecificBottomServiceClick(row, cells) {
         referringDoctor: serviceDoctor,
         priority: "",
         department: "",
-        patientType: "Uyidan qatnaydi",
+        patientType: "Ambulator",
         isStationary: false,
         rowDate: serviceDate
       };
@@ -836,7 +836,7 @@ async function updateFloatingBarPatientDisplay() {
 
   const typeBadge = selectedPatient.isStationary
     ? ` <span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.stationary || "🏥 Bo'limda"}: ${escapeHtml(selectedPatient.department || '')}</span>`
-    : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
+    : ` <span style="background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${tDict.ambulatory || "🏠 Ambulator"}</span>`;
 
   const sampleBadge = selectedPatient.sampleNumber ? ` <span style="background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-size:10.5px; font-weight:700;">№${escapeHtml(selectedPatient.sampleNumber)}</span>` : "";
 
@@ -989,7 +989,7 @@ function extractPatientFromRow(row) {
       referringDoctor: referringDoctor,
       priority: priority,
       department: isStationary ? department : "",
-      patientType: isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi",
+      patientType: isStationary ? "Bo'limda yotibdi" : "Ambulator",
       isStationary: isStationary,
       isGreen: isGreen,
       rowDate: rowDate
@@ -2712,7 +2712,7 @@ async function openQueueListModal() {
 
               const typeBadge = p.patientType === "Bo'limda yotibdi"
                 ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">${tDict.stationary || "🏥 Bo'limda"} ${p.department ? `(${escapeHtml(p.department)})` : ''}</span>`
-                : `<span style="background:#e0f2fe; color:#0284c7; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
+                : `<span style="background:#e0f2fe; color:#0284c7; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:4px; display:inline-block;">${tDict.ambulatory || "🏠 Ambulator"}</span>`;
 
               let statusBadge = `<span style="background:#fef3c7; color:#b45309; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusWaiting || 'Kutmoqda'}</span>`;
               if (p.status === "calling") statusBadge = `<span style="background:#fce7f3; color:#be185d; padding:3px 7px; border-radius:4px; font-size:10.5px; font-weight:bold;">${dict.statusCalling || 'Chaqirilmoqda'}</span>`;
@@ -3053,7 +3053,7 @@ async function openSendModal(patientData) {
                 </span>
               ` : `
                 <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">
-                  🏠 Uyidan qatnaydi
+                  🏠 Ambulator
                 </span>
               `}
             </span>
@@ -3246,7 +3246,7 @@ async function openSendModal(patientData) {
       if (valPatType) {
         valPatType.innerHTML = patientData.isStationary 
           ? `<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${tDict.stationary || "🏥 Bo'limda yotibdi"} ${patientData.department ? `(${escapeHtml(patientData.department)})` : ''}</span>`
-          : `<span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${tDict.ambulatory || "🏠 Uyidan qatnaydi"}</span>`;
+          : `<span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${tDict.ambulatory || "🏠 Ambulator"}</span>`;
       }
 
       const lblRefDoc = document.getElementById("uttModalLblRefDoc");
@@ -3922,7 +3922,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     sampleNumber: patientData.sampleNumber || "",
     birthDate: patientData.birthDate || "",
     pinfl: patientData.pinfl || "",
-    patientType: patientData.patientType || (patientData.isStationary ? "Bo'limda yotibdi" : "Uyidan qatnaydi"),
+    patientType: patientData.patientType || (patientData.isStationary ? "Bo'limda yotibdi" : "Ambulator"),
     department: patientData.department || "",
     referringDoctor: patientData.referringDoctor || "",
     priority: patientData.priority || "",
@@ -4067,7 +4067,7 @@ function printThermalTicketDirect(payload, lang) {
     const lblPatientType = dict ? dict.patientType : "Bemor Toifasi";
     const valPatientType = payload.patientType === "Bo'limda yotibdi" 
       ? `${dict ? dict.stationary : "🏥 Bo'limda yotibdi"} ${payload.department ? `(${escapeHtml(payload.department)})` : ''}` 
-      : (dict ? dict.ambulatory : "🏠 Uyidan qatnaydi");
+      : (dict ? dict.ambulatory : "🏠 Ambulator");
     const lblReferringDoc = dict ? dict.referringDoctor : "Fayl Shifokori";
     const lblRoomDevice = dict ? dict.roomDevice : "Qurilma / Xona";
     const lblService = dict ? dict.service : "Tekshiruv";
@@ -4287,7 +4287,7 @@ function printConsentFormDirect(payload, lang) {
 
     const typeText = payload.patientType === "Bo'limda yotibdi"
       ? `${dict ? dict.stationary : "Bo'limda yotibdi"} ${payload.department ? `(${payload.department})` : ''}`
-      : (dict ? dict.ambulatory : "Uyidan qatnaydi (Ambulator)");
+      : (dict ? dict.ambulatory : "Ambulator");
 
     // 1. Nashr sanasi
     let rawQueueDate = payload.appointmentDate || payload.date || (typeof selectedDate !== 'undefined' ? selectedDate : '') || '';

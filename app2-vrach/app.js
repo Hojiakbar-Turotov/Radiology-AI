@@ -730,7 +730,7 @@ async function handleConfirmRecheck(e) {
     name: selectedRecheckPatient.name,
     phone: selectedRecheckPatient.phone || "",
     age: selectedRecheckPatient.age || "",
-    patientType: selectedRecheckPatient.patientType || "Uyidan qatnaydi",
+    patientType: selectedRecheckPatient.patientType || "Ambulator",
     department: selectedRecheckPatient.department || "",
     referringDoctor: selectedRecheckPatient.referringDoctor || "",
     doctorId: currentDoctor.id,
@@ -1921,7 +1921,7 @@ function generateTestTicketHtml(service, lang = 'uz') {
   const mockPayload = {
     ticketId: "847",
     name: "Yoqubov Dilshod (TEST)",
-    patientType: "Uyidan qatnaydi",
+    patientType: "Ambulator",
     service: service.name,
     doctorName: docName,
     room: rawRoom,
