@@ -1,47 +1,15 @@
-/* Karmed Floating Button Styles */
-.karmed-floating-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 999999;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: #ffffff !important;
-  border: 2px solid #ffffff;
-  border-radius: 30px;
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 700;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
-  transition: all 0.25s ease;
-}
-
-.karmed-floating-btn:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.55);
-  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-}
-
-.karmed-floating-btn:active {
-  transform: scale(0.97);
-}
-
-/* Tanlangan Bemorning Pastki/Tepadagi Zamonaviy Suzuvchi Paneli */
+/* Karmed Bemor Kartochkasi Suzuvchi Paneli */
 .karmed-patient-banner {
   position: fixed;
-  bottom: 18px;
-  left: 24px;
-  right: 220px;
+  bottom: 14px;
+  left: 20px;
+  right: 20px;
   background: #ffffff;
   border: 1.5px solid #0284c7;
   border-radius: 12px;
-  padding: 10px 16px;
-  z-index: 999998;
-  box-shadow: 0 8px 30px rgba(2, 132, 199, 0.25);
+  padding: 10px 18px;
+  z-index: 9999999;
+  box-shadow: 0 8px 30px rgba(2, 132, 199, 0.22);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   animation: bannerSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -55,7 +23,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
 }
 
 .karmed-banner-left {
@@ -68,15 +36,15 @@
   gap: 5px;
   background: #e0f2fe;
   color: #0369a1;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   padding: 2px 8px;
-  border-radius: 12px;
-  margin-bottom: 4px;
+  border-radius: 10px;
+  margin-bottom: 3px;
 }
 
 .karmed-banner-name {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 800;
   color: #0f172a;
   display: flex;
@@ -87,7 +55,7 @@
 .karmed-age-tag {
   background: #f1f5f9;
   color: #475569;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 6px;
@@ -112,22 +80,32 @@
   font-family: monospace;
 }
 
+.karmed-banner-service {
+  font-size: 12px;
+  color: #0369a1;
+  margin-top: 4px;
+  background: #f0f9ff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
 .karmed-banner-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .karmed-btn-action {
-  padding: 8px 14px;
+  padding: 9px 16px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   border: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   transition: all 0.2s;
   white-space: nowrap;
 }
@@ -183,7 +161,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
-  z-index: 9999999;
+  z-index: 99999999;
   display: flex;
   align-items: center;
   justify-content: center;

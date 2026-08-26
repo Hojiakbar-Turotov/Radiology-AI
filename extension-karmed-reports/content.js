@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
- * 1. Scans Karmed table: F.I.Sh, Yoshi (Tug'ilgan kuni), Bemor ID, PINFL, Fayl shifokori, Hisobot muallifi
- * 2. Handles row selection, onclick/dblclick to open patient files
- * 3. Prepares patient data for inner report capture
+ * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
+ * 2. Yagona qulay boshqaruv paneli (ortiqcha 2-tugmasiz)
+ * 3. Tanlangan bemorga onclick/dblclick qilib fayllarini ochish
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -27,18 +27,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// 2. Karmed Jadvalini Kuzatish va Bemor Tanlanganda Ma'lumotlarni Olish
+// 2. Karmed Jadvalini Kuzatish
 function initTableObserver() {
   document.addEventListener("click", handleTableClickCapture, true);
   document.addEventListener("dblclick", handleTableClickCapture, true);
 
-  // Har 2 soniyada tanlangan qatorni tekshirish
   setInterval(() => {
     checkSelectedRow();
   }, 1500);
 }
 
-// Jadval katakchalaridan ustunlar indeksini topish
+// Asosiy jadval sarlavha ustunlari indekslarini aniqlash
 function getTableColumnIndexes(headerRow) {
   const indexes = {
     fileDoctor: -1,
@@ -64,7 +63,7 @@ function getTableColumnIndexes(headerRow) {
     else if (txt.includes("familiya") || txt.includes("lastname")) indexes.lastName = idx;
     else if (txt.includes("ismi") && !txt.includes("ota") && !txt.includes("familiya")) indexes.firstName = idx;
     else if (txt.includes("otaismi") || txt.includes("middlename")) indexes.middleName = idx;
-    else if (txt.includes("tugilgan") || txt.includes("birthdate") || txt.includes("tugilganjoyi")) indexes.birthDate = idx;
+    else if (txt.includes("tugilgan") || txt.includes("birthdate")) indexes.birthDate = idx;
     else if (txt.includes("pinfl") || txt.includes("pnfl") || txt.includes("jshshir")) indexes.pinfl = idx;
     else if (txt.includes("bolim") || txt.includes("ulangan")) indexes.department = idx;
     else if (txt.includes("namuna")) indexes.sampleNumber = idx;
@@ -74,26 +73,29 @@ function getTableColumnIndexes(headerRow) {
   return indexes;
 }
 
-// Tanlangan yoki bosilgan qatordan bemor ma'lumotlarini ajratish
+// Qatordan bemor ma'lumotlarini aniq ajratib olish
 function parsePatientFromRow(row) {
   if (!row || row.tagName !== "TR") return null;
+
+  // Guruh sarlavhalarini (masalan, EKG (1), Ultratovush (1), MRT (25)) o'tkazib yuborish
+  if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("("))) {
+    return null;
+  }
 
   const cells = Array.from(row.querySelectorAll("td"));
   if (cells.length < 5) return null;
 
-  // Jadval sarlavhasini topish
   const table = row.closest("table");
   let headerRow = table ? table.querySelector("thead tr, tr:first-child") : null;
   const colIdx = getTableColumnIndexes(headerRow);
 
   const cellTexts = cells.map(c => c.innerText.trim());
 
-  // 1. PINFL (14 xonali)
+  // 1. PINFL (14 xonali JSHSHIR)
   let pinfl = "";
   if (colIdx.pinfl !== -1 && /^\d{14}$/.test(cellTexts[colIdx.pinfl])) {
     pinfl = cellTexts[colIdx.pinfl];
   } else {
-    // Katakchalardan 14 xonali sonni topish
     const pCell = cellTexts.find(t => /^[1-6]\d{13}$/.test(t));
     if (pCell) pinfl = pCell;
   }
@@ -112,12 +114,11 @@ function parsePatientFromRow(row) {
   let firstName = colIdx.firstName !== -1 ? cellTexts[colIdx.firstName] : "";
   let middleName = colIdx.middleName !== -1 ? cellTexts[colIdx.middleName] : "";
 
-  // Agar alohida ustunlar topilmasa, matnlardan ajratish
   if (!lastName || !firstName) {
     const nameCandidates = cellTexts.filter(t => 
       t.length >= 2 && 
       /^[A-ZА-ЯЁ\s'\-]+$/i.test(t) && 
-      !t.includes("MRT") && !t.includes("MSKT") && !t.includes("RENTGEN") && !t.includes("SUGURTA") && !t.includes("ORDER")
+      !t.includes("MRT") && !t.includes("MSKT") && !t.includes("RENTGEN") && !t.includes("SUGURTA") && !t.includes("REZIDENT")
     );
     if (nameCandidates.length >= 2) {
       lastName = nameCandidates[0] || "";
@@ -128,7 +129,7 @@ function parsePatientFromRow(row) {
 
   const fullName = `${lastName} ${firstName} ${middleName}`.trim();
 
-  // 4. Tug'ilgan kuni va Yoshi
+  // 4. Tug'ilgan sana va Yoshi
   let birthDate = colIdx.birthDate !== -1 ? cellTexts[colIdx.birthDate] : "";
   if (!birthDate) {
     const bMatch = row.innerText.match(/(\d{2}\.\d{2}\.\d{4})/);
@@ -154,8 +155,8 @@ function parsePatientFromRow(row) {
     if (docMatch) fileDoctor = docMatch[0].trim();
   }
 
-  // 6. Pastki jadvaldan (Sub-table) Tekshiruv Nomi va Hisobot Muallifini olish
-  const subTableData = extractSubTableData();
+  // 6. Pastki jadvaldan (Sub-table) Aniq Tekshiruv Nomi va Hisobot Muallifini olish
+  const subTableData = extractSubTableData(fileDoctor);
 
   return {
     patientId: patientId || "Noma'lum",
@@ -167,62 +168,110 @@ function parsePatientFromRow(row) {
     birthDate: birthDate || "",
     age: age || "",
     fileDoctor: fileDoctor || "Shifokor",
-    serviceName: subTableData.serviceName || "Radiologik Tekshiruv",
-    reportAuthor: subTableData.reportAuthor || fileDoctor || "Shifokor-Radiolog",
+    serviceName: subTableData.serviceName || "Tibbiy Tekshiruv",
+    reportAuthor: subTableData.reportAuthor || "Shifokor ko'rigida",
     transactionDate: subTableData.transactionDate || new Date().toISOString().split("T")[0],
     queueNumber: subTableData.queueNumber || "",
     rowElement: row
   };
 }
 
-// Pastki kichik jadvaldan (Tashxislar / Xizmatlar) ma'lumot olish
-function extractSubTableData() {
-  let serviceName = "";
+// Pastki jadvaldan (Tashxislar / Xizmatlar) ANIQ ma'lumotlarni ajratish
+function extractSubTableData(defaultDoctor = "") {
+  let serviceNamesList = [];
   let reportAuthor = "";
   let transactionDate = "";
   let queueNumber = "";
 
   try {
-    const subTables = document.querySelectorAll("table");
-    subTables.forEach(tbl => {
-      const txt = tbl.innerText;
-      if (txt.includes("Xizmatlar Nomi") || txt.includes("Hisobot muallifi") || txt.includes("Navbat raqami")) {
-        const rows = tbl.querySelectorAll("tbody tr, tr");
+    const allTables = Array.from(document.querySelectorAll("table"));
+    
+    // Pastki sub-jadvalni aniqlash
+    for (const tbl of allTables) {
+      const headerText = tbl.innerText;
+      if (headerText.includes("Xizmatlar Nomi") || headerText.includes("Navbat raqami") || headerText.includes("Hisobot muallifi")) {
+        
+        // Ustun indekslarini aniqlash
+        let colXizmat = 1;
+        let colAuthor = 5;
+        let colQueue = 3;
+        let colDate = 2;
+        let colDoctor = 4;
+
+        const ths = Array.from(tbl.querySelectorAll("th, tr:first-child td"));
+        ths.forEach((th, idx) => {
+          const t = th.innerText.toLowerCase().replace(/[\s_\-']/g, "");
+          if (t.includes("xizmatlarnomi") || t.includes("xizmatnomi")) colXizmat = idx;
+          else if (t.includes("hisobotmuallifi")) colAuthor = idx;
+          else if (t.includes("navbatraqami")) colQueue = idx;
+          else if (t.includes("tranzaksiyasanasi") || t.includes("sana")) colDate = idx;
+          else if (t.includes("sorovyuboradigan") || t.includes("shifokor")) colDoctor = idx;
+        });
+
+        // Ma'lumot qatorlarini o'qish (headerdan tashqari)
+        const rows = Array.from(tbl.querySelectorAll("tbody tr, tr"));
         rows.forEach(r => {
           const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
-          if (cells.length >= 4) {
-            // Xizmat nomi
-            const sCell = cells.find(c => c.includes("MRT") || c.includes("MSKT") || c.includes("Rentgen") || c.includes("a'zolari") || c.includes("Bo'g'imi"));
-            if (sCell) serviceName = sCell;
+          if (cells.length >= 3 && !cells[0].includes("Kod") && !cells[0].includes("Xizmatlar")) {
+            
+            // Aniq Xizmat Nomi
+            const serviceName = cells[colXizmat] || cells[1] || "";
+            if (serviceName && !serviceName.includes("Kod") && !serviceName.includes("Xizmat") && !serviceNamesList.includes(serviceName)) {
+              serviceNamesList.push(serviceName);
+            }
 
-            // Muallif
-            const aCell = cells.find(c => /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(c));
-            if (aCell && aCell !== sCell) reportAuthor = aCell;
+            // Aniq Hisobot Muallifi (Faqat haqiqiy shifokor ismi bo'lsa)
+            const authorVal = cells[colAuthor] || "";
+            if (authorVal && 
+                authorVal.length > 3 && 
+                /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(authorVal) && 
+                !authorVal.includes("Paket") && 
+                !authorVal.includes("Kodi") && 
+                !authorVal.includes("Xizmat")) {
+              reportAuthor = authorVal;
+            }
 
-            // Navbat raqami (7 xonali)
-            const qCell = cells.find(c => /^\d{6,8}$/.test(c));
-            if (qCell) queueNumber = qCell;
+            // Agar author bo'sh bo'lsa, so'rov yuborgan shifokorni tekshiramiz
+            if (!reportAuthor) {
+              const docVal = cells[colDoctor] || "";
+              if (docVal && /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(docVal) && !docVal.includes("Paket")) {
+                reportAuthor = docVal;
+              }
+            }
+
+            // Navbat raqami
+            if (!queueNumber && cells[colQueue] && /^\d{5,9}$/.test(cells[colQueue])) {
+              queueNumber = cells[colQueue];
+            }
           }
         });
+        break;
       }
-    });
+    }
 
-    if (!serviceName) {
+    // Agar sub-jadvaldan topilmagan bo'lsa, asosiy sahifadagi guruh sarlavhasi (Ultratovush / EKG / MRT) ni olamiz
+    if (serviceNamesList.length === 0) {
       const pageText = document.body.innerText;
-      if (pageText.includes("Kichik chanoq")) serviceName = "Kichik chanoq a'zolari MRT";
-      else if (pageText.includes("Qo'l-Kaft")) serviceName = "Qo'l-Kaft Bo'g'imi MRT";
-      else if (pageText.includes("Bosh miya") || pageText.includes("Bosh Miya")) serviceName = "Bosh miya MRT";
+      if (pageText.includes("Ultratovush")) serviceNamesList.push("Ultratovush (UTT) Tekshiruvi");
+      else if (pageText.includes("EKG")) serviceNamesList.push("EKG Tekshiruvi");
+      else if (pageText.includes("MRT")) serviceNamesList.push("MRT Tekshiruvi");
+      else if (pageText.includes("MSKT")) serviceNamesList.push("MSKT Tekshiruvi");
+      else if (pageText.includes("Rentgen")) serviceNamesList.push("Rentgen Tekshiruvi");
     }
 
-    if (!reportAuthor) {
-      const authorMatch = document.body.innerText.match(/Hisobot\s*muallifi[\s:—–]+([A-ZА-ЯЁ][a-zа-яё'\s]+)/i);
-      if (authorMatch) reportAuthor = authorMatch[1].trim();
-    }
   } catch (e) {
     console.warn("extractSubTableData error:", e);
   }
 
-  return { serviceName, reportAuthor, transactionDate, queueNumber };
+  const finalServiceName = serviceNamesList.length > 0 ? serviceNamesList.join(", ") : "Tibbiy Tekshiruv";
+  const finalAuthor = (reportAuthor && !reportAuthor.includes("Paket")) ? reportAuthor : (defaultDoctor || "Shifokor ko'rigida");
+
+  return {
+    serviceName: finalServiceName,
+    reportAuthor: finalAuthor,
+    transactionDate,
+    queueNumber
+  };
 }
 
 // Jadvalda qator bosilganda
@@ -230,7 +279,6 @@ function handleTableClickCapture(e) {
   const row = e.target.closest("tr");
   if (!row) return;
 
-  // Jadval qatori ekanligini tekshirish
   const patient = parsePatientFromRow(row);
   if (patient && (patient.pinfl || patient.patientId !== "Noma'lum")) {
     activePatient = patient;
@@ -239,7 +287,7 @@ function handleTableClickCapture(e) {
   }
 }
 
-// Yashil yoki tanlangan qatorni avtomatik aniqlash
+// Tanlangan qatorni avtomatik aniqlash
 function checkSelectedRow() {
   const selectedRows = document.querySelectorAll("tr.selected, tr.active, tr.highlight, tr[style*='background']");
   for (const row of selectedRows) {
@@ -277,7 +325,7 @@ function saveActivePatientToStorage(p) {
   } catch (e) {}
 }
 
-// 3. Ekranda Tanlangan Bemor haqida Chiroyli Suzuvchi Panelni Ko'rsatish
+// 3. YAGONA VA TOZA SUZUVCHI BEMOR PANELI (Ortiqcha 2-tugmasiz)
 function renderPatientBanner(p) {
   let banner = document.getElementById("karmedPatientInfoBanner");
   if (!banner) {
@@ -296,16 +344,18 @@ function renderPatientBanner(p) {
           <span><b>ID:</b> ${escapeHtml(p.patientId)}</span> • 
           <span><b>PNFL:</b> <code class="karmed-pnfl-code">${escapeHtml(p.pinfl || 'Kiritilmagan')}</code></span> • 
           <span><b>Fayl shifokori:</b> ${escapeHtml(p.fileDoctor)}</span> • 
-          <span><b>Hisobot muallifi:</b> ${escapeHtml(p.reportAuthor)}</span> • 
-          <span><b>Tekshiruv:</b> ${escapeHtml(p.serviceName)}</span>
+          <span><b>Hisobot muallifi:</b> ${escapeHtml(p.reportAuthor)}</span>
+        </div>
+        <div class="karmed-banner-service">
+          <i class="fa-solid fa-microscope"></i> <b>Tekshiruv:</b> <span>${escapeHtml(p.serviceName)}</span>
         </div>
       </div>
       <div class="karmed-banner-actions">
-        <button type="button" class="karmed-btn-action karmed-btn-open-files" id="btnBannerOpenFiles">
+        <button type="button" class="karmed-btn-action karmed-btn-open-files" id="btnBannerOpenFiles" title="Bemor fayllari va xulosasini ochish">
           <i class="fa-solid fa-folder-open"></i> Bemor Fayllarini Ochish (Onclick)
         </button>
-        <button type="button" class="karmed-btn-action karmed-btn-save-report" id="btnBannerSaveReport">
-          <i class="fa-solid fa-file-export"></i> Xulosani Saqlash
+        <button type="button" class="karmed-btn-action karmed-btn-save-report" id="btnBannerSaveReport" title="Ushbu bemor xulosasini Telegramga saqlash">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Xulosani Saqlash
         </button>
       </div>
     </div>
@@ -313,23 +363,22 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
-  // "Bemor Fayllarini Ochish" bosilganda qatorga ikki marta bosish (dblclick) va ochish
+  // "Bemor Fayllarini Ochish" hodisasi
   document.getElementById("btnBannerOpenFiles").onclick = (e) => {
     e.stopPropagation();
     openPatientFilesAction(p);
   };
 
-  // "Xulosani Saqlash" bosilganda
+  // "Xulosani Saqlash" hodisasi (Yagona asosiy tugma)
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
   };
 }
 
-// Bemor fayllarini ochish hodisasi (dblclick yoki onclick simulyatsiyasi)
+// Bemor fayllarini ochish hodisasi
 function openPatientFilesAction(p) {
   if (p.rowElement) {
-    // 1. Qatorga double-click yuborish
     const dblEvent = new MouseEvent("dblclick", {
       bubbles: true,
       cancelable: true,
@@ -337,7 +386,6 @@ function openPatientFilesAction(p) {
     });
     p.rowElement.dispatchEvent(dblEvent);
 
-    // 2. Qatorga click yuborish
     const clickEvent = new MouseEvent("click", {
       bubbles: true,
       cancelable: true,
@@ -345,7 +393,6 @@ function openPatientFilesAction(p) {
     });
     p.rowElement.dispatchEvent(clickEvent);
 
-    // 3. Agar yuqori paneldagi "Viewer" yoki "Hisobot" tugmasi bo'lsa, uni ham chaqirish
     const viewerBtn = Array.from(document.querySelectorAll("button, a, div, span")).find(el => 
       el.innerText && (el.innerText.trim() === "Viewer" || el.innerText.trim() === "Hisobot" || el.innerText.trim() === "Web Pacs")
     );
@@ -369,7 +416,6 @@ function extractKarmedPageData() {
   try {
     const pageText = document.body.innerText || "";
 
-    // FastReport Export sahifasi
     const pinflMatch = pageText.match(/PINFL\s*[:：]\s*(\d{14})/i);
     if (pinflMatch) pinfl = pinflMatch[1];
 
@@ -382,7 +428,6 @@ function extractKarmedPageData() {
     const repDocMatch = pageText.match(/Reporting\s*Doctor\s*[:：]\s*([^\n\r\t]+)/i);
     if (repDocMatch) doctorName = repDocMatch[1].trim();
 
-    // Matn muharriri yoki xulosani olish
     const textareas = document.querySelectorAll("textarea, [contenteditable='true'], .xulosa-text, .report-content, .conclusion");
     for (const ta of textareas) {
       const val = (ta.value || ta.innerText || "").trim();
@@ -409,14 +454,14 @@ function extractKarmedPageData() {
   return {
     pinfl,
     patientName,
-    serviceName: serviceName || "Radiologik Tekshiruv",
+    serviceName: serviceName || "Tibbiy Tekshiruv",
     doctorName: doctorName || "Shifokor-Radiolog",
     conclusionText,
     date
   };
 }
 
-// 5. To'g'ridan-to'g'ri saqlash modali
+// 5. Yagona Saqlash Modali
 async function handleDirectSaveClick() {
   const data = extractKarmedPageData();
 
@@ -524,14 +569,12 @@ async function handleDirectSaveClick() {
     };
 
     try {
-      // 1. Firebase-ga yozish
       await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}/${reportId}.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reportData)
       });
 
-      // 2. Telegramga xabar berish
       const tgMsg = 
         `📄 <b>YANGI TIBBIY XULOSA SAQLANDI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
@@ -546,14 +589,14 @@ async function handleDirectSaveClick() {
         `━━━━━━━━━━━━━━━━━━\n\n` +
         `📝 <b>Xulosa:</b>\n${escapeHtml(conclusionText)}`;
 
-      // Kanalga yuborish
+      // Kanalga
       fetch(`${TG_API_BASE}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id: CHANNEL_ID, text: tgMsg, parse_mode: "HTML" })
       }).catch(() => {});
 
-      // Adminga yuborish
+      // Adminga
       fetch(`${TG_API_BASE}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -592,21 +635,7 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Suzuvchi tugma
-function injectFloatingKarmedButton() {
-  if (document.getElementById("karmedReportsFloatingBtn")) return;
-
-  const btn = document.createElement("button");
-  btn.id = "karmedReportsFloatingBtn";
-  btn.className = "karmed-floating-btn";
-  btn.innerHTML = `<i class="fa-solid fa-file-medical"></i> <span>Xulosani Saqlash</span>`;
-  btn.title = "Karmed-dagi xulosani Telegram bot bazasiga saqlash";
-  btn.addEventListener("click", handleDirectSaveClick);
-  document.body.appendChild(btn);
-}
-
 // Boshlash
 setTimeout(() => {
   initTableObserver();
-  injectFloatingKarmedButton();
 }, 1000);
