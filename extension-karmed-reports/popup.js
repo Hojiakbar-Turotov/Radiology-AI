@@ -311,9 +311,9 @@ async function saveSettings() {
 async function getSavedChannelId() {
   try {
     const data = await chrome.storage.local.get("karmed_channel_id");
-    return data.karmed_channel_id || "";
+    return data.karmed_channel_id || "-1003962033499";
   } catch (e) {
-    return "";
+    return "-1003962033499";
   }
 }
 
