@@ -537,43 +537,140 @@ async function startAutopilotWorkflow() {
     // 1-Qadam: Qatorni tanlash va bosish
     row.scrollIntoView({ behavior: "smooth", block: "center" });
     triggerFullClick(row.querySelector("td:nth-child(3)") || row);
-    await sleep(900);
+    await sleep(1200);
 
     // 2-Qadam: Qatorni 2 marta bosib Hisobot oynasini ochish
+    autopilotStatusText = `📄 [${i + 1}/${patientItems.length}] ${patient.fullName} hisoboti ochilmoqda...`;
+    renderPatientBanner(patient);
     triggerDoubleClick(row.querySelector("td:nth-child(3)") || row);
     triggerDoubleClick(row);
-    await sleep(2200);
+    await sleep(2800);
 
     // 3-Qadam: 1-chi Printer tugmasini bosish (Radiologiya Hisobot oynasi)
     autopilotStatusText = `🖨️ [${i + 1}/${patientItems.length}] ${patient.fullName} - 1-chi Printer bosilmoqda...`;
     renderPatientBanner(patient);
     clickFastReportOrKarmedPrinterButton();
-    await sleep(2200);
+    await sleep(2800);
 
     // 4-Qadam: 2-chi Printer tugmasini bosish (FastReport toolbar)
     autopilotStatusText = `🖨️ [${i + 1}/${patientItems.length}] ${patient.fullName} - 2-chi Printer bosilmoqda...`;
     renderPatientBanner(patient);
     clickSecondFastReportPrinter();
-    await sleep(2200);
-
-    // 5-Qadam: Xulosa matnini ajratib olib Telegramga yuborish
-    autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} Telegramga yuborilmoqda...`;
-    renderPatientBanner(patient);
-    const pageData = extractKarmedPageData();
-    await sendCurrentReportToTelegramAndFirebase(pageData);
     await sleep(1500);
 
-    // 6-Qadam: Ochiq hisobot oynalarini yopish
+    // 5-Qadam: XULOSA MATNI YUKLANISHINI SABR BILAN KUTISH (15 soniyagacha)
+    autopilotStatusText = `⏳ [${i + 1}/${patientItems.length}] ${patient.fullName} - Xulosa matni yuklanishi kutilmoqda...`;
+    renderPatientBanner(patient);
+    
+    let conclusionText = await waitForConclusionText(15000);
+
+    // Agar hali ham topilmasa, yana bir marta 2-chi printerni turtamiz va kutamiz
+    if (!conclusionText || conclusionText.length < 35) {
+      clickSecondFastReportPrinter();
+      conclusionText = await waitForConclusionText(6000);
+    }
+
+    // 6-Qadam: Xulosa matnini ajratib olib Telegramga yuborish
+    const pageData = extractKarmedPageData();
+    if (conclusionText && conclusionText.length > 35) {
+      pageData.conclusionText = conclusionText;
+      autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} (${conclusionText.length} belgi) Telegramga yuborilmoqda...`;
+    } else {
+      autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} Telegramga yuborilmoqda...`;
+    }
+    renderPatientBanner(patient);
+
+    await sendCurrentReportToTelegramAndFirebase(pageData);
+    await sleep(2000);
+
+    // 7-Qadam: Ochiq hisobot oynalarini yopish
     autopilotStatusText = `🔒 [${i + 1}/${patientItems.length}] Oyna yopilmoqda...`;
     renderPatientBanner(patient);
     closeAllOpenedReportDialogs();
-    await sleep(1500);
+    await sleep(1800);
   }
 
   isAutopilotRunning = false;
   autopilotStatusText = `✅ Barcha ${patientItems.length} ta bemor xulosalari muvaffaqiyatli Telegramga yuklandi!`;
   renderPatientBanner(activePatient || { fullName: "Bemor", patientId: "-", pinfl: "-" });
   alert(`🎉 TABRIKLAYMIZ!\n\nBarcha ${patientItems.length} ta bemorning xulosalari Telegram kanalga va bazaga to'liq yuklandi!`);
+}
+
+// XULOSA MATNI TO'LIQ YUKLANGUNCHA KUTUVCHI DASTUR
+async function waitForConclusionText(maxWaitMs = 15000) {
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWaitMs) {
+    if (!isAutopilotRunning) return "";
+    const text = extractDeepMedicalText(document);
+    if (text && text.length > 40) {
+      return text;
+    }
+    await sleep(500);
+  }
+  return extractDeepMedicalText(document);
+}
+
+// BARCHA FREYMLAR VA DOM ICHIDAN TOZA TIBBIY MATNNI REKURSIV TORTIB OLISH
+function extractDeepMedicalText(doc = document) {
+  if (!doc) return "";
+
+  try {
+    const pageText = (doc.body ? doc.body.innerText : "") || "";
+
+    // 1. "ПРОТОКОЛ" dan boshlanuvchi blok
+    const protoIndex = pageText.indexOf("ПРОТОКОЛ");
+    if (protoIndex !== -1) {
+      let sub = pageText.substring(protoIndex).trim();
+      const cutMarkers = ["Tanlangan Bemor", "PDF Xulosa Tayyor", "Saqlash (F3)"];
+      for (const m of cutMarkers) {
+        const cut = sub.indexOf(m);
+        if (cut !== -1) sub = sub.substring(0, cut).trim();
+      }
+      if (sub.length > 35) return sub;
+    }
+
+    // 2. "МРТ ОРГАНОВ" yoki "МРТ " dan boshlanuvchi blok
+    const mrtIndex = pageText.search(/МРТ\s+[А-ЯЁ\s]+/i);
+    if (mrtIndex !== -1) {
+      let sub = pageText.substring(mrtIndex).trim();
+      const cut = sub.indexOf("Tanlangan Bemor");
+      if (cut !== -1) sub = sub.substring(0, cut).trim();
+      if (sub.length > 35) return sub;
+    }
+
+    // 3. FastReport / Radyoloji Raporu hujjati (media_1787723631944.png)
+    if (pageText.includes("РЕСПУБЛИКАНСКИЙ") || pageText.includes("PINFL :") || pageText.includes("ЗАКЛЮЧЕНИЕ")) {
+      const match = pageText.match(/(?:ПРОТОКОЛ|МРТ|РЕСПУБЛИКАНСКИЙ|Техника)[\s\S]+?(?:ЗАКЛЮЧЕНИЕ[\s\S]+?)(?=(?:Tanlangan Bemor|PDF Xulosa|$))/i);
+      if (match && match[0].length > 35) {
+        return match[0].trim();
+      }
+    }
+
+    // 4. ContentEditable, Textarea, Editorlar
+    const editables = Array.from(doc.querySelectorAll("[contenteditable='true'], [contenteditable=''], .dx-htmleditor-content, .k-editor-content, textarea, div[role='textbox'], .report-text"));
+    for (const el of editables) {
+      const val = (el.value || el.innerText || "").trim();
+      if (val.length > 35 && (val.includes("ПРОТОКОЛ") || val.includes("ЗАКЛЮЧЕНИЕ") || val.includes("Техника") || val.includes("МРТ") || val.includes("Описание"))) {
+        return val;
+      }
+    }
+
+    // 5. Barcha IFRAME lardan rekursiv qidirish
+    const iframes = Array.from(doc.querySelectorAll("iframe, frame"));
+    for (const ifr of iframes) {
+      try {
+        const ifrDoc = ifr.contentDocument || ifr.contentWindow?.document;
+        if (ifrDoc) {
+          const txt = extractDeepMedicalText(ifrDoc);
+          if (txt && txt.length > 35) return txt;
+        }
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn("extractDeepMedicalText error:", err);
+  }
+
+  return "";
 }
 
 // OCHIQ BO'LGAN BARCHA HISOBOT OYNALARINI YOPISH (Close / Kapat / Yopish / ESC)
