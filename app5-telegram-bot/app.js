@@ -2,7 +2,7 @@
  * Radiodiagnostika Telegram Bot & Xulosalar Portali - Web Dashboard Script
  */
 
-const BOT_TOKEN = "8836735566:AAEHBNHpIUINi_SsDxlCAkW6BQRRhpo61NQ";
+const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 let db = null;

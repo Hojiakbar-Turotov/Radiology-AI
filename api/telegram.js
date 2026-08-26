@@ -4,7 +4,7 @@
  * Auto-detects Channels and forwards all events to Admin (ID: 5314298089).
  */
 
-const BOT_TOKEN = "8836735566:AAEHBNHpIUINi_SsDxlCAkW6BQRRhpo61NQ";
+const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
 const ADMIN_USER_ID = "5314298089";
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
