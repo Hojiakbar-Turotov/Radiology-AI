@@ -123,14 +123,25 @@
   white-space: nowrap;
 }
 
-.karmed-btn-open-files {
-  background: #10b981;
+.karmed-btn-printer {
+  background: #059669;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.3);
+}
+
+.karmed-btn-printer:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.karmed-btn-open-files {
+  background: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.3);
 }
 
 .karmed-btn-open-files:hover {
-  background: #059669;
+  background: #4f46e5;
   transform: translateY(-1px);
 }
 

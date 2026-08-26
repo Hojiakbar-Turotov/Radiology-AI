@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Radiologiya Hisobot muharriridan toza tibbiy protokolni (ПРОТОКОЛ, Техника, Описание, ЗАКЛЮЧЕНИЕ...) to'liq va xatosiz ajratib olish
- * 3. 100% sinxronlashtirilgan real-vaqt bazasi va Telegram integratsiyasi
+ * 2. Printer tugmasini onclick bosish (PDF/FastReport xulosasini ochish)
+ * 3. FastReport/PDF va Hisobot sahifalaridan to'liq xulosani ajratib olish va Telegramga uzatish
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -23,6 +23,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.action === "GET_ACTIVE_PATIENT") {
     sendResponse({ success: !!activePatient, data: activePatient });
+    return true;
+  }
+  if (request.action === "CLICK_PRINTER_BTN") {
+    const clicked = clickKarmedPrinterButton();
+    sendResponse({ success: clicked });
     return true;
   }
 });
@@ -351,7 +356,7 @@ function saveActivePatientToStorage(p) {
   } catch (e) {}
 }
 
-// 3. YAGONA VA TOZA SUZUVCHI BEMOR PANELI
+// 3. YAGONA VA TOZA SUZUVCHI BEMOR PANELI (Printer tugmasi bilan)
 function renderPatientBanner(p) {
   let banner = document.getElementById("karmedPatientInfoBanner");
   if (!banner) {
@@ -382,8 +387,11 @@ function renderPatientBanner(p) {
         </div>
       </div>
       <div class="karmed-banner-actions">
+        <button type="button" class="karmed-btn-action karmed-btn-printer" id="btnBannerPrinter" title="Printer tugmasini bosib, PDF hisobotni ochish">
+          <i class="fa-solid fa-print"></i> Printer (PDF ochish)
+        </button>
         <button type="button" class="karmed-btn-action karmed-btn-open-files" id="btnBannerOpenFiles" title="Bemorning tibbiy xisobot oynasini ochish">
-          <i class="fa-solid fa-file-signature"></i> Bemor Hisobotini Ochish (2 marta bosish)
+          <i class="fa-solid fa-file-signature"></i> Hisobotni Ochish
         </button>
         <button type="button" class="karmed-btn-action karmed-btn-save-report" id="btnBannerSaveReport" title="Ushbu bemor xulosasini Telegramga saqlash">
           <i class="fa-solid fa-cloud-arrow-up"></i> Xulosani Saqlash
@@ -394,15 +402,63 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
+  // "Printer" tugmasi bosilganda
+  document.getElementById("btnBannerPrinter").onclick = (e) => {
+    e.stopPropagation();
+    clickKarmedPrinterButton();
+  };
+
+  // "Hisobotni Ochish" hodisasi
   document.getElementById("btnBannerOpenFiles").onclick = (e) => {
     e.stopPropagation();
     openPatientFilesAction(p);
   };
 
+  // "Xulosani Saqlash" hodisasi
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
   };
+}
+
+// PRINTER TUGMASINI AVTOMATIK ONCLICK BOSISH
+function clickKarmedPrinterButton() {
+  try {
+    const allElements = Array.from(document.querySelectorAll("button, a, div, span, img, table, td, input"));
+
+    // 1. Text yoki title "Printer" bo'lgan elementni qidiramiz
+    let printerTarget = allElements.find(el => {
+      const t = (el.innerText || el.title || el.getAttribute("aria-label") || el.value || "").trim().toLowerCase();
+      return (t === "printer" || t.startsWith("printer")) && !el.closest("#karmedPatientInfoBanner");
+    });
+
+    // 2. Agar matndan topilmasa, Printer rasmi (img) qidiramiz
+    if (!printerTarget) {
+      const imgs = Array.from(document.querySelectorAll("img"));
+      const pImg = imgs.find(img => img.src && (img.src.toLowerCase().includes("print") || img.src.toLowerCase().includes("yazdir") || img.src.toLowerCase().includes("printer")));
+      if (pImg) {
+        printerTarget = pImg.closest("button, a, div, table, td") || pImg;
+      }
+    }
+
+    if (printerTarget) {
+      const mouseOpts = { bubbles: true, cancelable: true, view: window };
+      printerTarget.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
+      printerTarget.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
+      printerTarget.dispatchEvent(new MouseEvent("click", mouseOpts));
+      printerTarget.click();
+
+      showToastNotification("🖨️ Printer tugmasi bosildi! PDF sahifasi ochilmoqda...");
+      return true;
+    } else {
+      showToastNotification("⚠️ Printer tugmasi topilmadi. Yuqoridagi Printer ikonkasini bosing.");
+      return false;
+    }
+  } catch (err) {
+    console.warn("clickKarmedPrinterButton error:", err);
+    showToastNotification("⚠️ Xatolik: " + err.message);
+    return false;
+  }
 }
 
 // Bemor xisobot faylini ochish hodisasi
@@ -437,113 +493,72 @@ function openPatientFilesAction(p) {
   showToastNotification(`📄 ${p.fullName} hisobot fayli ochilmoqda...`);
 }
 
-// 4. XULOSA MATNINI TOZALASH (Keraksiz Karmed interfeys so'zlarini olib tashlash)
-function cleanMedicalReportText(rawText) {
-  if (!rawText) return "";
-
-  const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  
-  const junkPatterns = [
-    /^(?:Saqlash|Bekor qilish|DEL|Printer|Tasdiqlashni|Gonderim|Qulflash|Bemorning|Shablonlar|Laboratoriya|Retsept|Saraton|Epikriz|Jarrohlik|Bemor Eslatmasi|Hisobot|Tele-Tip|E-Nabiz|Boshqa|Yopish)\b/i,
-    /^(?:Docs,\s*Pdf,\s*Txt|Tanlash|Davom eting|Tum Ses|Tüm Ses|Diğer Tetkikler|Kayıt Devre)\b/i,
-    /^(?:\d{2}:\d{2}\s*[\/\\]?\s*\d{2}:\d{2}|0:00\s*\/\s*0:00)/i,
-    /^(?:Tahome|Arial|Calibri|Times New Roman)\b/i,
-    /^(?:Tanlangan Bemor|Bemor Hisobotini Ochish|Xulosani Saqlash|Qidiruv maydoni|Fayl holati|Displaying)\b/i,
-    /^(?:Radiologiya\s*Hisobot\s*:)/i
-  ];
-
-  const filteredLines = lines.filter(line => {
-    return !junkPatterns.some(p => p.test(line));
-  });
-
-  let text = filteredLines.join("\n").trim();
-
-  // Boshlanish nuqtasini aniqlash (ПРОТОКОЛ, МРТ, Техника, Методика, Описание...)
-  const startMatch = text.search(/(?:ПРОТОКОЛ|МРТ|MSKT|РЕНТГЕН|УЗИ|КТ|Техника\s+сканирования|Методика|Описание|ЗАКЛЮЧЕНИЕ)/i);
-  if (startMatch !== -1 && startMatch < 150) {
-    text = text.substring(startMatch);
-  }
-
-  return text.trim();
-}
-
-// 5. MUHARRIRDAN TO'LIQ XULOSA MATNINI ANIQ AJRATIB OLISH
+// 4. FASTREPORT / PDF VA MUHARRIRDAN TO'LIQ XULOSA MATNINI AJRATIB OLISH
 function extractConclusionTextFromEditor() {
-  let gatheredTexts = [];
-
   try {
-    // 1. ContentEditable muharrir elementlari
-    const editables = Array.from(document.querySelectorAll("[contenteditable='true'], [contenteditable='']"));
+    const pageText = document.body.innerText || "";
+
+    // ─────────────────────────────────────────────────────────────
+    // A) FastReport Export / Print sahifasi (4-bosqich skrinshoti)
+    // ─────────────────────────────────────────────────────────────
+    if (pageText.includes("РЕСПУБЛИКАНСКИЙ") || pageText.includes("Report") || pageText.includes("PINFL :")) {
+      const reportContentMatch = pageText.match(/(?:РЕСПУБЛИКАНСКИЙ[\s\S]+?)(?:Врач|Шифокор|Reporting Doctor|$)/i);
+      if (reportContentMatch && reportContentMatch[0].length > 50) {
+        return reportContentMatch[0].trim();
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // B) Muharrir ichidagi toza matn blokini (ПРОТОКОЛ... ЗАКЛЮЧЕНИЕ) ajratish
+    // ─────────────────────────────────────────────────────────────
+    // ContentEditable, Iframe yoki Textarea
+    const editables = Array.from(document.querySelectorAll("[contenteditable='true'], [contenteditable=''], .dx-htmleditor-content, .k-editor-content, textarea, div[role='textbox'], .report-text"));
     for (const el of editables) {
-      const raw = (el.innerText || "").trim();
-      const cleaned = cleanMedicalReportText(raw);
-      if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
-        gatheredTexts.push(cleaned);
+      const raw = (el.value || el.innerText || "").trim();
+      if (raw.length > 30 && (raw.includes("ПРОТОКОЛ") || raw.includes("Техника") || raw.includes("ЗАКЛЮЧЕНИЕ") || raw.includes("МРТ"))) {
+        return raw;
       }
     }
 
-    // 2. Iframe ichidagi muharrir bo'lsa
-    if (gatheredTexts.length === 0) {
-      const iframes = Array.from(document.querySelectorAll("iframe"));
-      for (const ifr of iframes) {
-        try {
-          const doc = ifr.contentDocument || ifr.contentWindow?.document;
-          if (doc && doc.body) {
-            const raw = (doc.body.innerText || "").trim();
-            const cleaned = cleanMedicalReportText(raw);
-            if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
-              gatheredTexts.push(cleaned);
-            }
+    // Iframe larni tekshirish
+    const iframes = Array.from(document.querySelectorAll("iframe"));
+    for (const ifr of iframes) {
+      try {
+        const doc = ifr.contentDocument || ifr.contentWindow?.document;
+        if (doc && doc.body) {
+          const iTxt = (doc.body.innerText || "").trim();
+          if (iTxt.length > 30 && (iTxt.includes("ПРОТОКОЛ") || iTxt.includes("Техника") || iTxt.includes("ЗАКЛЮЧЕНИЕ") || iTxt.includes("МРТ"))) {
+            return iTxt;
           }
-        } catch (e) {}
-      }
-    }
-
-    // 3. Rich Editor / Textarea elementlari
-    if (gatheredTexts.length === 0) {
-      const editorAreas = Array.from(document.querySelectorAll(".dx-htmleditor-content, .k-editor-content, .note-editable, .cke_editable, textarea, div[role='textbox'], .rich-editor"));
-      for (const ea of editorAreas) {
-        const raw = (ea.value || ea.innerText || "").trim();
-        const cleaned = cleanMedicalReportText(raw);
-        if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
-          gatheredTexts.push(cleaned);
         }
+      } catch (e) {}
+    }
+
+    // Matndan ПРОТОКОЛ dan boshlanuvchi blokni kesib olish
+    const protoIndex = pageText.indexOf("ПРОТОКОЛ");
+    if (protoIndex !== -1) {
+      const sub = pageText.substring(protoIndex);
+      const endMatch = sub.match(/ЗАКЛЮЧЕНИЕ[\s\S]+?(?=(?:Natija va tavsiyalar|Tanlangan Bemor|Saqlash \(F3\)|$))/i);
+      if (endMatch) {
+        return endMatch[0].trim();
       }
+      return sub.substring(0, 2500).trim();
     }
 
-    // 4. "Natija va tavsiyalar" pastki blokini tekshirish
-    let tavsiyaText = "";
-    const tavsiyaElements = Array.from(document.querySelectorAll("div, textarea, p")).filter(el => {
-      const t = (el.innerText || el.value || "").trim();
-      return t.length > 5 && el.previousElementSibling && el.previousElementSibling.innerText && el.previousElementSibling.innerText.includes("Natija va tavsiyalar");
-    });
-    if (tavsiyaElements.length > 0) {
-      tavsiyaText = (tavsiyaElements[0].value || tavsiyaElements[0].innerText || "").trim();
+    const mrtIndex = pageText.indexOf("МРТ ОРГАНОВ");
+    if (mrtIndex !== -1) {
+      const sub = pageText.substring(mrtIndex);
+      return sub.substring(0, 2500).trim();
     }
-
-    // 5. Agar DOM dan topilmagan bo'lsa, butun sahifa matnidan tibbiy blokni qidiramiz
-    if (gatheredTexts.length === 0) {
-      const fullText = document.body.innerText || "";
-      const cleaned = cleanMedicalReportText(fullText);
-      if (cleaned.length > 30) {
-        gatheredTexts.push(cleaned);
-      }
-    }
-
-    let result = gatheredTexts.join("\n\n").trim();
-    if (tavsiyaText && !result.includes(tavsiyaText)) {
-      result += `\n\nNatija va tavsiyalar:\n${tavsiyaText}`;
-    }
-
-    return result;
 
   } catch (e) {
     console.warn("extractConclusionTextFromEditor error:", e);
-    return "";
   }
+
+  return "";
 }
 
-// 6. Ichki sahifadan to'liq ma'lumotlarni o'qish
+// 5. Ichki sahifadan to'liq ma'lumotlarni o'qish
 function extractKarmedPageData() {
   let pinfl = activePatient ? activePatient.pinfl : "";
   let patientName = activePatient ? activePatient.fullName : "";
@@ -565,17 +580,24 @@ function extractKarmedPageData() {
       }
     }
 
+    // FastReport sahifasidan PINFL va Doctor
     const pinflMatch = pageText.match(/PINFL\s*[:：]\s*(\d{14})/i);
     if (pinflMatch) pinfl = pinflMatch[1];
 
     const repDocMatch = pageText.match(/Reporting\s*Doctor\s*[:：]\s*([^\n\r\t]+)/i);
     if (repDocMatch) doctorName = repDocMatch[1].trim();
 
+    const nameMatch = pageText.match(/Name\s*[:：]\s*([^\n\r\t]+)/i);
+    const lastNameMatch = pageText.match(/Last\s*name\s*[:：]\s*([^\n\r\t]+)/i);
+    if (nameMatch) {
+      patientName = `${nameMatch[1].trim()} ${lastNameMatch ? lastNameMatch[1].trim() : ''}`.trim();
+    }
+
   } catch (e) {
     console.warn("extractKarmedPageData error:", e);
   }
 
-  // Muharrirdan toza va to'liq matnni nusxalab olish
+  // Muharrirdan yoki PDF sahifasidan xulosani olish
   const conclusionText = extractConclusionTextFromEditor();
 
   return {
@@ -588,7 +610,7 @@ function extractKarmedPageData() {
   };
 }
 
-// 7. Yagona Saqlash Modali
+// 6. Yagona Saqlash Modali
 async function handleDirectSaveClick() {
   const data = extractKarmedPageData();
 
@@ -640,17 +662,20 @@ async function handleDirectSaveClick() {
 
         <div class="karmed-form-group">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label style="margin:0;"><b>Tibbiy Xulosa Matni (Karmed-dan nusxalandi):</b></label>
+            <label style="margin:0;"><b>Tibbiy Xulosa Matni:</b></label>
             <div style="display:flex; gap:6px;">
+              <button type="button" id="btnKarmedModalPrinter" style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#065f46;">
+                <i class="fa-solid fa-print"></i> Printer bosish
+              </button>
               <button type="button" id="btnKarmedModalRefresh" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
                 <i class="fa-solid fa-arrows-rotate"></i> Qayta o'qish
               </button>
               <button type="button" id="btnKarmedModalCopy" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
-                <i class="fa-solid fa-copy"></i> Matnni nusxalash
+                <i class="fa-solid fa-copy"></i> Nusxalash
               </button>
             </div>
           </div>
-          <textarea id="kModalText" rows="7" placeholder="Karmed muharriridan nusxalangan to'liq tibbiy xulosa matni...">${escapeHtml(data.conclusionText || '')}</textarea>
+          <textarea id="kModalText" rows="7" placeholder="Karmed hisobot/PDF sahifasidan nusxalangan xulosa matni...">${escapeHtml(data.conclusionText || '')}</textarea>
         </div>
 
         <div class="karmed-modal-actions">
@@ -668,6 +693,11 @@ async function handleDirectSaveClick() {
   document.getElementById("btnKarmedModalClose").onclick = () => modal.remove();
   document.getElementById("btnKarmedModalCancel").onclick = () => modal.remove();
 
+  // Printer tugmasi
+  document.getElementById("btnKarmedModalPrinter").onclick = () => {
+    clickKarmedPrinterButton();
+  };
+
   // Matnni qayta o'qish tugmasi
   document.getElementById("btnKarmedModalRefresh").onclick = () => {
     const refreshedText = extractConclusionTextFromEditor();
@@ -675,7 +705,7 @@ async function handleDirectSaveClick() {
       document.getElementById("kModalText").value = refreshedText;
       showToastNotification("🔄 Matn Karmed-dan qayta o'qildi!");
     } else {
-      showToastNotification("⚠️ Muharrirdan matn topilmadi.");
+      showToastNotification("⚠️ Muharrirdan matn topilmadi. Printerni bosing.");
     }
   };
 
