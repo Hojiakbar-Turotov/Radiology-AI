@@ -18,6 +18,10 @@ console.log(`👤 Admin: ${ADMIN_USER_ID} (@rons_2026)`);
 console.log(`📢 Kanal: ${CHANNEL_ID} (Xulosa)`);
 
 async function pollUpdates() {
+  try {
+    await fetch(`${TG_API_BASE}/deleteWebhook?drop_pending_updates=false`);
+  } catch (e) {}
+
   while (true) {
     try {
       const res = await fetch(`${TG_API_BASE}/getUpdates`, {
