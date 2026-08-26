@@ -6,7 +6,7 @@
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
-const ADMIN_USER_ID = "5314298089";
+const LOG_GROUP_ID = "-1003950231961";
 const CHANNEL_ID = "-1003962033499";
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
@@ -943,16 +943,27 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       `━━━━━━━━━━━━━━━━━━\n\n` +
       `📝 <b>Xulosa Matni:</b>\n${escapeHtml(conclusionText.substring(0, 3000))}`;
 
+    // 1. Kanalga FAQAT toza tibbiy xulosa yuboriladi
     fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: CHANNEL_ID, text: tgMsg, parse_mode: "HTML" })
     }).catch(() => {});
 
+    // 2. Log guruhiga monitoring ma'lumoti yuboriladi
+    const logMsg = 
+      `📋 <b>BEMOR XULOSASI SAQLANDI:</b>\n` +
+      `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
+      `🔢 <b>PNFL:</b> <code>${pinfl || 'Noma\'lum'}</code>\n` +
+      `🆔 <b>ID:</b> ${escapeHtml(reportData.patientId || '-')}\n` +
+      `🔬 <b>Tekshiruv:</b> ${escapeHtml(serviceName)}\n` +
+      `✍️ <b>Muallif:</b> ${escapeHtml(doctorName)}\n` +
+      `⏰ <b>Sana:</b> ${dateStr}`;
+
     fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: ADMIN_USER_ID, text: tgMsg, parse_mode: "HTML" })
+      body: JSON.stringify({ chat_id: LOG_GROUP_ID, text: logMsg, parse_mode: "HTML" })
     }).catch(() => {});
 
     showToastNotification(`✅ Telegramga yuborildi: ${patientName} (${pinfl})`);
