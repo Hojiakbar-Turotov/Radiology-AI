@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Karmed Xulosalarni Yuklash & Telegram Baza",
+  "version": "1.0.0",
+  "description": "Karmed tizimidagi bemorlar radiologik xulosalarini olish, JSHSHIR (PINFL) bo'yicha indekslash va Telegram bazasiga yuborish kengaytmasi.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*",
+    "https://api.telegram.org/*",
+    "https://xabarlashgich-default-rtdb.firebaseio.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Karmed Xulosalar Portali"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Karmed Xulosalar Portali</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <i class="fa-solid fa-file-medical"></i>
+        <div>
+          <h2>Karmed Xulosalar</h2>
+          <p>Radiologiya & Telegram Baza</p>
+        </div>
+      </div>
+      <div class="bot-badge">
+        <span class="status-dot"></span>
+        <a href="https://t.me/Radiodiagnostika_bot" target="_blank" title="Telegram Bot">@Radiodiagnostika_bot</a>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabBtnNew" data-tab="tabNew">
+        <i class="fa-solid fa-plus-circle"></i> Yangi Xulosa
+      </button>
+      <button class="tab-btn" id="tabBtnHistory" data-tab="tabHistory">
+        <i class="fa-solid fa-clock-rotate-left"></i> Saqlanganlar (<span id="countReports">0</span>)
+      </button>
+      <button class="tab-btn" id="tabBtnSettings" data-tab="tabSettings">
+        <i class="fa-solid fa-gear"></i> Sozlamalar
+      </button>
+    </div>
+
+    <!-- TAB 1: Yangi Xulosa Qo'shish -->
+    <main class="tab-content active" id="tabNew">
+      <!-- Auto Grab Banner -->
+      <div class="auto-grab-box">
+        <button type="button" class="btn btn-secondary btn-block" id="btnAutoGrab">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Ochiq Karmed Sahifasidan Avtomatik O'qish
+        </button>
+      </div>
+
+      <form id="reportForm">
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="repPinfl">
+              <i class="fa-solid fa-id-card"></i> JSHSHIR (PINFL) <span class="required">*</span>
+              <span class="badge-counter" id="pinflCounter">0/14</span>
+            </label>
+            <input type="text" id="repPinfl" required maxlength="14" placeholder="14 ta raqam (masalan: 31205981234567)" autocomplete="off">
+          </div>
+          <div class="form-group flex-1">
+            <label for="repDate"><i class="fa-solid fa-calendar"></i> Sana <span class="required">*</span></label>
+            <input type="date" id="repDate" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="repPatientName"><i class="fa-solid fa-user"></i> Bemor F.I.Sh <span class="required">*</span></label>
+          <input type="text" id="repPatientName" required placeholder="Masalan: Eshmatov Toshmat Aliyevich">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="repService"><i class="fa-solid fa-microscope"></i> Tekshiruv Nomi <span class="required">*</span></label>
+            <input type="text" id="repService" required placeholder="Masalan: Bosh miya MRT (kontrastli)">
+          </div>
+          <div class="form-group flex-1">
+            <label for="repDoctor"><i class="fa-solid fa-user-doctor"></i> Shifokor-Radiolog</label>
+            <input type="text" id="repDoctor" placeholder="Masalan: Dr. Karimov O.">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="repText"><i class="fa-solid fa-file-lines"></i> Tibbiy Xulosa Matni <span class="required">*</span></label>
+          <textarea id="repText" rows="4" required placeholder="Karmed-dan xulosa matnini nusxalab bu yerga qo'ying..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="repFileUrl"><i class="fa-solid fa-paperclip"></i> PDF / Fayl Havolasi (Ixtiyoriy)</label>
+          <input type="url" id="repFileUrl" placeholder="https://... yoki fayl manzili">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-block" id="btnSaveReport">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Xulosani Saqlash & Telegramga Jo'natish
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <!-- TAB 2: Saqlangan Xulosalar Tarixi -->
+    <main class="tab-content" id="tabHistory">
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchHistoryInput" placeholder="PINFL yoki Bemor ismi bo'yicha qidirish...">
+      </div>
+
+      <div class="history-list" id="historyListContainer">
+        <!-- Dinamik xulosalar ro'yxati -->
+        <div class="empty-state">Xulosalar yuklanmoqda...</div>
+      </div>
+    </main>
+
+    <!-- TAB 3: Sozlamalar & Bot holati -->
+    <main class="tab-content" id="tabSettings">
+      <div class="settings-card">
+        <h3><i class="fa-brands fa-telegram"></i> Telegram Bot Sozlamalari</h3>
+        <p class="settings-desc">Bemorlar @Radiodiagnostika_bot ga 14 xonali PINFL yuborib, o'z xulosalarini avtomatik olishadi.</p>
+        
+        <div class="form-group">
+          <label>Bot Tokeni:</label>
+          <input type="text" id="cfgBotToken" readonly value="8836735566:AAEHBNHpIUINi_SsDxlCAkW6BQRRhpo61NQ">
+        </div>
+
+        <div class="form-group">
+          <label>Arxiv Telegram Kanal / Guruh ID (ixtiyoriy):</label>
+          <input type="text" id="cfgChannelId" placeholder="Masalan: -1001234567890">
+          <small>Barcha xulosalarning nusxasi ushbu kanalga ham tushadi.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Firebase Realtime Database URL:</label>
+          <input type="text" id="cfgDbUrl" readonly value="https://xabarlashgich-default-rtdb.firebaseio.com">
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnSaveSettings">
+          <i class="fa-solid fa-floppy-disk"></i> Sozlamalarni Saqlash
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer Toast -->
+    <div id="toastMessage" class="toast"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
