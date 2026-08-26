@@ -1,12 +1,13 @@
 /**
  * Radiodiagnostika Telegram Bot Serverless Webhook Handler (@Radiodiagnostika_bot)
- * 2 ta Avtorizatsiya: 1) MyID FaceID, 2) Bemor ID & PINFL Mosligi
+ * Faqat 2 ta inline tugma: 
+ * 1. 📱 Tibbiy Xulosalar Web App Portali
+ * 2. 🔄 Botni qayta ishga tushirish
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
 const LOG_GROUP_ID = "-1003950231961";
 const CHANNEL_ID = "-1003962033499";
-const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const WEBAPP_BASE_URL = "https://hojiakbar-turotov.github.io/Radiology-AI/webapp.html";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
@@ -28,6 +29,45 @@ async function answerCallbackQuery(callbackQueryId, text = "") {
       body: JSON.stringify({ callback_query_id: callbackQueryId, text: text })
     });
   } catch (e) {}
+}
+
+async function sendTelegramMessage(chatId, text, options = {}) {
+  const payload = { chat_id: chatId, text: text, ...options };
+  try {
+    const res = await fetch(`${TG_API_BASE}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+async function sendWelcomeMessage(chatId, userFirstName) {
+  const welcome = 
+    `👋 <b>Assalomu alaykum, ${escapeHtml(userFirstName)}!</b>\n\n` +
+    `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
+    `🔒 <b>Tizimda 2 ta xavfsiz avtorizatsiya usuli mavjud:</b>\n` +
+    `• <b>1-Usul:</b> MyID FaceID (Biometrik tekshiruv)\n` +
+    `• <b>2-Usul:</b> Bemor ID va PINFL mosligi\n\n` +
+    `👇 <i>Tibbiy xulosalaringizni ko'rish uchun quyidagi Web App tugmasini bosing:</i>`;
+
+  await sendTelegramMessage(chatId, welcome, {
+    parse_mode: "HTML",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "📱 Tibbiy Xulosalar Web App Portali", web_app: { url: WEBAPP_BASE_URL } }],
+        [{ text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
+      ]
+    }
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 module.exports = async (req, res) => {
@@ -57,27 +97,9 @@ module.exports = async (req, res) => {
       await answerCallbackQuery(cb.id);
 
       if (data === "restart_bot") {
-        await sendWelcomeMessageServerless(chatId, userFirstName);
+        await sendWelcomeMessage(chatId, userFirstName);
         return res.status(200).json({ ok: true });
       }
-
-      if (data === "auth_patient_id") {
-        await sendTelegramMessage(
-          chatId,
-          `🔢 <b>BEMOR ID VA PINFL ORQALI KIRISH:</b>\n\nIltimos, <b>Bemor ID</b> raqamingizni kiriting:\n<i>(Masalan: <code>53312</code>)</i>`,
-          {
-            parse_mode: "HTML",
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: "🆔 1-Usul: MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
-                [{ text: "🔄 Bosh menyu", callback_data: "restart_bot" }]
-              ]
-            }
-          }
-        );
-        return res.status(200).json({ ok: true });
-      }
-
       return res.status(200).json({ ok: true });
     }
 
@@ -101,79 +123,10 @@ module.exports = async (req, res) => {
       );
     }
 
-    if (text === "/start" || text === "/help" || text === "/myid" || text === "/profil" || text.toLowerCase() === "start") {
-      await sendWelcomeMessageServerless(chatId, userFirstName);
-      return res.status(200).json({ ok: true });
-    }
-
-    const cleanDigits = text.replace(/\D/g, "");
-
-    if (cleanDigits.length >= 3 && cleanDigits.length <= 8) {
-      await sendTelegramMessage(
-        chatId,
-        `✅ <b>Bemor ID qabul qilindi:</b> <code>${cleanDigits}</code>\n\n` +
-        `🛡️ <b>Xavfsizlik tekshiruvi:</b> Ushbu bemorga tegishli <b>14 xonali PINFL</b> raqamingiz bilan xulosalarni ochish uchun quyidagi tugmani bosing:`,
-        {
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "🔢 PINFL kiritib xulosalarni ochish", web_app: { url: `${WEBAPP_BASE_URL}?id=${cleanDigits}&auth=patient` } }],
-              [{ text: "🆔 1-Usul: MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
-              [{ text: "🔄 Bosh menyu", callback_data: "restart_bot" }]
-            ]
-          }
-        }
-      );
-      return res.status(200).json({ ok: true });
-    }
-
-    await sendWelcomeMessageServerless(chatId, userFirstName);
+    await sendWelcomeMessage(chatId, userFirstName);
     return res.status(200).json({ ok: true });
 
   } catch (err) {
     return res.status(200).json({ ok: false, error: err.message });
   }
 };
-
-async function sendWelcomeMessageServerless(chatId, userFirstName) {
-  const welcome = 
-    `👋 <b>Assalomu alaykum, ${escapeHtml(userFirstName)}!</b>\n\n` +
-    `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
-    `🔒 <b>Tizimga kirish uchun 2 ta xavfsiz usul mavjud:</b>\n\n` +
-    `1️⃣ <b>1-Usul: MyID FaceID Biometrik Kirish</b>\n` +
-    `<i>Yuzingizni skanerlab shaxsiy profilingizni oching va xulosalarni oling.</i>\n\n` +
-    `2️⃣ <b>2-Usul: Bemor ID va PINFL Mosligi</b>\n` +
-    `<i>Bemor ID va 14 xonali PINFL raqamingiz mos kelsa xulosalar beriladi.</i>\n\n` +
-    `👇 <i>Quyidagi tugmalardan birini tanlang yoki <b>Bemor ID</b> (masalan: <code>53312</code>) yozing:</i>`;
-
-  await sendTelegramMessage(chatId, welcome, {
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "🆔 1-Usul: MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
-        [{ text: "🔢 2-Usul: Bemor ID & PINFL orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=patient` } }],
-        [{ text: "📱 Tibbiy Web App Portali", web_app: { url: WEBAPP_BASE_URL } }],
-        [{ text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
-      ]
-    }
-  });
-}
-
-async function sendTelegramMessage(chatId, text, options = {}) {
-  const payload = { chat_id: chatId, text: text, ...options };
-  try {
-    const res = await fetch(`${TG_API_BASE}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    return await res.json();
-  } catch (err) {
-    return null;
-  }
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
