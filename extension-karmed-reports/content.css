@@ -29,3 +29,141 @@
 .karmed-floating-btn:active {
   transform: scale(0.97);
 }
+
+/* Karmed Direct Save Modal */
+.karmed-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.karmed-modal-box {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  overflow: hidden;
+  animation: karmedFadeIn 0.2s ease-out;
+}
+
+@keyframes karmedFadeIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.karmed-modal-header {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.karmed-modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.karmed-modal-close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.karmed-modal-body {
+  padding: 18px 20px;
+  color: #0f172a;
+}
+
+.karmed-form-group {
+  margin-bottom: 12px;
+}
+
+.karmed-form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.karmed-form-group.flex-1 {
+  flex: 1;
+}
+
+.karmed-form-group label {
+  display: block;
+  font-size: 11.5px;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.karmed-form-group input,
+.karmed-form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 12.5px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+}
+
+.karmed-form-group input:focus,
+.karmed-form-group textarea:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
+}
+
+.karmed-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.karmed-btn {
+  padding: 9px 16px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.karmed-btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.karmed-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.karmed-btn-save {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.karmed-btn-save:hover {
+  background: #0369a1;
+}

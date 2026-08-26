@@ -1,9 +1,11 @@
 /**
  * Radiodiagnostika Telegram Bot Serverless Webhook Handler (@Radiodiagnostika_bot)
  * Handles patient PINFL (JSHSHIR) requests and sends back medical conclusion reports.
+ * Auto-detects Channels and forwards all events to Admin (ID: 5314298089).
  */
 
 const BOT_TOKEN = "8836735566:AAEHBNHpIUINi_SsDxlCAkW6BQRRhpo61NQ";
+const ADMIN_USER_ID = "5314298089";
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
@@ -30,6 +32,7 @@ module.exports = async (req, res) => {
         status: "active",
         bot: "@Radiodiagnostika_bot",
         name: "Radiodiagnostika Xulosalar Boti",
+        adminId: ADMIN_USER_ID,
         webhookInfo: info.result || null
       });
     } catch (e) {
@@ -43,16 +46,95 @@ module.exports = async (req, res) => {
 
   try {
     const update = req.body;
-    if (!update || !update.message) {
-      return res.status(200).json({ ok: true, note: "No message in update" });
+    if (!update) {
+      return res.status(200).json({ ok: true, note: "Empty body" });
+    }
+
+    // 1. Kanalga post yozilganda (channel_post)
+    if (update.channel_post) {
+      const post = update.channel_post;
+      const channelId = post.chat.id;
+      const channelTitle = post.chat.title || "Telegram Kanal";
+      const postText = post.text || "(Fayl/Media post)";
+
+      // Kanal ID sini Firebase bazasiga saqlaymiz
+      await fetch(`${FIREBASE_DB_URL}/settings/telegram_channel_id.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: channelId,
+          channelTitle: channelTitle,
+          updatedAt: Date.now()
+        })
+      }).catch(() => {});
+
+      // Admin userga bildirishnoma yuboramiz
+      const adminNotif = 
+        `📢 <b>KANAL POSTI QABUL QILINDI VA KANAL BIRIKTIRILDI!</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🆔 <b>Kanal ID:</b> <code>${channelId}</code>\n` +
+        `📛 <b>Kanal Nomi:</b> ${escapeHtml(channelTitle)}\n` +
+        `💬 <b>Post Matni:</b> ${escapeHtml(postText)}\n\n` +
+        `✅ <i>Ushbu kanal ID si avtomatik tarzda xulosalarni arxivlash kanali sifatida saqlandi!</i>`;
+
+      await sendTelegramMessage(ADMIN_USER_ID, adminNotif, { parse_mode: "HTML" });
+      return res.status(200).json({ ok: true, channelSaved: channelId });
+    }
+
+    // 2. Bot guruh yoki kanalga admin qilib qo'shilganda (my_chat_member)
+    if (update.my_chat_member) {
+      const m = update.my_chat_member;
+      const targetChat = m.chat;
+      const newStatus = m.new_chat_member ? m.new_chat_member.status : "unknown";
+
+      if (targetChat.type === "channel" || targetChat.type === "supergroup" || targetChat.type === "group") {
+        await fetch(`${FIREBASE_DB_URL}/settings/telegram_channel_id.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            channelId: targetChat.id,
+            channelTitle: targetChat.title,
+            updatedAt: Date.now()
+          })
+        }).catch(() => {});
+
+        const memberNotif = 
+          `🎉 <b>BOT KANAL/GURUHGA QO'SHILDI!</b>\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `🆔 <b>ID:</b> <code>${targetChat.id}</code>\n` +
+          `📛 <b>Nomi:</b> ${escapeHtml(targetChat.title || 'Noma\'lum')}\n` +
+          `🏷 <b>Turi:</b> ${targetChat.type}\n` +
+          `👑 <b>Bot Holati:</b> ${newStatus}\n\n` +
+          `✅ <i>Kanal ID si xulosalar arxivi sifatida avtomatik sozlandi!</i>`;
+
+        await sendTelegramMessage(ADMIN_USER_ID, memberNotif, { parse_mode: "HTML" });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    // 3. Foydalanuvchidan xabar kelganda (message)
+    if (!update.message) {
+      return res.status(200).json({ ok: true, note: "Unhandled update type" });
     }
 
     const msg = update.message;
     const chatId = msg.chat.id;
     const text = (msg.text || "").trim();
     const userFirstName = msg.from.first_name || "Foydalanuvchi";
+    const userName = msg.from.username ? `@${msg.from.username}` : userFirstName;
 
-    // 1. /start yoki /help buyrug'i
+    // Admin userga bildirishnoma (Monitoring)
+    if (String(chatId) !== ADMIN_USER_ID) {
+      const userActivityNotif = 
+        `📩 <b>Botga yangi murojaat:</b>\n` +
+        `👤 <b>Foydalanuvchi:</b> ${escapeHtml(userFirstName)} (${userName})\n` +
+        `🆔 <b>User ID:</b> <code>${chatId}</code>\n` +
+        `💬 <b>Xabar:</b> <code>${escapeHtml(text || '(Media/Fayl)')}</code>`;
+
+      sendTelegramMessage(ADMIN_USER_ID, userActivityNotif, { parse_mode: "HTML" }).catch(() => {});
+    }
+
+    // A) /start yoki /help
     if (text === "/start" || text === "/help") {
       const welcomeText = 
         `Assalomu alaykum, <b>${escapeHtml(userFirstName)}</b>! 👋\n\n` +
@@ -64,7 +146,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // 2. PINFL (JSHSHIR) yoki Pasport raqamini tozalash
+    // B) PINFL yoki Pasport formatini tekshirish
     const cleanPin = text.replace(/[\s\-_]/g, "").toUpperCase();
     const isPinfl = /^\d{14}$/.test(cleanPin);
     const isPassport = /^[A-Z]{2}\d{7}$/.test(cleanPin);
@@ -79,10 +161,9 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // 3. Firebase bazasidan PINFL bo'yicha xulosalarni qidirish
+    // C) Firebase bazasidan xulosalarni izlash
     await sendTelegramChatAction(chatId, "typing");
 
-    // Firebase REST so'rovi
     const fbRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${cleanPin}.json`);
     const reportsData = fbRes.ok ? await fbRes.json() : null;
 
@@ -96,9 +177,9 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // 4. Topilgan barcha xulosalarni yuborish
+    // D) Barcha xulosalarni yuborish
     const reportKeys = Object.keys(reportsData);
-    await sendTelegramMessage(chatId, `✅ <b>Jami ${reportKeys.length} ta xulosa topildi!</b> Xulosalar yuklanmoqda...`, { parse_mode: "HTML" });
+    await sendTelegramMessage(chatId, `✅ <b>Jami ${reportKeys.length} ta xulosa topildi!</b> Xulosalar yuborilmoqda...`, { parse_mode: "HTML" });
 
     for (const key of reportKeys) {
       const rep = reportsData[key];
@@ -119,14 +200,12 @@ module.exports = async (req, res) => {
         `━━━━━━━━━━━━━━━━━━\n\n` +
         `📝 <b>Xulosa:</b>\n${escapeHtml(rText)}`;
 
-      // Agar xulosa matni juda uzun bo'lsa (Telegram 4096 belgilik limiti)
       if (reportMsg.length > 4000) {
         reportMsg = reportMsg.substring(0, 3950) + "...\n\n<i>(Xulosa matni qisqartirildi)</i>";
       }
 
       await sendTelegramMessage(chatId, reportMsg, { parse_mode: "HTML" });
 
-      // Agar PDF yoki rasm fayli bo'lsa, faylni jo'natamiz
       if (rep.fileUrl || rep.telegramFileId) {
         await sendTelegramChatAction(chatId, "upload_document");
         if (rep.telegramFileId) {
