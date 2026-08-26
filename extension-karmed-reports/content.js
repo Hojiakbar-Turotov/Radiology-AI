@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Radyoloji Raporu oynasida Printer / Save tugmasini bosib yangi oynada PDF ochish
- * 3. Yangi oynada ochilgan PDF/FastReport sahifasini tutib olib, to'g'ridan-to'g'ri Telegramga uzatish
+ * 2. 1-chi va 2-chi Printer tugmalarini 100% aniqlab bosish (FastReport toolbar 3-ikonkasi)
+ * 3. Yangi ochilgan PDF/FastReport oynasini avtomatik tutib olib, 1-click bilan Telegramga yuborish
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -47,12 +47,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 3. Karmed Jadvalini va PDF Sahifalarini Kuzatish
 function initTableObserver() {
-  // Agar bu yangi ochilgan PDF / FastReport Export sahifasi bo'lsa
   const currentUrl = window.location.href.toLowerCase();
+  
+  // Agar bu yangi ochilgan PDF / FastReport Export sahifasi bo'lsa
   if (currentUrl.includes("fastreport.export") || currentUrl.includes(".pdf") || currentUrl.includes("export.axd") || currentUrl.includes("rapor")) {
     setTimeout(() => {
       renderPdfCaptureBanner(window.location.href);
-    }, 600);
+    }, 500);
   }
 
   document.addEventListener("click", handleTableClickCapture, true);
@@ -377,8 +378,12 @@ function saveActivePatientToStorage(p) {
   } catch (e) {}
 }
 
-// 4. YAGONA VA TOZA SUZUVCHI BEMOR PANELI (Printer tugmasi bilan)
+// 4. YAGONA VA TOZA SUZUVCHI BEMOR PANELI
 function renderPatientBanner(p) {
+  if (window !== window.top && !window.location.href.toLowerCase().includes("rapor")) {
+    return; // Kichik yordamchi ichki freym bo'lsa banner chiqarmaymiz
+  }
+
   let banner = document.getElementById("karmedPatientInfoBanner");
   if (!banner) {
     banner = document.createElement("div");
@@ -433,7 +438,7 @@ function renderPatientBanner(p) {
   };
 }
 
-// 5. YANGI OYNA (PDF / FASTREPORT EXPORT) UCHUN TO'G'RIDAN-TO'G'RI TUTIB OLISH VA TELEGRAMGA YUBORISH PANELI
+// 5. YANGI OYNA (PDF / FASTREPORT EXPORT) UCHUN TO'G'RIDAN-TO'G'RI TUTIB OLISH PANELI
 function renderPdfCaptureBanner(pdfUrl) {
   let banner = document.getElementById("karmedPdfCaptureBanner");
   if (!banner) {
@@ -472,44 +477,45 @@ function renderPdfCaptureBanner(pdfUrl) {
   };
 }
 
-// FASTREPORT VA KARMED PRINTER / SAVE TUGMASINI BOSISH
+// FULL SICHQONCHA HODISASI BILAN BOSISH
+function triggerFullClick(el) {
+  if (!el) return;
+  const win = el.ownerDocument?.defaultView || window;
+  const mouseOpts = { bubbles: true, cancelable: true, view: win };
+
+  el.dispatchEvent(new MouseEvent("mouseenter", mouseOpts));
+  el.dispatchEvent(new MouseEvent("mouseover", mouseOpts));
+  el.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
+  el.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
+  el.dispatchEvent(new MouseEvent("click", mouseOpts));
+  if (typeof el.click === "function") el.click();
+
+  const parentBtn = el.closest("a, button, div.frbutton, div[role='button']");
+  if (parentBtn && parentBtn !== el) {
+    parentBtn.dispatchEvent(new MouseEvent("click", mouseOpts));
+    if (typeof parentBtn.click === "function") parentBtn.click();
+  }
+}
+
+// FASTREPORT (2-CHI PRINTER) VA KARMED (1-CHI PRINTER) TUGMALARINI BOSISH
 function clickFastReportOrKarmedPrinterButton() {
   try {
-    // 1. FastReport WebViewer toolbar (media_1787723249015.png - 3-ikonka Printer, 2-ikonka Save)
-    const frIcons = Array.from(document.querySelectorAll("img, a, button, div, span")).filter(el => {
-      const src = (el.src || "").toLowerCase();
-      const title = (el.title || el.getAttribute("aria-label") || "").toLowerCase();
-      return (src.includes("print") || src.includes("save") || src.includes("yazdir") || src.includes("export") ||
-              title.includes("print") || title.includes("save") || title.includes("yazdir") || title.includes("kaydet")) &&
-              !el.closest("#karmedPatientInfoBanner") && !el.closest("#karmedPdfCaptureBanner");
-    });
-
-    if (frIcons.length > 0) {
-      // 3-ikonka (Printer) yoki 1-topilgan tugma
-      const target = frIcons.find(el => (el.src || "").toLowerCase().includes("print") || (el.title || "").toLowerCase().includes("print")) || frIcons[0];
-      const win = target.ownerDocument?.defaultView || window;
-      const mouseOpts = { bubbles: true, cancelable: true, view: win };
-      
-      target.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
-      target.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
-      target.dispatchEvent(new MouseEvent("click", mouseOpts));
-      if (typeof target.click === "function") target.click();
-
-      showToastNotification("🖨️ Printer tugmasi bosildi! PDF yangi oynada ochilmoqda...");
+    // ─────────────────────────────────────────────────────────────
+    // A) 2-CHI PRINTER: FastReport Toolbar (media_1787723631944.png)
+    // Yuqori chap burchakdagi 4 ta ikonkali panel (Refresh, Save, PRINTER, Zoom)
+    // ─────────────────────────────────────────────────────────────
+    if (clickSecondFastReportPrinter(document)) {
+      showToastNotification("🖨️ 2-chi Printer (FastReport) bosildi! PDF yangi oynada ochilmoqda...");
       return true;
     }
 
-    // 2. Karmed umumiy menyusidagi Printer
-    const printerTarget = findPrinterElementDeep(document);
-    if (printerTarget) {
-      const win = printerTarget.ownerDocument?.defaultView || window;
-      const mouseOpts = { bubbles: true, cancelable: true, view: win };
-      printerTarget.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
-      printerTarget.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
-      printerTarget.dispatchEvent(new MouseEvent("click", mouseOpts));
-      if (typeof printerTarget.click === "function") printerTarget.click();
-
-      showToastNotification("🖨️ Printer tugmasi bosildi! PDF ochilmoqda...");
+    // ─────────────────────────────────────────────────────────────
+    // B) 1-CHI PRINTER: Karmed Yuqori Menyusidagi Printer (4-ikonka)
+    // ─────────────────────────────────────────────────────────────
+    const p1 = findPrinterElementDeep(document);
+    if (p1) {
+      triggerFullClick(p1);
+      showToastNotification("🖨️ 1-chi Printer bosildi! Hisobot ochilmoqda...");
       return true;
     }
 
@@ -522,7 +528,66 @@ function clickFastReportOrKarmedPrinterButton() {
   }
 }
 
-// PRINTER TUGMASINI CHUQUR IZLAB TOPISH
+// 2-CHI PRINTERNI (FASTREPORT TOOLBAR 3-IKONKASINI) CHUQUR TOPISH VA BOSISH
+function clickSecondFastReportPrinter(doc = document) {
+  if (!doc) return false;
+
+  try {
+    // 1. Matn, Title yoki Src bo'yicha FastReport Print / Save ikonkasini topish
+    const allEls = Array.from(doc.querySelectorAll("img, a, input, button, div, span"));
+    for (const el of allEls) {
+      if (el.id === "karmedPatientInfoBanner" || el.id === "karmedPdfCaptureBanner" || el.closest("#karmedPatientInfoBanner") || el.closest("#karmedPdfCaptureBanner")) continue;
+
+      const src = (el.src || "").toLowerCase();
+      const title = (el.getAttribute("title") || el.getAttribute("alt") || el.getAttribute("aria-label") || "").toLowerCase();
+      const oc = (el.getAttribute("onclick") || "").toLowerCase();
+
+      if (src.includes("print") || src.includes("yazdir") || title.includes("print") || title.includes("yazdır") || title.includes("yazdir") || oc.includes("print") || oc.includes("webreport")) {
+        triggerFullClick(el);
+        return true;
+      }
+    }
+
+    // 2. Yuqori-chap burchakdagi FastReport asboblar paneli (3-ikonka)
+    const topContainers = Array.from(doc.querySelectorAll("div, table, tr, td")).filter(c => {
+      if (c.id === "karmedPatientInfoBanner" || c.id === "karmedPdfCaptureBanner") return false;
+      const rect = c.getBoundingClientRect();
+      return rect.top >= 0 && rect.top < 120 && rect.left >= 0 && rect.left < 380 && rect.height > 15 && rect.height < 70;
+    });
+
+    for (const cont of topContainers) {
+      const icons = Array.from(cont.querySelectorAll("img, a, input, div.frbutton, button")).filter(i => {
+        const r = i.getBoundingClientRect();
+        return r.width >= 12 && r.height >= 12;
+      });
+
+      if (icons.length >= 3) {
+        // FastReport WebReport da 3-ikonka PRINTER (index 2)
+        const printerIcon = icons[2] || icons[1];
+        triggerFullClick(printerIcon);
+        return true;
+      }
+    }
+
+    // 3. Iframe larni rekursiv qidirish
+    const iframes = Array.from(doc.querySelectorAll("iframe, frame"));
+    for (const ifr of iframes) {
+      try {
+        const ifrDoc = ifr.contentDocument || ifr.contentWindow?.document;
+        if (ifrDoc && clickSecondFastReportPrinter(ifrDoc)) {
+          return true;
+        }
+      } catch (e) {}
+    }
+
+  } catch (e) {
+    console.warn("clickSecondFastReportPrinter error:", e);
+  }
+
+  return false;
+}
+
+// 1-CHI PRINTER TUGMASINI CHUQUR IZLAB TOPISH
 function findPrinterElementDeep(doc = document) {
   if (!doc) return null;
 
@@ -657,7 +722,7 @@ function extractKarmedPageData() {
   };
 }
 
-// 8. TELEGRAM VA FIREBASE-GA TO'G'RIDAN-TO'G'RI YUBORISH FUNKSIYASI
+// 8. TELEGRAM VA FIREBASE-GA TO'G'RIDAN-TO'G'RI YUBORISH
 async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
   const pinfl = data.pinfl || (activePatient ? activePatient.pinfl : "");
   const patientName = data.patientName || (activePatient ? activePatient.fullName : "Bemor");
@@ -686,7 +751,6 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
   };
 
   try {
-    // 1. Firebase-ga saqlash
     if (pinfl && pinfl.length === 14) {
       await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}/${reportId}.json`, {
         method: "PUT",
@@ -695,7 +759,6 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       });
     }
 
-    // 2. Telegram xabari
     const tgMsg = 
       `📄 <b>YANGI TIBBIY XULOSA (PDF) SAQLANDI</b>\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
@@ -710,14 +773,12 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       `━━━━━━━━━━━━━━━━━━\n\n` +
       `📝 <b>Xulosa Matni:</b>\n${escapeHtml(conclusionText.substring(0, 3000))}`;
 
-    // Kanalga yuborish
     fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: CHANNEL_ID, text: tgMsg, parse_mode: "HTML" })
     }).catch(() => {});
 
-    // Adminga yuborish
     fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

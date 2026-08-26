@@ -28,6 +28,8 @@
         "http://*/*",
         "https://*/*"
       ],
+      "all_frames": true,
+      "match_about_blank": true,
       "js": [
         "content.js"
       ],
