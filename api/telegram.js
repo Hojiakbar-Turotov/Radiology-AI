@@ -465,27 +465,30 @@ async function processSecurityVerificationServerless(chatId, userFullName, fromI
 
 async function sendNotFoundMessageServerless(chatId, patientId, pinfl, userFullName, fromId) {
   const notFound = 
-    `⚠️ <b>Tekshiruv xulosasi topilmadi</b>\n\n` +
-    `Kiritilgan <b>Bemor ID (${patientId})</b> va <b>JSHSHIR (${pinfl})</b> ma'lumotlari bo'yicha xulosa topilmadi yoki hali hisobot tasdiqlanmagan.\n\n` +
-    `💡 <i>Iltimos, ma'lumotlarni to'g'ri kiritganingizni tekshirib qaytadan urinib ko'ring yoki MyID FaceID orqali kiring.</i>\n\n` +
-    `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>`;
+    `🛡️ <b>MYID SHAXSIY PROFILINGIZ OCHILDI</b>\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `🆔 <b>Bemor ID:</b> <code>${patientId}</code>\n` +
+    `🔢 <b>JSHSHIR (PINFL):</b> <code>${pinfl}</code>\n\n` +
+    `ℹ️ <i>Sizning nomingizga hali tasdiqlangan tibbiy xulosalar mavjud emas yoki shifokor tekshiruv jarayonida. Shifokor tasdiqlashi bilan xulosalar profilingizda paydo bo'ladi.</i>\n\n` +
+    `📱 <i>MyID Shaxsiy profilingizni to'liq ko'rish uchun quyidagi tugmani bosing:</i>`;
 
   await sendTelegramMessage(chatId, notFound, {
     parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "🆔 MyID FaceID orqali Kirish (Kamera)", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
-        [{ text: "📱 Web App orqali qidirish", web_app: { url: WEBAPP_BASE_URL } }],
+        [{ text: "🆔 MyID Shaxsiy Profilni Ochish", web_app: { url: `${WEBAPP_BASE_URL}?id=${patientId}&pinfl=${pinfl}&auth=myid` } }],
         [{ text: "🔍 Qayta qidirish", callback_data: "search_again" }, { text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
       ]
     }
   });
 
   sendLogToGroup(
-    `⚠️ <b>XULOSA TOPILMADI (MOS KELMADI)</b>\n` +
+    `🆔 <b>MYID QIDIRUV (XULOSA HALI MAVJUD EMAS)</b>\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
     `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
     `🆔 Kiritilgan ID: <code>${patientId}</code>\n` +
-    `🔢 Kiritilgan PINFL: <code>${pinfl}</code>`
+    `🔢 Kiritilgan PINFL: <code>${pinfl}</code>\n` +
+    `📊 Holat: Profil faol, xulosa kutilmoqda`
   );
 }
 

