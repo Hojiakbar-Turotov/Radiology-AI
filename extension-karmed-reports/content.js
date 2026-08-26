@@ -85,7 +85,8 @@ function getTableColumnIndexes(headerRow) {
     pinfl: -1,
     department: -1,
     sampleNumber: -1,
-    regDate: -1
+    regDate: -1,
+    confirmDate: -1
   };
 
   if (!headerRow) return indexes;
@@ -101,8 +102,9 @@ function getTableColumnIndexes(headerRow) {
     else if (txt.includes("otaismi") || txt.includes("middlename")) indexes.middleName = idx;
     else if (txt.includes("tugilgan") || txt.includes("birthdate")) indexes.birthDate = idx;
     else if (txt.includes("pinfl") || txt.includes("pnfl") || txt.includes("jshshir")) indexes.pinfl = idx;
+    else if (txt.includes("tasdiqlangan") || txt.includes("confirmdate")) indexes.confirmDate = idx;
+    else if (txt.includes("namuna") || txt.includes("sampleno") || txt.includes("samplenumber")) indexes.sampleNumber = idx;
     else if (txt.includes("bolim") || txt.includes("ulangan")) indexes.department = idx;
-    else if (txt.includes("namuna")) indexes.sampleNumber = idx;
     else if (txt.includes("royxatgaolingan") || txt.includes("regdate")) indexes.regDate = idx;
   });
 
@@ -175,7 +177,28 @@ function parsePatientFromRow(row) {
     if (idCell) patientId = idCell;
   }
 
-  // 3. F.I.Sh (Familiya, Ismi, Ota ismi)
+  // 3. Namuna raqami (Sample Number - takrorlanmaslik uchun)
+  let sampleNumber = "";
+  if (colIdx.sampleNumber !== -1 && /^\d{5,9}$/.test(cellTexts[colIdx.sampleNumber])) {
+    sampleNumber = cellTexts[colIdx.sampleNumber];
+  } else {
+    const sCell = cellTexts.find(t => /^\d{6,8}$/.test(t) && t !== pinfl && t !== patientId);
+    if (sCell) sampleNumber = sCell;
+  }
+
+  // 4. Tasdiqlangan sanasi (Hisobot tasdiqlangan sana - bo'sh bo'lsa bo'sh qoladi)
+  let confirmDate = "";
+  if (colIdx.confirmDate !== -1) {
+    confirmDate = cellTexts[colIdx.confirmDate];
+  } else {
+    const dateMatches = Array.from(row.innerText.matchAll(/(\d{2}\.\d{2}\.\d{4}(?:\s+\d{2}:\d{2}(?::\d{2})?)?)/g));
+    if (dateMatches.length >= 3) {
+      confirmDate = dateMatches[2][1];
+    }
+  }
+  const reportDate = confirmDate ? confirmDate.trim() : "";
+
+  // 5. F.I.Sh (Familiya, Ismi, Ota ismi)
   let lastName = colIdx.lastName !== -1 ? cellTexts[colIdx.lastName] : "";
   let firstName = colIdx.firstName !== -1 ? cellTexts[colIdx.firstName] : "";
   let middleName = colIdx.middleName !== -1 ? cellTexts[colIdx.middleName] : "";
@@ -195,7 +218,7 @@ function parsePatientFromRow(row) {
 
   const fullName = `${lastName} ${firstName} ${middleName}`.trim();
 
-  // 4. Tug'ilgan sana va Yoshi
+  // 6. Tug'ilgan sana va Yoshi
   let birthDate = colIdx.birthDate !== -1 ? cellTexts[colIdx.birthDate] : "";
   if (!birthDate) {
     const bMatch = row.innerText.match(/(\d{2}\.\d{2}\.\d{4})/);
@@ -214,19 +237,22 @@ function parsePatientFromRow(row) {
     }
   }
 
-  // 5. Fayl Shifokori
+  // 7. Fayl Shifokori
   let fileDoctor = colIdx.fileDoctor !== -1 ? cellTexts[colIdx.fileDoctor] : "";
   if (!fileDoctor) {
     const docMatch = row.innerText.match(/(?:Dr\.|Doktor|Vrach)\s+[A-ZА-ЯЁ][a-zа-яё\.\s]+/i);
     if (docMatch) fileDoctor = docMatch[0].trim();
   }
 
-  // 6. Pastki jadvaldan Aniq Tekshiruv Nomi va Hisobot Muallifini olish
+  // 8. Pastki jadvaldan Aniq Tekshiruv Nomi va Hisobot Muallifini olish
   const subTableData = extractSubTableData();
 
   return {
     patientId: patientId || "Noma'lum",
     pinfl: pinfl || "",
+    sampleNumber: sampleNumber || "",
+    confirmDate: reportDate,
+    reportDate: reportDate,
     lastName: lastName || "",
     firstName: firstName || "",
     middleName: middleName || "",
@@ -391,6 +417,9 @@ function saveActivePatientToStorage(p) {
     const safeData = {
       patientId: p.patientId,
       pinfl: p.pinfl,
+      sampleNumber: p.sampleNumber || "",
+      confirmDate: p.confirmDate || "",
+      reportDate: p.reportDate || p.confirmDate || "",
       fullName: p.fullName,
       lastName: p.lastName,
       firstName: p.firstName,
@@ -442,8 +471,10 @@ function renderPatientBanner(p) {
         <div class="karmed-banner-name"><b>${escapeHtml(p.fullName)}</b> <span class="karmed-age-tag">${escapeHtml(p.age || p.birthDate)}</span></div>
         <div class="karmed-banner-meta">
           <span><b>ID:</b> ${escapeHtml(p.patientId)}</span> • 
+          <span><b>Namuna №:</b> <code>${escapeHtml(p.sampleNumber || '-')}</code></span> • 
           <span><b>PNFL:</b> <code class="karmed-pnfl-code">${escapeHtml(p.pinfl || 'Kiritilmagan')}</code></span> • 
-          <span><b>Hisobot muallifi:</b> ${authorBadgeHtml}</span>
+          <span><b>Hisobot muallifi:</b> ${authorBadgeHtml}</span> • 
+          <span><b>Tasdiqlangan:</b> <b>${escapeHtml(p.reportDate || p.confirmDate || 'Kutilmoqda')}</b></span>
         </div>
         <div class="karmed-banner-service">
           <i class="fa-solid fa-microscope"></i> <b>Tekshiruv:</b> <span>${escapeHtml(p.serviceName)}</span>
@@ -464,7 +495,6 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
-  // Avtopilot boshlash / to'xtatish
   const startBtn = document.getElementById("btnBannerStartAutopilot");
   if (startBtn) {
     startBtn.onclick = (e) => {
@@ -478,19 +508,17 @@ function renderPatientBanner(p) {
     stopBtn.onclick = (e) => {
       e.stopPropagation();
       isAutopilotRunning = false;
-      autopilotStatusText = "🛑 Avtopilot foydalanuvchi tomonidan to'xtatildi.";
+      autopilotStatusText = "🛑 Avtopilot to'xtatildi.";
       renderPatientBanner(activePatient || p);
       showToastNotification("🛑 Avtopilot to'xtatildi.");
     };
   }
 
-  // Printer tugmasi
   document.getElementById("btnBannerPrinter").onclick = (e) => {
     e.stopPropagation();
     clickFastReportOrKarmedPrinterButton();
   };
 
-  // Saqlash tugmasi
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
@@ -956,7 +984,8 @@ function extractKarmedPageData() {
   let patientName = activePatient ? activePatient.fullName : "";
   let serviceName = activePatient ? activePatient.serviceName : "";
   let doctorName = activePatient ? (activePatient.reportAuthor !== "Hali hisobot yozilmagan" ? activePatient.reportAuthor : activePatient.fileDoctor) : "";
-  let date = new Date().toISOString().split("T")[0];
+  let sampleNumber = activePatient ? activePatient.sampleNumber : "";
+  let reportDate = activePatient ? (activePatient.confirmDate || activePatient.reportDate || "") : "";
 
   try {
     const pageText = document.body.innerText || "";
@@ -966,6 +995,12 @@ function extractKarmedPageData() {
 
     const repDocMatch = pageText.match(/Reporting\s*Doctor\s*[:：]\s*([^\n\r\t]+)/i);
     if (repDocMatch) doctorName = repDocMatch[1].trim();
+
+    // Confirmation date in FastReport / Page text
+    const confMatch = pageText.match(/Confirmation\s*date\s*[:：]\s*([^\n\r\t]+)/i);
+    if (confMatch && !reportDate) {
+      reportDate = confMatch[1].trim();
+    }
 
     const nameMatch = pageText.match(/Name\s*[:：]\s*([^\n\r\t]+)/i);
     const lastNameMatch = pageText.match(/Last\s*name\s*[:：]\s*([^\n\r\t]+)/i);
@@ -977,15 +1012,17 @@ function extractKarmedPageData() {
     console.warn("extractKarmedPageData error:", e);
   }
 
-  const conclusionText = extractConclusionTextFromEditor();
+  const conclusionText = extractConclusionTextFromEditor() || extractDeepMedicalText(document);
 
   return {
     pinfl,
     patientName,
+    sampleNumber,
+    reportDate,
     serviceName: serviceName || "Tibbiy Tekshiruv",
     doctorName: doctorName || "Shifokor-Radiolog",
     conclusionText,
-    date
+    date: reportDate
   };
 }
 
@@ -995,13 +1032,17 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
   const patientName = data.patientName || (activePatient ? activePatient.fullName : "Bemor");
   const serviceName = data.serviceName || (activePatient ? activePatient.serviceName : "Tibbiy Tekshiruv");
   const doctorName = data.doctorName || (activePatient ? (activePatient.reportAuthor || activePatient.fileDoctor) : "Shifokor-Radiolog");
-  const conclusionText = data.conclusionText || "Tibbiy xulosa fayli biriktirildi.";
-  const reportId = "rep_" + Date.now();
-  const dateStr = new Date().toISOString().split("T")[0];
+  const sampleNumber = data.sampleNumber || (activePatient ? activePatient.sampleNumber : "");
+  const reportDate = data.reportDate || (activePatient ? (activePatient.confirmDate || activePatient.reportDate || "") : "");
+  const conclusionText = data.conclusionText || "";
+
+  // Bitta xisobot ikki marta takrorlanmasligi uchun unikal sampleNumber (Namuna raqami) asosida ID
+  const reportId = sampleNumber ? `rep_${sampleNumber}` : (activePatient && activePatient.sampleNumber ? `rep_${activePatient.sampleNumber}` : `rep_${Date.now()}`);
 
   const reportData = {
     id: reportId,
     pinfl,
+    sampleNumber: sampleNumber || "",
     patientId: activePatient ? activePatient.patientId : "",
     patientName,
     age: activePatient ? activePatient.age : "",
@@ -1010,7 +1051,8 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
     doctorName,
     reportAuthor: activePatient ? activePatient.reportAuthor : doctorName,
     fileDoctor: activePatient ? activePatient.fileDoctor : "",
-    reportDate: dateStr,
+    confirmDate: reportDate,
+    reportDate: reportDate, // Tasdiqlangan sana (agar bo'sh bo'lsa bo'sh qoladi)
     conclusionText,
     pdfUrl: pdfUrl || "",
     createdAt: Date.now(),
@@ -1026,19 +1068,24 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       });
     }
 
+    const cleanConclusion = conclusionText && conclusionText.length > 25
+      ? conclusionText
+      : "⚠️ Xulosa matni hisobotdan o'qib olinmadi.";
+
     const tgMsg = 
       `📄 <b>YANGI TIBBIY XULOSA (KARMED) SAQLANDI</b>\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
       `🎂 <b>Yoshi:</b> ${escapeHtml(reportData.age || reportData.birthDate || '-')}\n` +
       `🆔 <b>Bemor ID:</b> ${escapeHtml(reportData.patientId || '-')}\n` +
+      `🔢 <b>Namuna raqami:</b> <code>${sampleNumber || '-'}</code>\n` +
       `🔢 <b>PNFL (JSHSHIR):</b> <code>${pinfl || 'Noma\'lum'}</code>\n` +
       `🔬 <b>Tekshiruv:</b> ${escapeHtml(serviceName)}\n` +
       `✍️ <b>Hisobot muallifi:</b> ${escapeHtml(doctorName)}\n` +
-      `📅 <b>Sana:</b> ${dateStr}\n` +
+      `📅 <b>Tasdiqlangan sana:</b> ${reportDate ? reportDate : '-'}\n` +
       (pdfUrl ? `🔗 <b>PDF Havolasi:</b> <a href="${pdfUrl}">Yuklab olish</a>\n` : '') +
       `━━━━━━━━━━━━━━━━━━\n\n` +
-      `📝 <b>Xulosa Matni:</b>\n${escapeHtml(conclusionText.substring(0, 3000))}`;
+      `📝 <b>Xulosa Matni:</b>\n${escapeHtml(cleanConclusion.substring(0, 3200))}`;
 
     // 1. Kanalga FAQAT toza tibbiy xulosa yuboriladi
     fetch(`${TG_API_BASE}/sendMessage`, {
@@ -1052,16 +1099,26 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       `📋 <b>BEMOR XULOSASI SAQLANDI:</b>\n` +
       `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
       `🔢 <b>PNFL:</b> <code>${pinfl || 'Noma\'lum'}</code>\n` +
+      `🔢 <b>Namuna:</b> <code>${sampleNumber || '-'}</code>\n` +
       `🆔 <b>ID:</b> ${escapeHtml(reportData.patientId || '-')}\n` +
       `🔬 <b>Tekshiruv:</b> ${escapeHtml(serviceName)}\n` +
       `✍️ <b>Muallif:</b> ${escapeHtml(doctorName)}\n` +
-      `⏰ <b>Sana:</b> ${dateStr}`;
+      `⏰ <b>Tasdiqlangan sana:</b> ${reportDate || '-'}`;
 
     fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: LOG_GROUP_ID, text: logMsg, parse_mode: "HTML" })
     }).catch(() => {});
+
+    showToastNotification(`✅ Telegramga yuborildi: ${patientName} (${pinfl})`);
+    return true;
+
+  } catch (err) {
+    console.warn("sendCurrentReport error:", err);
+    return false;
+  }
+}
 
     showToastNotification(`✅ Telegramga yuborildi: ${patientName} (${pinfl})`);
     return true;

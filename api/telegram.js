@@ -148,10 +148,11 @@ module.exports = async (req, res) => {
             `👤 <b>Bemor:</b> ${escapeHtml(rep.patientName || 'Bemor')}\n` +
             `🎂 <b>Yoshi:</b> ${escapeHtml(rep.age || rep.birthDate || '-')}\n` +
             `🆔 <b>Bemor ID:</b> ${escapeHtml(rep.patientId || '-')}\n` +
+            `🔢 <b>Namuna raqami:</b> <code>${rep.sampleNumber || '-'}</code>\n` +
             `🔢 <b>PINFL:</b> <code>${cleanDigits}</code>\n` +
             `🔬 <b>Tekshiruv turi:</b> <b>${escapeHtml(rep.serviceName || 'Tibbiy tekshiruv')}</b>\n` +
             `👨‍⚕️ <b>Shifokor-Radiolog:</b> ${escapeHtml(rep.doctorName || rep.reportAuthor || '-')}\n` +
-            `📅 <b>Tekshiruv sanasi:</b> ${escapeHtml(rep.reportDate || '-')}\n` +
+            `📅 <b>Tasdiqlangan sana:</b> ${escapeHtml(rep.reportDate || rep.confirmDate || '-')}\n` +
             `━━━━━━━━━━━━━━━━━━\n\n` +
             `📝 <b>XULOSA MATNI:</b>\n\n` +
             `${escapeHtml(rep.conclusionText || 'Xulosa matni mavjud emas.')}\n\n` +
