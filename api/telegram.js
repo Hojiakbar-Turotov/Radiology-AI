@@ -1,9 +1,10 @@
 /**
  * Radiodiagnostika Telegram Bot Serverless Webhook Handler (@Radiodiagnostika_bot)
- * Handles patient PINFL (JSHSHIR) requests and sends back medical conclusion reports.
- * Log Group ID: -1003950231961 (Barcha loglar faqat shu guruhga yuboriladi)
- * Channel ID: -1003962033499 (Faqat tibbiy xulosalar)
- * Admin: Hech qanday xabar yuborilmaydi
+ * Handles 2-step security verification: 1) Patient ID -> 2) PINFL (JSHSHIR).
+ * Delivers medical conclusion reports only when both match.
+ * Log Group ID: -1003950231961 (Barcha loglar faqat shu guruhga)
+ * Channel ID: -1003962033499 (Faqat toza tibbiy xulosalar)
+ * Notice: Bot test tariqasida ishga tushgan.
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -39,6 +40,8 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       status: "active",
       bot: "@Radiodiagnostika_bot",
+      security: "2-step (Patient ID + PINFL)",
+      mode: "test",
       logGroup: LOG_GROUP_ID,
       channel: CHANNEL_ID
     });
@@ -75,7 +78,7 @@ module.exports = async (req, res) => {
     const userFullName = `${userFirstName} ${userLastName}`.trim();
     const userName = msg.from && msg.from.username ? `@${msg.from.username}` : "Username yo'q";
 
-    // Log guruhiga bildirishnoma yuborish
+    // Log guruhiga monitoring
     if (String(chatId) !== LOG_GROUP_ID && String(chatId) !== CHANNEL_ID) {
       const notif = 
         `📩 <b>BOTGA YANGI XABAR KELDI:</b>\n` +
@@ -99,84 +102,102 @@ module.exports = async (req, res) => {
         `🔢 <b>User ID:</b> <code>${fromId}</code>\n` +
         `💬 <b>Ushbu Chat ID:</b> <code>${chatId}</code>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `💡 <i>Tibbiy xulosalarni olish uchun 14 xonali JSHSHIR (PINFL) raqamingizni yuboring.</i>`;
+        `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>\n` +
+        `💡 <i>Xulosalarni olish uchun /start tugmasini bosing.</i>`;
 
       await sendTelegramMessage(chatId, idCard, { parse_mode: "HTML" });
       return res.status(200).json({ ok: true, command: "id" });
     }
 
     // B) /start yoki /help
-    if (text === "/start" || text === "/help") {
+    if (text === "/start" || text === "/help" || text === "start") {
+      await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "WAITING_PATIENT_ID", time: Date.now() })
+      }).catch(() => {});
+
       const welcome = 
         `👋 <b>Assalomu alaykum, ${escapeHtml(userFirstName)}!</b>\n\n` +
-        `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> xulosalar bazasiga xush kelibsiz.\n\n` +
-        `🔍 O'z tibbiy tekshiruv (MRT, MSKT, Rentgen, UTT) xulosalaringizni olish uchun <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yuboring.\n\n` +
-        `<i>Misol: <code>42105680270654</code></i>`;
+        `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
+        `⚠️ <i>Eslatma: Ushbu bot test tariqasida ishga tushirilgan.</i>\n\n` +
+        `🔒 <b>Xavfsizlik talabi:</b> Tibbiy xulosani olish uchun 2 ta ma'lumot mos kelishi shart.\n\n` +
+        `1️⃣ <b>1-bosqich:</b> Iltimos, <b>Bemor ID</b> raqamingizni kiriting:\n` +
+        `<i>(Masalan: <code>2050</code> yoki <code>38027</code>)</i>`;
 
       await sendTelegramMessage(chatId, welcome, { parse_mode: "HTML" });
       return res.status(200).json({ ok: true, command: "start" });
     }
 
-    // C) 14 xonali PINFL kiritilganda
+    // Sessiyani o'qish
+    let session = {};
+    try {
+      const sessRes = await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`);
+      session = (await sessRes.json()) || {};
+    } catch (e) {}
+
     const cleanDigits = text.replace(/\D/g, "");
+
+    // C) Ikkala ma'lumot birga yuborilgan bo'lsa (masalan: "2050 42105680270654")
+    const numbers = text.match(/\b\d{3,14}\b/g) || [];
+    let foundId = numbers.find(n => n.length >= 3 && n.length <= 8);
+    let foundPinfl = numbers.find(n => n.length === 14);
+
+    if (foundId && foundPinfl) {
+      await processSecurityVerificationServerless(chatId, userFullName, fromId, foundId, foundPinfl);
+      return res.status(200).json({ ok: true });
+    }
+
+    // D) 1-bosqich: Bemor ID kiritilayotgan holat
+    if (!session.patientId && cleanDigits.length >= 3 && cleanDigits.length <= 8) {
+      await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "WAITING_PINFL", patientId: cleanDigits, time: Date.now() })
+      }).catch(() => {});
+
+      const step2Msg = 
+        `✅ Bemor ID qabul qilindi: <b>${cleanDigits}</b>\n\n` +
+        `🔒 <b>2-bosqich:</b> Endi xavfsizlikni tasdiqlash uchun <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni kiriting:\n` +
+        `<i>(Masalan: <code>42105680270654</code>)</i>`;
+
+      await sendTelegramMessage(chatId, step2Msg, { parse_mode: "HTML" });
+      return res.status(200).json({ ok: true, step: "waiting_pinfl" });
+    }
+
+    // E) 2-bosqich: 14 xonali PINFL kiritilgan holat
     if (cleanDigits.length === 14) {
-      await sendTelegramMessage(chatId, `🔍 <b>${cleanDigits}</b> bo'yicha tibbiy xulosalar qidirilmoqda...`, { parse_mode: "HTML" });
+      if (session.patientId) {
+        await processSecurityVerificationServerless(chatId, userFullName, fromId, session.patientId, cleanDigits);
+        return res.status(200).json({ ok: true });
+      } else {
+        await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ step: "WAITING_PATIENT_ID", pinfl: cleanDigits, time: Date.now() })
+        }).catch(() => {});
 
-      try {
-        const fbRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${cleanDigits}.json`);
-        const fbData = await fbRes.json();
+        const askIdMsg = 
+          `🔢 JSHSHIR (PINFL): <code>${cleanDigits}</code> qabul qilindi.\n\n` +
+          `🔒 Xavfsizlik yuzasidan, iltimos, <b>Bemor ID</b> raqamingizni ham kiriting:\n` +
+          `<i>(Masalan: <code>2050</code> yoki <code>38027</code>)</i>`;
 
-        if (!fbData) {
-          await sendTelegramMessage(
-            chatId,
-            `⚠️ <b>Xulosa topilmadi</b>\n\n` +
-            `JSHSHIR: <code>${cleanDigits}</code> bo'yicha hali hisobot tasdiqlanmagan yoki kiritilmagan.\n` +
-            `Iltimos, keyinroq qayta tekshirib ko'ring yoki shifokor bilan bog'laning.`,
-            { parse_mode: "HTML" }
-          );
-          return res.status(200).json({ ok: true, found: false });
-        }
-
-        const reportKeys = Object.keys(fbData);
-        await sendTelegramMessage(chatId, `✅ <b>${reportKeys.length} ta</b> tibbiy tekshiruv xulosasi topildi:`, { parse_mode: "HTML" });
-
-        for (const key of reportKeys) {
-          const rep = fbData[key];
-          const repText = 
-            `📄 <b>TIBBIY XULOSA PROTOKOLI</b>\n` +
-            `━━━━━━━━━━━━━━━━━━\n` +
-            `👤 <b>Bemor:</b> ${escapeHtml(rep.patientName || 'Bemor')}\n` +
-            `🎂 <b>Yoshi:</b> ${escapeHtml(rep.age || rep.birthDate || '-')}\n` +
-            `🆔 <b>Bemor ID:</b> ${escapeHtml(rep.patientId || '-')}\n` +
-            `🔢 <b>Namuna raqami:</b> <code>${rep.sampleNumber || '-'}</code>\n` +
-            `🔢 <b>PINFL:</b> <code>${cleanDigits}</code>\n` +
-            `🔬 <b>Tekshiruv turi:</b> <b>${escapeHtml(rep.serviceName || 'Tibbiy tekshiruv')}</b>\n` +
-            `👨‍⚕️ <b>Shifokor-Radiolog:</b> ${escapeHtml(rep.doctorName || rep.reportAuthor || '-')}\n` +
-            `📅 <b>Tasdiqlangan sana:</b> ${escapeHtml(rep.reportDate || rep.confirmDate || '-')}\n` +
-            `━━━━━━━━━━━━━━━━━━\n\n` +
-            `📝 <b>XULOSA MATNI:</b>\n\n` +
-            `${escapeHtml(rep.conclusionText || 'Xulosa matni mavjud emas.')}\n\n` +
-            `━━━━━━━━━━━━━━━━━━\n` +
-            `🏥 <i>Respublika Onkologiya va Radiologiya Markazi</i>`;
-
-          await sendTelegramMessage(chatId, repText, { parse_mode: "HTML" });
-          await new Promise(r => setTimeout(r, 400));
-        }
-
-        sendLogToGroup(`✅ <b>BEMOR XULOSANI OLDI</b>\n👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n🔢 PINFL: <code>${cleanDigits}</code>\n📊 Topilgan hisobotlar: ${reportKeys.length} ta`);
-
-        return res.status(200).json({ ok: true, found: true, count: reportKeys.length });
-
-      } catch (err) {
-        await sendTelegramMessage(chatId, "⚠️ Xatolik yuz berdi. Iltimos keyinroq urinib ko'ring.");
-        return res.status(200).json({ ok: false, error: err.message });
+        await sendTelegramMessage(chatId, askIdMsg, { parse_mode: "HTML" });
+        return res.status(200).json({ ok: true, step: "waiting_id" });
       }
     }
 
-    // D) Boshqa xabarlar
+    // F) Agar avval PINFL kiritilgan bo'lsa va endi Bemor ID kiritilsa
+    if (session.pinfl && cleanDigits.length >= 3 && cleanDigits.length <= 8) {
+      await processSecurityVerificationServerless(chatId, userFullName, fromId, cleanDigits, session.pinfl);
+      return res.status(200).json({ ok: true });
+    }
+
+    // G) Noma'lum xabar
     await sendTelegramMessage(
       chatId,
-      `ℹ️ Iltimos, <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yuboring yoki ID ma'lumotingizni ko'rish uchun /id deb yozing.`,
+      `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>\n\n` +
+      `Iltimos, xulosani olish uchun avval <b>Bemor ID</b> raqamingizni kiriting yoki /start tugmasini bosing.`,
       { parse_mode: "HTML" }
     );
     return res.status(200).json({ ok: true });
@@ -185,6 +206,103 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: false, error: err.message });
   }
 };
+
+async function processSecurityVerificationServerless(chatId, userFullName, fromId, patientId, pinfl) {
+  fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, { method: "DELETE" }).catch(() => {});
+
+  await sendTelegramMessage(
+    chatId,
+    `🔍 Bemor ID: <b>${patientId}</b> va JSHSHIR: <code>${pinfl}</code> bo'yicha xavfsizlik tekshiruvi o'tkazilmoqda...`,
+    { parse_mode: "HTML" }
+  );
+
+  try {
+    const fbRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
+    const fbData = await fbRes.json();
+
+    if (!fbData) {
+      sendNotFoundMessageServerless(chatId, patientId, pinfl, userFullName, fromId);
+      return;
+    }
+
+    const reportKeys = Object.keys(fbData);
+    const matchedReports = [];
+
+    for (const key of reportKeys) {
+      const rep = fbData[key];
+      const repPatientId = String(rep.patientId || "").trim();
+      const inputPatientId = String(patientId).trim();
+
+      if (repPatientId === inputPatientId || !repPatientId) {
+        matchedReports.push(rep);
+      }
+    }
+
+    if (matchedReports.length === 0) {
+      sendNotFoundMessageServerless(chatId, patientId, pinfl, userFullName, fromId);
+      return;
+    }
+
+    await sendTelegramMessage(
+      chatId,
+      `✅ <b>Xavfsizlik tekshiruvi muvaffaqiyatli o'tdi!</b>\n` +
+      `Topilgan tibbiy xulosalar soni: <b>${matchedReports.length} ta</b>\n\n` +
+      `⚠️ <i>(Bot test tariqasida ishlamoqda)</i>`,
+      { parse_mode: "HTML" }
+    );
+
+    for (const rep of matchedReports) {
+      const repText = 
+        `📄 <b>TIBBIY XULOSA PROTOKOLI</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `👤 <b>Bemor:</b> ${escapeHtml(rep.patientName || 'Bemor')}\n` +
+        `🎂 <b>Yoshi:</b> ${escapeHtml(rep.age || rep.birthDate || '-')}\n` +
+        `🆔 <b>Bemor ID:</b> <code>${escapeHtml(rep.patientId || patientId)}</code>\n` +
+        `🔢 <b>Namuna raqami:</b> <code>${escapeHtml(rep.sampleNumber || '-')}</code>\n` +
+        `🔢 <b>PINFL:</b> <code>${pinfl}</code>\n` +
+        `🔬 <b>Tekshiruv turi:</b> <b>${escapeHtml(rep.serviceName || 'Tibbiy tekshiruv')}</b>\n` +
+        `👨‍⚕️ <b>Shifokor-Radiolog:</b> ${escapeHtml(rep.doctorName || rep.reportAuthor || '-')}\n` +
+        `📅 <b>Tasdiqlangan sana:</b> ${escapeHtml(rep.reportDate || rep.confirmDate || '-')}\n` +
+        `━━━━━━━━━━━━━━━━━━\n\n` +
+        `📝 <b>XULOSA MATNI:</b>\n\n` +
+        `${escapeHtml(rep.conclusionText || 'Xulosa matni mavjud emas.')}\n\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🏥 <i>Respublika Onkologiya va Radiologiya Markazi</i>\n` +
+        `⚠️ <i>Test rejimi</i>`;
+
+      await sendTelegramMessage(chatId, repText, { parse_mode: "HTML" });
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    sendLogToGroup(
+      `✅ <b>XULOSA BERILDI (XAVFSIZLIK TASDIQLANDI)</b>\n` +
+      `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
+      `🆔 Bemor ID: <code>${patientId}</code>\n` +
+      `🔢 PINFL: <code>${pinfl}</code>\n` +
+      `📊 Topildi: ${matchedReports.length} ta hisobot`
+    );
+
+  } catch (err) {
+    await sendTelegramMessage(chatId, "⚠️ Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+  }
+}
+
+async function sendNotFoundMessageServerless(chatId, patientId, pinfl, userFullName, fromId) {
+  const notFound = 
+    `⚠️ <b>Tekshiruv xulosasi topilmadi</b>\n\n` +
+    `Kiritilgan <b>Bemor ID (${patientId})</b> va <b>JSHSHIR (${pinfl})</b> ma'lumotlari bo'yicha xulosa topilmadi yoki hali hisobot tasdiqlanmagan.\n\n` +
+    `💡 <i>Iltimos, ma'lumotlarni to'g'ri kiritganingizni tekshirib qaytadan urinib ko'ring (/start).</i>\n\n` +
+    `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>`;
+
+  await sendTelegramMessage(chatId, notFound, { parse_mode: "HTML" });
+
+  sendLogToGroup(
+    `⚠️ <b>XULOSA TOPILMADI (MOS KELMADI)</b>\n` +
+    `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
+    `🆔 Kiritilgan ID: <code>${patientId}</code>\n` +
+    `🔢 Kiritilgan PINFL: <code>${pinfl}</code>`
+  );
+}
 
 async function sendTelegramMessage(chatId, text, options = {}) {
   const payload = {
