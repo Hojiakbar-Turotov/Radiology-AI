@@ -111,13 +111,25 @@ function getTableColumnIndexes(headerRow) {
   return indexes;
 }
 
-// Jadvaldagi barcha bemor qatorlarini yig'ish
+// Jadval guruhlarini avtomatik kengaytirish (EXO, MRT, Rentgen, UTT va h.k.)
+function expandAllTableGroups(doc = document) {
+  try {
+    const expandIcons = Array.from(doc.querySelectorAll(".dx-datagrid-group-closed, .k-i-expand, [class*='expand'], [class*='plus'], tr.group-header, .dx-group-cell, .k-hierarchy-cell .k-icon"));
+    expandIcons.forEach(icon => {
+      try { icon.click(); } catch(e) {}
+    });
+  } catch (e) {}
+}
+
+// Jadvaldagi barcha bemor va tekshiruv qatorlarini to'liq yig'ish
 function getAllValidPatientRows() {
+  expandAllTableGroups();
+
   const allRows = Array.from(document.querySelectorAll("tr"));
   const validRows = [];
 
   for (const row of allRows) {
-    if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("("))) {
+    if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("(") && row.innerText.includes(")"))) {
       continue;
     }
     const cells = Array.from(row.querySelectorAll("td"));
@@ -129,7 +141,7 @@ function getAllValidPatientRows() {
     }
 
     const p = parsePatientFromRow(row);
-    if (p && (p.pinfl || (p.patientId && p.patientId !== "Noma'lum"))) {
+    if (p && (p.pinfl || (p.patientId && p.patientId !== "Noma'lum") || p.sampleNumber)) {
       validRows.push({ row, patient: p });
     }
   }
@@ -137,11 +149,11 @@ function getAllValidPatientRows() {
   return validRows;
 }
 
-// Qatordan bemor ma'lumotlarini aniq ajratib olish
+// Qatordan bemor va uning aynan shu tekshiruvi ma'lumotlarini aniq ajratib olish
 function parsePatientFromRow(row) {
   if (!row || row.tagName !== "TR") return null;
 
-  if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("("))) {
+  if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("(") && row.innerText.includes(")"))) {
     return null;
   }
 
@@ -177,7 +189,7 @@ function parsePatientFromRow(row) {
     if (idCell) patientId = idCell;
   }
 
-  // 3. Namuna raqami (Sample Number - takrorlanmaslik uchun)
+  // 3. Namuna raqami (Sample Number - har bir tekshiruvning unikal raqami)
   let sampleNumber = "";
   if (colIdx.sampleNumber !== -1 && /^\d{5,9}$/.test(cellTexts[colIdx.sampleNumber])) {
     sampleNumber = cellTexts[colIdx.sampleNumber];
@@ -244,8 +256,38 @@ function parsePatientFromRow(row) {
     if (docMatch) fileDoctor = docMatch[0].trim();
   }
 
-  // 8. Pastki jadvaldan Aniq Tekshiruv Nomi va Hisobot Muallifini olish
+  // 8. Guruh Sarlavhasi (EXO, Endoskopiya, MRT, Rentgen, Tomografiya(MSCT), Ultratovush...)
+  let groupTitle = "";
+  let prev = row.previousElementSibling;
+  while (prev) {
+    const txt = prev.innerText.trim();
+    if (prev.classList.contains("group-header") || (txt.includes("(") && txt.includes(")"))) {
+      groupTitle = txt.replace(/\(\d+\)/g, "").trim();
+      break;
+    }
+    prev = prev.previousElementSibling;
+  }
+
+  // 9. Ulangan Bo'lim / Xizmat turi
+  let connectedDept = colIdx.department !== -1 ? cellTexts[colIdx.department] : "";
+  if (!connectedDept && cells.length > 0) {
+    const lastCell = cells[cells.length - 1].innerText.trim();
+    if (lastCell && !lastCell.includes(":") && !lastCell.includes(".")) {
+      connectedDept = lastCell;
+    }
+  }
+
+  // 10. Pastki jadvaldan Aniq Tekshiruv Nomi va Hisobot Muallifini olish
   const subTableData = extractSubTableData();
+
+  let resolvedService = "Tibbiy Tekshiruv";
+  if (subTableData.serviceName && subTableData.serviceName !== "Tibbiy Tekshiruv") {
+    resolvedService = groupTitle ? `${groupTitle} (${subTableData.serviceName})` : subTableData.serviceName;
+  } else if (connectedDept) {
+    resolvedService = groupTitle ? `${groupTitle} - ${connectedDept}` : connectedDept;
+  } else if (groupTitle) {
+    resolvedService = groupTitle;
+  }
 
   return {
     patientId: patientId || "Noma'lum",
@@ -253,6 +295,8 @@ function parsePatientFromRow(row) {
     sampleNumber: sampleNumber || "",
     confirmDate: reportDate,
     reportDate: reportDate,
+    groupTitle: groupTitle || "",
+    connectedDept: connectedDept || "",
     lastName: lastName || "",
     firstName: firstName || "",
     middleName: middleName || "",
@@ -260,7 +304,7 @@ function parsePatientFromRow(row) {
     birthDate: birthDate || "",
     age: age || "",
     fileDoctor: fileDoctor || "Shifokor",
-    serviceName: subTableData.serviceName || "Tibbiy Tekshiruv",
+    serviceName: resolvedService,
     reportAuthor: subTableData.reportAuthor || "Hali hisobot yozilmagan",
     transactionDate: subTableData.transactionDate || new Date().toISOString().split("T")[0],
     queueNumber: subTableData.queueNumber || "",
