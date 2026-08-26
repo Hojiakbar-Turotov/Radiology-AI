@@ -192,21 +192,50 @@
   white-space: nowrap;
 }
 
-.karmed-btn-download-pdf {
-  background: #dc2626;
-  color: #ffffff;
-  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+.karmed-autopilot-status {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #15803d;
+  background: #f0fdf4;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid #bbf7d0;
+  display: block;
 }
 
-.karmed-btn-download-pdf:hover {
-  background: #b91c1c;
+.karmed-btn-start-autopilot {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.karmed-btn-start-autopilot:hover {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
   transform: translateY(-1px);
 }
 
-.karmed-btn-printer {
-  background: #059669;
+.karmed-btn-stop-autopilot {
+  background: #ef4444;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  font-weight: 800;
+  font-size: 13px;
+  animation: pulseStop 1.5s infinite;
+}
+
+@keyframes pulseStop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.karmed-btn-printer {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
 }
 
 .karmed-btn-printer:hover {
