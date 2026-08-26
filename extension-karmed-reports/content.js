@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Yagona qulay boshqaruv paneli (ortiqcha 2-tugmasiz)
- * 3. Tanlangan bemorga onclick/dblclick qilib fayllarini ochish
+ * 2. Pastki sub-jadval (R202, R182, R78...) orqali 100% aniq xizmat va muallifni ajratish
+ * 3. Yagona qulay boshqaruv paneli
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -32,9 +32,10 @@ function initTableObserver() {
   document.addEventListener("click", handleTableClickCapture, true);
   document.addEventListener("dblclick", handleTableClickCapture, true);
 
+  // Muntazam ravishda tanlangan qatorni va pastki jadvalni tekshirish
   setInterval(() => {
     checkSelectedRow();
-  }, 1500);
+  }, 1200);
 }
 
 // Asosiy jadval sarlavha ustunlari indekslarini aniqlash
@@ -84,6 +85,11 @@ function parsePatientFromRow(row) {
 
   const cells = Array.from(row.querySelectorAll("td"));
   if (cells.length < 5) return null;
+
+  // Agar pastki sub-jadval qatori (R202, R182...) bo'lsa, uni asosiy bemor qatori sifatida emas, sub-jadval sifatida o'qiymiz
+  if (/^R\d+/i.test(cells[0].innerText.trim())) {
+    return null;
+  }
 
   const table = row.closest("table");
   let headerRow = table ? table.querySelector("thead tr, tr:first-child") : null;
@@ -155,7 +161,7 @@ function parsePatientFromRow(row) {
     if (docMatch) fileDoctor = docMatch[0].trim();
   }
 
-  // 6. Pastki jadvaldan (Sub-table) Aniq Tekshiruv Nomi va Hisobot Muallifini olish
+  // 6. Pastki jadvaldan (Sub-table R...) Aniq Tekshiruv Nomi va Hisobot Muallifini olish
   const subTableData = extractSubTableData(fileDoctor);
 
   return {
@@ -169,14 +175,14 @@ function parsePatientFromRow(row) {
     age: age || "",
     fileDoctor: fileDoctor || "Shifokor",
     serviceName: subTableData.serviceName || "Tibbiy Tekshiruv",
-    reportAuthor: subTableData.reportAuthor || "Shifokor ko'rigida",
+    reportAuthor: subTableData.reportAuthor || fileDoctor || "Shifokor ko'rigida",
     transactionDate: subTableData.transactionDate || new Date().toISOString().split("T")[0],
     queueNumber: subTableData.queueNumber || "",
     rowElement: row
   };
 }
 
-// Pastki jadvaldan (Tashxislar / Xizmatlar) ANIQ ma'lumotlarni ajratish
+// Pastki jadvaldan (Kod R202, R182, R78...) ANIQ ma'lumotlarni ajratish
 function extractSubTableData(defaultDoctor = "") {
   let serviceNamesList = [];
   let reportAuthor = "";
@@ -184,72 +190,78 @@ function extractSubTableData(defaultDoctor = "") {
   let queueNumber = "";
 
   try {
-    const allTables = Array.from(document.querySelectorAll("table"));
+    // 1. Butun sahifadagi barcha TR qatorlarini qidiramiz
+    const allRows = Array.from(document.querySelectorAll("tr"));
     
-    // Pastki sub-jadvalni aniqlash
-    for (const tbl of allTables) {
-      const headerText = tbl.innerText;
-      if (headerText.includes("Xizmatlar Nomi") || headerText.includes("Navbat raqami") || headerText.includes("Hisobot muallifi")) {
-        
-        // Ustun indekslarini aniqlash
-        let colXizmat = 1;
-        let colAuthor = 5;
-        let colQueue = 3;
-        let colDate = 2;
-        let colDoctor = 4;
+    // Kod ustuni R bilan boshlanuvchi qatorlarni topamiz (masalan: R202, R182, R184, R78, R67, R73)
+    const serviceRows = allRows.filter(r => {
+      const firstCell = r.querySelector("td:first-child");
+      if (!firstCell) return false;
+      const t = firstCell.innerText.trim();
+      return /^R\d{2,4}\b/i.test(t);
+    });
 
-        const ths = Array.from(tbl.querySelectorAll("th, tr:first-child td"));
-        ths.forEach((th, idx) => {
-          const t = th.innerText.toLowerCase().replace(/[\s_\-']/g, "");
-          if (t.includes("xizmatlarnomi") || t.includes("xizmatnomi")) colXizmat = idx;
-          else if (t.includes("hisobotmuallifi")) colAuthor = idx;
-          else if (t.includes("navbatraqami")) colQueue = idx;
-          else if (t.includes("tranzaksiyasanasi") || t.includes("sana")) colDate = idx;
-          else if (t.includes("sorovyuboradigan") || t.includes("shifokor")) colDoctor = idx;
-        });
-
-        // Ma'lumot qatorlarini o'qish (headerdan tashqari)
-        const rows = Array.from(tbl.querySelectorAll("tbody tr, tr"));
-        rows.forEach(r => {
-          const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
-          if (cells.length >= 3 && !cells[0].includes("Kod") && !cells[0].includes("Xizmatlar")) {
-            
-            // Aniq Xizmat Nomi
-            const serviceName = cells[colXizmat] || cells[1] || "";
-            if (serviceName && !serviceName.includes("Kod") && !serviceName.includes("Xizmat") && !serviceNamesList.includes(serviceName)) {
-              serviceNamesList.push(serviceName);
-            }
-
-            // Aniq Hisobot Muallifi (Faqat haqiqiy shifokor ismi bo'lsa)
-            const authorVal = cells[colAuthor] || "";
-            if (authorVal && 
-                authorVal.length > 3 && 
-                /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(authorVal) && 
-                !authorVal.includes("Paket") && 
-                !authorVal.includes("Kodi") && 
-                !authorVal.includes("Xizmat")) {
-              reportAuthor = authorVal;
-            }
-
-            // Agar author bo'sh bo'lsa, so'rov yuborgan shifokorni tekshiramiz
-            if (!reportAuthor) {
-              const docVal = cells[colDoctor] || "";
-              if (docVal && /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(docVal) && !docVal.includes("Paket")) {
-                reportAuthor = docVal;
-              }
-            }
-
-            // Navbat raqami
-            if (!queueNumber && cells[colQueue] && /^\d{5,9}$/.test(cells[colQueue])) {
-              queueNumber = cells[colQueue];
-            }
+    if (serviceRows.length > 0) {
+      serviceRows.forEach(r => {
+        const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
+        if (cells.length >= 3) {
+          // cells[1]: Xizmatlar Nomi (masalan: "Nrt kichik tza azolari + V/V Kontrast ravona", "Kichik chanoq a'zolari MRT", "Periferik Limfa Tugunlar")
+          const sName = cells[1];
+          if (sName && !serviceNamesList.includes(sName)) {
+            serviceNamesList.push(sName);
           }
-        });
-        break;
+
+          // cells[2]: Tranzaksiya sanasi
+          if (cells[2] && cells[2].includes(".")) {
+            transactionDate = cells[2];
+          }
+
+          // cells[3]: Navbat raqami
+          if (cells[3] && /^\d{5,9}$/.test(cells[3])) {
+            queueNumber = cells[3];
+          }
+
+          // cells[5]: Hisobot muallifi (masalan: "Karimov Muzaffarjon Muxsinovich", "Yarmatov Muxamadjon...")
+          // cells[10]: Shifokori
+          let authorCandidate = "";
+          if (cells.length > 5 && cells[5]) {
+            authorCandidate = cells[5];
+          } else if (cells.length > 10 && cells[10]) {
+            authorCandidate = cells[10];
+          } else if (cells.length > 4 && cells[4]) {
+            authorCandidate = cells[4];
+          }
+
+          if (authorCandidate && 
+              authorCandidate.length > 3 && 
+              /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(authorCandidate) && 
+              !authorCandidate.includes("Paket") && 
+              !authorCandidate.includes("Kodi") && 
+              !authorCandidate.includes("Xizmat")) {
+            reportAuthor = authorCandidate;
+          }
+        }
+      });
+    }
+
+    // 2. Agar Kod R... qatori topilmagan bo'lsa, umumiy table lardan qidirish
+    if (serviceNamesList.length === 0) {
+      const allTables = Array.from(document.querySelectorAll("table"));
+      for (const tbl of allTables) {
+        if (tbl.innerText.includes("Xizmatlar Nomi")) {
+          const rows = Array.from(tbl.querySelectorAll("tr"));
+          rows.forEach(r => {
+            const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
+            if (cells.length >= 3 && !cells[0].includes("Kod") && !cells[0].includes("Xizmatlar")) {
+              if (cells[1] && !serviceNamesList.includes(cells[1])) serviceNamesList.push(cells[1]);
+              if (cells[5] && /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(cells[5])) reportAuthor = cells[5];
+            }
+          });
+        }
       }
     }
 
-    // Agar sub-jadvaldan topilmagan bo'lsa, asosiy sahifadagi guruh sarlavhasi (Ultratovush / EKG / MRT) ni olamiz
+    // 3. Agar hali ham topilmagan bo'lsa, sahifadagi guruh sarlavhasini olamiz
     if (serviceNamesList.length === 0) {
       const pageText = document.body.innerText;
       if (pageText.includes("Ultratovush")) serviceNamesList.push("Ultratovush (UTT) Tekshiruvi");
@@ -264,7 +276,7 @@ function extractSubTableData(defaultDoctor = "") {
   }
 
   const finalServiceName = serviceNamesList.length > 0 ? serviceNamesList.join(", ") : "Tibbiy Tekshiruv";
-  const finalAuthor = (reportAuthor && !reportAuthor.includes("Paket")) ? reportAuthor : (defaultDoctor || "Shifokor ko'rigida");
+  const finalAuthor = reportAuthor ? reportAuthor : (defaultDoctor || "Shifokor ko'rigida");
 
   return {
     serviceName: finalServiceName,
@@ -293,11 +305,16 @@ function checkSelectedRow() {
   for (const row of selectedRows) {
     const patient = parsePatientFromRow(row);
     if (patient && (patient.pinfl || patient.patientId !== "Noma'lum")) {
-      if (!activePatient || activePatient.patientId !== patient.patientId || activePatient.pinfl !== patient.pinfl) {
-        activePatient = patient;
-        saveActivePatientToStorage(patient);
-        renderPatientBanner(patient);
+      // Har gal sub-jadval yangilanganda ham tekshiramiz
+      const subData = extractSubTableData(patient.fileDoctor);
+      if (subData.serviceName !== "Tibbiy Tekshiruv") {
+        patient.serviceName = subData.serviceName;
+        patient.reportAuthor = subData.reportAuthor;
       }
+
+      activePatient = patient;
+      saveActivePatientToStorage(patient);
+      renderPatientBanner(patient);
       break;
     }
   }
@@ -325,7 +342,7 @@ function saveActivePatientToStorage(p) {
   } catch (e) {}
 }
 
-// 3. YAGONA VA TOZA SUZUVCHI BEMOR PANELI (Ortiqcha 2-tugmasiz)
+// 3. YAGONA VA TOZA SUZUVCHI BEMOR PANELI
 function renderPatientBanner(p) {
   let banner = document.getElementById("karmedPatientInfoBanner");
   if (!banner) {
@@ -344,7 +361,7 @@ function renderPatientBanner(p) {
           <span><b>ID:</b> ${escapeHtml(p.patientId)}</span> • 
           <span><b>PNFL:</b> <code class="karmed-pnfl-code">${escapeHtml(p.pinfl || 'Kiritilmagan')}</code></span> • 
           <span><b>Fayl shifokori:</b> ${escapeHtml(p.fileDoctor)}</span> • 
-          <span><b>Hisobot muallifi:</b> ${escapeHtml(p.reportAuthor)}</span>
+          <span><b>Hisobot muallifi:</b> <b style="color:#0284c7;">${escapeHtml(p.reportAuthor)}</b></span>
         </div>
         <div class="karmed-banner-service">
           <i class="fa-solid fa-microscope"></i> <b>Tekshiruv:</b> <span>${escapeHtml(p.serviceName)}</span>
@@ -363,13 +380,13 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
-  // "Bemor Fayllarini Ochish" hodisasi
+  // "Bemor Hisobotini Ochish" hodisasi
   document.getElementById("btnBannerOpenFiles").onclick = (e) => {
     e.stopPropagation();
     openPatientFilesAction(p);
   };
 
-  // "Xulosani Saqlash" hodisasi (Yagona asosiy tugma)
+  // "Xulosani Saqlash" hodisasi
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
@@ -379,10 +396,8 @@ function renderPatientBanner(p) {
 // Bemor xisobot faylini ochish hodisasi (2 marta bosish / Hisobot ochish)
 function openPatientFilesAction(p) {
   if (p.rowElement) {
-    // 1. Qatorning Familiya / Ismi / ID katakchasini topish
     const targetCell = p.rowElement.querySelector("td:nth-child(3), td:nth-child(4), td:nth-child(2)") || p.rowElement;
 
-    // 2. To'liq double-click ketma-ketligini yuborish
     const mouseOpts = { bubbles: true, cancelable: true, view: window };
     targetCell.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
     targetCell.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
@@ -394,7 +409,6 @@ function openPatientFilesAction(p) {
 
     p.rowElement.dispatchEvent(new MouseEvent("dblclick", mouseOpts));
 
-    // 3. Pastki yoki yuqori paneldagi "Hisobot" / "RIS Hisobotlari" tugmasini tekshirish (DICOM / Viewer EMAS!)
     setTimeout(() => {
       const hisobotBtns = Array.from(document.querySelectorAll("button, a, div, span, input[type='button']")).filter(el => {
         const t = (el.innerText || el.value || "").trim().toLowerCase();
