@@ -1,7 +1,7 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Printer tugmasini onclick bosish (PDF/FastReport xulosasini ochish)
+ * 2. Printer tugmasini chuqur (Deep & Iframe) izlab avtomatik bosish
  * 3. FastReport/PDF va Hisobot sahifalaridan to'liq xulosani ajratib olish va Telegramga uzatish
  */
 
@@ -402,56 +402,112 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
-  // "Printer" tugmasi bosilganda
   document.getElementById("btnBannerPrinter").onclick = (e) => {
     e.stopPropagation();
     clickKarmedPrinterButton();
   };
 
-  // "Hisobotni Ochish" hodisasi
   document.getElementById("btnBannerOpenFiles").onclick = (e) => {
     e.stopPropagation();
     openPatientFilesAction(p);
   };
 
-  // "Xulosani Saqlash" hodisasi
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
   };
 }
 
-// PRINTER TUGMASINI AVTOMATIK ONCLICK BOSISH
-function clickKarmedPrinterButton() {
+// PRINTER TUGMASINI CHUQUR IZLAB TOPISH (Deep Search across DOM and all Iframes)
+function findPrinterElementDeep(doc = document) {
+  if (!doc) return null;
+
   try {
-    const allElements = Array.from(document.querySelectorAll("button, a, div, span, img, table, td, input"));
+    const allEls = Array.from(doc.querySelectorAll("*"));
 
-    // 1. Text yoki title "Printer" bo'lgan elementni qidiramiz
-    let printerTarget = allElements.find(el => {
-      const t = (el.innerText || el.title || el.getAttribute("aria-label") || el.value || "").trim().toLowerCase();
-      return (t === "printer" || t.startsWith("printer")) && !el.closest("#karmedPatientInfoBanner");
-    });
+    // 1. Text yoki Title "Printer" / "Yazdır" bo'lgan elementni qidirish
+    for (const el of allEls) {
+      if (el.id === "karmedPatientInfoBanner" || el.closest("#karmedPatientInfoBanner")) continue;
+      
+      const text = (el.innerText || "").trim().toLowerCase();
+      const title = (el.getAttribute("title") || "").trim().toLowerCase();
+      const alt = (el.getAttribute("alt") || "").trim().toLowerCase();
+      const id = (el.id || "").toLowerCase();
+      const cls = (typeof el.className === "string" ? el.className : "").toLowerCase();
 
-    // 2. Agar matndan topilmasa, Printer rasmi (img) qidiramiz
-    if (!printerTarget) {
-      const imgs = Array.from(document.querySelectorAll("img"));
-      const pImg = imgs.find(img => img.src && (img.src.toLowerCase().includes("print") || img.src.toLowerCase().includes("yazdir") || img.src.toLowerCase().includes("printer")));
-      if (pImg) {
-        printerTarget = pImg.closest("button, a, div, table, td") || pImg;
+      // Tugma yoki ikonka bo'lishi mumkin bo'lgan elementlar
+      if (text === "printer" || text.startsWith("printer") || text === "yazdır" || text === "yazdir" ||
+          title.includes("printer") || title.includes("yazdir") || 
+          alt.includes("printer") || alt.includes("yazdir") ||
+          id.includes("btnprint") || id.includes("printer") || 
+          cls.includes("btn-printer") || cls.includes("icon-print") || cls.includes("fa-print")) {
+        return el;
       }
     }
 
+    // 2. IMG rasmlar ichidan qidirish (src da print / printer / yazdir)
+    for (const el of allEls) {
+      if (el.tagName === "IMG") {
+        const src = (el.src || "").toLowerCase();
+        if (src.includes("print") || src.includes("yazdir") || src.includes("printer")) {
+          return el.closest("button, a, div, td, table, span") || el;
+        }
+      }
+    }
+
+    // 3. Top Toolbar konteyneri ichidagi 4-element
+    for (const el of allEls) {
+      const t = (el.innerText || "").toLowerCase();
+      if (t.includes("saqlash") && t.includes("bekor qilish") && t.includes("del")) {
+        const buttons = Array.from(el.querySelectorAll("button, a, div, td, table, span, img")).filter(b => {
+          const bt = (b.innerText || b.getAttribute("title") || "").toLowerCase();
+          return bt.includes("printer") || bt.includes("yazdir");
+        });
+        if (buttons.length > 0) return buttons[0];
+      }
+    }
+
+    // 4. Barcha IFRAME larni rekursiv qidirish
+    const iframes = Array.from(doc.querySelectorAll("iframe, frame"));
+    for (const ifr of iframes) {
+      try {
+        const ifrDoc = ifr.contentDocument || ifr.contentWindow?.document;
+        if (ifrDoc) {
+          const found = findPrinterElementDeep(ifrDoc);
+          if (found) return found;
+        }
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn("findPrinterElementDeep error:", err);
+  }
+
+  return null;
+}
+
+// PRINTER TUGMASINI BOSISH
+function clickKarmedPrinterButton() {
+  try {
+    const printerTarget = findPrinterElementDeep(document);
+
     if (printerTarget) {
-      const mouseOpts = { bubbles: true, cancelable: true, view: window };
+      const win = printerTarget.ownerDocument?.defaultView || window;
+      const mouseOpts = { bubbles: true, cancelable: true, view: win };
+
+      printerTarget.dispatchEvent(new MouseEvent("mouseenter", mouseOpts));
+      printerTarget.dispatchEvent(new MouseEvent("mouseover", mouseOpts));
       printerTarget.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
       printerTarget.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
       printerTarget.dispatchEvent(new MouseEvent("click", mouseOpts));
-      printerTarget.click();
+      
+      if (typeof printerTarget.click === "function") {
+        printerTarget.click();
+      }
 
       showToastNotification("🖨️ Printer tugmasi bosildi! PDF sahifasi ochilmoqda...");
       return true;
     } else {
-      showToastNotification("⚠️ Printer tugmasi topilmadi. Yuqoridagi Printer ikonkasini bosing.");
+      showToastNotification("⚠️ Printer tugmasi avtomatik topilmadi. Yuqoridagi Printer ikonkasini bosing.");
       return false;
     }
   } catch (err) {
@@ -498,9 +554,7 @@ function extractConclusionTextFromEditor() {
   try {
     const pageText = document.body.innerText || "";
 
-    // ─────────────────────────────────────────────────────────────
-    // A) FastReport Export / Print sahifasi (4-bosqich skrinshoti)
-    // ─────────────────────────────────────────────────────────────
+    // A) FastReport Export / Print sahifasi
     if (pageText.includes("РЕСПУБЛИКАНСКИЙ") || pageText.includes("Report") || pageText.includes("PINFL :")) {
       const reportContentMatch = pageText.match(/(?:РЕСПУБЛИКАНСКИЙ[\s\S]+?)(?:Врач|Шифокор|Reporting Doctor|$)/i);
       if (reportContentMatch && reportContentMatch[0].length > 50) {
@@ -508,10 +562,7 @@ function extractConclusionTextFromEditor() {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // B) Muharrir ichidagi toza matn blokini (ПРОТОКОЛ... ЗАКЛЮЧЕНИЕ) ajratish
-    // ─────────────────────────────────────────────────────────────
-    // ContentEditable, Iframe yoki Textarea
+    // B) Muharrir ichidagi toza matn blokini ajratish
     const editables = Array.from(document.querySelectorAll("[contenteditable='true'], [contenteditable=''], .dx-htmleditor-content, .k-editor-content, textarea, div[role='textbox'], .report-text"));
     for (const el of editables) {
       const raw = (el.value || el.innerText || "").trim();
@@ -569,7 +620,6 @@ function extractKarmedPageData() {
   try {
     const pageText = document.body.innerText || "";
 
-    // Sarlavhadan (Radiologiya Hisobot :VALENTINA ANTONOVA / K / 68 Yil...) tekshirish
     const titleMatch = pageText.match(/Radiologiya\s*Hisobot\s*[:：]\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)/i);
     if (titleMatch) {
       if (!patientName || patientName === "Bemor") {
@@ -580,7 +630,6 @@ function extractKarmedPageData() {
       }
     }
 
-    // FastReport sahifasidan PINFL va Doctor
     const pinflMatch = pageText.match(/PINFL\s*[:：]\s*(\d{14})/i);
     if (pinflMatch) pinfl = pinflMatch[1];
 
@@ -597,7 +646,6 @@ function extractKarmedPageData() {
     console.warn("extractKarmedPageData error:", e);
   }
 
-  // Muharrirdan yoki PDF sahifasidan xulosani olish
   const conclusionText = extractConclusionTextFromEditor();
 
   return {
@@ -693,12 +741,10 @@ async function handleDirectSaveClick() {
   document.getElementById("btnKarmedModalClose").onclick = () => modal.remove();
   document.getElementById("btnKarmedModalCancel").onclick = () => modal.remove();
 
-  // Printer tugmasi
   document.getElementById("btnKarmedModalPrinter").onclick = () => {
     clickKarmedPrinterButton();
   };
 
-  // Matnni qayta o'qish tugmasi
   document.getElementById("btnKarmedModalRefresh").onclick = () => {
     const refreshedText = extractConclusionTextFromEditor();
     if (refreshedText) {
@@ -709,7 +755,6 @@ async function handleDirectSaveClick() {
     }
   };
 
-  // Matnni nusxalash tugmasi
   document.getElementById("btnKarmedModalCopy").onclick = () => {
     const textVal = document.getElementById("kModalText").value;
     if (navigator.clipboard && navigator.clipboard.writeText) {
