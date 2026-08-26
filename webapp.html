@@ -147,7 +147,7 @@
       margin-top: 6px;
     }
 
-    /* AUTH METHOD TOGGLE TABS (2 TA AVTORIZATSIYA USULI) */
+    /* AUTH METHOD TOGGLE TABS */
     .auth-toggle-box {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -188,7 +188,7 @@
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
 
-    /* AUTH METHOD 1: MyID FaceID Card */
+    /* AUTH METHOD CARDS */
     .auth-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -445,7 +445,7 @@
       margin-top: 10px;
     }
 
-    /* STEP 3: Verified Citizen Profile Card (Shaxsiy Kabinet) */
+    /* STEP 3: Verified Citizen Profile Card */
     .profile-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -866,7 +866,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-regular fa-calendar input-icon"></i>
-            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" required>
+            <input type="text" id="birthDateInput" class="input-field" placeholder="01.01.2000" required>
           </div>
         </div>
 
@@ -894,7 +894,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-solid fa-hashtag input-icon"></i>
-            <input type="text" id="patientIdInput" class="input-field input-field-blue" placeholder="Masalan: 53312" required>
+            <input type="text" id="patientIdInput" class="input-field input-field-blue" placeholder="Masalan: 12345" required>
           </div>
         </div>
 
@@ -905,7 +905,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-solid fa-fingerprint input-icon"></i>
-            <input type="text" id="pinflMatchInput" class="input-field input-field-blue" maxlength="14" placeholder="Masalan: 30804812190075" required>
+            <input type="text" id="pinflMatchInput" class="input-field input-field-blue" maxlength="14" placeholder="Masalan: 12345678901234" required>
           </div>
         </div>
 
@@ -1332,10 +1332,8 @@
         let matchedAge = "";
 
         if (allData) {
-          // 1. Agar to'g'ridan-to'g'ri PINFL tuguni mavjud bo'lsa
           if (allData[inputPinfl]) {
             const list = Object.values(allData[inputPinfl]);
-            // Ushbu PINFL dagi hisobotlardan Bemor ID mos kelishi tekshiriladi
             const match = list.find(r => String(r.patientId || '').trim() === inputPatientId);
             if (match) {
               isMatched = true;
@@ -1346,7 +1344,6 @@
             }
           } 
           
-          // 2. Agar PINFL boshqa tugunlarda bo'lsa, butun bazadan qidiriladi
           if (!isMatched) {
             const pinflKeys = Object.keys(allData);
             for (const pKey of pinflKeys) {
