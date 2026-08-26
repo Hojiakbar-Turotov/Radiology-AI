@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Real-vaqtda pastki jadval AJAX yangilanishini kuzatish (MutationObserver & Polling)
- * 3. 100% aniq Hisobot Muallifi va Xizmat Nomi
+ * 2. Agar Hisobot muallifi bo'sh bo'lsa: "Hali hisobot yozilmagan" deb aniq ko'rsatish
+ * 3. Asosiy va pastki jadval o'rtasidagi to'liq real-vaqt sinxronizatsiyasi
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -41,7 +41,7 @@ function initTableObserver() {
   // Muntazam tekshiruv
   setInterval(() => {
     checkSelectedRow();
-  }, 800);
+  }, 600);
 }
 
 // Asosiy jadval sarlavha ustunlari indekslarini aniqlash
@@ -168,7 +168,7 @@ function parsePatientFromRow(row) {
   }
 
   // 6. Pastki jadvaldan Aniq Tekshiruv Nomi va Hisobot Muallifini olish
-  const subTableData = extractSubTableData(fileDoctor);
+  const subTableData = extractSubTableData();
 
   return {
     patientId: patientId || "Noma'lum",
@@ -181,7 +181,7 @@ function parsePatientFromRow(row) {
     age: age || "",
     fileDoctor: fileDoctor || "Shifokor",
     serviceName: subTableData.serviceName || "Tibbiy Tekshiruv",
-    reportAuthor: subTableData.reportAuthor || "Shifokor ko'rigida",
+    reportAuthor: subTableData.reportAuthor || "Hali hisobot yozilmagan",
     transactionDate: subTableData.transactionDate || new Date().toISOString().split("T")[0],
     queueNumber: subTableData.queueNumber || "",
     rowElement: row
@@ -189,14 +189,15 @@ function parsePatientFromRow(row) {
 }
 
 // Pastki jadvaldan (Kod R202, R182, R78...) ANIQ ma'lumotlarni ajratish
-function extractSubTableData(defaultDoctor = "") {
+function extractSubTableData() {
   let serviceNamesList = [];
   let reportAuthor = "";
   let transactionDate = "";
   let queueNumber = "";
+  let hasFoundRows = false;
 
   try {
-    // Faqat ko'rinib turgan (visible) barcha TR qatorlarini olamiz
+    // Ko'rinib turgan barcha TR qatorlarini olamiz
     const allRows = Array.from(document.querySelectorAll("tr")).filter(r => {
       return r.offsetParent !== null && r.getBoundingClientRect().height > 0;
     });
@@ -210,10 +211,12 @@ function extractSubTableData(defaultDoctor = "") {
     });
 
     if (serviceRows.length > 0) {
+      hasFoundRows = true;
+
       serviceRows.forEach(r => {
         const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
         if (cells.length >= 3) {
-          // cells[1]: Xizmatlar Nomi (masalan: "Nrt kichik tza azolari...", "Kichik chanoq a'zolari MRT", "Periferik Limfa...")
+          // cells[1]: Xizmatlar Nomi (masalan: "Sut Bezlar va qoltig osti limfa tugunlar", "QALQONSIMON BEZI")
           const sName = cells[1];
           if (sName && !sName.includes("Kod") && !sName.includes("Xizmat") && !serviceNamesList.includes(sName)) {
             serviceNamesList.push(sName);
@@ -229,8 +232,8 @@ function extractSubTableData(defaultDoctor = "") {
             queueNumber = cells[3];
           }
 
-          // cells[5]: Hisobot muallifi (masalan: "Yarmatov Muxamadjon Baxodirovich", "Karimov Muzaffarjon Muxsinovich")
-          const authorCell = cells.length > 5 ? cells[5] : "";
+          // cells[5]: Hisobot muallifi
+          const authorCell = cells.length > 5 ? cells[5].trim() : "";
           if (authorCell && 
               authorCell.length > 3 && 
               /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(authorCell) && 
@@ -238,14 +241,6 @@ function extractSubTableData(defaultDoctor = "") {
               !authorCell.includes("Kodi") && 
               !authorCell.includes("Xizmat")) {
             reportAuthor = authorCell;
-          }
-
-          // Agar cells[5] bo'sh bo'lsa va cells[10] (Shifokori) da ism bo'lsa
-          if (!reportAuthor && cells.length > 10 && cells[10]) {
-            const shifokorCell = cells[10];
-            if (shifokorCell.length > 3 && /^[A-ZА-ЯЁ][a-zа-яё']+\s+[A-ZА-ЯЁ]/.test(shifokorCell) && !shifokorCell.includes("Paket")) {
-              reportAuthor = shifokorCell;
-            }
           }
         }
       });
@@ -256,7 +251,9 @@ function extractSubTableData(defaultDoctor = "") {
   }
 
   const finalServiceName = serviceNamesList.length > 0 ? serviceNamesList.join(", ") : "Tibbiy Tekshiruv";
-  const finalAuthor = reportAuthor ? reportAuthor : (defaultDoctor || "Shifokor ko'rigida");
+  
+  // Agar muallif kiritilmagan/bo'sh bo'lsa: "Hali hisobot yozilmagan"
+  const finalAuthor = reportAuthor ? reportAuthor : "Hali hisobot yozilmagan";
 
   return {
     serviceName: finalServiceName,
@@ -270,7 +267,7 @@ function extractSubTableData(defaultDoctor = "") {
 function refreshActivePatientSubData() {
   if (!activePatient) return;
 
-  const subData = extractSubTableData(activePatient.fileDoctor);
+  const subData = extractSubTableData();
   let changed = false;
 
   if (subData.serviceName && subData.serviceName !== "Tibbiy Tekshiruv" && activePatient.serviceName !== subData.serviceName) {
@@ -278,7 +275,7 @@ function refreshActivePatientSubData() {
     changed = true;
   }
 
-  if (subData.reportAuthor && subData.reportAuthor !== "Shifokor ko'rigida" && activePatient.reportAuthor !== subData.reportAuthor) {
+  if (activePatient.reportAuthor !== subData.reportAuthor) {
     activePatient.reportAuthor = subData.reportAuthor;
     changed = true;
   }
@@ -300,8 +297,8 @@ function handleTableClickCapture(e) {
     saveActivePatientToStorage(patient);
     renderPatientBanner(patient);
 
-    // Karmed AJAX yuklanishini kutib, 150ms, 300ms, 600ms, 1000ms da qayta tekshiramiz
-    [150, 300, 600, 1000, 1800].forEach(delay => {
+    // Karmed AJAX yuklanishini kutib yangilash
+    [100, 250, 500, 900, 1500].forEach(delay => {
       setTimeout(() => {
         refreshActivePatientSubData();
       }, delay);
@@ -309,26 +306,41 @@ function handleTableClickCapture(e) {
   }
 }
 
-// Tanlangan qatorni avtomatik aniqlash
+// Tanlangan qatorni avtomatik aniqlash (Yashil, Pushti, Moviy yoki tanlangan barcha qatorlar)
 function checkSelectedRow() {
-  const selectedRows = document.querySelectorAll("tr.selected, tr.active, tr.highlight, tr[style*='background']");
-  for (const row of selectedRows) {
-    const patient = parsePatientFromRow(row);
-    if (patient && (patient.pinfl || patient.patientId !== "Noma'lum")) {
-      if (!activePatient || activePatient.patientId !== patient.patientId || activePatient.pinfl !== patient.pinfl) {
-        activePatient = patient;
-        saveActivePatientToStorage(patient);
-        renderPatientBanner(patient);
+  const allRows = Array.from(document.querySelectorAll("tr"));
+  
+  for (const row of allRows) {
+    const cells = Array.from(row.querySelectorAll("td"));
+    if (cells.length < 5) continue;
+    
+    const firstCell = cells[0].innerText.trim();
+    if (/^R\d+/i.test(firstCell) || firstCell.includes("Kod") || firstCell.includes("Xizmat")) continue;
 
-        [150, 300, 600, 1000, 1800].forEach(delay => {
-          setTimeout(() => {
-            refreshActivePatientSubData();
-          }, delay);
-        });
-      } else {
-        refreshActivePatientSubData();
+    // Rang yoki klass bo'yicha tanlanganlikni aniqlash
+    const isClassSelected = row.className && /selected|active|highlight|current/i.test(row.className);
+    const hasStyleBg = row.getAttribute("style") && /background/i.test(row.getAttribute("style"));
+    const bgColor = window.getComputedStyle(row).backgroundColor;
+    const isColored = bgColor && bgColor !== "rgba(0, 0, 0, 0)" && bgColor !== "rgb(255, 255, 255)" && bgColor !== "transparent";
+
+    if (isClassSelected || hasStyleBg || isColored) {
+      const patient = parsePatientFromRow(row);
+      if (patient && (patient.pinfl || patient.patientId !== "Noma'lum")) {
+        if (!activePatient || activePatient.patientId !== patient.patientId || activePatient.pinfl !== patient.pinfl) {
+          activePatient = patient;
+          saveActivePatientToStorage(patient);
+          renderPatientBanner(patient);
+
+          [100, 250, 500, 900, 1500].forEach(delay => {
+            setTimeout(() => {
+              refreshActivePatientSubData();
+            }, delay);
+          });
+        } else {
+          refreshActivePatientSubData();
+        }
+        break;
       }
-      break;
     }
   }
 }
@@ -365,6 +377,12 @@ function renderPatientBanner(p) {
     document.body.appendChild(banner);
   }
 
+  // Muallif holati (Yozilgan yoki hali yozilmagan)
+  const isPending = p.reportAuthor === "Hali hisobot yozilmagan" || !p.reportAuthor;
+  const authorBadgeHtml = isPending 
+    ? `<span class="karmed-author-pending"><i class="fa-solid fa-hourglass-half"></i> Hali hisobot yozilmagan</span>`
+    : `<b style="color:#0284c7;">${escapeHtml(p.reportAuthor)}</b>`;
+
   banner.innerHTML = `
     <div class="karmed-banner-content">
       <div class="karmed-banner-left">
@@ -374,7 +392,7 @@ function renderPatientBanner(p) {
           <span><b>ID:</b> ${escapeHtml(p.patientId)}</span> • 
           <span><b>PNFL:</b> <code class="karmed-pnfl-code">${escapeHtml(p.pinfl || 'Kiritilmagan')}</code></span> • 
           <span><b>Fayl shifokori:</b> ${escapeHtml(p.fileDoctor)}</span> • 
-          <span><b>Hisobot muallifi:</b> <b style="color:#0284c7;">${escapeHtml(p.reportAuthor)}</b></span>
+          <span><b>Hisobot muallifi:</b> ${authorBadgeHtml}</span>
         </div>
         <div class="karmed-banner-service">
           <i class="fa-solid fa-microscope"></i> <b>Tekshiruv:</b> <span>${escapeHtml(p.serviceName)}</span>
@@ -443,7 +461,7 @@ function extractKarmedPageData() {
   let pinfl = activePatient ? activePatient.pinfl : "";
   let patientName = activePatient ? activePatient.fullName : "";
   let serviceName = activePatient ? activePatient.serviceName : "";
-  let doctorName = activePatient ? (activePatient.reportAuthor || activePatient.fileDoctor) : "";
+  let doctorName = activePatient ? (activePatient.reportAuthor !== "Hali hisobot yozilmagan" ? activePatient.reportAuthor : activePatient.fileDoctor) : "";
   let conclusionText = "";
   let date = new Date().toISOString().split("T")[0];
 
