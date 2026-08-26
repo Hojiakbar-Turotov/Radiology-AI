@@ -119,9 +119,9 @@ async function handleUpdate(update) {
     const welcome = 
       `Assalomu alaykum, <b>${escapeHtml(userFirstName)}</b>! 👋\n\n` +
       `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> radiologik xulosalarni olish botiga xush kelibsiz.\n\n` +
-      `🆔 <b>Sizning Chat ID:</b> <code>${chatId}</code>\n\n` +
-      `📄 O'zingizning <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yuboring.\n\n` +
-      `<i>Misol: <code>31205981234567</code> yoki <code>AA1234567</code></i>`;
+      `📄 O'zingizning <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yuboring. yoki MyID orqali botga kiring.\n\n` +
+      `<i>Misol: <code>31205981234567</code></i>\n\n` +
+      `❤️ <i>Sizning sog'lig'ingiz biz uchun muhim.</i>`;
 
     await sendTelegramMessage(chatId, welcome, { parse_mode: "HTML" });
     return;

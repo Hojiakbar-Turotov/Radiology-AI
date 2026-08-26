@@ -227,10 +227,9 @@ module.exports = async (req, res) => {
       const welcomeText = 
         `Assalomu alaykum, <b>${escapeHtml(userFirstName)}</b>! 👋\n\n` +
         `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> radiologik xulosalarni olish botiga xush kelibsiz.\n\n` +
-        `🆔 <b>Sizning Chat ID:</b> <code>${chatId}</code>\n\n` +
-        `📄 O'zingizning <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yoki pasport seriya-raqamingizni yozib yuboring.\n\n` +
-        `<i>Misol: <code>31205981234567</code> yoki <code>AA1234567</code></i>\n\n` +
-        `💡 <i>Shaxsiy Chat ID ma'lumotingizni ko'rish uchun <b>/id</b> buyrug'ini yuborishingiz mumkin.</i>`;
+        `📄 O'zingizning <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni yuboring. yoki MyID orqali botga kiring.\n\n` +
+        `<i>Misol: <code>31205981234567</code></i>\n\n` +
+        `❤️ <i>Sizning sog'lig'ingiz biz uchun muhim.</i>`;
 
       await sendTelegramMessage(chatId, welcomeText, { parse_mode: "HTML" });
       return res.status(200).json({ ok: true });
