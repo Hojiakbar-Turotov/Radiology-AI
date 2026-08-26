@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initFormInputs();
   await loadSettings();
   await loadReportsHistory();
+  await handleAutoGrabFromActiveTab();
 
   // Avtomatik o'qish tugmasi
   document.getElementById("btnAutoGrab")?.addEventListener("click", handleAutoGrabFromActiveTab);

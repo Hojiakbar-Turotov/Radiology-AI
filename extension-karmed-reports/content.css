@@ -30,7 +30,154 @@
   transform: scale(0.97);
 }
 
-/* Karmed Direct Save Modal */
+/* Tanlangan Bemorning Pastki/Tepadagi Zamonaviy Suzuvchi Paneli */
+.karmed-patient-banner {
+  position: fixed;
+  bottom: 18px;
+  left: 24px;
+  right: 220px;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  border-radius: 12px;
+  padding: 10px 16px;
+  z-index: 999998;
+  box-shadow: 0 8px 30px rgba(2, 132, 199, 0.25);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: bannerSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bannerSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.karmed-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.karmed-banner-left {
+  flex: 1;
+}
+
+.karmed-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+}
+
+.karmed-banner-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.karmed-age-tag {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.karmed-banner-meta {
+  font-size: 12px;
+  color: #334155;
+  margin-top: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.karmed-pnfl-code {
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
+  font-family: monospace;
+}
+
+.karmed-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.karmed-btn-action {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.karmed-btn-open-files {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+}
+
+.karmed-btn-open-files:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.karmed-btn-save-report {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
+}
+
+.karmed-btn-save-report:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* Toast */
+.karmed-floating-toast {
+  display: none;
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 99999999;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  animation: toastFade 0.2s ease-out;
+}
+
+@keyframes toastFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal Overlay */
 .karmed-modal-overlay {
   position: fixed;
   inset: 0;
@@ -47,7 +194,7 @@
   background: #ffffff;
   border-radius: 14px;
   width: 90%;
-  max-width: 520px;
+  max-width: 540px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   overflow: hidden;
   animation: karmedFadeIn 0.2s ease-out;
@@ -99,9 +246,8 @@
   gap: 12px;
 }
 
-.karmed-form-group.flex-1 {
-  flex: 1;
-}
+.karmed-form-group.flex-1 { flex: 1; }
+.karmed-form-group.flex-2 { flex: 2; }
 
 .karmed-form-group label {
   display: block;
