@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tibbiy Xulosalar Portali - Telegram Web App</title>
+  
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --tg-theme-bg-color: #f8fafc;
+      --tg-theme-text-color: #0f172a;
+      --tg-theme-hint-color: #64748b;
+      --tg-theme-link-color: #0284c7;
+      --tg-theme-button-color: #0284c7;
+      --tg-theme-button-text-color: #ffffff;
+      --tg-theme-secondary-bg-color: #ffffff;
+      
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Telegram Dark Mode Adaptation */
+    body.dark-mode, body.tg-dark {
+      --tg-theme-bg-color: #0f172a;
+      --tg-theme-text-color: #f8fafc;
+      --tg-theme-hint-color: #94a3b8;
+      --tg-theme-secondary-bg-color: #1e293b;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --primary-light: #082f49;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--tg-theme-bg-color);
+      color: var(--tg-theme-text-color);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      line-height: 1.5;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Container */
+    .app-container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px 14px;
+    }
+
+    /* Header Banner */
+    .header-card {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-card::after {
+      content: "";
+      position: absolute;
+      right: -20px;
+      bottom: -30px;
+      width: 130px;
+      height: 130px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .header-logo {
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .header-titles h1 {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .header-titles p {
+      font-size: 11px;
+      opacity: 0.9;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .header-test-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(245, 158, 11, 0.3);
+      border: 1px solid rgba(245, 158, 11, 0.6);
+      color: #fef3c7;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    /* Auth Verification Card */
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .auth-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--primary);
+    }
+
+    .auth-desc {
+      font-size: 12.5px;
+      color: var(--tg-theme-hint-color);
+      margin-bottom: 18px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--tg-theme-text-color);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--tg-theme-hint-color);
+      font-size: 15px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      background: var(--tg-theme-bg-color);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--tg-theme-text-color);
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      background: var(--card-bg);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+      background: var(--primary-dark);
+    }
+
+    /* Patient Overview Card (After Auth) */
+    .patient-overview {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+
+    .patient-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .patient-name-box h2 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--tg-theme-text-color);
+    }
+
+    .patient-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-top: 3px;
+    }
+
+    .btn-change-patient {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--tg-theme-hint-color);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .patient-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: var(--tg-theme-bg-color);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+    }
+
+    .meta-item b {
+      color: var(--tg-theme-hint-color);
+      font-weight: 600;
+    }
+
+    .meta-item span {
+      font-weight: 700;
+      color: var(--tg-theme-text-color);
+      display: block;
+    }
+
+    /* Modality Filter Tabs */
+    .modality-nav {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 2px 10px 2px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+
+    .modality-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-tab {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--tg-theme-text-color);
+      padding: 8px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .filter-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);
+    }
+
+    .tab-count {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10.5px;
+    }
+
+    .filter-tab.active .tab-count {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Search Bar */
+    .search-box {
+      margin-bottom: 14px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--tg-theme-text-color);
+    }
+
+    /* Reports List & Cards */
+    .reports-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .report-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .report-card:hover {
+      box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    .report-card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .modality-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-mrt { background: #e0f2fe; color: #0284c7; }
+    .badge-mskt { background: #fef3c7; color: #b45309; }
+    .badge-utt { background: #dcfce7; color: #15803d; }
+    .badge-rentgen { background: #f3e8ff; color: #7e22ce; }
+    .badge-endoskopiya { background: #ffe4e6; color: #be123c; }
+    .badge-exo { background: #ffedd5; color: #c2410c; }
+    .badge-other { background: #f1f5f9; color: #475569; }
+
+    .report-title-row h3 {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--tg-theme-text-color);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    .report-sample-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--tg-theme-hint-color);
+      background: var(--tg-theme-bg-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      border: 1px solid var(--border-color);
+    }
+
+    .report-card-body {
+      padding: 14px 16px;
+    }
+
+    .report-info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--tg-theme-hint-color);
+      margin-bottom: 12px;
+    }
+
+    .report-info-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .report-info-item i {
+      color: var(--primary);
+    }
+
+    .report-content-box {
+      background: var(--tg-theme-bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      max-height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: monospace, system-ui;
+      margin-bottom: 12px;
+    }
+
+    .report-content-box.expanded {
+      max-height: none;
+    }
+
+    .report-card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      flex: 1;
+      min-width: 120px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--tg-theme-text-color);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action:active {
+      transform: scale(0.97);
+    }
+
+    .btn-action.btn-copy:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-action.btn-print {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      display: none;
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 14px auto;
+    }
+
+    .empty-state h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      color: var(--tg-theme-hint-color);
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    /* Toast Notification */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    .toast-popup.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Print View Styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .header-card, .auth-card, .modality-nav, .search-box, .report-card-actions, .btn-change-patient {
+        display: none !important;
+      }
+      .report-card {
+        border: 1px solid #000000 !important;
+        box-shadow: none !important;
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+      }
+      .report-content-box {
+        max-height: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- 1. Header Banner -->
+    <header class="header-card">
+      <div class="header-top">
+        <div class="header-logo">
+          <i class="fa-solid fa-hospital-user"></i>
+        </div>
+        <div class="header-titles">
+          <h1>Tibbiy Xulosalar Portali</h1>
+          <p>Respublika Onkologiya va Radiologiya Markazi</p>
+        </div>
+      </div>
+      <div class="header-test-badge">
+        <i class="fa-solid fa-flask"></i> Test Tariqasida Ishga Tushirilgan
+      </div>
+    </header>
+
+    <!-- 2. Security Verification Form -->
+    <section class="auth-card" id="authSection">
+      <div class="auth-title">
+        <i class="fa-solid fa-shield-halved"></i> 2-Bosqichli Xavfsizlik Tekshiruvi
+      </div>
+      <p class="auth-desc">
+        Shaxsiy tibbiy ma'lumotlaringiz himoyasi uchun Bemor ID va JSHSHIR (PINFL) raqamingizni kiriting:
+      </p>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div class="input-group">
+          <label class="input-label">
+            <span>1️⃣ Bemor ID Raqami:</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-id-badge input-icon"></i>
+            <input type="number" id="inputPatientId" class="input-field" placeholder="Masalan: 53312 yoki 2050" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">
+            <span>2️⃣ 14 xonali JSHSHIR (PINFL):</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-fingerprint input-icon"></i>
+            <input type="text" id="inputPinfl" class="input-field" maxlength="14" placeholder="Masalan: 30804812190075" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnVerify">
+          <i class="fa-solid fa-magnifying-glass"></i> Xulosalarni Qidirish
+        </button>
+      </form>
+    </section>
+
+    <!-- 3. Patient Overview Header (Active after search) -->
+    <section class="patient-overview" id="patientOverview">
+      <div class="patient-header">
+        <div class="patient-name-box">
+          <h2 id="patientFullName">Bemor F.I.Sh</h2>
+          <span class="patient-badge" id="patientAgeBadge">Yoshi: -</span>
+        </div>
+        <button class="btn-change-patient" onclick="resetToAuth()">
+          <i class="fa-solid fa-rotate-left"></i> Boshqa bemor
+        </button>
+      </div>
+
+      <div class="patient-meta-grid">
+        <div class="meta-item">
+          <b>Bemor ID:</b>
+          <span id="metaPatientId">-</span>
+        </div>
+        <div class="meta-item">
+          <b>JSHSHIR (PINFL):</b>
+          <span id="metaPinfl">-</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Modality Filter Tabs -->
+    <nav class="modality-nav" id="modalityNav" style="display:none;">
+      <button class="filter-tab active" onclick="filterByModality('all', this)">
+        <i class="fa-solid fa-layer-group"></i> Barchasi <span class="tab-count" id="countAll">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('mrt', this)">
+        <i class="fa-solid fa-magnet"></i> MRT <span class="tab-count" id="countMrt">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('mskt', this)">
+        <i class="fa-solid fa-bolt"></i> MSKT <span class="tab-count" id="countMskt">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('utt', this)">
+        <i class="fa-solid fa-wave-square"></i> Ultratovush <span class="tab-count" id="countUtt">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('rentgen', this)">
+        <i class="fa-solid fa-x-ray"></i> Rentgen <span class="tab-count" id="countRentgen">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('endoskopiya', this)">
+        <i class="fa-solid fa-eye"></i> Endoskopiya <span class="tab-count" id="countEndoskopiya">0</span>
+      </button>
+      <button class="filter-tab" onclick="filterByModality('exo', this)">
+        <i class="fa-solid fa-heart-pulse"></i> EXO <span class="tab-count" id="countExo">0</span>
+      </button>
+    </nav>
+
+    <!-- 5. Search Bar -->
+    <div class="search-box" id="searchBox" style="display:none;">
+      <div class="input-wrapper">
+        <i class="fa-solid fa-magnifying-glass input-icon"></i>
+        <input type="text" id="keywordSearch" class="search-input" placeholder="Xulosa matni yoki organ bo'yicha qidirish..." oninput="handleKeywordSearch()">
+      </div>
+    </div>
+
+    <!-- 6. Reports Cards Container -->
+    <div class="reports-list" id="reportsList"></div>
+
+    <!-- 7. Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+      <h3 id="emptyTitle">Xulosa topilmadi</h3>
+      <p id="emptyDesc">Kiritilgan ma'lumotlar bo'yicha tibbiy xulosa topilmadi yoki hisobot hali tasdiqlanmagan.</p>
+    </div>
+
+  </div>
+
+  <!-- Toast Popup -->
+  <div class="toast-popup" id="toastPopup">
+    <i class="fa-solid fa-circle-check" style="color:#22c55e;"></i>
+    <span id="toastMsg">Matn nusxalandi!</span>
+  </div>
+
+  <script>
+    const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
+    let allReports = [];
+    let currentFilteredReports = [];
+    let currentModality = "all";
+
+    // Telegram Web App Initialization
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      
+      // Theme Detection
+      if (tg.colorScheme === 'dark' || tg.themeParams?.bg_color === '#17212b' || tg.themeParams?.bg_color === '#0f172a') {
+        document.body.classList.add('tg-dark');
+      }
+
+      // Telegram Main Button
+      tg.MainButton.setText("🔍 Qayta qidirish");
+      tg.MainButton.onClick(() => {
+        resetToAuth();
+      });
+    }
+
+    // URL Parametrlarini tekshirish (Bot orqali avtomatik to'ldirish: ?id=53312&pinfl=30804812190075)
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get("id");
+      const urlPinfl = params.get("pinfl");
+
+      if (urlId) document.getElementById("inputPatientId").value = urlId;
+      if (urlPinfl) document.getElementById("inputPinfl").value = urlPinfl;
+
+      if (urlId && urlPinfl && urlPinfl.length === 14) {
+        verifyAndFetchReports(urlId, urlPinfl);
+      }
+    });
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const patientId = document.getElementById("inputPatientId").value.trim();
+      const pinfl = document.getElementById("inputPinfl").value.trim();
+
+      if (!patientId || !pinfl) {
+        showToast("⚠️ Iltimos barcha maydonlarni to'ldiring");
+        return;
+      }
+
+      await verifyAndFetchReports(patientId, pinfl);
+    }
+
+    async function verifyAndFetchReports(patientId, pinfl) {
+      const btn = document.getElementById("btnVerify");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Qidirilmoqda...`;
+
+      try {
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+        const res = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
+        const data = await res.json();
+
+        if (!data) {
+          showEmptyState("Xulosa topilmadi", `JSHSHIR: ${pinfl} va Bemor ID: ${patientId} bo'yicha hech qanday xulosa tasdiqlanmagan.`);
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Xulosalarni Qidirish`;
+          return;
+        }
+
+        const reportList = Object.values(data);
+        const matched = reportList.filter(r => {
+          const repId = String(r.patientId || "").trim();
+          const inpId = String(patientId).trim();
+          return repId === inpId || !repId;
+        });
+
+        if (matched.length === 0) {
+          showEmptyState("Ma'lumotlar mos kelmadi", `Bemor ID (${patientId}) va JSHSHIR (${pinfl}) bir-biriga mos kelmadi.`);
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Xulosalarni Qidirish`;
+          return;
+        }
+
+        // Muvaffaqiyatli
+        allReports = matched.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        currentFilteredReports = [...allReports];
+
+        renderPatientProfile(allReports[0], patientId, pinfl);
+        updateModalityCounts();
+        renderReports(currentFilteredReports);
+
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("patientOverview").style.display = "block";
+        document.getElementById("modalityNav").style.display = "flex";
+        document.getElementById("searchBox").style.display = "block";
+        document.getElementById("emptyState").style.display = "none";
+
+        if (tg?.MainButton) tg.MainButton.show();
+        showToast(`✅ ${allReports.length} ta tibbiy tekshiruv xulosasi topildi!`);
+
+      } catch (err) {
+        console.error("Fetch error:", err);
+        showToast("⚠️ Xatolik yuz berdi. Internetni tekshiring.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Xulosalarni Qidirish`;
+      }
+    }
+
+    function renderPatientProfile(firstReport, patientId, pinfl) {
+      document.getElementById("patientFullName").innerText = firstReport.patientName || "Bemor";
+      document.getElementById("patientAgeBadge").innerText = firstReport.age || firstReport.birthDate || "-";
+      document.getElementById("metaPatientId").innerText = firstReport.patientId || patientId;
+      document.getElementById("metaPinfl").innerText = pinfl;
+    }
+
+    function updateModalityCounts() {
+      const counts = { all: allReports.length, mrt: 0, mskt: 0, utt: 0, rentgen: 0, endoskopiya: 0, exo: 0 };
+
+      allReports.forEach(r => {
+        const mod = detectModality(r);
+        if (counts[mod] !== undefined) counts[mod]++;
+      });
+
+      document.getElementById("countAll").innerText = counts.all;
+      document.getElementById("countMrt").innerText = counts.mrt;
+      document.getElementById("countMskt").innerText = counts.mskt;
+      document.getElementById("countUtt").innerText = counts.utt;
+      document.getElementById("countRentgen").innerText = counts.rentgen;
+      document.getElementById("countEndoskopiya").innerText = counts.endoskopiya;
+      document.getElementById("countExo").innerText = counts.exo;
+    }
+
+    function detectModality(r) {
+      const txt = `${r.serviceName || ''} ${r.groupTitle || ''} ${r.connectedDept || ''} ${r.conclusionText || ''}`.toLowerCase();
+      if (txt.includes("mrt") || txt.includes("мрт") || txt.includes("mr")) return "mrt";
+      if (txt.includes("mskt") || txt.includes("мskt") || txt.includes("msct") || txt.includes("tomografiya") || txt.includes("кт")) return "mskt";
+      if (txt.includes("utt") || txt.includes("ultratovush") || txt.includes("узи") || txt.includes("uzi")) return "utt";
+      if (txt.includes("rentgen") || txt.includes("рентген") || txt.includes("x-ray")) return "rentgen";
+      if (txt.includes("endoskopiya") || txt.includes("эндоскопия")) return "endoskopiya";
+      if (txt.includes("exo") || txt.includes("exokg") || txt.includes("эхо")) return "exo";
+      return "other";
+    }
+
+    function filterByModality(modality, tabEl) {
+      currentModality = modality;
+      document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+      tabEl.classList.add("active");
+
+      if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+
+      if (modality === "all") {
+        currentFilteredReports = [...allReports];
+      } else {
+        currentFilteredReports = allReports.filter(r => detectModality(r) === modality);
+      }
+
+      handleKeywordSearch();
+    }
+
+    function handleKeywordSearch() {
+      const q = document.getElementById("keywordSearch").value.toLowerCase().trim();
+      let list = currentModality === "all" 
+        ? [...allReports] 
+        : allReports.filter(r => detectModality(r) === currentModality);
+
+      if (q) {
+        list = list.filter(r => {
+          const hay = `${r.serviceName} ${r.doctorName} ${r.conclusionText} ${r.sampleNumber} ${r.reportDate}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      renderReports(list);
+    }
+
+    function renderReports(reports) {
+      const listEl = document.getElementById("reportsList");
+      listEl.innerHTML = "";
+
+      if (reports.length === 0) {
+        showEmptyState("Bu bo'limda xulosalar yo'q", "Tanlangan parametrlar bo'yicha tekshiruv xulosasi topilmadi.");
+        return;
+      }
+
+      document.getElementById("emptyState").style.display = "none";
+
+      reports.forEach((rep, idx) => {
+        const mod = detectModality(rep);
+        const card = document.createElement("div");
+        card.className = "report-card";
+
+        const badgeClass = `badge-${mod}`;
+        const modName = mod.toUpperCase();
+
+        const cleanConclusion = rep.conclusionText || "Xulosa matni mavjud emas.";
+
+        card.innerHTML = `
+          <div class="report-card-header">
+            <div class="report-title-row">
+              <span class="modality-badge ${badgeClass}">
+                <i class="fa-solid fa-microscope"></i> ${modName}
+              </span>
+              <h3>${escapeHtml(rep.serviceName || 'Tibbiy Tekshiruv')}</h3>
+            </div>
+            <span class="report-sample-tag">Namuna: ${escapeHtml(rep.sampleNumber || '-')}</span>
+          </div>
+
+          <div class="report-card-body">
+            <div class="report-info-row">
+              <div class="report-info-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span><b>Tasdiqlangan:</b> ${escapeHtml(rep.reportDate || rep.confirmDate || '-')}</span>
+              </div>
+              <div class="report-info-item">
+                <i class="fa-solid fa-user-doctor"></i>
+                <span><b>Shifokor:</b> ${escapeHtml(rep.doctorName || rep.reportAuthor || 'Radiolog')}</span>
+              </div>
+            </div>
+
+            <div class="report-content-box" id="contentBox_${idx}">${escapeHtml(cleanConclusion)}</div>
+
+            <div class="report-card-actions">
+              <button class="btn-action btn-copy" onclick="copyReportText(${idx})">
+                <i class="fa-regular fa-copy"></i> Nusxalash
+              </button>
+              <button class="btn-action" onclick="toggleExpandContent(${idx}, this)">
+                <i class="fa-solid fa-expand"></i> To'liq o'qish
+              </button>
+              <button class="btn-action btn-print" onclick="printSingleReport(${idx})">
+                <i class="fa-solid fa-print"></i> Chop etish (PDF)
+              </button>
+            </div>
+          </div>
+        `;
+
+        listEl.appendChild(card);
+      });
+    }
+
+    function toggleExpandContent(idx, btn) {
+      const el = document.getElementById(`contentBox_${idx}`);
+      if (!el) return;
+      el.classList.toggle("expanded");
+      if (el.classList.contains("expanded")) {
+        btn.innerHTML = `<i class="fa-solid fa-compress"></i> Qisqartirish`;
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-expand"></i> To'liq o'qish`;
+      }
+    }
+
+    function copyReportText(idx) {
+      const rep = currentFilteredReports[idx];
+      if (!rep) return;
+
+      const formatted = 
+        `📄 TIBBIY XULOSA PROTOKOLI\n` +
+        `👤 Bemor: ${rep.patientName}\n` +
+        `🆔 Bemor ID: ${rep.patientId}\n` +
+        `🔢 Namuna raqami: ${rep.sampleNumber || '-'}\n` +
+        `🔬 Tekshiruv: ${rep.serviceName}\n` +
+        `👨‍⚕️ Shifokor: ${rep.doctorName || rep.reportAuthor}\n` +
+        `📅 Tasdiqlangan sana: ${rep.reportDate || rep.confirmDate || '-'}\n\n` +
+        `📝 XULOSA MATNI:\n${rep.conclusionText}\n\n` +
+        `🏥 Respublika Onkologiya va Radiologiya Markazi`;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(formatted).then(() => {
+          if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          showToast("✅ Xulosa matni nusxalandi!");
+        });
+      }
+    }
+
+    function printSingleReport(idx) {
+      const rep = currentFilteredReports[idx];
+      if (!rep) return;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${rep.patientName} - ${rep.serviceName}</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; margin: 30px; line-height: 1.6; color: #000; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+            .header h2 { margin: 0; font-size: 18px; text-transform: uppercase; }
+            .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .meta-table td { padding: 6px 8px; border: 1px solid #ccc; font-size: 13px; }
+            .meta-table td.label { font-weight: bold; background: #f5f5f5; width: 25%; }
+            .conclusion-title { font-size: 15px; font-weight: bold; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #000; }
+            .conclusion-text { font-size: 13px; white-space: pre-wrap; font-family: monospace; }
+            .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
+            <p>Tibbiy Radiodiagnostika Xulosasi</p>
+          </div>
+          <table class="meta-table">
+            <tr>
+              <td class="label">Bemor F.I.Sh:</td><td>${escapeHtml(rep.patientName)}</td>
+              <td class="label">Yoshi / Sana:</td><td>${escapeHtml(rep.age || rep.birthDate || '-')}</td>
+            </tr>
+            <tr>
+              <td class="label">Bemor ID:</td><td>${escapeHtml(rep.patientId || '-')}</td>
+              <td class="label">JSHSHIR (PINFL):</td><td>${escapeHtml(rep.pinfl || '-')}</td>
+            </tr>
+            <tr>
+              <td class="label">Namuna Raqami:</td><td>${escapeHtml(rep.sampleNumber || '-')}</td>
+              <td class="label">Tasdiqlangan Sana:</td><td>${escapeHtml(rep.reportDate || rep.confirmDate || '-')}</td>
+            </tr>
+            <tr>
+              <td class="label">Tekshiruv Nomi:</td><td colspan="3"><b>${escapeHtml(rep.serviceName || '-')}</b></td>
+            </tr>
+          </table>
+
+          <div class="conclusion-title">Tekshiruv Protokoli va Xulosasi:</div>
+          <div class="conclusion-text">${escapeHtml(rep.conclusionText || '')}</div>
+
+          <div class="footer">
+            <div>Shifokor-Radiolog: ${escapeHtml(rep.doctorName || rep.reportAuthor || '')}</div>
+            <div>Imzo: ______________</div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    }
+
+    function resetToAuth() {
+      allReports = [];
+      currentFilteredReports = [];
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("patientOverview").style.display = "none";
+      document.getElementById("modalityNav").style.display = "none";
+      document.getElementById("searchBox").style.display = "none";
+      document.getElementById("reportsList").innerHTML = "";
+      document.getElementById("emptyState").style.display = "none";
+      if (tg?.MainButton) tg.MainButton.hide();
+    }
+
+    function showEmptyState(title, desc) {
+      document.getElementById("emptyTitle").innerText = title;
+      document.getElementById("emptyDesc").innerText = desc;
+      document.getElementById("emptyState").style.display = "block";
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toastPopup");
+      document.getElementById("toastMsg").innerText = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
