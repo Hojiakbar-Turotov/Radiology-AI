@@ -14,6 +14,75 @@
   animation: bannerSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Yangi Oynadagi PDF Qabul Qilish Paneli */
+.karmed-pdf-banner {
+  position: fixed;
+  top: 15px;
+  left: 20px;
+  right: 20px;
+  background: #0f172a;
+  color: #ffffff;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 12px 20px;
+  z-index: 99999999;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: bannerSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.karmed-pdf-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.karmed-pdf-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.karmed-pdf-badge {
+  background: #10b981;
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.karmed-pdf-title {
+  font-size: 14px;
+}
+
+.karmed-pdf-title code {
+  background: #1e293b;
+  color: #4ade80;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.karmed-btn-send-tg {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff !important;
+  font-size: 13px !important;
+  padding: 9px 18px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.karmed-btn-send-tg:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+}
+
 @keyframes bannerSlideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -121,6 +190,17 @@
   gap: 7px;
   transition: all 0.2s;
   white-space: nowrap;
+}
+
+.karmed-btn-download-pdf {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+}
+
+.karmed-btn-download-pdf:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
 }
 
 .karmed-btn-printer {
