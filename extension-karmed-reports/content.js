@@ -1,8 +1,8 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Agar Hisobot muallifi bo'sh bo'lsa: "Hali hisobot yozilmagan" deb aniq ko'rsatish
- * 3. Asosiy va pastki jadval o'rtasidagi to'liq real-vaqt sinxronizatsiyasi
+ * 2. Radiologiya Hisobot oynasidagi to'liq xulosa matnini (МРТ ОРГАНОВ, Методика, Описание, Natija...) to'g'ridan-to'g'ri o'qib olish va nusxalash
+ * 3. 100% sinxronlashtirilgan real-vaqt bazasi va Telegram integratsiyasi
  */
 
 const BOT_TOKEN = "8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4";
@@ -32,13 +32,12 @@ function initTableObserver() {
   document.addEventListener("click", handleTableClickCapture, true);
   document.addEventListener("dblclick", handleTableClickCapture, true);
 
-  // Pastki jadval AJAX orqali o'zgarganda darhol ushlab olish (MutationObserver)
+  // Pastki jadval yoki hisobot oynasi o'zgarganda darhol ushlab olish (MutationObserver)
   const observer = new MutationObserver(() => {
     refreshActivePatientSubData();
   });
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
-  // Muntazam tekshiruv
   setInterval(() => {
     checkSelectedRow();
   }, 600);
@@ -84,7 +83,6 @@ function getTableColumnIndexes(headerRow) {
 function parsePatientFromRow(row) {
   if (!row || row.tagName !== "TR") return null;
 
-  // Guruh sarlavhalari va sub-jadval qatorlarini o'tkazib yuborish
   if (row.classList.contains("group-header") || (row.children.length <= 2 && row.innerText.includes("("))) {
     return null;
   }
@@ -194,15 +192,12 @@ function extractSubTableData() {
   let reportAuthor = "";
   let transactionDate = "";
   let queueNumber = "";
-  let hasFoundRows = false;
 
   try {
-    // Ko'rinib turgan barcha TR qatorlarini olamiz
     const allRows = Array.from(document.querySelectorAll("tr")).filter(r => {
       return r.offsetParent !== null && r.getBoundingClientRect().height > 0;
     });
     
-    // Pastki sub-jadvaldagi R... qatorlarini topamiz
     const serviceRows = allRows.filter(r => {
       const firstCell = r.querySelector("td:first-child");
       if (!firstCell) return false;
@@ -211,28 +206,22 @@ function extractSubTableData() {
     });
 
     if (serviceRows.length > 0) {
-      hasFoundRows = true;
-
       serviceRows.forEach(r => {
         const cells = Array.from(r.querySelectorAll("td")).map(c => c.innerText.trim());
         if (cells.length >= 3) {
-          // cells[1]: Xizmatlar Nomi (masalan: "Sut Bezlar va qoltig osti limfa tugunlar", "QALQONSIMON BEZI")
           const sName = cells[1];
           if (sName && !sName.includes("Kod") && !sName.includes("Xizmat") && !serviceNamesList.includes(sName)) {
             serviceNamesList.push(sName);
           }
 
-          // cells[2]: Tranzaksiya sanasi
           if (cells[2] && cells[2].includes(".")) {
             transactionDate = cells[2];
           }
 
-          // cells[3]: Navbat raqami
           if (cells[3] && /^\d{5,9}$/.test(cells[3])) {
             queueNumber = cells[3];
           }
 
-          // cells[5]: Hisobot muallifi
           const authorCell = cells.length > 5 ? cells[5].trim() : "";
           if (authorCell && 
               authorCell.length > 3 && 
@@ -251,8 +240,6 @@ function extractSubTableData() {
   }
 
   const finalServiceName = serviceNamesList.length > 0 ? serviceNamesList.join(", ") : "Tibbiy Tekshiruv";
-  
-  // Agar muallif kiritilmagan/bo'sh bo'lsa: "Hali hisobot yozilmagan"
   const finalAuthor = reportAuthor ? reportAuthor : "Hali hisobot yozilmagan";
 
   return {
@@ -263,7 +250,7 @@ function extractSubTableData() {
   };
 }
 
-// Tanlangan bemorning sub-ma'lumotlarini (Xizmat va Muallif) yangilash
+// Tanlangan bemorning sub-ma'lumotlarini yangilash
 function refreshActivePatientSubData() {
   if (!activePatient) return;
 
@@ -297,7 +284,6 @@ function handleTableClickCapture(e) {
     saveActivePatientToStorage(patient);
     renderPatientBanner(patient);
 
-    // Karmed AJAX yuklanishini kutib yangilash
     [100, 250, 500, 900, 1500].forEach(delay => {
       setTimeout(() => {
         refreshActivePatientSubData();
@@ -306,7 +292,7 @@ function handleTableClickCapture(e) {
   }
 }
 
-// Tanlangan qatorni avtomatik aniqlash (Yashil, Pushti, Moviy yoki tanlangan barcha qatorlar)
+// Tanlangan qatorni avtomatik aniqlash
 function checkSelectedRow() {
   const allRows = Array.from(document.querySelectorAll("tr"));
   
@@ -317,7 +303,6 @@ function checkSelectedRow() {
     const firstCell = cells[0].innerText.trim();
     if (/^R\d+/i.test(firstCell) || firstCell.includes("Kod") || firstCell.includes("Xizmat")) continue;
 
-    // Rang yoki klass bo'yicha tanlanganlikni aniqlash
     const isClassSelected = row.className && /selected|active|highlight|current/i.test(row.className);
     const hasStyleBg = row.getAttribute("style") && /background/i.test(row.getAttribute("style"));
     const bgColor = window.getComputedStyle(row).backgroundColor;
@@ -377,7 +362,6 @@ function renderPatientBanner(p) {
     document.body.appendChild(banner);
   }
 
-  // Muallif holati (Yozilgan yoki hali yozilmagan)
   const isPending = p.reportAuthor === "Hali hisobot yozilmagan" || !p.reportAuthor;
   const authorBadgeHtml = isPending 
     ? `<span class="karmed-author-pending"><i class="fa-solid fa-hourglass-half"></i> Hali hisobot yozilmagan</span>`
@@ -411,20 +395,18 @@ function renderPatientBanner(p) {
 
   banner.style.display = "block";
 
-  // "Bemor Hisobotini Ochish" hodisasi
   document.getElementById("btnBannerOpenFiles").onclick = (e) => {
     e.stopPropagation();
     openPatientFilesAction(p);
   };
 
-  // "Xulosani Saqlash" hodisasi
   document.getElementById("btnBannerSaveReport").onclick = (e) => {
     e.stopPropagation();
     handleDirectSaveClick();
   };
 }
 
-// Bemor xisobot faylini ochish hodisasi (2 marta bosish / Hisobot ochish)
+// Bemor xisobot faylini ochish hodisasi
 function openPatientFilesAction(p) {
   if (p.rowElement) {
     const targetCell = p.rowElement.querySelector("td:nth-child(3), td:nth-child(4), td:nth-child(2)") || p.rowElement;
@@ -456,52 +438,113 @@ function openPatientFilesAction(p) {
   showToastNotification(`📄 ${p.fullName} hisobot fayli ochilmoqda...`);
 }
 
-// 4. Ichki sahifadan to'liq ma'lumotlarni o'qish
+// 4. MUHARRIRDAN VA SAHIFADAN TO'LIQ XULOSA MATNINI ANIQ KO'CHIRIB OLISH
+function extractConclusionTextFromEditor() {
+  let mainText = "";
+  let tavsiyaText = "";
+
+  try {
+    // 1. ContentEditable muharrir elementlari
+    const editables = Array.from(document.querySelectorAll("[contenteditable='true'], [contenteditable='']"));
+    const validEditables = editables.filter(el => {
+      const t = (el.innerText || "").trim();
+      return t.length > 15 && !t.includes("Docs, Pdf, Txt") && !t.includes("Davom eting") && !t.includes("Tanlangan Bemor");
+    });
+
+    if (validEditables.length > 0) {
+      mainText = validEditables.map(el => el.innerText.trim()).join("\n\n");
+    }
+
+    // 2. Iframe ichidagi muharrir bo'lsa
+    if (!mainText) {
+      const iframes = Array.from(document.querySelectorAll("iframe"));
+      for (const ifr of iframes) {
+        try {
+          const doc = ifr.contentDocument || ifr.contentWindow?.document;
+          if (doc && doc.body) {
+            const iTxt = (doc.body.innerText || "").trim();
+            if (iTxt.length > 20 && !iTxt.includes("Docs, Pdf")) {
+              mainText = iTxt;
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 3. Rich Editor / Textarea elementlari
+    if (!mainText) {
+      const editorAreas = Array.from(document.querySelectorAll(".dx-htmleditor-content, .k-editor-content, .note-editable, .cke_editable, textarea, div[role='textbox'], .rich-editor"));
+      const texts = editorAreas.map(ea => (ea.value || ea.innerText || "").trim()).filter(t => t.length > 20 && !t.includes("Tanlangan Bemor"));
+      if (texts.length > 0) {
+        mainText = texts.join("\n\n");
+      }
+    }
+
+    // 4. "Natija va tavsiyalar" pastki blokini tekshirish
+    const tavsiyaElements = Array.from(document.querySelectorAll("div, textarea, p")).filter(el => {
+      const t = (el.innerText || el.value || "").trim();
+      return t.length > 10 && el.previousElementSibling && el.previousElementSibling.innerText && el.previousElementSibling.innerText.includes("Natija va tavsiyalar");
+    });
+    if (tavsiyaElements.length > 0) {
+      tavsiyaText = (tavsiyaElements[0].value || tavsiyaElements[0].innerText || "").trim();
+    }
+
+    // 5. Agar DOM dan topilmagan bo'lsa, butun sahifa matnidan tibbiy blokni ajratish
+    if (!mainText) {
+      const fullText = document.body.innerText || "";
+      // МРТ ОРГАНОВ..., Методика:, Описание:, Заключение...
+      const reportMatch = fullText.match(/(?:МРТ|MSKT|РЕНТГЕН|УЗИ|КТ|Методика|Описание|Матка|Протокол|Заключение)[\s\S]{30,6000}?(?=(?:Docs, Pdf|Qidiruv|Fayl holati|Tanlangan Bemor|Saqlash \(F3\)|Natija va tavsiyalar|$))/i);
+      if (reportMatch) {
+        mainText = reportMatch[0].trim();
+      }
+    }
+
+    if (tavsiyaText && mainText && !mainText.includes(tavsiyaText)) {
+      return `${mainText}\n\nNatija va tavsiyalar:\n${tavsiyaText}`;
+    }
+
+  } catch (e) {
+    console.warn("extractConclusionTextFromEditor error:", e);
+  }
+
+  return mainText || "";
+}
+
+// 5. Ichki sahifadan to'liq ma'lumotlarni o'qish
 function extractKarmedPageData() {
   let pinfl = activePatient ? activePatient.pinfl : "";
   let patientName = activePatient ? activePatient.fullName : "";
   let serviceName = activePatient ? activePatient.serviceName : "";
   let doctorName = activePatient ? (activePatient.reportAuthor !== "Hali hisobot yozilmagan" ? activePatient.reportAuthor : activePatient.fileDoctor) : "";
-  let conclusionText = "";
   let date = new Date().toISOString().split("T")[0];
 
   try {
     const pageText = document.body.innerText || "";
 
+    // Sarlavhadan (Radiologiya Hisobot :NATALYA VILDANOVA / K / 49 Yil...) tekshirish
+    const titleMatch = pageText.match(/Radiologiya\s*Hisobot\s*[:：]\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)/i);
+    if (titleMatch) {
+      if (!patientName || patientName === "Bemor") {
+        patientName = titleMatch[1].trim();
+      }
+      if (!serviceName || serviceName === "Tibbiy Tekshiruv") {
+        serviceName = titleMatch[4].trim();
+      }
+    }
+
     const pinflMatch = pageText.match(/PINFL\s*[:：]\s*(\d{14})/i);
     if (pinflMatch) pinfl = pinflMatch[1];
-
-    const nameMatch = pageText.match(/Name\s*[:：]\s*([^\n\r\t]+)/i);
-    const lastNameMatch = pageText.match(/Last\s*name\s*[:：]\s*([^\n\r\t]+)/i);
-    if (nameMatch) {
-      patientName = `${nameMatch[1].trim()} ${lastNameMatch ? lastNameMatch[1].trim() : ''}`.trim();
-    }
 
     const repDocMatch = pageText.match(/Reporting\s*Doctor\s*[:：]\s*([^\n\r\t]+)/i);
     if (repDocMatch) doctorName = repDocMatch[1].trim();
 
-    const textareas = document.querySelectorAll("textarea, [contenteditable='true'], .xulosa-text, .report-content, .conclusion");
-    for (const ta of textareas) {
-      const val = (ta.value || ta.innerText || "").trim();
-      if (val.length > 25) {
-        conclusionText = val;
-        break;
-      }
-    }
-
-    if (!conclusionText) {
-      const onkoHeaderMatch = pageText.match(/(РЕСПУБЛИКАНСКИЙ[\s\S]{50,3000}?)(?:Врач|Шифокор|$)/i);
-      if (onkoHeaderMatch) conclusionText = onkoHeaderMatch[1].trim();
-    }
-
-    if (!conclusionText) {
-      const zklMatch = pageText.match(/(?:Закл|Заключение|Xulosa)[\s:—–]+([\s\S]{20,2000}?)(?:Врач|Шифокор|$)/i);
-      if (zklMatch) conclusionText = zklMatch[1].trim();
-    }
-
   } catch (e) {
     console.warn("extractKarmedPageData error:", e);
   }
+
+  // Muharrirdan to'liq matnni nusxalab olish
+  const conclusionText = extractConclusionTextFromEditor();
 
   return {
     pinfl,
@@ -513,9 +556,14 @@ function extractKarmedPageData() {
   };
 }
 
-// 5. Yagona Saqlash Modali
+// 6. Yagona Saqlash Modali (Matnni nusxalash va tahrirlash imkoniyati bilan)
 async function handleDirectSaveClick() {
   const data = extractKarmedPageData();
+
+  // Matnni clipboardga ham avtomatik nusxalash
+  if (data.conclusionText && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(data.conclusionText).catch(() => {});
+  }
 
   let oldModal = document.getElementById("karmedDirectSaveModal");
   if (oldModal) oldModal.remove();
@@ -560,8 +608,13 @@ async function handleDirectSaveClick() {
         </div>
 
         <div class="karmed-form-group">
-          <label><b>Tibbiy Xulosa Matni:</b></label>
-          <textarea id="kModalText" rows="6" placeholder="Karmed-dan olingan to'liq tibbiy xulosa matni...">${escapeHtml(data.conclusionText || '')}</textarea>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0;"><b>Tibbiy Xulosa Matni (Karmed-dan nusxalandi):</b></label>
+            <button type="button" id="btnKarmedModalCopy" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
+              <i class="fa-solid fa-copy"></i> Matnni nusxalash
+            </button>
+          </div>
+          <textarea id="kModalText" rows="7" placeholder="Karmed muharriridan nusxalangan to'liq tibbiy xulosa matni...">${escapeHtml(data.conclusionText || '')}</textarea>
         </div>
 
         <div class="karmed-modal-actions">
@@ -578,6 +631,15 @@ async function handleDirectSaveClick() {
 
   document.getElementById("btnKarmedModalClose").onclick = () => modal.remove();
   document.getElementById("btnKarmedModalCancel").onclick = () => modal.remove();
+
+  // Matnni nusxalash tugmasi
+  document.getElementById("btnKarmedModalCopy").onclick = () => {
+    const textVal = document.getElementById("kModalText").value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textVal);
+      showToastNotification("📋 Xulosa matni nusxalandi!");
+    }
+  };
 
   document.getElementById("btnKarmedModalSave").onclick = async () => {
     const pinfl = document.getElementById("kModalPinfl").value.replace(/\D/g, "");
@@ -641,14 +703,12 @@ async function handleDirectSaveClick() {
         `━━━━━━━━━━━━━━━━━━\n\n` +
         `📝 <b>Xulosa:</b>\n${escapeHtml(conclusionText)}`;
 
-      // Kanalga
       fetch(`${TG_API_BASE}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id: CHANNEL_ID, text: tgMsg, parse_mode: "HTML" })
       }).catch(() => {});
 
-      // Adminga
       fetch(`${TG_API_BASE}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
