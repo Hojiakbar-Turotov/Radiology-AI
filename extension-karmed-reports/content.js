@@ -1120,15 +1120,6 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
   }
 }
 
-    showToastNotification(`✅ Telegramga yuborildi: ${patientName} (${pinfl})`);
-    return true;
-
-  } catch (err) {
-    console.warn("sendCurrentReport error:", err);
-    return false;
-  }
-}
-
 // 10. Yagona Saqlash Modali
 async function handleDirectSaveClick() {
   const data = extractKarmedPageData();
