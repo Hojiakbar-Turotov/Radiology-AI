@@ -51,7 +51,6 @@ module.exports = async (req, res) => {
     const update = req.body;
     if (!update) return res.status(200).json({ ok: true });
 
-    // 1. Callback query
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message ? cb.message.chat.id : cb.from.id;
@@ -68,7 +67,7 @@ module.exports = async (req, res) => {
       if (data === "search_again") {
         await sendTelegramMessage(
           chatId,
-          `🔍 <b>YANGI QIDIRUV:</b>\n\nIltimos, <b>Bemor ID</b> yoki <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni kiriting:\n<i>(Masalan: <code>53312</code> yoki <code>30804812190075</code>)</i>`,
+          `🔍 <b>YANGI QIDIRUV:</b>\n\nIltimos, <b>Bemor ID</b> raqamingizni kiriting:\n<i>(Masalan: <code>53312</code> yoki <code>1300</code>)</i>\n\nYoki MyID orqali kiring:`,
           {
             parse_mode: "HTML",
             reply_markup: {
@@ -112,13 +111,8 @@ module.exports = async (req, res) => {
 
     const cleanDigits = text.replace(/\D/g, "");
 
-    if (cleanDigits.length === 14) {
-      await processPatientLookupServerless(chatId, userFullName, fromId, cleanDigits, "PINFL");
-      return res.status(200).json({ ok: true });
-    }
-
-    if (cleanDigits.length >= 3 && cleanDigits.length <= 8) {
-      await processPatientLookupServerless(chatId, userFullName, fromId, cleanDigits, "PATIENT_ID");
+    if (cleanDigits.length >= 3) {
+      await processPatientLookupServerless(chatId, userFullName, fromId, cleanDigits, cleanDigits.length === 14 ? "PINFL" : "PATIENT_ID");
       return res.status(200).json({ ok: true });
     }
 
@@ -150,7 +144,7 @@ async function sendWelcomeMessageServerless(chatId, userFirstName) {
     `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
     `🆔 <b>MyID FaceID Avtorizatsiya:</b>\n` +
     `Yuzingizni skanerlab (FaceID) shaxsiy profilingizni oching va barcha tekshiruv xulosalaringizni (MRT, MSKT, UTT, Rentgen) bir zumda oling.\n\n` +
-    `🔢 <i>Yoki <b>Bemor ID</b> (masalan: <code>53312</code>) yoki <b>PINFL</b> raqamingizni yozib yuboring:</i>`;
+    `🔢 <i>Yoki <b>Bemor ID</b> (masalan: <code>53312</code>) raqamingizni yozib yuboring:</i>`;
 
   await sendTelegramMessage(chatId, welcome, {
     parse_mode: "HTML",
@@ -167,7 +161,7 @@ async function sendWelcomeMessageServerless(chatId, userFirstName) {
 async function processPatientLookupServerless(chatId, userFullName, fromId, inputQuery, queryType) {
   await sendTelegramMessage(
     chatId,
-    `🔍 <b>${queryType === 'PINFL' ? 'JSHSHIR: ' + inputQuery : 'Bemor ID: ' + inputQuery}</b> bo'yicha MyID ma'lumotlari qidirilmoqda...`,
+    `🔍 <b>Bemor ID: ${inputQuery}</b> bo'yicha ma'lumotlar qidirilmoqda...`,
     { parse_mode: "HTML" }
   );
 
@@ -188,7 +182,11 @@ async function processPatientLookupServerless(chatId, userFullName, fromId, inpu
           const repsObj = allData[pKey];
           if (!repsObj) continue;
           const repList = Object.values(repsObj);
-          const match = repList.find(r => String(r.patientId || '').trim() === inputQuery || String(r.pinfl || '').trim() === inputQuery);
+          const match = repList.find(r => {
+            const rPid = String(r.patientId || '').trim();
+            const rPinfl = String(r.pinfl || '').trim();
+            return rPid === inputQuery || rPinfl === inputQuery;
+          });
           if (match) {
             foundPinfl = pKey;
             matchedReports = repList;
@@ -211,8 +209,8 @@ async function processPatientLookupServerless(chatId, userFullName, fromId, inpu
       await sendTelegramMessage(
         chatId,
         `✅ <b>MyID Shaxsiy Profil ochildi!</b>\n\n` +
-        `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
-        `🎂 <b>Yoshi:</b> ${escapeHtml(patientAge)}\n` +
+        `👤 <b>Bemor F.I.Sh:</b> ${escapeHtml(patientName)}\n` +
+        `🎂 <b>Yoshi / Sana:</b> ${escapeHtml(patientAge)}\n` +
         `🆔 <b>Bemor ID:</b> <code>${escapeHtml(patientId)}</code>\n` +
         `🔢 <b>PINFL:</b> <code>${escapeHtml(pinfl)}</code>\n` +
         `📊 <b>Topilgan xulosalar:</b> ${matchedReports.length} ta\n\n` +
@@ -274,7 +272,7 @@ async function processPatientLookupServerless(chatId, userFullName, fromId, inpu
         chatId,
         `🛡️ <b>MYID SHAXSIY PROFILINGIZ OCHILDI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🆔 <b>Kiritilgan raqam:</b> <code>${inputQuery}</code>\n\n` +
+        `🆔 <b>Kiritilgan Bemor ID:</b> <code>${inputQuery}</code>\n\n` +
         `ℹ️ <i>Sizning nomingizga hali tasdiqlangan tibbiy xulosalar mavjud emas yoki shifokor tekshiruv jarayonida. Shifokor tasdiqlashi bilan xulosalar profilingizda paydo bo'ladi.</i>\n\n` +
         `📱 <i>MyID Shaxsiy profilingizni to'liq ko'rish uchun quyidagi tugmani bosing:</i>`,
         {
@@ -291,7 +289,7 @@ async function processPatientLookupServerless(chatId, userFullName, fromId, inpu
       sendLogToGroup(
         `ℹ️ <b>MYID QIDIRUV (XULOSALAR HALI MAVJUD EMAS):</b>\n` +
         `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
-        `🔢 Kiritilgan so'rov: <code>${inputQuery}</code>\n` +
+        `🔢 Kiritilgan Bemor ID: <code>${inputQuery}</code>\n` +
         `📊 Holat: Profil ochildi, xulosalar 0 ta`
       );
     }

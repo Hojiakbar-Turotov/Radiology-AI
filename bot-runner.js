@@ -1,5 +1,5 @@
 /**
- * Radiodiagnostika Telegram Bot - 24/7 Polling Runner (Tozalangan va Optimallashtirilgan)
+ * RADIODIAGNOSTIKA TELEGRAM BOT RUNNER (@Radiodiagnostika_bot)
  * Token: 8836735566:AAEJV5tMm0RY5XRUZJhI8Zo9duJ_7b3YKY4
  * Log Group: -1003950231961
  * Channel: -1003962033499
@@ -13,28 +13,21 @@ const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 const WEBAPP_BASE_URL = "https://hojiakbar-turotov.github.io/Radiology-AI/webapp.html";
 const TG_API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-let lastUpdateId = 0;
-const userSessions = new Map(); // chatId -> { step, patientId, pinfl, time }
-
-console.log("🚀 Radiodiagnostika Telegram Boti (Yagona Toza Rejim) ishga tushdi...");
-
-// Boshlang'ich log
-sendLogToGroup(
-  `🟢 <b>BOT ISHGA TUSHDI (TOZA VA YAGONA REJIM)</b>\n` +
-  `⏰ Vaqt: ${new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}\n` +
-  `🆔 MyID: Faol (Logger guruhi: <code>${LOG_GROUP_ID}</code>)\n` +
-  `📱 Web App: <code>${WEBAPP_BASE_URL}</code>`
-);
+const userSessions = new Map();
 
 async function sendLogToGroup(text) {
   try {
     await fetch(`${TG_API_BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: LOG_GROUP_ID, text: text, parse_mode: "HTML" })
+      body: JSON.stringify({
+        chat_id: LOG_GROUP_ID,
+        text: text,
+        parse_mode: "HTML"
+      })
     });
   } catch (e) {
-    console.warn("sendLogToGroup xatosi:", e.message);
+    console.error("Log sending error:", e.message);
   }
 }
 
@@ -48,43 +41,22 @@ async function answerCallbackQuery(callbackQueryId, text = "") {
   } catch (e) {}
 }
 
-async function pollUpdates() {
+async function sendTelegramMessage(chatId, text, options = {}) {
+  const payload = { chat_id: chatId, text: text, ...options };
   try {
-    await fetch(`${TG_API_BASE}/deleteWebhook?drop_pending_updates=false`);
-  } catch (e) {}
-
-  while (true) {
-    try {
-      const res = await fetch(`${TG_API_BASE}/getUpdates`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          offset: lastUpdateId + 1,
-          timeout: 25,
-          allowed_updates: ["message", "callback_query"]
-        })
-      });
-
-      if (!res.ok) {
-        await sleep(2500);
-        continue;
-      }
-
-      const data = await res.json();
-      if (data.ok && Array.isArray(data.result)) {
-        for (const update of data.result) {
-          lastUpdateId = update.update_id;
-          await handleUpdate(update);
-        }
-      }
-    } catch (err) {
-      console.error("Polling error:", err.message);
-      await sleep(3500);
-    }
+    const res = await fetch(`${TG_API_BASE}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch (err) {
+    console.error(`sendMessage error to ${chatId}:`, err.message);
+    return null;
   }
 }
 
-async function handleUpdate(update) {
+async function processUpdate(update) {
   const nowStr = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
 
   // 1. Callback Query tugmalari
@@ -106,7 +78,7 @@ async function handleUpdate(update) {
       userSessions.set(String(chatId), { step: "WAITING_PATIENT_ID", time: Date.now() });
       await sendTelegramMessage(
         chatId,
-        `🔍 <b>YANGI QIDIRUV:</b>\n\nIltimos, <b>Bemor ID</b> yoki <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni kiriting:\n<i>(Masalan: <code>53312</code> yoki <code>30804812190075</code>)</i>`,
+        `🔍 <b>YANGI QIDIRUV:</b>\n\nIltimos, <b>Bemor ID</b> raqamingizni kiriting:\n<i>(Masalan: <code>53312</code> yoki <code>1300</code>)</i>\n\nYoki to'g'ridan-to'g'ri MyID orqali kiring:`,
         {
           parse_mode: "HTML",
           reply_markup: {
@@ -151,19 +123,11 @@ async function handleUpdate(update) {
     return;
   }
 
-  // B) Raqamlarni aniqlash (Bemor ID yoki 14 xonali PINFL)
+  // B) Raqamlarni aniqlash (Bemor ID)
   const cleanDigits = text.replace(/\D/g, "");
-  const session = userSessions.get(String(chatId)) || {};
 
-  // 14 xonali PINFL kiritilgan bo'lsa
-  if (cleanDigits.length === 14) {
-    await processPatientLookup(chatId, userFullName, fromId, cleanDigits, "PINFL");
-    return;
-  }
-
-  // 3 dan 8 xonagacha bo'lgan Bemor ID kiritilgan bo'lsa
-  if (cleanDigits.length >= 3 && cleanDigits.length <= 8) {
-    await processPatientLookup(chatId, userFullName, fromId, cleanDigits, "PATIENT_ID");
+  if (cleanDigits.length >= 3) {
+    await processPatientLookup(chatId, userFullName, fromId, cleanDigits, cleanDigits.length === 14 ? "PINFL" : "PATIENT_ID");
     return;
   }
 
@@ -191,7 +155,7 @@ async function sendWelcomeMessage(chatId, userFirstName) {
     `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
     `🆔 <b>MyID FaceID Avtorizatsiya:</b>\n` +
     `Yuzingizni skanerlab (FaceID) shaxsiy profilingizni oching va barcha tekshiruv xulosalaringizni (MRT, MSKT, UTT, Rentgen) bir zumda oling.\n\n` +
-    `🔢 <i>Yoki <b>Bemor ID</b> (masalan: <code>53312</code>) yoki <b>PINFL</b> raqamingizni yozib yuboring:</i>`;
+    `🔢 <i>Yoki <b>Bemor ID</b> (masalan: <code>53312</code>) raqamingizni yozib yuboring:</i>`;
 
   await sendTelegramMessage(chatId, welcome, {
     parse_mode: "HTML",
@@ -205,13 +169,13 @@ async function sendWelcomeMessage(chatId, userFirstName) {
   });
 }
 
-// YAGONA VA TO'LIQ QIDIRUV FUNKSIYASI (PINFL yoki Bemor ID bo'yicha)
+// YAGONA VA TO'LIQ QIDIRUV FUNKSIYASI
 async function processPatientLookup(chatId, userFullName, fromId, inputQuery, queryType) {
   userSessions.delete(String(chatId));
 
   await sendTelegramMessage(
     chatId,
-    `🔍 <b>${queryType === 'PINFL' ? 'JSHSHIR: ' + inputQuery : 'Bemor ID: ' + inputQuery}</b> bo'yicha MyID ma'lumotlari qidirilmoqda...`,
+    `🔍 <b>Bemor ID: ${inputQuery}</b> bo'yicha ma'lumotlar qidirilmoqda...`,
     { parse_mode: "HTML" }
   );
 
@@ -232,7 +196,13 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
           const repsObj = allData[pKey];
           if (!repsObj) continue;
           const repList = Object.values(repsObj);
-          const match = repList.find(r => String(r.patientId || '').trim() === inputQuery || String(r.pinfl || '').trim() === inputQuery);
+          
+          const match = repList.find(r => {
+            const rPid = String(r.patientId || '').trim();
+            const rPinfl = String(r.pinfl || '').trim();
+            return rPid === inputQuery || rPinfl === inputQuery;
+          });
+
           if (match) {
             foundPinfl = pKey;
             matchedReports = repList;
@@ -244,7 +214,6 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
 
     matchedReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-    // A) Agar xulosalar topilsa
     if (matchedReports.length > 0) {
       const rep = matchedReports[0];
       const patientName = rep.patientName || 'Bemor';
@@ -256,8 +225,8 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
       await sendTelegramMessage(
         chatId,
         `✅ <b>MyID Shaxsiy Profil ochildi!</b>\n\n` +
-        `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
-        `🎂 <b>Yoshi:</b> ${escapeHtml(patientAge)}\n` +
+        `👤 <b>Bemor F.I.Sh:</b> ${escapeHtml(patientName)}\n` +
+        `🎂 <b>Yoshi / Sana:</b> ${escapeHtml(patientAge)}\n` +
         `🆔 <b>Bemor ID:</b> <code>${escapeHtml(patientId)}</code>\n` +
         `🔢 <b>PINFL:</b> <code>${escapeHtml(pinfl)}</code>\n` +
         `📊 <b>Topilgan xulosalar:</b> ${matchedReports.length} ta\n\n` +
@@ -274,7 +243,6 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
         }
       );
 
-      // Xulosalarni yuborish
       for (let i = 0; i < matchedReports.length; i++) {
         const r = matchedReports[i];
         const repText = 
@@ -301,10 +269,9 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
             ]
           }
         });
-        await sleep(350);
+        await new Promise(r => setTimeout(r, 300));
       }
 
-      // Loggerga yozish
       sendLogToGroup(
         `✅ <b>MYID QIDIRUV MUVAFFAQIYATLI:</b>\n` +
         `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
@@ -315,15 +282,14 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
       );
 
     } else {
-      // B) Agar bazada xulosa hali mavjud bo'lmasa, shaxsiy profilni ochish
       const fallbackUrl = `${WEBAPP_BASE_URL}?id=${inputQuery}&auth=myid`;
 
       await sendTelegramMessage(
         chatId,
         `🛡️ <b>MYID SHAXSIY PROFILINGIZ OCHILDI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🆔 <b>Kiritilgan raqam:</b> <code>${inputQuery}</code>\n\n` +
-        `ℹ️ <i>Sizning nomingizga hali tasdiqlangan tibbiy xulosalar mavjud emas yoki shifokor tekshiruv jarayonida. Shifokor tasdiqlashi bilan xulosalar profilingizda paydo bo'ladi.</i>\n\n` +
+        `🆔 <b>Kiritilgan Bemor ID:</b> <code>${inputQuery}</code>\n\n` +
+        `ℹ️ <i>Sizning nomingizga hali tasdiqlangan tibbiy xulosalar mavjud emas yoki shifokor tekshiruv jarayonida. Shifokor tasdiqlashi bilan xulosalar profilingizda avtomatik paydo bo'ladi.</i>\n\n` +
         `📱 <i>MyID Shaxsiy profilingizni to'liq ko'rish uchun quyidagi tugmani bosing:</i>`,
         {
           parse_mode: "HTML",
@@ -336,18 +302,16 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
         }
       );
 
-      // Loggerga yozish
       sendLogToGroup(
         `ℹ️ <b>MYID QIDIRUV (XULOSALAR HALI MAVJUD EMAS):</b>\n` +
         `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
-        `🔢 Kiritilgan so'rov: <code>${inputQuery}</code>\n` +
+        `🔢 Kiritilgan Bemor ID: <code>${inputQuery}</code>\n` +
         `📊 Holat: Profil ochildi, xulosalar 0 ta`
       );
     }
 
   } catch (err) {
-    console.error("processPatientLookup error:", err);
-    // Xatolik loggerga yoziladi
+    console.error("processPatientLookup error:", err.message);
     sendLogToGroup(
       `❌ <b>MYID QIDIRUV XATOLIK:</b>\n` +
       `👤 Foydalanuvchi: ${escapeHtml(userFullName)} (${fromId})\n` +
@@ -355,37 +319,13 @@ async function processPatientLookup(chatId, userFullName, fromId, inputQuery, qu
       `⚠️ Sabab: <code>${escapeHtml(err.message)}</code>`
     );
 
-    await sendTelegramMessage(
-      chatId,
-      "⚠️ Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.",
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
-          ]
-        }
+    await sendTelegramMessage(chatId, "⚠️ Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.", {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
+        ]
       }
-    );
-  }
-}
-
-async function sendTelegramMessage(chatId, text, options = {}) {
-  const payload = {
-    chat_id: chatId,
-    text: text,
-    ...options
-  };
-
-  try {
-    const res = await fetch(`${TG_API_BASE}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
     });
-    return await res.json();
-  } catch (err) {
-    console.error(`sendMessage to ${chatId} failed:`, err.message);
-    return null;
   }
 }
 
@@ -394,9 +334,30 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+let offset = 0;
+let isPolling = true;
+
+async function startPolling() {
+  console.log("🚀 Radiodiagnostika Telegram Bot Runner ishga tushdi (@Radiodiagnostika_bot)...");
+
+  while (isPolling) {
+    try {
+      const response = await fetch(`${TG_API_BASE}/getUpdates?offset=${offset}&timeout=25`);
+      const data = await response.json();
+
+      if (data && data.ok && Array.isArray(data.result)) {
+        for (const update of data.result) {
+          offset = update.update_id + 1;
+          await processUpdate(update);
+        }
+      }
+    } catch (err) {
+      await new Promise(r => setTimeout(r, 4000));
+    }
+  }
 }
 
-// Ishga tushirish
-pollUpdates();
+process.on("SIGINT", () => { isPolling = false; process.exit(0); });
+process.on("SIGTERM", () => { isPolling = false; process.exit(0); });
+
+startPolling();

