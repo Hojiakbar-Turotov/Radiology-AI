@@ -351,8 +351,8 @@ function renderPatientBanner(p) {
         </div>
       </div>
       <div class="karmed-banner-actions">
-        <button type="button" class="karmed-btn-action karmed-btn-open-files" id="btnBannerOpenFiles" title="Bemor fayllari va xulosasini ochish">
-          <i class="fa-solid fa-folder-open"></i> Bemor Fayllarini Ochish (Onclick)
+        <button type="button" class="karmed-btn-action karmed-btn-open-files" id="btnBannerOpenFiles" title="Bemorning tibbiy xisobot oynasini ochish">
+          <i class="fa-solid fa-file-signature"></i> Bemor Hisobotini Ochish (2 marta bosish)
         </button>
         <button type="button" class="karmed-btn-action karmed-btn-save-report" id="btnBannerSaveReport" title="Ushbu bemor xulosasini Telegramga saqlash">
           <i class="fa-solid fa-cloud-arrow-up"></i> Xulosani Saqlash
@@ -376,32 +376,39 @@ function renderPatientBanner(p) {
   };
 }
 
-// Bemor fayllarini ochish hodisasi
+// Bemor xisobot faylini ochish hodisasi (2 marta bosish / Hisobot ochish)
 function openPatientFilesAction(p) {
   if (p.rowElement) {
-    const dblEvent = new MouseEvent("dblclick", {
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
-    p.rowElement.dispatchEvent(dblEvent);
+    // 1. Qatorning Familiya / Ismi / ID katakchasini topish
+    const targetCell = p.rowElement.querySelector("td:nth-child(3), td:nth-child(4), td:nth-child(2)") || p.rowElement;
 
-    const clickEvent = new MouseEvent("click", {
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
-    p.rowElement.dispatchEvent(clickEvent);
+    // 2. To'liq double-click ketma-ketligini yuborish
+    const mouseOpts = { bubbles: true, cancelable: true, view: window };
+    targetCell.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("click", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("mousedown", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("mouseup", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("click", mouseOpts));
+    targetCell.dispatchEvent(new MouseEvent("dblclick", mouseOpts));
 
-    const viewerBtn = Array.from(document.querySelectorAll("button, a, div, span")).find(el => 
-      el.innerText && (el.innerText.trim() === "Viewer" || el.innerText.trim() === "Hisobot" || el.innerText.trim() === "Web Pacs")
-    );
-    if (viewerBtn) {
-      viewerBtn.click();
-    }
+    p.rowElement.dispatchEvent(new MouseEvent("dblclick", mouseOpts));
+
+    // 3. Pastki yoki yuqori paneldagi "Hisobot" / "RIS Hisobotlari" tugmasini tekshirish (DICOM / Viewer EMAS!)
+    setTimeout(() => {
+      const hisobotBtns = Array.from(document.querySelectorAll("button, a, div, span, input[type='button']")).filter(el => {
+        const t = (el.innerText || el.value || "").trim().toLowerCase();
+        return (t === "hisobot" || t === "ris hisobotlari" || t === "natija hisobotlari" || t.startsWith("hisobot bo")) && 
+               !t.includes("viewer") && !t.includes("pacs") && !t.includes("dicom");
+      });
+
+      if (hisobotBtns.length > 0) {
+        hisobotBtns[0].click();
+      }
+    }, 150);
   }
 
-  showToastNotification(`📂 ${p.fullName} fayllari ochilmoqda...`);
+  showToastNotification(`📄 ${p.fullName} hisobot fayli ochilmoqda...`);
 }
 
 // 4. Ichki sahifadan to'liq ma'lumotlarni o'qish
