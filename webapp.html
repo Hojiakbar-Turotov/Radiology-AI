@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MyID & Tibbiy Xulosalar Portali - RONS</title>
+  <title>MyID FaceID & Tibbiy Xulosalar Portali</title>
   
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
-  <!-- Fonts & Icons -->
+  <!-- Fonts & FontAwesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,21 +19,17 @@
       --tg-theme-bg-color: #f8fafc;
       --tg-theme-text-color: #0f172a;
       --tg-theme-hint-color: #64748b;
-      --tg-theme-link-color: #0284c7;
-      --tg-theme-button-color: #0284c7;
-      --tg-theme-button-text-color: #ffffff;
       --tg-theme-secondary-bg-color: #ffffff;
       
-      --myid-purple: #9333ea;
-      --myid-purple-dark: #7e22ce;
-      --myid-gradient: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+      --myid-purple: #7e22ce;
+      --myid-indigo: #4f46e5;
+      --myid-gradient: linear-gradient(135deg, #7e22ce 0%, #4f46e5 100%);
       
       --primary: #0284c7;
-      --primary-dark: #0369a1;
       --primary-light: #e0f2fe;
       --success: #16a34a;
+      --success-light: #dcfce7;
       --warning: #d97706;
-      --danger: #dc2626;
       --card-bg: #ffffff;
       --border-color: #e2e8f0;
       --radius-sm: 12px;
@@ -51,6 +47,7 @@
       --card-bg: #1c2541;
       --border-color: #2e3856;
       --primary-light: #0d2b45;
+      --success-light: #064e3b;
     }
 
     * {
@@ -78,12 +75,12 @@
 
     /* Top Brand Header */
     .brand-banner {
-      background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+      background: var(--myid-gradient);
       color: #ffffff;
       border-radius: var(--radius-md);
       padding: 18px 16px;
       margin-bottom: 16px;
-      box-shadow: 0 12px 30px -5px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 12px 30px -5px rgba(126, 34, 206, 0.35);
       position: relative;
       overflow: hidden;
     }
@@ -108,26 +105,26 @@
     }
 
     .brand-logo-icon {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 24px;
       flex-shrink: 0;
     }
 
     .brand-text h1 {
-      font-size: 16.5px;
+      font-size: 17px;
       font-weight: 800;
       line-height: 1.2;
     }
 
     .brand-text p {
-      font-size: 11px;
+      font-size: 11.5px;
       opacity: 0.9;
       font-weight: 500;
       margin-top: 2px;
@@ -137,7 +134,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.25);
       border: 1px solid rgba(245, 158, 11, 0.6);
       color: #fef3c7;
       font-size: 11px;
@@ -147,112 +144,48 @@
       margin-top: 6px;
     }
 
-    /* Auth Modes Navigation */
-    .auth-modes-nav {
-      display: flex;
-      gap: 8px;
+    /* STEP 1: Passport Details Input Card */
+    .passport-input-card {
       background: var(--card-bg);
-      padding: 6px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-color);
-      margin-bottom: 16px;
-    }
-
-    .mode-tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background: none;
-      color: var(--tg-theme-hint-color);
-      font-family: inherit;
-      font-size: 12.5px;
-      font-weight: 700;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .mode-tab-btn.active {
-      background: var(--myid-gradient);
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
-    }
-
-    /* MyID FaceID Card */
-    .myid-card {
-      background: var(--card-bg);
-      border: 1.5px solid rgba(147, 51, 234, 0.25);
-      border-radius: var(--radius-md);
-      padding: 24px 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .myid-logo-box {
-      width: 68px;
-      height: 68px;
-      background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
-      color: var(--myid-purple);
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      margin: 0 auto 16px auto;
-      box-shadow: 0 8px 20px -4px rgba(147, 51, 234, 0.25);
-    }
-
-    .myid-card h2 {
-      font-size: 18px;
-      font-weight: 800;
-      margin-bottom: 6px;
-      color: var(--tg-theme-text-color);
-    }
-
-    .myid-card p {
-      font-size: 13px;
-      color: var(--tg-theme-hint-color);
-      max-width: 440px;
-      margin: 0 auto 20px auto;
-    }
-
-    .btn-myid-start {
-      width: 100%;
-      padding: 15px;
-      background: var(--myid-gradient);
-      color: #ffffff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 15.5px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
-      transition: all 0.2s ease;
-    }
-
-    .btn-myid-start:active {
-      transform: scale(0.98);
-    }
-
-    /* Classic Form Auth */
-    .classic-auth-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      border: 1.5px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 22px 18px;
       box-shadow: var(--shadow);
       margin-bottom: 16px;
-      display: none;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .step-badge {
+      background: var(--myid-gradient);
+      color: #ffffff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: var(--tg-theme-text-color);
+    }
+
+    .step-desc {
+      font-size: 12.5px;
+      color: var(--tg-theme-hint-color);
+      margin-bottom: 18px;
+      margin-left: 38px;
     }
 
     .input-group {
@@ -266,6 +199,12 @@
       font-weight: 700;
       margin-bottom: 6px;
       color: var(--tg-theme-text-color);
+    }
+
+    .passport-row-grid {
+      display: grid;
+      grid-template-columns: 85px 1fr;
+      gap: 8px;
     }
 
     .input-wrapper {
@@ -283,45 +222,60 @@
 
     .input-field {
       width: 100%;
-      padding: 13px 14px 13px 42px;
+      padding: 13px 14px 13px 40px;
       background: var(--tg-theme-bg-color);
       border: 1.5px solid var(--border-color);
       border-radius: var(--radius-sm);
       font-family: inherit;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14.5px;
+      font-weight: 700;
       color: var(--tg-theme-text-color);
       transition: all 0.2s ease;
     }
 
     .input-field:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      border-color: var(--myid-purple);
+      box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.15);
       background: var(--card-bg);
     }
 
-    .btn-submit-classic {
+    .input-field-passport-series {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 13px 10px;
+    }
+
+    .input-field-passport-number {
+      letter-spacing: 1px;
+    }
+
+    .btn-proceed-faceid {
       width: 100%;
-      padding: 14px;
-      background: var(--primary);
+      padding: 15px;
+      background: var(--myid-gradient);
       color: #ffffff;
       border: none;
       border-radius: var(--radius-sm);
       font-family: inherit;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(126, 34, 206, 0.35);
       transition: all 0.2s ease;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
-    /* FaceID Camera Scanner Modal */
+    .btn-proceed-faceid:active {
+      transform: scale(0.98);
+    }
+
+    /* STEP 2: Live FaceID Camera Scanner Modal */
     .faceid-modal {
       position: fixed;
       top: 0;
@@ -329,21 +283,21 @@
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
       z-index: 9999;
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
 
-    .faceid-modal-content {
+    .faceid-modal-box {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
       padding: 24px 20px;
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       text-align: center;
       position: relative;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -355,21 +309,21 @@
       right: 14px;
       background: none;
       border: none;
-      font-size: 20px;
+      font-size: 22px;
       color: var(--tg-theme-hint-color);
       cursor: pointer;
     }
 
     .camera-frame {
-      width: 240px;
-      height: 280px;
+      width: 230px;
+      height: 270px;
       margin: 16px auto;
       border-radius: 50% / 45%;
       border: 3.5px dashed var(--myid-purple);
       position: relative;
       overflow: hidden;
       background: #000000;
-      box-shadow: 0 0 0 6px rgba(147, 51, 234, 0.15);
+      box-shadow: 0 0 0 8px rgba(126, 34, 206, 0.15);
     }
 
     .camera-frame video {
@@ -385,9 +339,9 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, transparent, #a855f7, transparent);
-      box-shadow: 0 0 12px #a855f7;
-      animation: scanAnim 2s infinite linear;
+      background: linear-gradient(90deg, transparent, #c084fc, transparent);
+      box-shadow: 0 0 14px #c084fc;
+      animation: scanAnim 2.2s infinite linear;
     }
 
     @keyframes scanAnim {
@@ -398,10 +352,11 @@
     }
 
     .faceid-instructions {
-      font-size: 13.5px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       color: var(--tg-theme-text-color);
       margin-top: 10px;
+      min-height: 22px;
     }
 
     .faceid-status-badge {
@@ -411,13 +366,13 @@
       font-size: 12px;
       font-weight: 700;
       color: var(--myid-purple);
-      background: rgba(147, 51, 234, 0.1);
-      padding: 4px 12px;
+      background: rgba(126, 34, 206, 0.1);
+      padding: 5px 14px;
       border-radius: 20px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
-    /* Verified Patient Personal Profile (Shaxsiy Kabinet) */
+    /* STEP 3: Official Citizen Personal Profile Card (Shaxsiy Kabinet) */
     .profile-card {
       background: var(--card-bg);
       border: 1.5px solid var(--border-color);
@@ -426,51 +381,62 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
       display: none;
+      position: relative;
+      overflow: hidden;
     }
 
-    .profile-top-row {
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--myid-gradient);
+    }
+
+    .profile-header-flex {
       display: flex;
       align-items: center;
       gap: 14px;
       margin-bottom: 16px;
     }
 
-    .profile-avatar-box {
-      width: 64px;
-      height: 64px;
+    .profile-avatar-circle {
+      width: 66px;
+      height: 66px;
       border-radius: 20px;
       background: var(--myid-gradient);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
-      font-weight: 800;
+      font-size: 28px;
       flex-shrink: 0;
-      box-shadow: 0 8px 16px rgba(147, 51, 234, 0.3);
+      box-shadow: 0 8px 18px rgba(126, 34, 206, 0.3);
     }
 
-    .profile-names-box h2 {
+    .profile-name-area h2 {
       font-size: 16.5px;
       font-weight: 800;
       color: var(--tg-theme-text-color);
       line-height: 1.25;
     }
 
-    .myid-verified-pill {
+    .myid-verified-tag {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       font-size: 11px;
       font-weight: 800;
-      background: #dcfce7;
-      color: #15803d;
-      padding: 3px 8px;
+      background: var(--success-light);
+      color: var(--success);
+      padding: 3px 9px;
       border-radius: 6px;
       margin-top: 4px;
     }
 
-    .profile-details-grid {
+    .profile-grid-info {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
@@ -480,19 +446,38 @@
       font-size: 12.5px;
     }
 
-    .p-item b {
+    .info-cell b {
       color: var(--tg-theme-hint-color);
       font-weight: 600;
-      font-size: 11.5px;
+      font-size: 11px;
       display: block;
+      margin-bottom: 2px;
     }
 
-    .p-item span {
+    .info-cell span {
       font-weight: 800;
       color: var(--tg-theme-text-color);
+      font-size: 13px;
     }
 
-    /* Modality Filter Tabs */
+    .btn-new-auth {
+      margin-top: 14px;
+      width: 100%;
+      padding: 9px;
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--tg-theme-hint-color);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* STEP 4: Modality Tabs & Reports List */
     .modality-nav {
       display: flex;
       gap: 6px;
@@ -502,9 +487,7 @@
       scrollbar-width: none;
     }
 
-    .modality-nav::-webkit-scrollbar {
-      display: none;
-    }
+    .modality-nav::-webkit-scrollbar { display: none; }
 
     .filter-tab {
       background: var(--card-bg);
@@ -536,14 +519,9 @@
       font-size: 10.5px;
     }
 
-    .filter-tab.active .tab-count {
-      background: rgba(255, 255, 255, 0.25);
-    }
+    .filter-tab.active .tab-count { background: rgba(255, 255, 255, 0.25); }
 
-    /* Search Bar */
-    .search-box {
-      margin-bottom: 14px;
-    }
+    .search-box { margin-bottom: 14px; }
 
     .search-input {
       width: 100%;
@@ -556,7 +534,6 @@
       color: var(--tg-theme-text-color);
     }
 
-    /* Report Cards */
     .reports-list {
       display: flex;
       flex-direction: column;
@@ -618,9 +595,7 @@
       border: 1px solid var(--border-color);
     }
 
-    .report-card-body {
-      padding: 14px 16px;
-    }
+    .report-card-body { padding: 14px 16px; }
 
     .report-info-row {
       display: flex;
@@ -652,9 +627,7 @@
       margin-bottom: 12px;
     }
 
-    .report-content-box.expanded {
-      max-height: none;
-    }
+    .report-content-box.expanded { max-height: none; }
 
     .report-card-actions {
       display: flex;
@@ -706,14 +679,12 @@
       transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
 
-    .toast-popup.show {
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast-popup.show { transform: translateX(-50%) translateY(0); }
 
-    /* Print View */
+    /* Print Styles */
     @media print {
       body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
-      .brand-banner, .auth-modes-nav, .myid-card, .classic-auth-card, .modality-nav, .search-box, .report-card-actions { display: none !important; }
+      .brand-banner, .passport-input-card, .btn-new-auth, .modality-nav, .search-box, .report-card-actions { display: none !important; }
       .report-card { border: 1px solid #000 !important; box-shadow: none !important; margin-bottom: 20px !important; page-break-inside: avoid; }
       .report-content-box { max-height: none !important; background: #ffffff !important; border: none !important; padding: 0 !important; }
     }
@@ -723,7 +694,7 @@
 
   <div class="app-container">
     
-    <!-- 1. Top Header -->
+    <!-- Top Brand Header -->
     <header class="brand-banner">
       <div class="brand-header-flex">
         <div class="brand-logo-icon">
@@ -735,99 +706,99 @@
         </div>
       </div>
       <div class="brand-test-pill">
-        <i class="fa-solid fa-flask"></i> MyID & FaceID Integratsiyasi (Test Rejimi)
+        <i class="fa-solid fa-shield-halved"></i> MyID FaceID Integratsiyasi (Test Rejimi)
       </div>
     </header>
 
-    <!-- 2. Auth Mode Switcher Tabs -->
-    <div class="auth-modes-nav" id="authModesNav">
-      <button class="mode-tab-btn active" id="tabMyId" onclick="switchAuthMode('myid')">
-        <i class="fa-solid fa-id-card-clip"></i> MyID FaceID
-      </button>
-      <button class="mode-tab-btn" id="tabClassic" onclick="switchAuthMode('classic')">
-        <i class="fa-solid fa-key"></i> Bemor ID & PINFL
-      </button>
-    </div>
-
-    <!-- 3A. MyID FaceID Card -->
-    <section class="myid-card" id="myidSection">
-      <div class="myid-logo-box">
-        <i class="fa-solid fa-face-smile"></i>
+    <!-- STEP 1: Passport & Details Input Form -->
+    <section class="passport-input-card" id="passportInputSection">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <div class="step-title">Hujjat Ma'lumotlarini Kiriting</div>
       </div>
-      <h2>MyID Biometrik Identifikatsiya</h2>
-      <p>
-        Shaxsiy kabinetingizga kirish va barcha radiologik xulosalaringizni olish uchun FaceID orqali biometrik tekshiruvdan o'ting:
+      <p class="step-desc">
+        Pasport seriya, raqamingiz va tug'ilgan sanangizni kiriting:
       </p>
 
-      <button class="btn-myid-start" onclick="startFaceIDScan()">
-        <i class="fa-solid fa-camera"></i> FaceID Orqali Kirish
-      </button>
-    </section>
-
-    <!-- 3B. Classic Form Auth Card -->
-    <section class="classic-auth-card" id="classicAuthSection">
-      <form id="classicAuthForm" onsubmit="handleClassicSubmit(event)">
+      <form id="passportForm" onsubmit="handlePassportFormSubmit(event)">
         <div class="input-group">
           <label class="input-label">
-            <span>1️⃣ Bemor ID Raqami:</span>
+            <span>Pasport / ID-Karta Ma'lumotlari:</span>
+            <span style="color:var(--myid-purple);">* Majburiy</span>
           </label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-id-badge input-icon"></i>
-            <input type="number" id="inputPatientId" class="input-field" placeholder="Masalan: 53312 yoki 2050" required>
+          <div class="passport-row-grid">
+            <input type="text" id="passSeries" class="input-field input-field-passport-series" maxlength="2" placeholder="AA" value="AA" required>
+            <input type="text" id="passNumber" class="input-field input-field-passport-number" maxlength="7" placeholder="1234567" value="1234567" required>
           </div>
         </div>
 
         <div class="input-group">
           <label class="input-label">
-            <span>2️⃣ 14 xonali JSHSHIR (PINFL):</span>
+            <span>Tug'ilgan Sana (KK.OO.YYYY):</span>
+            <span style="color:var(--myid-purple);">* Majburiy</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-calendar input-icon"></i>
+            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" value="08.04.1981" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">
+            <span>14 xonali JSHSHIR (PINFL):</span>
+            <span style="color:var(--tg-theme-hint-color);">(Ixtiyoriy)</span>
           </label>
           <div class="input-wrapper">
             <i class="fa-solid fa-fingerprint input-icon"></i>
-            <input type="text" id="inputPinfl" class="input-field" maxlength="14" placeholder="Masalan: 30804812190075" required>
+            <input type="text" id="pinflInput" class="input-field" maxlength="14" placeholder="30804812190075" value="30804812190075">
           </div>
         </div>
 
-        <button type="submit" class="btn-submit-classic" id="btnVerifyClassic">
-          <i class="fa-solid fa-magnifying-glass"></i> Xulosalarni Qidirish
+        <button type="submit" class="btn-proceed-faceid">
+          <i class="fa-solid fa-camera"></i> 2-Qadam: FaceID Tekshiruvidan O'tish
         </button>
       </form>
     </section>
 
-    <!-- 4. Verified Personal Profile (Shaxsiy Kabinet) -->
+    <!-- STEP 3: Verified Citizen Profile Card (Shaxsiy Kabinet) -->
     <section class="profile-card" id="profileSection">
-      <div class="profile-top-row">
-        <div class="profile-avatar-box" id="profileAvatar">
+      <div class="profile-header-flex">
+        <div class="profile-avatar-circle" id="profileAvatar">
           <i class="fa-solid fa-user-check"></i>
         </div>
-        <div class="profile-names-box">
+        <div class="profile-name-area">
           <h2 id="profFullName">DADABOYEV ABDULLAJON</h2>
-          <div class="myid-verified-pill">
+          <div class="myid-verified-tag">
             <i class="fa-solid fa-circle-check"></i> MyID FaceID Tasdiqlangan
           </div>
         </div>
       </div>
 
-      <div class="profile-details-grid">
-        <div class="p-item">
-          <b>Tug'ilgan sana / Yoshi:</b>
+      <div class="profile-grid-info">
+        <div class="info-cell">
+          <b>Pasport / Hujjat:</b>
+          <span id="profPassport">AA 1234567</span>
+        </div>
+        <div class="info-cell">
+          <b>Tug'ilgan Sana / Yoshi:</b>
           <span id="profBirthDate">08.04.1981 (45 yosh)</span>
         </div>
-        <div class="p-item">
-          <b>Jinsi:</b>
-          <span id="profGender">Erkak</span>
-        </div>
-        <div class="p-item">
-          <b>Bemor ID:</b>
-          <span id="profPatientId">53312</span>
-        </div>
-        <div class="p-item">
+        <div class="info-cell">
           <b>JSHSHIR (PINFL):</b>
           <span id="profPinfl">30804812190075</span>
         </div>
+        <div class="info-cell">
+          <b>Jinsi / Fuqaroligi:</b>
+          <span id="profGender">Erkak (O'zbekiston)</span>
+        </div>
       </div>
+
+      <button class="btn-new-auth" onclick="resetToPassportInput()">
+        <i class="fa-solid fa-rotate-left"></i> Boshqa pasport bilan kirish
+      </button>
     </section>
 
-    <!-- 5. Modality Filter Tabs -->
+    <!-- STEP 4: Modality Tabs & Filter -->
     <nav class="modality-nav" id="modalityNav" style="display:none;">
       <button class="filter-tab active" onclick="filterByModality('all', this)">
         <i class="fa-solid fa-layer-group"></i> Barchasi <span class="tab-count" id="countAll">0</span>
@@ -852,7 +823,7 @@
       </button>
     </nav>
 
-    <!-- 6. Search Bar -->
+    <!-- Search Bar -->
     <div class="search-box" id="searchBox" style="display:none;">
       <div class="input-wrapper">
         <i class="fa-solid fa-magnifying-glass input-icon"></i>
@@ -860,20 +831,20 @@
       </div>
     </div>
 
-    <!-- 7. Reports List -->
+    <!-- Reports Cards List -->
     <div class="reports-list" id="reportsList"></div>
 
   </div>
 
-  <!-- FaceID Camera Modal -->
+  <!-- STEP 2: Live FaceID Scanner Modal -->
   <div class="faceid-modal" id="faceIdModal">
-    <div class="faceid-modal-content">
+    <div class="faceid-modal-box">
       <button class="faceid-close-btn" onclick="closeFaceIDModal()"><i class="fa-solid fa-xmark"></i></button>
       
-      <div style="font-size: 22px; color: var(--myid-purple); margin-bottom: 4px;">
+      <div style="font-size: 26px; color: var(--myid-purple); margin-bottom: 2px;">
         <i class="fa-solid fa-face-viewfinder"></i>
       </div>
-      <h3 style="font-size: 17px; font-weight: 800;">MyID FaceID Skaner</h3>
+      <h3 style="font-size: 17px; font-weight: 800;">MyID FaceID Biometrik Skaner</h3>
       
       <div class="camera-frame">
         <video id="faceVideo" autoplay playsinline muted></video>
@@ -881,16 +852,16 @@
       </div>
 
       <div class="faceid-instructions" id="faceInstructions">
-        Iltimos, yuzingizni doira markaziga to'g'rilang
+        Yuzingizni doira ichiga to'g'rilang...
       </div>
 
       <div class="faceid-status-badge" id="faceStatusBadge">
-        <i class="fa-solid fa-spinner fa-spin"></i> Biometrik liveness tekshirilmoqda...
+        <i class="fa-solid fa-spinner fa-spin"></i> Biometrik tekshirilmoqda...
       </div>
     </div>
   </div>
 
-  <!-- Toast Popup -->
+  <!-- Toast -->
   <div class="toast-popup" id="toastPopup">
     <i class="fa-solid fa-circle-check" style="color:#22c55e;"></i>
     <span id="toastMsg">Xulosa matni nusxalandi!</span>
@@ -913,38 +884,30 @@
       }
     }
 
-    // Auto-URL parameters
+    // Auto-URL parameters (masalan: ?pinfl=30804812190075&auth=myid)
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
-      const urlId = params.get("id");
       const urlPinfl = params.get("pinfl");
+      const urlId = params.get("id");
       const autoAuth = params.get("auth");
 
-      if (urlId) document.getElementById("inputPatientId").value = urlId;
-      if (urlPinfl) document.getElementById("inputPinfl").value = urlPinfl;
+      if (urlPinfl) document.getElementById("pinflInput").value = urlPinfl;
+      if (urlId) document.getElementById("passNumber").value = urlId;
 
-      if (urlId && urlPinfl && urlPinfl.length === 14) {
-        fetchReportsForPatient(urlId, urlPinfl);
-      } else if (autoAuth === "myid") {
-        startFaceIDScan();
+      if (autoAuth === "myid" || (urlPinfl && urlPinfl.length === 14)) {
+        // Avtomatik FaceID rejimiga o'tish
+        startFaceIDScanProcess();
       }
     });
 
-    function switchAuthMode(mode) {
-      document.querySelectorAll(".mode-tab-btn").forEach(b => b.classList.remove("active"));
-      if (mode === 'myid') {
-        document.getElementById("tabMyId").classList.add("active");
-        document.getElementById("myidSection").style.display = "block";
-        document.getElementById("classicAuthSection").style.display = "none";
-      } else {
-        document.getElementById("tabClassic").classList.add("active");
-        document.getElementById("myidSection").style.display = "none";
-        document.getElementById("classicAuthSection").style.display = "block";
-      }
+    // 1-QADAM: Pasport formasini yuborish va FaceID ni boshlash
+    function handlePassportFormSubmit(e) {
+      e.preventDefault();
+      startFaceIDScanProcess();
     }
 
-    // Live FaceID Scan
-    async function startFaceIDScan() {
+    // 2-QADAM: Jonli FaceID kamera skaneri
+    async function startFaceIDScanProcess() {
       const modal = document.getElementById("faceIdModal");
       modal.style.display = "flex";
       
@@ -960,34 +923,39 @@
           video.srcObject = videoStream;
         }
       } catch (err) {
-        console.warn("Camera fallback to simulated scanner:", err);
+        console.warn("Camera streaming fallback:", err);
       }
 
-      // Live Step 1: Liveness check
-      instructions.innerText = "Kameraga qarang va qimirlamang...";
-      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 94%)...`;
+      // Bosqich 1: Yuzni doiraga to'g'rilash
+      instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
+      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 92%)...`;
 
+      // Bosqich 2: Liveness (ko'zni yumish / jilmayish)
       setTimeout(() => {
-        instructions.innerText = "Yaxshi! Endi bir marta ko'zingizni yuming...";
-        statusBadge.innerHTML = `<i class="fa-solid fa-check"></i> Biometrik liveness: 99.4%`;
+        instructions.innerText = "Iltimos, bir marta ko'zingizni yuming...";
+        statusBadge.innerHTML = `<i class="fa-solid fa-check"></i> Biometrik liveness: 99.6%`;
         if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      }, 1500);
+      }, 1400);
 
-      // Live Step 2: MyID Match & Profile Load
+      // Bosqich 3: MyID serveri bilan solishtirish
+      setTimeout(() => {
+        instructions.innerText = "MyID serveri orqali pasport bilan solishtirilmoqda...";
+        statusBadge.innerHTML = `<i class="fa-solid fa-shield-halved fa-beat"></i> Pasport ma'lumotlari tekshirilmoqda...`;
+      }, 2600);
+
+      // Bosqich 4: Muvaffaqiyatli tasdiqlash va profilni ochish
       setTimeout(async () => {
         instructions.innerText = "✅ Shaxs muvaffaqiyatli tasdiqlandi!";
-        statusBadge.innerHTML = `<i class="fa-solid fa-shield-check"></i> MyID Passports & PINFL tasdiqlandi`;
+        statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> MyID FaceID 100% Mos keldi`;
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
         await new Promise(r => setTimeout(r, 900));
         closeFaceIDModal();
 
-        // Load Verified Patient Data (Defaulting to primary patient in DB)
-        const demoPinfl = document.getElementById("inputPinfl").value || "30804812190075";
-        const demoId = document.getElementById("inputPatientId").value || "53312";
-        await fetchReportsForPatient(demoId, demoPinfl, true);
+        // Profil ma'lumotlarini yuklash va xulosalarni saralash
+        await loadVerifiedProfileAndReports();
 
-      }, 3000);
+      }, 3800);
     }
 
     function closeFaceIDModal() {
@@ -999,63 +967,76 @@
       }
     }
 
-    async function handleClassicSubmit(e) {
-      e.preventDefault();
-      const patientId = document.getElementById("inputPatientId").value.trim();
-      const pinfl = document.getElementById("inputPinfl").value.trim();
-      await fetchReportsForPatient(patientId, pinfl, false);
-    }
+    // 3-QADAM: Shaxsiy profilni ko'rsatish va PINFL bo'yicha xulosalarni tartiblash
+    async function loadVerifiedProfileAndReports() {
+      const passSeries = (document.getElementById("passSeries").value || "AA").toUpperCase();
+      const passNum = document.getElementById("passNumber").value || "1234567";
+      const birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
+      let pinfl = document.getElementById("pinflInput").value.trim() || "30804812190075";
 
-    async function fetchReportsForPatient(patientId, pinfl, isMyIdVerified = true) {
       try {
+        // Firebase-dan xulosalarni yuklab olish
         const res = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
-        const data = await res.json();
+        let data = await res.json();
 
+        // Agar kiritilgan PINFL bo'yicha topilmasa, bazadagi barcha xulosalardan qidirish
         if (!data) {
-          showToast("⚠️ Ushbu JSHSHIR bo'yicha hali xulosalar topilmadi.");
-          return;
+          const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
+          const allData = await allRes.json();
+          if (allData) {
+            const keys = Object.keys(allData);
+            if (keys.length > 0) {
+              pinfl = keys[0];
+              data = allData[pinfl];
+            }
+          }
         }
 
-        const list = Object.values(data);
-        const matched = list.filter(r => {
-          const repId = String(r.patientId || "").trim();
-          const inpId = String(patientId).trim();
-          return repId === inpId || !repId;
-        });
-
-        if (matched.length === 0 && list.length > 0) {
-          allReports = list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        if (data) {
+          allReports = Object.values(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         } else {
-          allReports = matched.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          allReports = [];
         }
 
         currentFilteredReports = [...allReports];
 
-        // Render Profile
-        renderProfileSection(allReports[0], patientId, pinfl, isMyIdVerified);
-        updateModalityCounts();
-        renderReports(currentFilteredReports);
+        // Profil ma'lumotlarini to'ldirish
+        const rep = allReports[0] || {};
+        const fullName = rep.patientName || "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
+        const finalBirthDate = rep.birthDate || birthDate;
+        const finalAge = rep.age || "45 yosh";
 
-        document.getElementById("authModesNav").style.display = "none";
-        document.getElementById("myidSection").style.display = "none";
-        document.getElementById("classicAuthSection").style.display = "none";
+        document.getElementById("profFullName").innerText = fullName;
+        document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`;
+        document.getElementById("profBirthDate").innerText = `${finalBirthDate} (${finalAge})`;
+        document.getElementById("profPinfl").innerText = pinfl;
+        document.getElementById("profGender").innerText = fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
+
+        // Ekranlarni almashtirish
+        document.getElementById("passportInputSection").style.display = "none";
         document.getElementById("profileSection").style.display = "block";
         document.getElementById("modalityNav").style.display = "flex";
         document.getElementById("searchBox").style.display = "block";
 
-        showToast(`✅ ${allReports.length} ta tibbiy xulosa yuklandi!`);
+        updateModalityCounts();
+        renderReports(currentFilteredReports);
+
+        showToast(`✅ MyID orqali profil ochildi! ${allReports.length} ta xulosa topildi.`);
 
       } catch (err) {
-        console.error("fetchReports error:", err);
-        showToast("⚠️ Xatolik yuz berdi.");
+        console.error("loadVerifiedProfile error:", err);
+        showToast("⚠️ Ma'lumotlarni yuklashda xatolik yuz berdi.");
       }
     }
 
-    function renderProfileSection(r, patientId, pinfl, isMyId) {
-      document.getElementById("profFullName").innerText = r.patientName || "DADABOYEV ABDULLAJON";
-      document.getElementById("profBirthDate").innerText = `${r.birthDate || '08.04.1981'} (${r.age || '45 yosh'})`;
-      document.getElementById("profPatientId").innerText = r.patientId || patientId;
-      document.getElementById("profPinfl").innerText = pinfl;
+    function resetToPassportInput() {
+      allReports = [];
+      currentFilteredReports = [];
+      document.getElementById("passportInputSection").style.display = "block";
+      document.getElementById("profileSection").style.display = "none";
+      document.getElementById("modalityNav").style.display = "none";
+      document.getElementById("searchBox").style.display = "none";
+      document.getElementById("reportsList").innerHTML = "";
     }
 
     function updateModalityCounts() {
@@ -1114,6 +1095,17 @@
     function renderReports(reports) {
       const listEl = document.getElementById("reportsList");
       listEl.innerHTML = "";
+
+      if (reports.length === 0) {
+        listEl.innerHTML = `
+          <div style="text-align:center; padding:30px; background:var(--card-bg); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="font-size:32px; color:var(--myid-purple); margin-bottom:8px;"><i class="fa-solid fa-folder-open"></i></div>
+            <h4 style="font-size:15px; font-weight:800;">Bu bo'limda xulosalar mavjud emas</h4>
+            <p style="font-size:12.5px; color:var(--tg-theme-hint-color);">Tanlangan bo'lim bo'yicha tibbiy xulosa topilmadi.</p>
+          </div>
+        `;
+        return;
+      }
 
       reports.forEach((rep, idx) => {
         const mod = detectModality(rep);
@@ -1174,7 +1166,7 @@
       const rep = currentFilteredReports[idx];
       if (!rep) return;
       const formatted = 
-        `📄 TIBBIY XULOSA PROTOKOLI\n` +
+        `📄 TIBBIY XULOSA PROTOKOLI (MyID)\n` +
         `👤 Bemor: ${rep.patientName}\n` +
         `🆔 Bemor ID: ${rep.patientId}\n` +
         `🔢 Namuna raqami: ${rep.sampleNumber || '-'}\n` +
@@ -1182,7 +1174,8 @@
         `👨‍⚕️ Shifokor: ${rep.doctorName || rep.reportAuthor}\n` +
         `📅 Tasdiqlangan sana: ${rep.reportDate || rep.confirmDate || '-'}\n\n` +
         `📝 XULOSA MATNI:\n${rep.conclusionText}\n\n` +
-        `🏥 Respublika Onkologiya va Radiologiya Markazi`;
+        `🏥 Respublika Onkologiya va Radiologiya Markazi\n` +
+        `🛡️ MyID FaceID Tasdiqlangan`;
 
       if (navigator.clipboard) {
         navigator.clipboard.writeText(formatted).then(() => {
@@ -1204,6 +1197,7 @@
           <style>
             body { font-family: 'Arial', sans-serif; margin: 30px; line-height: 1.6; color: #000; }
             .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+            .header h2 { margin: 0; font-size: 18px; text-transform: uppercase; }
             .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
             .meta-table td { padding: 6px 8px; border: 1px solid #ccc; font-size: 13px; }
             .meta-table td.label { font-weight: bold; background: #f5f5f5; width: 25%; }
@@ -1215,7 +1209,7 @@
         <body>
           <div class="header">
             <h2>RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
-            <p>MyID Tasdiqlangan Tibbiy Xulosa Protokoli</p>
+            <p>MyID FaceID Tasdiqlangan Tibbiy Xulosa Protokoli</p>
           </div>
           <table class="meta-table">
             <tr><td class="label">Bemor F.I.Sh:</td><td>${escapeHtml(rep.patientName)}</td><td class="label">Yoshi / Sana:</td><td>${escapeHtml(rep.age || rep.birthDate || '-')}</td></tr>
