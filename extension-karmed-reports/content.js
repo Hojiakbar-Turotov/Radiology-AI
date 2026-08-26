@@ -1,7 +1,7 @@
 /**
  * Karmed Xulosalar Portali - Injected Content Script
  * 1. Aniq jadval tahlili: F.I.Sh, Yoshi, Bemor ID, PNFL, Fayl shifokori, Hisobot muallifi, Tekshiruv nomi
- * 2. Radiologiya Hisobot oynasidagi to'liq xulosa matnini (МРТ ОРГАНОВ, Методика, Описание, Natija...) to'g'ridan-to'g'ri o'qib olish va nusxalash
+ * 2. Radiologiya Hisobot muharriridan toza tibbiy protokolni (ПРОТОКОЛ, Техника, Описание, ЗАКЛЮЧЕНИЕ...) to'liq va xatosiz ajratib olish
  * 3. 100% sinxronlashtirilgan real-vaqt bazasi va Telegram integratsiyasi
  */
 
@@ -32,7 +32,6 @@ function initTableObserver() {
   document.addEventListener("click", handleTableClickCapture, true);
   document.addEventListener("dblclick", handleTableClickCapture, true);
 
-  // Pastki jadval yoki hisobot oynasi o'zgarganda darhol ushlab olish (MutationObserver)
   const observer = new MutationObserver(() => {
     refreshActivePatientSubData();
   });
@@ -438,34 +437,62 @@ function openPatientFilesAction(p) {
   showToastNotification(`📄 ${p.fullName} hisobot fayli ochilmoqda...`);
 }
 
-// 4. MUHARRIRDAN VA SAHIFADAN TO'LIQ XULOSA MATNINI ANIQ KO'CHIRIB OLISH
+// 4. XULOSA MATNINI TOZALASH (Keraksiz Karmed interfeys so'zlarini olib tashlash)
+function cleanMedicalReportText(rawText) {
+  if (!rawText) return "";
+
+  const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  
+  const junkPatterns = [
+    /^(?:Saqlash|Bekor qilish|DEL|Printer|Tasdiqlashni|Gonderim|Qulflash|Bemorning|Shablonlar|Laboratoriya|Retsept|Saraton|Epikriz|Jarrohlik|Bemor Eslatmasi|Hisobot|Tele-Tip|E-Nabiz|Boshqa|Yopish)\b/i,
+    /^(?:Docs,\s*Pdf,\s*Txt|Tanlash|Davom eting|Tum Ses|Tüm Ses|Diğer Tetkikler|Kayıt Devre)\b/i,
+    /^(?:\d{2}:\d{2}\s*[\/\\]?\s*\d{2}:\d{2}|0:00\s*\/\s*0:00)/i,
+    /^(?:Tahome|Arial|Calibri|Times New Roman)\b/i,
+    /^(?:Tanlangan Bemor|Bemor Hisobotini Ochish|Xulosani Saqlash|Qidiruv maydoni|Fayl holati|Displaying)\b/i,
+    /^(?:Radiologiya\s*Hisobot\s*:)/i
+  ];
+
+  const filteredLines = lines.filter(line => {
+    return !junkPatterns.some(p => p.test(line));
+  });
+
+  let text = filteredLines.join("\n").trim();
+
+  // Boshlanish nuqtasini aniqlash (ПРОТОКОЛ, МРТ, Техника, Методика, Описание...)
+  const startMatch = text.search(/(?:ПРОТОКОЛ|МРТ|MSKT|РЕНТГЕН|УЗИ|КТ|Техника\s+сканирования|Методика|Описание|ЗАКЛЮЧЕНИЕ)/i);
+  if (startMatch !== -1 && startMatch < 150) {
+    text = text.substring(startMatch);
+  }
+
+  return text.trim();
+}
+
+// 5. MUHARRIRDAN TO'LIQ XULOSA MATNINI ANIQ AJRATIB OLISH
 function extractConclusionTextFromEditor() {
-  let mainText = "";
-  let tavsiyaText = "";
+  let gatheredTexts = [];
 
   try {
     // 1. ContentEditable muharrir elementlari
     const editables = Array.from(document.querySelectorAll("[contenteditable='true'], [contenteditable='']"));
-    const validEditables = editables.filter(el => {
-      const t = (el.innerText || "").trim();
-      return t.length > 15 && !t.includes("Docs, Pdf, Txt") && !t.includes("Davom eting") && !t.includes("Tanlangan Bemor");
-    });
-
-    if (validEditables.length > 0) {
-      mainText = validEditables.map(el => el.innerText.trim()).join("\n\n");
+    for (const el of editables) {
+      const raw = (el.innerText || "").trim();
+      const cleaned = cleanMedicalReportText(raw);
+      if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
+        gatheredTexts.push(cleaned);
+      }
     }
 
     // 2. Iframe ichidagi muharrir bo'lsa
-    if (!mainText) {
+    if (gatheredTexts.length === 0) {
       const iframes = Array.from(document.querySelectorAll("iframe"));
       for (const ifr of iframes) {
         try {
           const doc = ifr.contentDocument || ifr.contentWindow?.document;
           if (doc && doc.body) {
-            const iTxt = (doc.body.innerText || "").trim();
-            if (iTxt.length > 20 && !iTxt.includes("Docs, Pdf")) {
-              mainText = iTxt;
-              break;
+            const raw = (doc.body.innerText || "").trim();
+            const cleaned = cleanMedicalReportText(raw);
+            if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
+              gatheredTexts.push(cleaned);
             }
           }
         } catch (e) {}
@@ -473,45 +500,50 @@ function extractConclusionTextFromEditor() {
     }
 
     // 3. Rich Editor / Textarea elementlari
-    if (!mainText) {
+    if (gatheredTexts.length === 0) {
       const editorAreas = Array.from(document.querySelectorAll(".dx-htmleditor-content, .k-editor-content, .note-editable, .cke_editable, textarea, div[role='textbox'], .rich-editor"));
-      const texts = editorAreas.map(ea => (ea.value || ea.innerText || "").trim()).filter(t => t.length > 20 && !t.includes("Tanlangan Bemor"));
-      if (texts.length > 0) {
-        mainText = texts.join("\n\n");
+      for (const ea of editorAreas) {
+        const raw = (ea.value || ea.innerText || "").trim();
+        const cleaned = cleanMedicalReportText(raw);
+        if (cleaned.length > 25 && !gatheredTexts.includes(cleaned)) {
+          gatheredTexts.push(cleaned);
+        }
       }
     }
 
     // 4. "Natija va tavsiyalar" pastki blokini tekshirish
+    let tavsiyaText = "";
     const tavsiyaElements = Array.from(document.querySelectorAll("div, textarea, p")).filter(el => {
       const t = (el.innerText || el.value || "").trim();
-      return t.length > 10 && el.previousElementSibling && el.previousElementSibling.innerText && el.previousElementSibling.innerText.includes("Natija va tavsiyalar");
+      return t.length > 5 && el.previousElementSibling && el.previousElementSibling.innerText && el.previousElementSibling.innerText.includes("Natija va tavsiyalar");
     });
     if (tavsiyaElements.length > 0) {
       tavsiyaText = (tavsiyaElements[0].value || tavsiyaElements[0].innerText || "").trim();
     }
 
-    // 5. Agar DOM dan topilmagan bo'lsa, butun sahifa matnidan tibbiy blokni ajratish
-    if (!mainText) {
+    // 5. Agar DOM dan topilmagan bo'lsa, butun sahifa matnidan tibbiy blokni qidiramiz
+    if (gatheredTexts.length === 0) {
       const fullText = document.body.innerText || "";
-      // МРТ ОРГАНОВ..., Методика:, Описание:, Заключение...
-      const reportMatch = fullText.match(/(?:МРТ|MSKT|РЕНТГЕН|УЗИ|КТ|Методика|Описание|Матка|Протокол|Заключение)[\s\S]{30,6000}?(?=(?:Docs, Pdf|Qidiruv|Fayl holati|Tanlangan Bemor|Saqlash \(F3\)|Natija va tavsiyalar|$))/i);
-      if (reportMatch) {
-        mainText = reportMatch[0].trim();
+      const cleaned = cleanMedicalReportText(fullText);
+      if (cleaned.length > 30) {
+        gatheredTexts.push(cleaned);
       }
     }
 
-    if (tavsiyaText && mainText && !mainText.includes(tavsiyaText)) {
-      return `${mainText}\n\nNatija va tavsiyalar:\n${tavsiyaText}`;
+    let result = gatheredTexts.join("\n\n").trim();
+    if (tavsiyaText && !result.includes(tavsiyaText)) {
+      result += `\n\nNatija va tavsiyalar:\n${tavsiyaText}`;
     }
+
+    return result;
 
   } catch (e) {
     console.warn("extractConclusionTextFromEditor error:", e);
+    return "";
   }
-
-  return mainText || "";
 }
 
-// 5. Ichki sahifadan to'liq ma'lumotlarni o'qish
+// 6. Ichki sahifadan to'liq ma'lumotlarni o'qish
 function extractKarmedPageData() {
   let pinfl = activePatient ? activePatient.pinfl : "";
   let patientName = activePatient ? activePatient.fullName : "";
@@ -522,7 +554,7 @@ function extractKarmedPageData() {
   try {
     const pageText = document.body.innerText || "";
 
-    // Sarlavhadan (Radiologiya Hisobot :NATALYA VILDANOVA / K / 49 Yil...) tekshirish
+    // Sarlavhadan (Radiologiya Hisobot :VALENTINA ANTONOVA / K / 68 Yil...) tekshirish
     const titleMatch = pageText.match(/Radiologiya\s*Hisobot\s*[:：]\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)\/\s*([^\/]+)/i);
     if (titleMatch) {
       if (!patientName || patientName === "Bemor") {
@@ -543,7 +575,7 @@ function extractKarmedPageData() {
     console.warn("extractKarmedPageData error:", e);
   }
 
-  // Muharrirdan to'liq matnni nusxalab olish
+  // Muharrirdan toza va to'liq matnni nusxalab olish
   const conclusionText = extractConclusionTextFromEditor();
 
   return {
@@ -556,11 +588,10 @@ function extractKarmedPageData() {
   };
 }
 
-// 6. Yagona Saqlash Modali (Matnni nusxalash va tahrirlash imkoniyati bilan)
+// 7. Yagona Saqlash Modali
 async function handleDirectSaveClick() {
   const data = extractKarmedPageData();
 
-  // Matnni clipboardga ham avtomatik nusxalash
   if (data.conclusionText && navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(data.conclusionText).catch(() => {});
   }
@@ -610,9 +641,14 @@ async function handleDirectSaveClick() {
         <div class="karmed-form-group">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="margin:0;"><b>Tibbiy Xulosa Matni (Karmed-dan nusxalandi):</b></label>
-            <button type="button" id="btnKarmedModalCopy" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
-              <i class="fa-solid fa-copy"></i> Matnni nusxalash
-            </button>
+            <div style="display:flex; gap:6px;">
+              <button type="button" id="btnKarmedModalRefresh" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
+                <i class="fa-solid fa-arrows-rotate"></i> Qayta o'qish
+              </button>
+              <button type="button" id="btnKarmedModalCopy" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; cursor:pointer; color:#0369a1;">
+                <i class="fa-solid fa-copy"></i> Matnni nusxalash
+              </button>
+            </div>
           </div>
           <textarea id="kModalText" rows="7" placeholder="Karmed muharriridan nusxalangan to'liq tibbiy xulosa matni...">${escapeHtml(data.conclusionText || '')}</textarea>
         </div>
@@ -631,6 +667,17 @@ async function handleDirectSaveClick() {
 
   document.getElementById("btnKarmedModalClose").onclick = () => modal.remove();
   document.getElementById("btnKarmedModalCancel").onclick = () => modal.remove();
+
+  // Matnni qayta o'qish tugmasi
+  document.getElementById("btnKarmedModalRefresh").onclick = () => {
+    const refreshedText = extractConclusionTextFromEditor();
+    if (refreshedText) {
+      document.getElementById("kModalText").value = refreshedText;
+      showToastNotification("🔄 Matn Karmed-dan qayta o'qildi!");
+    } else {
+      showToastNotification("⚠️ Muharrirdan matn topilmadi.");
+    }
+  };
 
   // Matnni nusxalash tugmasi
   document.getElementById("btnKarmedModalCopy").onclick = () => {
