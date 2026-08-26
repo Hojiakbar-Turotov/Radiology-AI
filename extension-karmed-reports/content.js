@@ -598,14 +598,41 @@ async function startAutopilotWorkflow() {
       conclusionText = await waitForConclusionText(6000);
     }
 
+    // AGAR XULOSA MATNI TOPILMASA YOKI TAYYOR BO'LMASA — QOLDIRIB KETILADI!
+    if (!conclusionText || conclusionText.length < 35) {
+      console.log(`⚠️ ${patient.fullName} uchun xulosa matni hali tayyor emas. Qoldirib ketildi.`);
+      
+      autopilotStatusText = `⚠️ [${i + 1}/${patientItems.length}] ${patient.fullName} - Xulosa matni tayyor emas (qoldirildi)`;
+      renderPatientBanner(patient);
+      showToastNotification(`⚠️ ${patient.fullName}: Xulosa matni tayyor emas (qoldirildi)`);
+
+      // Log guruhiga bildirishnoma
+      fetch(`${TG_API_BASE}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: LOG_GROUP_ID,
+          text: `⚠️ <b>XULOSA MATNI TAYYOR EMAS (QOLDIRILDI):</b>\n` +
+                `👤 <b>Bemor:</b> ${escapeHtml(patient.fullName)}\n` +
+                `🆔 <b>ID:</b> ${escapeHtml(patient.patientId || '-')}\n` +
+                `🔢 <b>Namuna:</b> <code>${escapeHtml(patient.sampleNumber || '-')}</code>\n` +
+                `🔢 <b>PNFL:</b> <code>${escapeHtml(patient.pinfl || '-')}</code>\n` +
+                `📅 <b>Tasdiqlangan sana:</b> ${escapeHtml(patient.reportDate || patient.confirmDate || '-')}\n` +
+                `ℹ️ <i>Ushbu bemor uchun hisobot matni hali tayyor emasligi sababli kanalga yuborilmasdan qoldirildi.</i>`,
+          parse_mode: "HTML"
+        })
+      }).catch(() => {});
+
+      await sleep(1500);
+      closeAllOpenedReportDialogs();
+      await sleep(1500);
+      continue;
+    }
+
     // 6-Qadam: Xulosa matnini ajratib olib Telegramga yuborish
     const pageData = extractKarmedPageData();
-    if (conclusionText && conclusionText.length > 35) {
-      pageData.conclusionText = conclusionText;
-      autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} (${conclusionText.length} belgi) Telegramga yuborilmoqda...`;
-    } else {
-      autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} Telegramga yuborilmoqda...`;
-    }
+    pageData.conclusionText = conclusionText;
+    autopilotStatusText = `📤 [${i + 1}/${patientItems.length}] ${patient.fullName} (${conclusionText.length} belgi) Telegramga yuborilmoqda...`;
     renderPatientBanner(patient);
 
     await sendCurrentReportToTelegramAndFirebase(pageData);
@@ -619,9 +646,9 @@ async function startAutopilotWorkflow() {
   }
 
   isAutopilotRunning = false;
-  autopilotStatusText = `✅ Barcha ${patientItems.length} ta bemor xulosalari muvaffaqiyatli Telegramga yuklandi!`;
+  autopilotStatusText = `✅ Barcha bemorlar tekshirildi va tayyor xulosalar Telegramga yuklandi!`;
   renderPatientBanner(activePatient || { fullName: "Bemor", patientId: "-", pinfl: "-" });
-  alert(`🎉 TABRIKLAYMIZ!\n\nBarcha ${patientItems.length} ta bemorning xulosalari Telegram kanalga va bazaga to'liq yuklandi!`);
+  alert(`🎉 JARAYON YAKUNLANDI!\n\nBarcha mavjud bemorlar tekshirilib, faqat tayyor xulosalar Telegram kanalga va bazaga to'liq yuklandi!`);
 }
 
 // XULOSA MATNI TO'LIQ YUKLANGUNCHA KUTUVCHI DASTUR
@@ -1059,6 +1086,13 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
     source: "FastReport Batch Capture"
   };
 
+  // Agar xulosa matni bo'sh yoki 35 belgidan kam bo'lsa — KANALGA YUBORILMAYDI (Qoldiriladi)
+  if (!conclusionText || conclusionText.length < 35 || conclusionText.includes("Xulosa matni hisobotdan o'qib olinmadi")) {
+    console.warn("⚠️ Xulosa matni tayyor emas. Kanalga xabar yuborilmaydi (qoldirildi).");
+    showToastNotification(`⚠️ ${patientName}: Xulosa matni tayyor emas (qoldirildi)`);
+    return false;
+  }
+
   try {
     if (pinfl && pinfl.length === 14) {
       await fetch(`${FIREBASE_DB_URL}/karmed_reports/${pinfl}/${reportId}.json`, {
@@ -1068,9 +1102,7 @@ async function sendCurrentReportToTelegramAndFirebase(data, pdfUrl = "") {
       });
     }
 
-    const cleanConclusion = conclusionText && conclusionText.length > 25
-      ? conclusionText
-      : "⚠️ Xulosa matni hisobotdan o'qib olinmadi.";
+    const cleanConclusion = conclusionText.trim();
 
     const tgMsg = 
       `📄 <b>YANGI TIBBIY XULOSA (KARMED) SAQLANDI</b>\n` +
