@@ -1,7 +1,6 @@
 /**
  * Radiodiagnostika Telegram Bot Serverless Webhook Handler (@Radiodiagnostika_bot)
- * Handles 2-step security verification: 1) Patient ID -> 2) PINFL (JSHSHIR).
- * Inline Keyboards: Web App, Restart Bot, Search Again.
+ * Handles MyID FaceID Biometric integration, 2-step security verification, and Web App routing.
  * Log Group ID: -1003950231961
  * Channel ID: -1003962033499
  * Web App: https://hojiakbar-turotov.github.io/Radiology-AI/webapp.html
@@ -51,8 +50,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       status: "active",
       bot: "@Radiodiagnostika_bot",
-      security: "2-step (Patient ID + PINFL)",
-      mode: "test",
+      myid: "FaceID Biometric Active",
       webApp: WEBAPP_BASE_URL,
       logGroup: LOG_GROUP_ID,
       channel: CHANNEL_ID
@@ -105,6 +103,7 @@ module.exports = async (req, res) => {
             parse_mode: "HTML",
             reply_markup: {
               inline_keyboard: [
+                [{ text: "🆔 MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
                 [{ text: "📱 Web App orqali ochish", web_app: { url: WEBAPP_BASE_URL } }],
                 [{ text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
               ]
@@ -150,8 +149,33 @@ module.exports = async (req, res) => {
       sendLogToGroup(notif).catch(() => {});
     }
 
-    // A) /id, /myid, /info
-    if (text === "/id" || text === "/myid" || text === "/info" || text === "id") {
+    // A) /myid, /faceid, /profil
+    if (text === "/myid" || text === "/faceid" || text === "/profil" || text.toLowerCase().includes("myid") || text.toLowerCase().includes("faceid")) {
+      const myidCard = 
+        `🆔 <b>MYID FACEID AVTORIZATSIYA TIZIMI</b>\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `👤 <b>Foydalanuvchi:</b> ${escapeHtml(userFullName)}\n\n` +
+        `🔒 MyID biometrik FaceID orqali ro'yxatdan o'ting:\n` +
+        `• Shaxsiy profilingiz (F.I.Sh, Yoshi, Jinsi, PINFL) ochiladi;\n` +
+        `• Barcha tekshiruv xulosalaringiz (MRT, MSKT, UTT, Rentgen) bir zumda saralanadi;\n` +
+        `• Rasmiy tibbiy xulosalarni PDF formatida yuklab olishingiz mumkin.\n\n` +
+        `👇 <i>Quyidagi tugmani bosing va FaceID tekshiruvidan o'ting:</i>`;
+
+      await sendTelegramMessage(chatId, myidCard, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🆔 MyID FaceID orqali Kirish (Kamera)", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
+            [{ text: "📱 Shaxsiy Kabinetni Ochish", web_app: { url: WEBAPP_BASE_URL } }],
+            [{ text: "🔄 Bosh menyuga qaytish", callback_data: "restart_bot" }]
+          ]
+        }
+      });
+      return res.status(200).json({ ok: true, command: "myid" });
+    }
+
+    // B) /id, /myid_info
+    if (text === "/id" || text === "/info" || text === "id") {
       const idCard = 
         `🆔 <b>SIZNING TELEGRAM MA'LUMOTLARINGIZ:</b>\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
@@ -166,15 +190,16 @@ module.exports = async (req, res) => {
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
-            [{ text: "📱 Tibbiy Web App-da ochish", web_app: { url: WEBAPP_BASE_URL } }],
-            [{ text: "🔍 Xulosani qidirish", callback_data: "search_again" }, { text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
+            [{ text: "🆔 MyID FaceID bilan Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
+            [{ text: "📱 Tibbiy Web App", web_app: { url: WEBAPP_BASE_URL } }],
+            [{ text: "🔍 Qidiruv", callback_data: "search_again" }, { text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
           ]
         }
       });
       return res.status(200).json({ ok: true, command: "id" });
     }
 
-    // B) /start yoki /help
+    // C) /start yoki /help
     if (text === "/start" || text === "/help" || text === "start") {
       await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, {
         method: "PUT",
@@ -195,7 +220,7 @@ module.exports = async (req, res) => {
 
     const cleanDigits = text.replace(/\D/g, "");
 
-    // C) Ikkala ma'lumot birga yuborilgan bo'lsa
+    // D) Ikkala ma'lumot birga yuborilgan bo'lsa
     const numbers = text.match(/\b\d{3,14}\b/g) || [];
     let foundId = numbers.find(n => n.length >= 3 && n.length <= 8);
     let foundPinfl = numbers.find(n => n.length === 14);
@@ -205,7 +230,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // D) 1-bosqich: Bemor ID kiritilayotgan holat
+    // E) 1-bosqich: Bemor ID kiritilayotgan holat
     if (!session.patientId && cleanDigits.length >= 3 && cleanDigits.length <= 8) {
       await fetch(`${FIREBASE_DB_URL}/bot_sessions/${chatId}.json`, {
         method: "PUT",
@@ -216,12 +241,14 @@ module.exports = async (req, res) => {
       const step2Msg = 
         `✅ Bemor ID qabul qilindi: <b>${cleanDigits}</b>\n\n` +
         `🔒 <b>2-bosqich:</b> Endi xavfsizlikni tasdiqlash uchun <b>14 xonali JSHSHIR (PINFL)</b> raqamingizni kiriting:\n` +
-        `<i>(Masalan: <code>30804812190075</code>)</i>`;
+        `<i>(Masalan: <code>30804812190075</code>)</i>\n\n` +
+        `🆔 <i>Yoki <b>MyID FaceID</b> orqali tasdiqlang:</i>`;
 
       await sendTelegramMessage(chatId, step2Msg, {
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
+            [{ text: "🆔 MyID FaceID orqali Tasdiqlash", web_app: { url: `${WEBAPP_BASE_URL}?id=${cleanDigits}&auth=myid` } }],
             [{ text: "📱 Web App orqali to'ldirish", web_app: { url: `${WEBAPP_BASE_URL}?id=${cleanDigits}` } }],
             [{ text: "🔄 Boshidan boshlash", callback_data: "restart_bot" }]
           ]
@@ -230,7 +257,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, step: "waiting_pinfl" });
     }
 
-    // E) 2-bosqich: 14 xonali PINFL kiritilgan holat
+    // F) 2-bosqich: 14 xonali PINFL kiritilgan holat
     if (cleanDigits.length === 14) {
       if (session.patientId) {
         await processSecurityVerificationServerless(chatId, userFullName, fromId, session.patientId, cleanDigits);
@@ -251,6 +278,7 @@ module.exports = async (req, res) => {
           parse_mode: "HTML",
           reply_markup: {
             inline_keyboard: [
+              [{ text: "🆔 MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?pinfl=${cleanDigits}&auth=myid` } }],
               [{ text: "📱 Web App-da ochish", web_app: { url: `${WEBAPP_BASE_URL}?pinfl=${cleanDigits}` } }],
               [{ text: "🔄 Boshidan boshlash", callback_data: "restart_bot" }]
             ]
@@ -260,21 +288,22 @@ module.exports = async (req, res) => {
       }
     }
 
-    // F) Agar avval PINFL kiritilgan bo'lsa va endi Bemor ID kiritilsa
+    // G) Agar avval PINFL kiritilgan bo'lsa va endi Bemor ID kiritilsa
     if (session.pinfl && cleanDigits.length >= 3 && cleanDigits.length <= 8) {
       await processSecurityVerificationServerless(chatId, userFullName, fromId, cleanDigits, session.pinfl);
       return res.status(200).json({ ok: true });
     }
 
-    // G) Noma'lum xabar
+    // H) Noma'lum xabar
     await sendTelegramMessage(
       chatId,
       `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>\n\n` +
-      `Iltimos, xulosani olish uchun avval <b>Bemor ID</b> raqamingizni kiriting yoki quyidagi tugmalardan birini tanlang:`,
+      `Iltimos, xulosani olish uchun <b>MyID FaceID</b> orqali kiring yoki <b>Bemor ID</b> raqamingizni yuboring:`,
       {
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
+            [{ text: "🆔 MyID FaceID orqali Kirish (Kamera)", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
             [{ text: "📱 Tibbiy Web App Portali", web_app: { url: WEBAPP_BASE_URL } }],
             [{ text: "🔍 Qayta qidirish", callback_data: "search_again" }, { text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
           ]
@@ -293,16 +322,16 @@ async function sendWelcomeMessageServerless(chatId, userFirstName) {
     `👋 <b>Assalomu alaykum, ${escapeHtml(userFirstName)}!</b>\n\n` +
     `🏥 <b>Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</b> tibbiy xulosalar portaliga xush kelibsiz.\n\n` +
     `⚠️ <i>Eslatma: Ushbu bot test tariqasida ishga tushirilgan.</i>\n\n` +
-    `🔒 <b>Xavfsizlik talabi:</b> Xulosani olish uchun Bemor ID va PINFL kiritilishi shart.\n\n` +
-    `1️⃣ <b>1-bosqich:</b> Iltimos, <b>Bemor ID</b> raqamingizni kiriting:\n` +
-    `<i>(Masalan: <code>53312</code> yoki <code>2050</code>)</i>\n\n` +
-    `📱 <i>Yoki qulay interfeysli <b>Tibbiy Web App</b> orqali barcha tekshiruvlaringizni saralangan holda ko'ring:</i>`;
+    `🆔 <b>MyID Biometrik Avtorizatsiya:</b>\n` +
+    `Yuzingizni skanerlab (FaceID) shaxsiy profilingizni oching va barcha tekshiruv xulosalaringizni (MRT, MSKT, UTT, Rentgen) bir zumda oling.\n\n` +
+    `1️⃣ <i>Yoki an'anaviy ravishda <b>Bemor ID</b> raqamingizni kiriting (Masalan: <code>53312</code>):</i>`;
 
   await sendTelegramMessage(chatId, welcome, {
     parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📱 Tibbiy Web App-da Ochish", web_app: { url: WEBAPP_BASE_URL } }],
+        [{ text: "🆔 MyID FaceID orqali Kirish (Biometrik)", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
+        [{ text: "📱 Barcha Xulosalarni Web App-da Ko'rish", web_app: { url: WEBAPP_BASE_URL } }],
         [{ text: "🔍 Yangi qidiruv", callback_data: "search_again" }, { text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
       ]
     }
@@ -351,15 +380,17 @@ async function processSecurityVerificationServerless(chatId, userFullName, fromI
 
     await sendTelegramMessage(
       chatId,
-      `✅ <b>Xavfsizlik tekshiruvi muvaffaqiyatli o'tdi!</b>\n\n` +
+      `✅ <b>MyID & Xavfsizlik tekshiruvi muvaffaqiyatli o'tdi!</b>\n\n` +
       `👤 <b>Bemor:</b> ${escapeHtml(patientName)}\n` +
-      `📊 <b>Topilgan tekshiruvlar:</b> ${matchedReports.length} ta\n\n` +
+      `🎂 <b>Yoshi:</b> ${escapeHtml(matchedReports[0].age || matchedReports[0].birthDate || '-')}\n` +
+      `📊 <b>Topilgan xulosalar:</b> ${matchedReports.length} ta\n\n` +
       `📱 <i>Barcha xulosalarni interaktiv Web App-da bo'limlar bo'yicha (MRT, MSKT, UTT, Rentgen) ko'rish va chop etish uchun pastdagi tugmani bosing:</i>`,
       {
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
             [{ text: `📱 Web App-da Tartibli Ko'rish (${matchedReports.length} ta xulosa)`, web_app: { url: patientWebUrl } }],
+            [{ text: "🆔 MyID Shaxsiy Profil", web_app: { url: `${patientWebUrl}&auth=myid` } }],
             [{ text: "🔍 Boshqa xulosani qidirish", callback_data: "search_again" }, { text: "🔄 Qayta ishga tushirish", callback_data: "restart_bot" }]
           ]
         }
@@ -384,7 +415,7 @@ async function processSecurityVerificationServerless(chatId, userFullName, fromI
         `${escapeHtml(rep.conclusionText || 'Xulosa matni mavjud emas.')}\n\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `🏥 <i>Respublika Onkologiya va Radiologiya Markazi</i>\n` +
-        `⚠️ <i>Test rejimi</i>`;
+        `✅ <i>MyID Tasdiqlangan</i>`;
 
       await sendTelegramMessage(chatId, repText, {
         parse_mode: "HTML",
@@ -406,6 +437,7 @@ async function processSecurityVerificationServerless(chatId, userFullName, fromI
         reply_markup: {
           inline_keyboard: [
             [{ text: "📱 Barcha Xulosalarni Web App-da Ko'rish", web_app: { url: patientWebUrl } }],
+            [{ text: "🆔 MyID FaceID orqali Kirish", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
             [{ text: "🔍 Boshqa xulosani qidirish", callback_data: "search_again" }, { text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
           ]
         }
@@ -435,13 +467,14 @@ async function sendNotFoundMessageServerless(chatId, patientId, pinfl, userFullN
   const notFound = 
     `⚠️ <b>Tekshiruv xulosasi topilmadi</b>\n\n` +
     `Kiritilgan <b>Bemor ID (${patientId})</b> va <b>JSHSHIR (${pinfl})</b> ma'lumotlari bo'yicha xulosa topilmadi yoki hali hisobot tasdiqlanmagan.\n\n` +
-    `💡 <i>Iltimos, ma'lumotlarni to'g'ri kiritganingizni tekshirib qaytadan urinib ko'ring.</i>\n\n` +
+    `💡 <i>Iltimos, ma'lumotlarni to'g'ri kiritganingizni tekshirib qaytadan urinib ko'ring yoki MyID FaceID orqali kiring.</i>\n\n` +
     `⚠️ <i>Bot test tariqasida ishga tushirilgan.</i>`;
 
   await sendTelegramMessage(chatId, notFound, {
     parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
+        [{ text: "🆔 MyID FaceID orqali Kirish (Kamera)", web_app: { url: `${WEBAPP_BASE_URL}?auth=myid` } }],
         [{ text: "📱 Web App orqali qidirish", web_app: { url: WEBAPP_BASE_URL } }],
         [{ text: "🔍 Qayta qidirish", callback_data: "search_again" }, { text: "🔄 Botni qayta ishga tushirish", callback_data: "restart_bot" }]
       ]
