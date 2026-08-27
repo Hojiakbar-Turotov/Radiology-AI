@@ -1,157 +1,498 @@
 [
   {
-    "id": "g_abdomen",
-    "code": "R62, R63, R79, R83",
-    "icon": "🍏",
-    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "id": "g_r80",
+    "code": "R80",
+    "icon": "👁️",
+    "image": "/tv/assets/ultrasound_eye.jpg",
     "video": "",
-    "title": "Jigar, O't qopi, Oshqozon osti bezi va Taloq UTT (Qorin bo'shlig'i)",
-    "title_ru": "УЗИ Печени, Желчного пузыря, Поджелудочной железы и Селезенки",
-    "title_en": "Abdominal Ultrasound (Liver, Gallbladder, Pancreas, Spleen)",
+    "title": "R80 — Orbita Va Ko'z Olmalari UTT [ 137 000 so'm ]",
+    "title_ru": "R80 — УЗИ Орбиты и Глазных яблок [ 137 000 сум ]",
+    "title_en": "R80 — Eye Orbit & Ocular Ultrasound [ 137 000 UZS ]",
     "points": [
-      "Tekshiruvdan kamida 6 soat oldin ovqatlanmaslik (och qoringa kelish) talab etiladi.",
-      "1 kun oldin gaz hosil qiluvchi mahsulotlar (dukkaklilar, xom sabzavot, gazli ichimliklar) yemang.",
-      "Erta tongda ko'p miqdorda suv ichish tavsiya etilmaydi."
-    ],
-    "points_ru": [
-      "Исследование строго натощак (не принимать пищу минимум 6 часов).",
-      "За 1 день исключить газообразующие продукты (бобовые, сырые овощи, газировку).",
-      "Утром перед процедурой не пить много воды."
-    ],
-    "points_en": [
-      "Fasting is mandatory for at least 6 hours prior to the scan.",
-      "Avoid gas-forming foods (beans, raw vegetables, carbonated drinks) 1 day before.",
-      "Do not drink large amounts of water on the morning of the exam."
+      "Tekshiruvdan oldin kontakt linzalarni va ko'z kosmetikasini yechib qo'yish shart.",
+      "Maxsus och qolish yoki parhez talab etilmaydi.",
+      "Tekshiruv paytida ko'zlarni yumgan holda shifokor ko'rsatmasiga binoan qarash kerak."
     ],
     "isActive": true
   },
   {
-    "id": "g_thyroid",
-    "code": "R75, R76, R89, R78",
+    "id": "g_r81",
+    "code": "R81",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_eye.jpg",
+    "video": "",
+    "title": "R81 — Doppler (RTD + Energetik) Orbita Va Ko'z Olmalari [ 173 000 so'm ]",
+    "title_ru": "R81 — Допплерография Сосудов Орбиты и Глаз [ 173 000 сум ]",
+    "title_en": "R81 — Color Doppler Orbital Blood Flow Scan [ 173 000 UZS ]",
+    "points": [
+      "Ko'z qon tomirlari qon oqimini baholash uchun o'tkaziladi.",
+      "Ko'z linzalari bo'lsa oldindan yechib olinadi.",
+      "Gipertoniya yoki qon tomir dori vositalarini qabul qilayotgan bo'lsangiz shifokorga ayting."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r82",
+    "code": "R82",
+    "icon": "🫁",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R82 — Plevra Bo'shliqlari UTT [ 137 000 so'm ]",
+    "title_ru": "R82 — УЗИ Плевральных полостей [ 137 000 сум ]",
+    "title_en": "R82 — Pleural Cavity Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "O'pka plevra bo'shlig'ida suyuqlik yoki yallig'lanishni aniqlash uchun o'tkaziladi.",
+      "Maxsus och qolish talab etilmaydi.",
+      "Tekshiruv o'tirgan holatda amalga oshiriladi, nafasni ushlab turish talab etilishi mumkin."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r75",
+    "code": "R75",
     "icon": "🩺",
     "image": "/tv/assets/ultrasound_thyroid.jpg",
     "video": "",
-    "title": "Qalqonsimon Bez, Sonoelastografiya va Limfa Tugunlar UTT",
-    "title_ru": "УЗИ Щитовидной железы, Соноэластография и Лимфоузлы",
-    "title_en": "Thyroid Gland, Sonoelastography & Lymph Nodes Ultrasound",
+    "title": "R75 — Qalqonsimon Bezi UTT [ 137 000 so'm ]",
+    "title_ru": "R75 — УЗИ Щитовидной железы [ 137 000 сум ]",
+    "title_en": "R75 — Thyroid Gland Ultrasound [ 137 000 UZS ]",
     "points": [
-      "Maxsus och qolish yoki parhez talab etilmaydi.",
-      "Bo'yindagi barcha taqinchoq, zanjir va sharflarni yechib qo'yish kerak.",
-      "Oldingi UTT xulosalari va qon tahlillari (TTG, T3, T4) bo'lsa shifokorga ko'rsating."
-    ],
-    "points_ru": [
-      "Специального голодания или диеты не требуется.",
-      "Снимите с шеи цепочки, украшения и шарфы перед процедурой.",
-      "Возьмите с собой результаты предыдущих УЗИ и анализов (ТТГ, Т3, Т4)."
-    ],
-    "points_en": [
-      "No special fasting or diet is required.",
-      "Remove necklaces, jewelry, and scarves from the neck area.",
-      "Bring prior ultrasound reports and thyroid lab tests if available."
+      "Maxsus parhez yoki och qolish talab etilmaydi.",
+      "Bo'yindagi barcha zanjir, taqinchoq va ro'mollarni yechib qo'yish kerak.",
+      "Oldingi UTT xulosalari bo'lsa shifokorga taqdim eting."
     ],
     "isActive": true
   },
   {
-    "id": "g_urinary",
-    "code": "R64, R65, R66, R67, R69, R70, R86",
+    "id": "g_r89",
+    "code": "R89",
+    "icon": "🔬",
+    "image": "/tv/assets/ultrasound_thyroid.jpg",
+    "video": "",
+    "title": "R89 — Kompression Sonoelastografiya (Doppler RTD +Energetik) Qalqonsimon Bezi [ 210 000 so'm ]",
+    "title_ru": "R89 — Соноэластография Щитовидной железы [ 210 000 сум ]",
+    "title_en": "R89 — Thyroid Compression Sonoelastography [ 210 000 UZS ]",
+    "points": [
+      "Qalqonsimon bezdagi tugunlarning zichligi va xavfliligini yuqori aniqlikda tekshiradi.",
+      "Bo'yin sohasini to'liq ochish va taqinchoqlarni yechish kerak.",
+      "Tekshiruv paytida gapirmaslik va yutinmaslik tavsiya etiladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r78",
+    "code": "R78",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_thyroid.jpg",
+    "video": "",
+    "title": "R78 — Periferik Limfa Tugunlar UTT [ 137 000 so'm ]",
+    "title_ru": "R78 — УЗИ Периферических лимфоузлов [ 137 000 сум ]",
+    "title_en": "R78 — Peripheral Lymph Nodes Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Bo'yin, qo'ltiq osti va chov limfa tugunlarini tekshiradi.",
+      "Tekshirilayotgan sohani kiyimdan ozod qilish talab etiladi.",
+      "Maxsus och qolish talab etilmaydi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r67",
+    "code": "R67",
     "icon": "💧",
     "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
     "video": "",
-    "title": "Buyraklar, Siydik Pufagi, Prostata va Bachadon UTT",
-    "title_ru": "УЗИ Почек, Мочевого пузыря, Простаты и Матки",
-    "title_en": "Kidneys, Bladder, Prostate & Pelvic Ultrasound",
+    "title": "R67 — Siydik Pufagi, Bachadon Va Tuxumdonlar UTT [ 173 000 so'm ]",
+    "title_ru": "R67 — УЗИ Мочевого пузыря, Матки и Яичников [ 173 000 сум ]",
+    "title_en": "R67 — Bladder, Uterus & Ovaries Ultrasound [ 173 000 UZS ]",
     "points": [
       "Tekshiruvdan 1–1.5 soat oldin 1 litr toza gazsiz suv ichish zarur.",
-      "Siydik pufagi to'lgan (peshob qistagan) holatda tekshiruv xonasiga kiring.",
-      "Transrektal (TR UTT) yoki Transvaginal (TV UTT) tekshiruvida shifokor ko'rsatmasiga rioya qiling."
-    ],
-    "points_ru": [
-      "За 1–1.5 часа до процедуры выпейте 1 литр чистой негазированной воды.",
-      "Исследование проводится при наполненном мочевом пузыре.",
-      "При ТРУЗИ или ТВУЗИ следуйте индивидуальным указаниям врача."
-    ],
-    "points_en": [
-      "Drink 1 liter of still water 1–1.5 hours before the appointment.",
-      "The bladder must be comfortably full during the ultrasound examination.",
-      "Follow specific physician instructions for TRUS or TVUS exams."
+      "Siydik pufagi o'rtacha to'lgan (peshob qistagan) holatda bo'lishi shart.",
+      "Transabdominal tekshiruv uchun qorin pastki qismi ochiladi."
     ],
     "isActive": true
   },
   {
-    "id": "g_breast",
-    "code": "R73, R74, R88, R92",
+    "id": "g_r79",
+    "code": "R79",
+    "icon": "🍏",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R79 — Qorin Parda Orti Limfa Tugunlari UTT [ 137 000 so'm ]",
+    "title_ru": "R79 — УЗИ Забрюшинных лимфоузлов [ 137 000 сум ]",
+    "title_en": "R79 — Retroperitoneal Lymph Nodes Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Tekshiruvdan kamida 6 soat oldin ovqatlanmaslik (och qoringa kelish) kerak.",
+      "1 kun oldin gaz hosil qiluvchi mahsulotlar (loviya, karam, xom meva) yemang.",
+      "Ichaklar toza bo'lishi tekshiruv aniqligini oshiradi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r73",
+    "code": "R73",
     "icon": "🎗️",
     "image": "/tv/assets/ultrasound_breast.jpg",
     "video": "",
-    "title": "Sut Bezlari, Qo'ltiq osti Limfa Tugunlari va Elastografiya",
-    "title_ru": "УЗИ Молочных желез, Подмышечных лимфоузлов и Эластография",
-    "title_en": "Breast Ultrasound, Axillary Lymph Nodes & Elastography",
+    "title": "R73 — Sut Bezlari UTT [ 173 000 so'm ]",
+    "title_ru": "R73 — УЗИ Молочных желез [ 173 000 сум ]",
+    "title_en": "R73 — Breast Ultrasound Examination [ 173 000 UZS ]",
     "points": [
-      "Tekshiruvni hayz siklining 5–10 kunlarida o'tkazish eng aniq natija beradi.",
-      "Tekshiruv kuni ko'krak va qo'ltiq sohasiga dezodorant yoki krem surtmang.",
-      "Oldingi mammografiya yoki UTT natijalari bo'lsa shifokorga taqdim eting."
-    ],
-    "points_ru": [
-      "Наиболее информативно проводить на 5–10 день менструального цикла.",
-      "В день процедуры не наносите дезодоранты, тальк или кремы на область груди и подмышек.",
-      "Возьмите с собой результаты предыдущих маммографий или УЗИ."
-    ],
-    "points_en": [
-      "Best performed between days 5–10 of the menstrual cycle.",
-      "Do not apply deodorants, powders, or lotions to the breast/axilla area on the exam day.",
-      "Bring prior mammography or ultrasound records for comparison."
+      "Hayz siklining 5–10 kunlarida o'tkazish eng optimal va aniq hisoblanadi.",
+      "Tekshiruv kuni ko'krak va qo'ltiqqa dezodorant, krem yoki upa surtmang.",
+      "Oldingi mammografiya yoki UTT xulosalarini o'zingiz bilan oling."
     ],
     "isActive": true
   },
   {
-    "id": "g_doppler",
-    "code": "R71, R72, R77, R80, R81, R90, R91",
+    "id": "g_r88",
+    "code": "R88",
+    "icon": "🎗️",
+    "image": "/tv/assets/ultrasound_breast.jpg",
+    "video": "",
+    "title": "R88 — Kompression Sonoelastografiya (Doppler RTD +Energetik) Sut Bezlari [ 210 000 so'm ]",
+    "title_ru": "R88 — Соноэластография Молочных желез [ 210 000 сум ]",
+    "title_en": "R88 — Breast Sonoelastography with Doppler [ 210 000 UZS ]",
+    "points": [
+      "Ko'krak bezlaridagi hosilalarning elastikligi va xatar darajasini aniqlaydi.",
+      "Hayz siklining 5–10 kunlarida o'tkazish tavsiya etiladi.",
+      "Krem va dezodorant vositalaridan foydalanmang."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r74",
+    "code": "R74",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_breast.jpg",
+    "video": "",
+    "title": "R74 — Doppler (RTD + Energetik) Sut Bezlari [ 173 000 so'm ]",
+    "title_ru": "R74 — Допплерография Сосудов Молочных желез [ 173 000 сум ]",
+    "title_en": "R74 — Color Doppler Breast Ultrasound [ 173 000 UZS ]",
+    "points": [
+      "Sut bezidagi qon tomirlar tarmog'i va qon aylanishini o'rganadi.",
+      "Dezodorant yoki moy surtmasdan kelish tavsiya etiladi.",
+      "Maxsus och qolish talab etilmaydi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r92",
+    "code": "R92",
+    "icon": "🎗️",
+    "image": "/tv/assets/ultrasound_breast.jpg",
+    "video": "",
+    "title": "R92 — Sut Bezlar Va Qo'ltiq Osti Limfa Tugunlar UTT [ 173 000 so'm ]",
+    "title_ru": "R92 — УЗИ Молочных желез и Подмышечных лимфоузлов [ 173 000 сум ]",
+    "title_en": "R92 — Breast & Axillary Lymph Nodes Ultrasound [ 173 000 UZS ]",
+    "points": [
+      "Sut bezlari va mintaqaviy qo'ltiq osti limfa tugunlarini kompleks baholaydi.",
+      "Hayz siklining 5–10 kunlarida o'tkazish ma'qul.",
+      "Qo'ltiq sohasiga dezodorant ishlatmang."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r62",
+    "code": "R62",
+    "icon": "🍏",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R62 — Jigar, O't Qopi, Oshqozon Osti Bezi, Taloq UTT [ 173 000 so'm ]",
+    "title_ru": "R62 — УЗИ Печени, Желчного пузыря, Поджелудочной и Селезенки [ 173 000 сум ]",
+    "title_en": "R62 — Upper Abdominal Ultrasound (Liver, Gallbladder, Pancreas, Spleen) [ 173 000 UZS ]",
+    "points": [
+      "Tekshiruvdan kamida 6 soat oldin ovqatlanmaslik (mutlaqo och qoringa kelish) shart.",
+      "1 kun oldin gazli ichimliklar, dukkaklilar, xom sabzavot va sut mahsulotlaridan tiyiling.",
+      "Ertalab ko'p miqdorda suv ichmang."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r63",
+    "code": "R63",
     "icon": "🩸",
     "image": "/tv/assets/ultrasound_abdomen.jpg",
     "video": "",
-    "title": "Doppler Qon Tomirlari, Orbita (Ko'z), Yorgoq va Yumshoq To'qimalar UTT",
-    "title_ru": "Допплерография Сосудов, Глазницы, Органов мошонки и Мягких тканей",
-    "title_en": "Vascular Doppler, Eye Orbit, Scrotum & Soft Tissue Ultrasound",
+    "title": "R63 — Doppler (RTD+Energetik) Jigar, O't Qopi, Oshqozon Osti Bezi, Taloq [ 210 000 so'm ]",
+    "title_ru": "R63 — Допплерография Сосудов Брюшной полости [ 210 000 сум ]",
+    "title_en": "R63 — Abdominal Vascular Doppler (Portal Vein & Celiac Axis) [ 210 000 UZS ]",
     "points": [
-      "Tomirlar va yumshoq to'qimalar uchun maxsus och qolish talab etilmaydi.",
-      "Ko'z olmasi (Orbita) UTT tekshiruvidan oldin kontakt linzalarni yechib qo'ying.",
-      "Qon bosimi yoki tomir dorilarini qabul qilayotgan bo'lsangiz shifokorga xabar bering."
-    ],
-    "points_ru": [
-      "Специального голодания для мягких тканей и сосудов не требуется.",
-      "Перед УЗИ орбиты (глаз) необходимо снять контактные линзы.",
-      "Сообщите врачу, если принимаете сосудистые или гипотензивные препараты."
-    ],
-    "points_en": [
-      "No fasting required for soft tissue and peripheral vascular doppler.",
-      "Remove contact lenses prior to orbital (eye) ultrasound scans.",
-      "Inform the sonographer if you are taking blood pressure or vascular medications."
+      "Jigar darvoza venasi va qorin a'zolari qon tomirlarini tekshiradi.",
+      "Tekshiruv qat'iy och qoringa o'tkaziladi (kamida 6–8 soat ovqatlanmaslik).",
+      "Gaz to'planishini kamaytirish uchun tekshiruvdan oldin parhez qiling."
     ],
     "isActive": true
   },
   {
-    "id": "g_rentgen",
-    "code": "R96, R110, R111, R112, R113, R114, R115, R116, R117, R118",
-    "icon": "☢️",
+    "id": "g_r64",
+    "code": "R64",
+    "icon": "💧",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R64 — U T T Buyraklar [ 137 000 so'm ]",
+    "title_ru": "R64 — УЗИ Почек [ 137 000 сум ]",
+    "title_en": "R64 — Renal / Kidneys Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Maxsus och qolish shart emas.",
+      "Tekshiruvdan 1 soat oldin 2–3 stakan toza gazsiz suv ichish tavsiya etiladi.",
+      "Buyrak sohasidagi kiyimlarni yechishga qulay kiyining."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r65",
+    "code": "R65",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R65 — Doppler (Rtd + Energetik) Buyraklar [ 173 000 so'm ]",
+    "title_ru": "R65 — Допплерография Сосудов Почек [ 173 000 сум ]",
+    "title_en": "R65 — Renal Vascular Doppler Ultrasound [ 173 000 UZS ]",
+    "points": [
+      "Buyrak arteriyalari va venalaridagi qon oqimini baholaydi.",
+      "Och qoringa kelish tavsiya etiladi (ichakdagi gazlar tomirlarni to'sib qo'ymasligi uchun).",
+      "Qon bosimi dori vositalarini qabul qilayotgan bo'lsangiz shifokorni xabardor qiling."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r66",
+    "code": "R66",
+    "icon": "💧",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R66 — Siydik Pufagi UTT [ 100 000 so'm ]",
+    "title_ru": "R66 — УЗИ Мочевого пузыря [ 100 000 сум ]",
+    "title_en": "R66 — Urinary Bladder Ultrasound [ 100 000 UZS ]",
+    "points": [
+      "Tekshiruvdan 1–1.5 soat oldin kamida 1 litr toza gazsiz suv ichish zarur.",
+      "Siydik pufagi to'liq to'lgan (peshob qistagan) holatda tekshiriladi.",
+      "Kerak bo'lganda qoldiq siydik miqdorini aniqlash uchun peshob chiqargandan so'ng qayta tekshiriladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r83",
+    "code": "R83",
+    "icon": "🌊",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R83 — Qorin Bo'shlig'i Va Kichik Chanoqda Erkin Suyuqlik Miqdori [ 137 000 so'm ]",
+    "title_ru": "R83 — Определение Свободной жидкости в Брюшной полости и Малом тазу [ 137 000 сум ]",
+    "title_en": "R83 — Free Fluid Assessment in Abdomen and Pelvis [ 137 000 UZS ]",
+    "points": [
+      "Assit yoki operatsiyadan keyingi suyuqlik yig'ilishini aniqlash uchun tezkor tekshiruv.",
+      "Maxsus tayyorgarlik talab etilmaydi, shoshilinch holatlarda zudlik bilan o'tkaziladi.",
+      "Qorin va chanoq sohasi ochiladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r85",
+    "code": "R85",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R85 — Transvaginal Tekshiruvi (TV UTT) Bachadon Va Tuxumdonlar [ 177 000 so'm ]",
+    "title_ru": "R85 — Трансвагинальное УЗИ (ТВУЗИ) Матки и Яичников [ 177 000 сум ]",
+    "title_en": "R85 — Transvaginal Ultrasound (TVUS) [ 177 000 UZS ]",
+    "points": [
+      "Tekshiruvdan oldin siydik pufagini to'liq bo'shatish (peshob qilib kirish) zarur.",
+      "Maxsus och qolish talab etilmaydi.",
+      "Ginekologik tekshiruv hayz siklining shifokor belgilagan kunlarida o'tkaziladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r84",
+    "code": "R84",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R84 — Doppler (SDK + Energetik) Transvaginal Tekshiruvi (TV UTT) [ 210 000 so'm ]",
+    "title_ru": "R84 — Допплерография Трансвагинальная (ТВУЗИ) [ 210 000 сум ]",
+    "title_en": "R84 — Transvaginal Color Doppler Ultrasound [ 210 000 UZS ]",
+    "points": [
+      "Kichik chanoq a'zolari va tuxumdonlardagi qon aylanishini o'rganadi.",
+      "Tekshiruv oldidan siydik pufagini bo'shating.",
+      "Ginekolog ko'rsatmasi bo'yicha amalga oshiriladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r68",
+    "code": "R68",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R68 — Doppler (RTD + Energetik) Bachadon Va Tuxumdonlar [ 173 000 so'm ]",
+    "title_ru": "R68 — Допплерография Матки и Яичников [ 173 000 сум ]",
+    "title_en": "R68 — Uterine & Ovarian Doppler Ultrasound [ 173 000 UZS ]",
+    "points": [
+      "Bachadon arteriyalari va tuxumdon qon oqimini tekshiradi.",
+      "Transabdominal usulda siydik pufagi to'lgan bo'lishi kerak.",
+      "Hayz kunlarini shifokorga xabar qiling."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r69",
+    "code": "R69",
+    "icon": "💧",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R69 — Siydik Qopi, Prostata Bezi, Urug' Pufakchalari UTT [ 173 000 so'm ]",
+    "title_ru": "R69 — УЗИ Мочевого пузыря, Простаты и Семенных пузырьков [ 173 000 сум ]",
+    "title_en": "R69 — Bladder, Prostate & Seminal Vesicles Ultrasound [ 173 000 UZS ]",
+    "points": [
+      "Tekshiruvdan 1 soat oldin 1 litr suv ichish va siydik pufagini to'ldirish shart.",
+      "Transabdominal usulda qorin pastki qismidan tekshiriladi.",
+      "Qoldiq siydik miqdorini aniqlash uchun siydik chiqargandan so'ng qayta tekshiriladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r70",
+    "code": "R70",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R70 — Doppler (RTD + Energetik) Siydik Qopi, Prostata Bezi, Urug' Pufakchalari [ 173 000 so'm ]",
+    "title_ru": "R70 — Допплерография Сосудов Простаты и Мочевого пузыря [ 173 000 сум ]",
+    "title_en": "R70 — Prostate & Bladder Vascular Doppler [ 173 000 UZS ]",
+    "points": [
+      "Prostata bezi va siydik pufagi tomirlaridagi qon oqimini baholaydi.",
+      "Siydik pufagi to'lgan holatda bo'lishi lozim.",
+      "Maxsus och qolish shart emas."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r86",
+    "code": "R86",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R86 — Transrektal Tekshiruvi (TR UTT) Prostata Bezi [ 177 000 so'm ]",
+    "title_ru": "R86 — Трансректальное УЗИ (ТРУЗИ) Простаты [ 177 000 сум ]",
+    "title_en": "R86 — Transrectal Ultrasound (TRUS) Prostate [ 177 000 UZS ]",
+    "points": [
+      "Tekshiruv oldidan ichaklarni tozalash (klizma yoki surgi shamchalar) tavsiya etiladi.",
+      "Tekshiruvdan 1 soat oldin oz miqdorda suv ichib, siydik pufagi o'rtacha to'ldiriladi.",
+      "Shifokor ko'rsatmalariga qat'iy amal qiling."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r91",
+    "code": "R91",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R91 — Yumshoq To'qima UTT [ 137 000 so'm ]",
+    "title_ru": "R91 — УЗИ Мягких тканей [ 137 000 сум ]",
+    "title_en": "R91 — Soft Tissue Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Teri osti hosilalari (lipoma, ateroma, gematoma va yallig'lanish)ni aniqlaydi.",
+      "Maxsus och qolish yoki tayyorgarlik talab etilmaydi.",
+      "Tekshirilayotgan sohani kiyim va bog'lamlardan bo'shatish kifoya."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r77",
+    "code": "R77",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R77 — Doppler (RTD + Energetik) Yumshoq To'qima [ 137 000 so'm ]",
+    "title_ru": "R77 — Допплерография Мягких тканей [ 137 000 сум ]",
+    "title_en": "R77 — Soft Tissue Color Doppler Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Yumshoq to'qima hosilalarining qon bilan ta'minlanish darajasini aniqlaydi.",
+      "Maxsus parhez shart emas.",
+      "Zararlangan sohadagi kiyimlar yechiladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r90",
+    "code": "R90",
+    "icon": "🔬",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "R90 — Kompression Sonoelastografiya (Doppler RTD +Energetik) Yumshoq To'qima [ 210 000 so'm ]",
+    "title_ru": "R90 — Соноэластография Мягких тканей [ 210 000 сум ]",
+    "title_en": "R90 — Soft Tissue Compression Sonoelastography [ 210 000 UZS ]",
+    "points": [
+      "Yumshoq to'qima o'smalarining qattiqlik va elastiklik xususiyatlarini yuqori aniqlikda baholaydi.",
+      "Maxsus tayyorgarlik talab etilmaydi.",
+      "Tekshiruv vaqtida qimirlamasdan turish lozim."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r71",
+    "code": "R71",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R71 — Yorg'oq A'zolari UTT [ 137 000 so'm ]",
+    "title_ru": "R71 — УЗИ Органов мошонки [ 137 000 сум ]",
+    "title_en": "R71 — Scrotal Ultrasound [ 137 000 UZS ]",
+    "points": [
+      "Yorg'oq a'zolari va tuxumdonlarni tekshirish uchun o'tkaziladi.",
+      "Maxsus och qolish talab etilmaydi.",
+      "Gigiyenik tozalik talab etiladi."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r72",
+    "code": "R72",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "R72 — Doppler (RTD + Energetik) Yorg'oq A'zolari [ 173 000 so'm ]",
+    "title_ru": "R72 — Допплерография Сосудов мошонки (Варикоцеле) [ 173 000 сум ]",
+    "title_en": "R72 — Scrotal Color Doppler (Varicocele Scan) [ 173 000 UZS ]",
+    "points": [
+      "Varikotsele va qon aylanish buzilishlarini aniqlash uchun o'tkaziladi.",
+      "Yotgan va turgan holatda Valsalva sinamasi bilan tekshirilishi mumkin.",
+      "Maxsus parhez shart emas."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_r76",
+    "code": "R76",
+    "icon": "🩸",
     "image": "/tv/assets/ultrasound_thyroid.jpg",
     "video": "",
-    "title": "Ko'krak Qafasi, Suyaklar, Umurtqa va Qorin Bo'shlig'i Rentgenografiyasi",
-    "title_ru": "Рентгенография Грудной клетки, Костей, Позвоночника и Брюшной полости",
-    "title_en": "Chest, Bones, Spine & Abdominal Digital Radiography (X-Ray)",
+    "title": "R76 — Doppler (Rtd + Energetik) Qalqonsimon Bezi [ 173 000 so'm ]",
+    "title_ru": "R76 — Допплерография Сосудов Щитовидной железы [ 173 000 сум ]",
+    "title_en": "R76 — Thyroid Color Doppler Blood Flow Scan [ 173 000 UZS ]",
     "points": [
-      "Rentgen xonasiga kirishda tekshirilayotgan sohadagi kiyim, taqinchoq va tugmalarni yeching.",
-      "Homiladorlik ehtimoli bo'lsa darhol rentgen-laborantga xabar berish shart.",
-      "Suratga olish vaqtida laborant buyrug'i bilan nafasni bir necha soniyaga ushlab turing."
+      "Qalqonsimon bezdagi qon tomirlar tarmog'i va qon oqimi tezligini baholaydi.",
+      "Bo'yin sohasidagi taqinchoqlarni yechish kerak.",
+      "Maxsus och qolish talab etilmaydi."
     ],
-    "points_ru": [
-      "Снимите одежду с металлическими пуговицами и украшения в области исследования.",
-      "Обязательно предупредите рентген-лаборанта при подозрении на беременность.",
-      "Во время снимка задержите дыхание по команде лаборанта."
-    ],
-    "points_en": [
-      "Remove metal objects, buttons, and jewelry from the examination area.",
-      "Inform the radiographer immediately if you are or might be pregnant.",
-      "Hold your breath for a few seconds when instructed by the radiographer."
+    "isActive": true
+  },
+  {
+    "id": "g_r93",
+    "code": "R93",
+    "icon": "💉",
+    "image": "/tv/assets/ultrasound_biopsy.jpg",
+    "video": "",
+    "title": "R93 — Punktsion Biopsiya UTT Nazorati Ostida [ 506 000 so'm ]",
+    "title_ru": "R93 — Пункционная Биопсия под контролем УЗИ [ 506 000 сум ]",
+    "title_en": "R93 — Ultrasound-Guided Puncture Biopsy [ 506 000 UZS ]",
+    "points": [
+      "Tugun va hosilalardan laborator tahlil uchun mikronamuna olish amaliyoti.",
+      "Qon ivish ko'rsatkichlari (koagulogramma) va qon tahlillari talab etiladi.",
+      "Qon suyultiruvchi dori vositalarini qabul qilayotgan bo'lsangiz shifokorga xabar bering.",
+      "Amaliyot to'liq UTT ekrani nazorati ostida xavfsiz o'tkaziladi."
     ],
     "isActive": true
   }
