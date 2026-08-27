@@ -352,12 +352,17 @@ function scanKarmedTableAndSync() {
       const patId = cellTexts[regTimeIdx + 1] || "";
       const lastName = cellTexts[regTimeIdx + 2] || "";
       const firstName = cellTexts[regTimeIdx + 3] || "";
-      const middleName = cellTexts[regTimeIdx + 4] || "";
+      let middleName = cellTexts[regTimeIdx + 4] || "";
       const department = cellTexts[regTimeIdx + 6] || cellTexts[regTimeIdx + 5] || "UTT";
+
+      // AGAR OTASINING ISMI XXX BO'LSA BO'SH QOLDIRISH
+      if (/^(xxx|xx|x|\-+|yo['`ʻ]?q|null|none|\.+)$/i.test(middleName.trim())) {
+        middleName = "";
+      }
 
       if (!lastName && !firstName) return;
 
-      const fullName = `${lastName} ${firstName} ${middleName}`.replace(/\s+/g, ' ').trim();
+      const fullName = [lastName, firstName, middleName].filter(Boolean).join(" ").trim();
       const uniqueKey = `${patId}_${fullName}`;
       if (seenIds.has(uniqueKey)) return;
       seenIds.add(uniqueKey);

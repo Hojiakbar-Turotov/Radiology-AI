@@ -74,21 +74,23 @@ const I18N = {
     audioModalTitle: "Ovozli E'lonlarni Yoqish",
     audioModalText: "Android TV pultidagi [ OK ] tugmasini yoki ekranga bir marta bosing",
     audioModalBtn: "OVOZNI YOQISH",
-    formatSpeech: (name, room) => `Diqqat! Bemor ${name}, ${room} qabuliga kiring.`,
+    formatSpeech: (name, room) => `Diqqat! Bemor ${name}, iltimos, ${room} qabuliga kiring.`,
     formatRoomSpeech: (r) => {
       if (!r) return "qabul xonasi";
-      return r.replace(/.*53\s*XONA.*/i, "ellik uchinchi xona")
-              .replace(/.*54\s*XONA.*/i, "ellik to'rtinchi xona")
-              .replace(/.*46\s*XONA.*/i, "qirq oltinchi xona")
-              .replace(/.*47\s*XONA.*/i, "qirq yettinchi xona")
-              .replace(/.*48\s*XONA.*/i, "qirq sakkizinchi xona")
-              .replace(/.*52\s*XONA.*/i, "ellik ikkinchi xona")
-              .replace(/.*45\s*XONA.*/i, "qirq beshinchi xona")
-              .replace(/.*49\s*XONA.*/i, "qirq to'qqizinchi xona")
-              .replace(/.*50\s*XONA.*/i, "ellikinchi xona")
-              .replace(/.*51\s*XONA.*/i, "ellik birinchi xona")
-              .replace(/101-?xona/i, "bir yuz birinchi xona")
-              .replace(/102-?xona/i, "bir yuz ikkinchi xona");
+      const s = String(r);
+      if (s.includes("53")) return "ellik uchinchi xona";
+      if (s.includes("54")) return "ellik to'rtinchi xona";
+      if (s.includes("46")) return "qirq oltinchi xona";
+      if (s.includes("47")) return "qirq yettinchi xona";
+      if (s.includes("48")) return "qirq sakkizinchi xona";
+      if (s.includes("52")) return "ellik ikkinchi xona";
+      if (s.includes("45")) return "qirq beshinchi xona";
+      if (s.includes("49")) return "qirq to'qqizinchi xona";
+      if (s.includes("50")) return "ellikinchi xona";
+      if (s.includes("51")) return "ellik birinchi xona";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `${digits[digits.length - 1]}-xona`;
+      return s;
     }
   },
 
@@ -162,15 +164,25 @@ const I18N = {
     audioModalTitle: "Включить Голосовое Оповещение",
     audioModalText: "Нажмите кнопку [ OK ] на пульте Android TV или кликните по экрану",
     audioModalBtn: "ВКЛЮЧИТЬ ЗВУК",
-    formatSpeech: (name, room) => `Внимание! Пациент ${name}, пройдите в ${room}.`,
+    formatSpeech: (name, room) => `Внимание! Пациент ${name}, пожалуйста, пройдите в ${room}.`,
     formatRoomSpeech: (r) => {
       if (!r) return "кабинет приёма";
-      return r.replace(/UTT8-?48\s*XONA/i, "сорок восьмой кабинет УЗИ")
-              .replace(/48-?xona/i, "сорок восьмой кабинет")
-              .replace(/101-?xona/i, "сто первый кабинет")
-              .replace(/102-?xona/i, "сто второй кабинет")
-              .replace(/1-?MRT\s*Xonasi/i, "первый кабинет МРТ")
-              .replace(/1-?MSKT\s*Xonasi/i, "первый кабинет МСКТ");
+      const s = String(r);
+      if (s.includes("53")) return "кабинет номер пятьдесят три";
+      if (s.includes("54")) return "кабинет номер пятьдесят четыре";
+      if (s.includes("46")) return "кабинет номер сорок шесть";
+      if (s.includes("47")) return "кабинет номер сорок семь";
+      if (s.includes("48")) return "кабинет номер сорок восемь";
+      if (s.includes("52")) return "кабинет номер пятьдесят два";
+      if (s.includes("45")) return "кабинет номер сорок пять";
+      if (s.includes("49")) return "кабинет номер сорок девять";
+      if (s.includes("50")) return "кабинет номер пятьдесят";
+      if (s.includes("51")) return "кабинет номер пятьдесят один";
+      if (s.includes("101")) return "кабинет номер сто один";
+      if (s.includes("102")) return "кабинет номер сто два";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `кабинет номер ${digits[digits.length - 1]}`;
+      return s.replace(/xona/gi, "кабинет").replace(/xonasi/gi, "кабинет");
     }
   },
 
@@ -247,10 +259,20 @@ const I18N = {
     formatSpeech: (name, room) => `Attention! Patient ${name}, please proceed to ${room}.`,
     formatRoomSpeech: (r) => {
       if (!r) return "consultation room";
-      return r.replace(/UTT8-?48\s*XONA/i, "Ultrasound Room 48")
-              .replace(/48-?xona/i, "Room 48")
-              .replace(/101-?xona/i, "Room 101")
-              .replace(/102-?xona/i, "Room 102");
+      const s = String(r);
+      if (s.includes("53")) return "Room fifty three";
+      if (s.includes("54")) return "Room fifty four";
+      if (s.includes("46")) return "Room forty six";
+      if (s.includes("47")) return "Room forty seven";
+      if (s.includes("48")) return "Room forty eight";
+      if (s.includes("52")) return "Room fifty two";
+      if (s.includes("45")) return "Room forty five";
+      if (s.includes("49")) return "Room forty nine";
+      if (s.includes("50")) return "Room fifty";
+      if (s.includes("51")) return "Room fifty one";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `Room ${digits[digits.length - 1]}`;
+      return s.replace(/xona/gi, "Room");
     }
   },
 
@@ -306,11 +328,23 @@ const I18N = {
     audioModalTitle: "Sesli Duyuruları Etkinleştir",
     audioModalText: "Android TV kumandanızdan [ OK ] tuşuna veya ekrana bir kez tıklayın",
     audioModalBtn: "SESİ AÇ",
-    formatSpeech: (name, room) => `Dikkat! Hasta ${name}, lütfen ${room} numaralı odaya geçiniz.`,
+    formatSpeech: (name, room) => `Dikkat! Sayın ${name}, lütfen ${room} numaralı odaya geçiniz.`,
     formatRoomSpeech: (r) => {
       if (!r) return "muayene odası";
-      return r.replace(/UTT8-?48\s*XONA/i, "Kırk sekiz numaralı Ultrason odası")
-              .replace(/48-?xona/i, "Kırk sekiz numaralı oda");
+      const s = String(r);
+      if (s.includes("53")) return "Elli üç";
+      if (s.includes("54")) return "Elli dört";
+      if (s.includes("46")) return "Kırk altı";
+      if (s.includes("47")) return "Kırk yedi";
+      if (s.includes("48")) return "Kırk sekiz";
+      if (s.includes("52")) return "Elli iki";
+      if (s.includes("45")) return "Kırk beş";
+      if (s.includes("49")) return "Kırk dokuz";
+      if (s.includes("50")) return "Elli";
+      if (s.includes("51")) return "Elli bir";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `${digits[digits.length - 1]}`;
+      return s;
     }
   },
 
@@ -369,7 +403,20 @@ const I18N = {
     formatSpeech: (name, room) => `Назар аударыңыз! Науқас ${name}, ${room} бөлмесіне кіріңіз.`,
     formatRoomSpeech: (r) => {
       if (!r) return "қабылдау бөлмесі";
-      return r.replace(/UTT8-?48\s*XONA/i, "қырық сегізінші бөлме");
+      const s = String(r);
+      if (s.includes("53")) return "елу үшінші";
+      if (s.includes("54")) return "елу төртінші";
+      if (s.includes("46")) return "қырық алтыншы";
+      if (s.includes("47")) return "қырық жетінші";
+      if (s.includes("48")) return "қырық сегізінші";
+      if (s.includes("52")) return "елу екінші";
+      if (s.includes("45")) return "қырық бесінші";
+      if (s.includes("49")) return "қырық тоғызыншы";
+      if (s.includes("50")) return "елуінші";
+      if (s.includes("51")) return "елу бірінші";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `${digits[digits.length - 1]}-`;
+      return s;
     }
   },
 
@@ -425,10 +472,23 @@ const I18N = {
     audioModalTitle: "Фаъолсозии Эълонҳои Овозӣ",
     audioModalText: "Тугмаи [ OK ] -ро дар пулти Android TV ё экран пахш кунед",
     audioModalBtn: "САДОРО ФАЪОЛ КУНЕД",
-    formatSpeech: (name, room) => `Диққат! Бемор ${name}, ба ҳуҷраи ${room} дароед.`,
+    formatSpeech: (name, room) => `Диққат! Бемор ${name}, ба ${room} дароед.`,
     formatRoomSpeech: (r) => {
       if (!r) return "ҳуҷраи қабул";
-      return r.replace(/UTT8-?48\s*XONA/i, "ҳуҷраи чилу ҳаштум");
+      const s = String(r);
+      if (s.includes("53")) return "ҳуҷраи панҷоҳу сеюм";
+      if (s.includes("54")) return "ҳуҷраи панҷоҳу чорум";
+      if (s.includes("46")) return "ҳуҷраи чилу шашум";
+      if (s.includes("47")) return "ҳуҷраи чилу ҳафтум";
+      if (s.includes("48")) return "ҳуҷраи чилу ҳаштум";
+      if (s.includes("52")) return "ҳуҷраи панҷоҳу дуюм";
+      if (s.includes("45")) return "ҳуҷраи чилу панҷум";
+      if (s.includes("49")) return "ҳуҷраи чилу нуҳум";
+      if (s.includes("50")) return "ҳуҷраи панҷоҳум";
+      if (s.includes("51")) return "ҳуҷраи панҷоҳу якум";
+      const digits = s.match(/\d+/g);
+      if (digits && digits.length > 0) return `ҳуҷраи ${digits[digits.length - 1]}`;
+      return s;
     }
   }
 };
