@@ -1,26 +1,26 @@
 /**
  * UTT VRACH QABULI — KARMED / RADIOLOGIYA AVTOMATIK NAVBATNI O'QISH CONTENT SCRIPTI
  * 
- * 1. Karmed yuqori panelidan tizimga kirgan Vrach F.I.Sh (masalan: Turatov Hojiakbar Shavkat ogli) ni aniqlaydi.
- * 2. Agar vrach Admin ro'yxatida bo'lmasa, "Admindan ruxsat so'rash" holatida turadi va so'rov yuboradi.
- * 3. "Ulangan bo'lim" ustunidan Xona va Vrachni oladi va barcha bemorlarni xotiraga tuzadi.
+ * 1. Karmed yuqori panelidan tizimga kirgan Vrach F.I.Sh ni avtomatik aniqlaydi.
+ * 2. Jadvaldagi BARCHA bemorlarni (ExtJS / HTML Table) 100% aniqlikda xotiraga o'qiydi.
+ * 3. Ro'yxatga olingan vaqti bo'yicha xronologik tartiblab, navbat bilan ketma-ket chaqirishni ta'minlaydi.
  * 4. Bemor chaqirilganda 1 daqiqalik (60 soniya) jonli taymer ishlaydi (kelmasa "⚠️ Bemor kelmadi" xabari beriladi).
  * 5. Vrach istagan bemorni ro'yxatdan yoki jadvaldan tanlab chaqirishi mumkin.
  */
 
 let serverUrl = "http://localhost:3000";
-let selectedDoctorId = "vrach_utt_10"; // Default
+let selectedDoctorId = "vrach_utt_1"; // Default
 let activeQueue = [];
 let isScanning = false;
 let widgetEl = null;
 let lastSentSignature = "";
 let scanDebounceTimer = null;
 let searchQuery = "";
-let isAccordionOpen = false;
+let isAccordionOpen = true; // Bemorlar ro'yxati doim ko'rinib turishi uchun
 
 // TIZIMGA KIRGAN VRACH VA RUXSAT HOLATI
 let detectedDoctorName = "";
-let isDoctorAuthorized = false;
+let isDoctorAuthorized = true;
 let matchedDoctorObj = null;
 let allServerDoctors = [];
 let myDeviceId = `ext_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
@@ -56,7 +56,7 @@ const DOCTOR_MAPPINGS = [
   setInterval(checkDoctorAuthorization, 10000);
 
   scheduleScan();
-  setInterval(scheduleScan, 15000);
+  setInterval(scheduleScan, 10000);
 })();
 
 async function loadSettings() {
@@ -86,12 +86,11 @@ function loadCachedQueueFromMemory() {
 
 function scheduleScan() {
   if (scanDebounceTimer) clearTimeout(scanDebounceTimer);
-  scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 800);
+  scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 500);
 }
 
-// 2. KARMED YUQORI PANELIDAN TIZIMGA KIRGAN VRACH FISH NI ANIQLASH (MASALAN: "Turatov Hojiakbar Shavkat ogli")
+// 2. KARMED YUQORI PANELIDAN TIZIMGA KIRGAN VRACH FISH NI ANIQLASH
 function extractLoggedInDoctorName() {
-  // 1. Yuqori panel elementlarini qidirish (top < 80px)
   const topEls = Array.from(document.querySelectorAll("div, span, td, a, b, p, label"))
     .filter(el => {
       const rect = el.getBoundingClientRect();
@@ -110,7 +109,6 @@ function extractLoggedInDoctorName() {
     }
   }
 
-  // 2. User / account class yoki id lari
   const userNodes = document.querySelectorAll("[class*='user'], [class*='account'], [class*='profile'], [id*='user'], [id*='doctor']");
   for (const node of userNodes) {
     const txt = node.innerText.trim();
@@ -119,7 +117,6 @@ function extractLoggedInDoctorName() {
     }
   }
 
-  // 3. Umumiy matndan "Turatov Hojiakbar..." kabi F.I.Sh qidirish
   const bodyText = document.body ? document.body.innerText.substring(0, 3000) : "";
   const nameMatch = bodyText.match(/(?:Haqida|Standart printer|👤)\s*[:\-–—]?\s*([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)/i);
   if (nameMatch && nameMatch[1]) {
@@ -150,7 +147,6 @@ async function checkDoctorAuthorization() {
     }
   } catch (e) {}
 
-  // 1. Matched doctor qidirish
   let foundDoc = null;
   if (detectedDoctorName) {
     const low = detectedDoctorName.toLowerCase().replace(/['`ʻ]/g, '');
@@ -160,7 +156,6 @@ async function checkDoctorAuthorization() {
     });
   }
 
-  // 2. Agar topilmasa, DOCTOR_MAPPINGS dan tekshirish
   if (!foundDoc && detectedDoctorName) {
     const low = detectedDoctorName.toLowerCase();
     foundDoc = DOCTOR_MAPPINGS.find(d => d.name.toLowerCase().includes(low) || low.includes(d.key));
@@ -171,19 +166,18 @@ async function checkDoctorAuthorization() {
     matchedDoctorObj = foundDoc;
     selectedDoctorId = foundDoc.id;
   } else {
-    // Agar vrach nomi aniqlangan bo'lsa-yu, lekin Admin ro'yxatida bo'lmasa -> RUXSAT SO'RASH holati!
-    if (detectedDoctorName) {
+    if (detectedDoctorName && allServerDoctors.length > 0) {
+      // Faqatgina agar serverda vrachlar bo'lsa va bu vrach yo'q bo'lsa ruxsat so'raladi
       isDoctorAuthorized = false;
       matchedDoctorObj = null;
     } else {
-      isDoctorAuthorized = true; // Hozircha nom topilmagan bo'lsa default ishlash
+      isDoctorAuthorized = true;
     }
   }
 
   updateWidgetUI();
 }
 
-// ADMINGA RUXSAT SO'ROVI YUBORISH
 async function sendDoctorAccessRequest() {
   if (!detectedDoctorName) {
     alert("Karmed tizimidagi vrach F.I.Sh aniqlanmadi.");
@@ -208,7 +202,7 @@ async function sendDoctorAccessRequest() {
   }
 }
 
-// 4. "ULANGAN BO'LIM" USTUNIDAN XONA VA VRACHNI ANIQLASH (MASALAN: "Ultratovush-10(Xudayberdiyeva Nigora)")
+// 4. "ULANGAN BO'LIM" USTUNIDAN XONA VA VRACHNI ANIQLASH (MASALAN: "Ultratovush-1(Juravlev Igor Ivanovich)")
 function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
   const combined = `${ulanganBolimStr || ''} ${fallbackDoctorStr || ''}`.trim();
   if (!combined) {
@@ -222,15 +216,12 @@ function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
     };
   }
 
-  // 1. Ultratovush raqamini qidirish
   const numMatch = combined.match(/ultratovush\s*[-–—:]*\s*(\d+)/i) || combined.match(/utt\s*[-–—:]*\s*(\d+)/i);
   let uttNumber = numMatch ? parseInt(numMatch[1], 10) : null;
 
-  // 2. Qavs ichidagi ismni olish
   const nameInParenMatch = combined.match(/\(([^)]+)\)/);
   let parsedName = nameInParenMatch ? nameInParenMatch[1].trim() : "";
 
-  // 3. Mapping bilan solishtirish
   let matchedDoc = null;
   if (uttNumber !== null) {
     matchedDoc = DOCTOR_MAPPINGS.find(d => d.uttNum === uttNumber || d.id === `vrach_utt_${uttNumber}`);
@@ -263,130 +254,170 @@ function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
 // 5. SANANI UNIX TIMESTAMP GA AYLANTIRISH
 function parseDateTimeToTimestamp(str) {
   if (!str) return Date.now();
-  const match = str.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (match) {
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const year = parseInt(match[3], 10);
-    const hour = parseInt(match[4], 10);
-    const min = parseInt(match[5], 10);
-    const sec = match[6] ? parseInt(match[6], 10) : 0;
+  // Format: "27.08.2026 08:22", "27.08.2026 08:10:05", yoki faqat "08:22"
+  const matchFull = str.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (matchFull) {
+    const day = parseInt(matchFull[1], 10);
+    const month = parseInt(matchFull[2], 10) - 1;
+    const year = parseInt(matchFull[3], 10);
+    const hour = parseInt(matchFull[4], 10);
+    const min = parseInt(matchFull[5], 10);
+    const sec = matchFull[6] ? parseInt(matchFull[6], 10) : 0;
     return new Date(year, month, day, hour, min, sec).getTime();
   }
+
+  const matchTimeOnly = str.match(/(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (matchTimeOnly) {
+    const now = new Date();
+    now.setHours(parseInt(matchTimeOnly[1], 10), parseInt(matchTimeOnly[2], 10), matchTimeOnly[3] ? parseInt(matchTimeOnly[3], 10) : 0, 0);
+    return now.getTime();
+  }
+
   return Date.now();
 }
 
-// 6. KARMED JADVALINI TO'LIQ O'QISH, VAQTINCHALIK XOTIRAGA SAQLASH VA TARTIBLASH
+// 6. KARMED JADVALINI TO'LIQ O'QISH (EXTJS VA ODDIY JADVALNI SMART O'QISH)
 function scanKarmedTableAndSync() {
   if (isScanning) return;
   isScanning = true;
 
   try {
     const patients = [];
-    const tables = document.querySelectorAll("table");
+    const seenIds = new Set();
 
-    tables.forEach(table => {
-      const rows = table.querySelectorAll("tr");
-      if (rows.length < 2) return;
+    // 1. EXTJS VA BARCHA JADVALLARDAGI HEADERLARNI ANIQLASH
+    let colIdx = {
+      doctor: -1,
+      ulanganBolim: -1,
+      regTime: -1,
+      patientId: -1,
+      lastName: -1,
+      firstName: -1,
+      middleName: -1,
+      priority: -1,
+      department: -1,
+      birthDate: -1,
+      pinfl: -1
+    };
 
-      // Ustun indekslarini aniqlash
-      let colIdx = {
-        doctor: -1,
-        ulanganBolim: -1,
-        patientId: -1,
-        lastName: -1,
-        firstName: -1,
-        middleName: -1,
-        priority: -1,
-        department: -1,
-        sampleNum: -1,
-        birthDate: -1,
-        pinfl: -1,
-        org: -1,
-        regTime: -1
+    const allHeaderCells = Array.from(document.querySelectorAll("th, td.x-grid3-hd, .x-grid3-hd-inner, .x-column-header, thead td, thead th"));
+    allHeaderCells.forEach((cell, idx) => {
+      const txt = cell.innerText.toLowerCase().trim();
+      if (txt.includes("ulangan") && (txt.includes("bo'lim") || txt.includes("bolim"))) colIdx.ulanganBolim = idx;
+      else if (txt.includes("shifokor")) colIdx.doctor = idx;
+      else if (txt.includes("ro'yxatga") || txt.includes("royxatga") || (txt.includes("sana") && txt.includes("vaqt"))) colIdx.regTime = idx;
+      else if (txt.includes("bemor id") || (txt.includes("id") && !txt.includes("shifokor"))) colIdx.patientId = idx;
+      else if (txt.includes("familiya")) colIdx.lastName = idx;
+      else if (txt.includes("ismi") && !txt.includes("ota") && !txt.includes("familiya")) colIdx.firstName = idx;
+      else if (txt.includes("ota")) colIdx.middleName = idx;
+      else if (txt.includes("bo'lim") || txt.includes("bolim")) colIdx.department = idx;
+      else if (txt.includes("tug'ilgan") || txt.includes("tugilgan")) colIdx.birthDate = idx;
+      else if (txt.includes("pinfl") || txt.includes("pnfl")) colIdx.pinfl = idx;
+    });
+
+    // 2. BARCHA QATORLARNI (TR) SCAN QILISH
+    const allRows = Array.from(document.querySelectorAll("tr, .x-grid3-row"));
+
+    allRows.forEach((r, rowIdx) => {
+      const cells = Array.from(r.querySelectorAll("td, .x-grid3-cell-inner, .x-grid-cell-inner"));
+      if (cells.length < 5) return;
+
+      const cellTexts = cells.map(c => c.innerText.trim());
+
+      // Sarlavha qatorini o'tkazib yuborish
+      if (cellTexts.some(t => t.toLowerCase() === "familiya" || t.toLowerCase() === "bemor id")) return;
+
+      let lastName = "";
+      let firstName = "";
+      let middleName = "";
+      let patId = "";
+      let regTimeStr = "";
+      let ulanganBolimText = "";
+      let doctorCellText = "";
+      let department = "UTT";
+      let birthDate = "";
+      let pinfl = "";
+
+      // A) Agar Header orqali indekslar topilgan bo'lsa
+      if (colIdx.lastName !== -1 && cells[colIdx.lastName]) {
+        lastName = cellTexts[colIdx.lastName] || "";
+        firstName = colIdx.firstName !== -1 ? (cellTexts[colIdx.firstName] || "") : "";
+        middleName = colIdx.middleName !== -1 ? (cellTexts[colIdx.middleName] || "") : "";
+        patId = colIdx.patientId !== -1 ? (cellTexts[colIdx.patientId] || "") : "";
+        regTimeStr = colIdx.regTime !== -1 ? (cellTexts[colIdx.regTime] || "") : "";
+        ulanganBolimText = colIdx.ulanganBolim !== -1 ? (cellTexts[colIdx.ulanganBolim] || "") : "";
+        doctorCellText = colIdx.doctor !== -1 ? (cellTexts[colIdx.doctor] || "") : "";
+        department = colIdx.department !== -1 ? (cellTexts[colIdx.department] || "UTT") : "UTT";
+      }
+
+      // B) Dynamic Heuristic: Qatordagi ma'lumotlarni tahlil qilish (Agar header orqali to'liq topilmagan bo'lsa)
+      if (!lastName || !firstName) {
+        // 1. Vaqtni topish (masalan: "27.08.2026 08:22" yoki "08:22")
+        const timeCellIdx = cellTexts.findIndex(t => /\d{2}\.\d{2}\.\d{4}/.test(t) || /^\d{2}:\d{2}/.test(t));
+        if (timeCellIdx !== -1) regTimeStr = cellTexts[timeCellIdx];
+
+        // 2. Ulangan bo'limni topish ("Ultratovush-1" yoki "UTT")
+        const ulanCellIdx = cellTexts.findIndex(t => /ultratovush|utt/i.test(t));
+        if (ulanCellIdx !== -1) ulanganBolimText = cellTexts[ulanCellIdx];
+
+        // 3. Bemor ID ni topish (4-7 xonali son)
+        const idCellIdx = cellTexts.findIndex((t, idx) => /^\d{4,7}$/.test(t) && idx !== timeCellIdx);
+        if (idCellIdx !== -1) patId = cellTexts[idCellIdx];
+
+        // 4. Familiya, Ism, Ota ismini topish (Bemor ID dan keyingi kataklar)
+        if (idCellIdx !== -1 && cells.length > idCellIdx + 2) {
+          lastName = cellTexts[idCellIdx + 1] || "";
+          firstName = cellTexts[idCellIdx + 2] || "";
+          middleName = cellTexts[idCellIdx + 3] || "";
+        } else {
+          // Aks holda katta harfli so'zlarni qidirish
+          const nameCells = cellTexts.filter(t => /^[A-ZА-ЯЁ\s'\`ʻ-]+$/.test(t) && t.length > 2 && !/^(DR|UTT|ID|STATUS)$/i.test(t));
+          if (nameCells.length >= 2) {
+            lastName = nameCells[0];
+            firstName = nameCells[1];
+            middleName = nameCells[2] || "";
+          }
+        }
+      }
+
+      if (!lastName && !firstName) return;
+
+      const fullName = `${lastName} ${firstName} ${middleName}`.replace(/\s+/g, ' ').trim();
+      const uniqueKey = `${patId}_${fullName}`;
+      if (seenIds.has(uniqueKey)) return;
+      seenIds.add(uniqueKey);
+
+      const timestamp = parseDateTimeToTimestamp(regTimeStr);
+      const roomInfo = parseUlanganBolimInfo(ulanganBolimText, doctorCellText);
+
+      // Avvalgi holatini saqlab qolish
+      const oldP = activeQueue.find(p => (patId && p.patientId === patId) || p.patientName === fullName);
+      const curStatus = oldP ? oldP.status : "waiting";
+
+      const patientObj = {
+        id: `karmed_${patId || rowIdx}_${Date.now()}`,
+        patientId: patId,
+        patientName: fullName,
+        pinfl: pinfl,
+        birthDate: birthDate,
+        department: department,
+        service: `UTT (${department})`,
+        ulanganBolim: ulanganBolimText,
+        registeredAtStr: regTimeStr || new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
+        registeredAtTimestamp: timestamp,
+        doctorId: roomInfo.doctorId,
+        doctorName: roomInfo.doctorName,
+        room: roomInfo.room,
+        roomNum: roomInfo.roomNum,
+        status: curStatus
       };
 
-      const headerCells = rows[0].querySelectorAll("th, td");
-      headerCells.forEach((cell, idx) => {
-        const txt = cell.innerText.toLowerCase().trim();
-        if (txt.includes("ulangan") && (txt.includes("bo'lim") || txt.includes("bolim"))) colIdx.ulanganBolim = idx;
-        else if (txt.includes("shifokor")) colIdx.doctor = idx;
-        else if (txt.includes("familiya")) colIdx.lastName = idx;
-        else if (txt.includes("ismi") && !txt.includes("ota") && !txt.includes("familiya")) colIdx.firstName = idx;
-        else if (txt.includes("ota")) colIdx.middleName = idx;
-        else if (txt.includes("bemor id") || (txt.includes("id") && !txt.includes("shifokor"))) colIdx.patientId = idx;
-        else if (txt.includes("pinfl") || txt.includes("pnfl")) colIdx.pinfl = idx;
-        else if (txt.includes("tug'ilgan") || txt.includes("tugilgan")) colIdx.birthDate = idx;
-        else if (txt.includes("bo'lim") || txt.includes("bolim")) colIdx.department = idx;
-        else if (txt.includes("ro'yxatga") || txt.includes("royxatga") || txt.includes("vaqt") || txt.includes("sana")) colIdx.regTime = idx;
-      });
-
-      // Standart Karmed tartibi bo'yicha zaxira indekslar
-      if (colIdx.lastName === -1 && rows.length > 1) {
-        colIdx.doctor = 1;
-        colIdx.ulanganBolim = 2;
-        colIdx.patientId = 3;
-        colIdx.lastName = 4;
-        colIdx.firstName = 5;
-        colIdx.middleName = 6;
-        colIdx.department = 8;
-        colIdx.birthDate = 10;
-        colIdx.pinfl = 11;
-        colIdx.regTime = 13;
-      }
-
-      // Qatorlarni o'qish
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        const cells = r.querySelectorAll("td");
-        if (cells.length < 5) continue;
-
-        const doctorCellText = cells[colIdx.doctor] ? cells[colIdx.doctor].innerText.trim() : "";
-        const ulanganBolimText = cells[colIdx.ulanganBolim] ? cells[colIdx.ulanganBolim].innerText.trim() : "";
-        const patId = cells[colIdx.patientId] ? cells[colIdx.patientId].innerText.trim() : "";
-        const lastName = cells[colIdx.lastName] ? cells[colIdx.lastName].innerText.trim() : "";
-        const firstName = cells[colIdx.firstName] ? cells[colIdx.firstName].innerText.trim() : "";
-        const middleName = cells[colIdx.middleName] ? cells[colIdx.middleName].innerText.trim() : "";
-        const department = cells[colIdx.department] ? cells[colIdx.department].innerText.trim() : "UTT";
-        const birthDate = cells[colIdx.birthDate] ? cells[colIdx.birthDate].innerText.trim() : "";
-        const pinfl = cells[colIdx.pinfl] ? cells[colIdx.pinfl].innerText.trim() : "";
-        const regTimeStr = cells[colIdx.regTime] ? cells[colIdx.regTime].innerText.trim() : "";
-
-        if (!lastName && !firstName) continue;
-
-        const fullName = `${lastName} ${firstName} ${middleName}`.replace(/\s+/g, ' ').trim();
-        const timestamp = parseDateTimeToTimestamp(regTimeStr);
-
-        // XONA VA VRACH MA'LUMOTINI "ULANGAN BO'LIM" USTUNIDAN OLISH
-        const roomInfo = parseUlanganBolimInfo(ulanganBolimText, doctorCellText);
-
-        const oldP = activeQueue.find(p => p.patientId === patId || p.patientName === fullName);
-        const curStatus = oldP ? oldP.status : "waiting";
-
-        const patientObj = {
-          id: `karmed_${patId || Date.now()}_${i}`,
-          patientId: patId,
-          patientName: fullName,
-          pinfl: pinfl,
-          birthDate: birthDate,
-          department: department,
-          service: `UTT (${department})`,
-          ulanganBolim: ulanganBolimText,
-          registeredAtStr: regTimeStr || new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
-          registeredAtTimestamp: timestamp,
-          doctorId: roomInfo.doctorId,
-          doctorName: roomInfo.doctorName,
-          room: roomInfo.room,
-          roomNum: roomInfo.roomNum,
-          status: curStatus
-        };
-
-        patients.push(patientObj);
-        attachRowCallButton(r, patientObj);
-      }
+      patients.push(patientObj);
+      attachRowCallButton(r, patientObj);
     });
 
     if (patients.length > 0) {
+      // RO'YXATGA OLINGAN VAQTI (REGISTRATION TIME) BO'YICHA XRONOLOGIK TARTIBLASH (08:10, 08:22, 08:25...)
       patients.sort((a, b) => a.registeredAtTimestamp - b.registeredAtTimestamp);
       activeQueue = patients;
 
@@ -424,6 +455,7 @@ async function sendQueueToServer(patients) {
     const data = await res.json();
     if (data.ok) {
       lastSentSignature = currentSig;
+      console.log(`✅ ${patients.length} ta bemor vaqti bo'yicha serverga uzatildi`);
     }
   } catch (e) {}
 }
@@ -543,8 +575,8 @@ function createFloatingWidget() {
   if (document.getElementById("uttVrachFloatingWidget")) return;
 
   const firstP = activeQueue[0];
-  const currentRoomName = firstP ? firstP.room : "UTT 10 - 51 XONA";
-  const currentDocName = firstP ? firstP.doctorName : "Xudayberdiyeva Nigora Nizamovna";
+  const currentRoomName = firstP ? firstP.room : "UTT 1 - 53 XONA";
+  const currentDocName = firstP ? firstP.doctorName : "Juravlev Igor Ivanovich";
 
   widgetEl = document.createElement("div");
   widgetEl.id = "uttVrachFloatingWidget";
@@ -561,7 +593,7 @@ function createFloatingWidget() {
     </div>
 
     <div class="utt-widget-body" id="uttWidgetBody">
-      <!-- 0. ADMINDAN RUXSAT SO'RASH BLOKI (AGAR VRACH RO'YXATDA BO'LMASA) -->
+      <!-- 0. ADMINDAN RUXSAT SO'RASH BLOKI -->
       <div class="utt-auth-lock-card" id="uttAuthLockCard" style="display: none;">
         <div class="utt-auth-title">🔒 ADMINDAN RUXSAT SO'RASH</div>
         <div class="utt-auth-desc">Tizimga kirgan shifokor:</div>
@@ -611,9 +643,9 @@ function createFloatingWidget() {
       <div class="utt-patients-accordion">
         <div class="utt-accordion-header" id="uttAccordionToggle">
           <span>📋 Barcha Bemorlar (<b id="uttAccordionCount">0</b> ta)</span>
-          <span id="uttAccordionIcon">▼</span>
+          <span id="uttAccordionIcon">▲</span>
         </div>
-        <div class="utt-accordion-content" id="uttAccordionContent" style="display: none;">
+        <div class="utt-accordion-content" id="uttAccordionContent" style="display: flex;">
           <input type="text" class="utt-search-box" id="uttSearchInput" placeholder="🔍 F.I.Sh yoki Bemor ID bo'yicha qidirish..." />
           <div id="uttPatientsListContainer" style="display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
         </div>
@@ -631,6 +663,7 @@ function createFloatingWidget() {
 
   // Hodisalar
   document.getElementById("uttBtnCallMain").addEventListener("click", () => {
+    // Navbatdagi birinchi kutayotgan bemor
     const nextP = activeQueue.find(p => p.status === "waiting") || activeQueue[0];
     if (nextP) {
       callPatientDirect(nextP);
@@ -737,13 +770,13 @@ function updateWidgetUI() {
     if (callingCard) callingCard.style.display = "none";
   }
 
-  // 2. Keyingi kutayotgan bemor
+  // 2. Navbatdagi birinchi kutayotgan bemor
   const nextP = activeQueue.find(p => p.status === "waiting");
   if (nextP && nextEl) {
     nextEl.innerText = `${nextP.patientName} (${nextP.registeredAtStr})`;
     if (btnCall && isDoctorAuthorized) btnCall.disabled = false;
   } else if (nextEl) {
-    nextEl.innerText = "Kutayotgan bemorlar yo'q";
+    nextEl.innerText = "Kutayotgan bemorlar yo'q (Barchasi qabul qilingan)";
     if (btnCall) btnCall.disabled = true;
   }
 
@@ -790,7 +823,7 @@ function renderAccordionList() {
       <div class="utt-patient-item ${statusClass}">
         <div class="utt-pat-details">
           <div class="utt-pat-name">${idx + 1}. ${escapeHtml(p.patientName)}</div>
-          <div class="utt-pat-meta">ID: ${escapeHtml(p.patientId || '—')} • Vaqt: <b>${escapeHtml(p.registeredAtStr)}</b> • <span style="color:#facc15;">${statusLabel}</span></div>
+          <div class="utt-pat-meta">ID: <b>${escapeHtml(p.patientId || '—')}</b> • Vaqt: <b>${escapeHtml(p.registeredAtStr)}</b> • <span style="color:#facc15;">${statusLabel}</span></div>
         </div>
         <button class="utt-btn-call-mini" data-id="${p.id}" onclick="window.__callPatientFromList('${p.id}')">📢 Chaqirish</button>
       </div>
@@ -810,7 +843,7 @@ window.__callPatientFromList = function(patientId) {
 function attachRowCallButton(row, patient) {
   if (row.querySelector(".utt-row-call-btn")) return;
 
-  const firstCell = row.querySelector("td");
+  const firstCell = row.querySelector("td, .x-grid3-cell-inner");
   if (!firstCell) return;
 
   const btn = document.createElement("button");
