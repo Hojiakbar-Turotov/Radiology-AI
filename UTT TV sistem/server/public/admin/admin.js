@@ -145,13 +145,14 @@ function renderClientsList(clients) {
     return;
   }
 
-  listEl.innerHTML = clients.map(client => {
+  listEl.innerHTML = clients.map((client, idx) => {
     let icon = "📱";
     let typeName = "Qurilma";
+    const isTv = client.type === "tv";
 
-    if (client.type === "tv") {
+    if (isTv) {
       icon = "📺";
-      typeName = "Android TV Monitor";
+      typeName = `TV Monitor #${idx + 1}`;
     } else if (client.type === "extension") {
       icon = "💻";
       typeName = "Vrach Chrome Kengaytmasi";
@@ -160,19 +161,120 @@ function renderClientsList(clients) {
       typeName = "Admin Boshqaruv Paneli";
     }
 
+    const curLang = client.lang || currentSettings.activeLang || "uz";
+    const curRoomId = client.roomId || currentSettings.activeRoomId || "ALL";
+
+    // Vrachlar select opsiyalari
+    const docOptions = `
+      <option value="ALL" ${curRoomId === "ALL" ? "selected" : ""}>🏢 Barcha Xonalar Monitori</option>
+      ${allDoctors.map(doc => `
+        <option value="${doc.id}" ${curRoomId === doc.id ? "selected" : ""}>
+          ${escapeHtml(doc.room)} (${escapeHtml(doc.name)})
+        </option>
+      `).join("")}
+    `;
+
     return `
-      <div class="device-item">
-        <div class="dev-info">
-          <div class="dev-icon">${icon}</div>
-          <div>
-            <div class="dev-name">${escapeHtml(client.name || typeName)}</div>
-            <div class="dev-meta">IP: <code>${escapeHtml(client.ip)}</code> • Ulandi: ${client.connectedAtStr || ''}</div>
+      <div class="device-item ${isTv ? 'tv-device-card' : ''}" id="devCard_${client.id}">
+        <div class="dev-header-row">
+          <div class="dev-info">
+            <div class="dev-icon">${icon}</div>
+            <div>
+              <div class="dev-name">${escapeHtml(client.name || typeName)}</div>
+              <div class="dev-meta">IP: <code>${escapeHtml(client.ip)}</code> • Ulandi: ${client.connectedAtStr || ''}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${isTv ? `<button class="btn-sm" onclick="toggleDevicePreview('${client.id}')">👁️ Ko'rish</button>` : ''}
+            <span class="dev-status-badge">🟢 Online</span>
           </div>
         </div>
-        <span class="dev-status-badge">🟢 Online</span>
+
+        ${isTv ? `
+          <!-- TV MONITOR ALOHIDA BOSHQARUVI -->
+          <div class="tv-dev-controls">
+            <!-- 1. Tillar -->
+            <div class="tv-dev-ctrl-row">
+              <span class="tv-dev-ctrl-label">🌐 TV Tili:</span>
+              <div class="tv-dev-lang-btns">
+                <button class="btn-dev-lang ${curLang === 'uz' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'uz' })">🇺🇿 UZ</button>
+                <button class="btn-dev-lang ${curLang === 'ru' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'ru' })">🇷🇺 RU</button>
+                <button class="btn-dev-lang ${curLang === 'en' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'en' })">🇬🇧 EN</button>
+                <button class="btn-dev-lang ${curLang === 'tr' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'tr' })">🇹🇷 TR</button>
+                <button class="btn-dev-lang ${curLang === 'kz' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'kz' })">🇰🇿 KZ</button>
+                <button class="btn-dev-lang ${curLang === 'tg' ? 'active' : ''}" onclick="setDeviceConfig('${client.id}', { lang: 'tg' })">🇹🇯 TG</button>
+              </div>
+            </div>
+
+            <!-- 2. Vrach va Xona tanlash -->
+            <div class="tv-dev-ctrl-row">
+              <span class="tv-dev-ctrl-label">🚪 Xona/Vrach:</span>
+              <select class="form-select" style="flex:1; font-size:12px; padding:6px 8px;" onchange="handleDeviceDoctorChange('${client.id}', this.value)">
+                ${docOptions}
+              </select>
+            </div>
+
+            <!-- 3. Qo'lda Xona va Vrachni o'zgartirish (Override) -->
+            <div class="tv-dev-custom-inputs">
+              <input type="text" id="devRoom_${client.id}" class="form-input" style="font-size:11.5px; padding:6px;" placeholder="Xona (masalan: UTT 5 - 48 XONA)" value="${escapeHtml(client.roomName || '')}">
+              <input type="text" id="devDoc_${client.id}" class="form-input" style="font-size:11.5px; padding:6px;" placeholder="Vrach (masalan: Xoshimova Lola)" value="${escapeHtml(client.doctorName || '')}">
+              <button class="btn-success" style="padding:6px 12px; font-size:11.5px;" onclick="saveDeviceCustomNames('${client.id}')">💾 Saqlash</button>
+            </div>
+
+            <!-- Mini Live Preview (Yashirin/Ochiq) -->
+            <div class="dev-mini-preview-wrap" id="devPreview_${client.id}" style="display:none;">
+              <iframe src="/tv" class="dev-mini-iframe"></iframe>
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
   }).join("");
+}
+
+function toggleDevicePreview(clientId) {
+  const el = document.getElementById(`devPreview_${clientId}`);
+  if (el) {
+    el.style.display = el.style.display === "none" ? "block" : "none";
+  }
+}
+
+async function setDeviceConfig(clientId, config) {
+  try {
+    const res = await fetch("/api/devices/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId: clientId, ...config })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      allClients = data.clients || [];
+      renderClientsList(allClients);
+    }
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
+}
+
+function handleDeviceDoctorChange(clientId, docId) {
+  const doc = allDoctors.find(d => d.id === docId);
+  const payload = {
+    roomId: docId,
+    roomName: doc ? doc.room : "🏢 Barcha Xonalar",
+    doctorName: doc ? doc.name : "Navbat Monitori"
+  };
+  setDeviceConfig(clientId, payload);
+}
+
+function saveDeviceCustomNames(clientId) {
+  const roomVal = document.getElementById(`devRoom_${clientId}`).value.trim();
+  const docVal = document.getElementById(`devDoc_${clientId}`).value.trim();
+
+  setDeviceConfig(clientId, {
+    roomName: roomVal,
+    doctorName: docVal
+  });
+  alert("✅ Ushbu TV monitori ma'lumotlari yangilandi va TV ga yuborildi!");
 }
 
 // 4. TV MONITORLARINI MASOFADAN BOSHQARISH
@@ -555,3 +657,7 @@ window.toggleAddGuidelineForm = toggleAddGuidelineForm;
 window.editGuideline = editGuideline;
 window.handleSaveGuideline = handleSaveGuideline;
 window.deleteGuideline = deleteGuideline;
+window.toggleDevicePreview = toggleDevicePreview;
+window.setDeviceConfig = setDeviceConfig;
+window.handleDeviceDoctorChange = handleDeviceDoctorChange;
+window.saveDeviceCustomNames = saveDeviceCustomNames;

@@ -353,16 +353,28 @@ body {
 .devices-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 200px;
+  gap: 14px;
+  max-height: 500px;
   overflow-y: auto;
 }
 
 .device-item {
   background: #0f172a;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+
+.device-item.tv-device-card {
+  border-color: #0284c7;
+  background: #0c1527;
+}
+
+.dev-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -375,12 +387,13 @@ body {
 }
 
 .dev-icon {
-  font-size: 22px;
+  font-size: 24px;
 }
 
 .dev-name {
-  font-weight: 800;
+  font-weight: 900;
   color: #ffffff;
+  font-size: 14px;
 }
 
 .dev-meta {
@@ -396,6 +409,85 @@ body {
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 10px;
+}
+
+/* TV DEVICE CONTROLS ROW */
+.tv-dev-controls {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tv-dev-ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tv-dev-ctrl-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #94a3b8;
+  min-width: 80px;
+}
+
+.tv-dev-lang-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.btn-dev-lang {
+  background: #334155;
+  color: #cbd5e1;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-dev-lang:hover {
+  background: #475569;
+  color: #ffffff;
+}
+
+.btn-dev-lang.active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.tv-dev-custom-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+}
+
+.dev-mini-preview-wrap {
+  width: 100%;
+  height: 160px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #334155;
+  background: #000000;
+  margin-top: 4px;
+}
+
+.dev-mini-iframe {
+  width: 250%;
+  height: 250%;
+  transform: scale(0.4);
+  transform-origin: 0 0;
+  border: none;
 }
 
 /* QUICK ADD FORM */

@@ -158,6 +158,44 @@ const server = http.createServer((req, res) => {
     }));
   }
 
+  // B2) Har bir TV Monitorini Alohida Sozlash (POST /api/devices/config)
+  if (pathname === "/api/devices/config" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.clientId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
+      }
+
+      for (const [ws, info] of wsClientsMap.entries()) {
+        if (info.id === body.clientId || body.clientId === "ALL") {
+          if (body.lang) info.lang = body.lang;
+          if (body.roomId !== undefined) info.roomId = body.roomId;
+          if (body.roomName !== undefined) info.roomName = body.roomName;
+          if (body.doctorName !== undefined) info.doctorName = body.doctorName;
+          if (body.name !== undefined) info.name = body.name;
+
+          // Shu TV ga yangi konfiguratsiyani yuborish
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({
+              type: "TV_CONFIG_CHANGED",
+              data: {
+                activeLang: info.lang,
+                activeRoomId: info.roomId,
+                customRoom: info.roomName,
+                customDoctor: info.doctorName
+              }
+            }));
+          }
+        }
+      }
+
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, clients: getActiveClientsList() }));
+    });
+    return;
+  }
+
   // C) Admin Sozlamalari (GET & POST /api/settings)
   if (pathname === "/api/settings" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });

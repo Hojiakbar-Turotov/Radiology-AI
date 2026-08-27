@@ -286,8 +286,14 @@ function handleWebSocketMessage(msg) {
     }
     if (msg.data.activeRoomId !== undefined) {
       selectedRoomFilter = msg.data.activeRoomId;
-      renderHeaderAndQueueTable();
     }
+    if (msg.data.customRoom !== undefined) {
+      customRoomName = msg.data.customRoom;
+    }
+    if (msg.data.customDoctor !== undefined) {
+      customDoctorName = msg.data.customDoctor;
+    }
+    renderHeaderAndQueueTable();
     if (msg.data.tickerText) {
       const ticker = document.getElementById("bottomMarqueeText");
       if (ticker) ticker.innerText = msg.data.tickerText;
@@ -306,6 +312,9 @@ function handleWebSocketMessage(msg) {
   }
 }
 
+let customRoomName = "";
+let customDoctorName = "";
+
 // 6. SARLAVHA VA JADVALNI CHIZISH (3 TA USTUN: №, BEMOR F.I.SH, HOLATI)
 function renderHeaderAndQueueTable() {
   const dict = I18N[currentLang] || I18N.uz;
@@ -313,20 +322,23 @@ function renderHeaderAndQueueTable() {
   const doctorSub = document.getElementById("mainHeaderDoctorSub");
   const tbody = document.getElementById("queueTableBody");
 
-  if (selectedRoomFilter !== "ALL") {
+  if (customRoomName || customDoctorName) {
+    if (headerTitle && customRoomName) headerTitle.innerText = customRoomName.toUpperCase();
+    if (doctorSub && customDoctorName) doctorSub.innerText = customDoctorName;
+  } else if (selectedRoomFilter !== "ALL") {
     const doc = allDoctors.find(d => d.id === selectedRoomFilter);
     if (doc) {
-      headerTitle.innerText = doc.room.toUpperCase();
-      doctorSub.innerText = `${doc.specialty.toUpperCase()} -- ${doc.name}`;
+      if (headerTitle) headerTitle.innerText = doc.room.toUpperCase();
+      if (doctorSub) doctorSub.innerText = `${(doc.specialty || 'ULTRATOVUSH').toUpperCase()} -- ${doc.name}`;
     }
   } else {
     if (allDoctors.length > 0) {
       const firstDoc = allDoctors[0];
-      headerTitle.innerText = firstDoc.room.toUpperCase();
-      doctorSub.innerText = `${firstDoc.specialty.toUpperCase()} -- ${firstDoc.name}`;
+      if (headerTitle) headerTitle.innerText = "🏢 BARCHA XONALAR MONITORI";
+      if (doctorSub) doctorSub.innerText = "RADIOLOGIYA VA ULTRATOVUSH DIAGNOSTIKASI BO'LIMI";
     } else {
-      headerTitle.innerText = "UTT8-48 XONA";
-      doctorSub.innerText = "ULTRATOVUSH --5 -- Xoshimova Lola Kabulova";
+      if (headerTitle) headerTitle.innerText = "UTT 1 - 53 XONA";
+      if (doctorSub) doctorSub.innerText = "ULTRATOVUSH -- 1 -- Juravlev Igor Ivanovich";
     }
   }
 
