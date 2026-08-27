@@ -84,6 +84,17 @@ body {
   justify-content: center;
 }
 
+.lang-mini-select {
+  background: #0b1120;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .btn-settings-toggle:hover {
   background: var(--card);
   color: var(--text);

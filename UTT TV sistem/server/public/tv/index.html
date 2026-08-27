@@ -20,14 +20,23 @@
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </div>
-        <div class="room-selector-wrap">
-          <select id="roomFilterSelect" class="room-select-dropdown" onchange="handleRoomChange(this.value)">
-            <option value="ALL">🏢 Barcha Xonalar Monitori</option>
-          </select>
+        
+        <div class="lang-selector-group" id="langSelectorGroup">
+          <button class="lang-btn active" data-lang="uz" onclick="setLanguage('uz')">🇺🇿 UZ</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLanguage('ru')">🇷🇺 RU</button>
+          <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">🇬🇧 EN</button>
+          <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">🇹🇷 TR</button>
+          <button class="lang-btn" data-lang="kz" onclick="setLanguage('kz')">🇰🇿 KZ</button>
+          <button class="lang-btn" data-lang="tg" onclick="setLanguage('tg')">🇹🇯 TG</button>
         </div>
       </div>
 
       <div class="top-center">
+        <div class="room-selector-inline">
+          <select id="roomFilterSelect" class="room-select-dropdown" onchange="handleRoomChange(this.value)">
+            <option value="ALL">🏢 Barcha Xonalar Monitori</option>
+          </select>
+        </div>
         <h1 class="main-room-title" id="mainHeaderRoomTitle">UTT8-48 XONA</h1>
         <div class="doctor-sub-title" id="mainHeaderDoctorSub">ULTRATOVUSH --5 Xoshimova Lola Kabulova</div>
       </div>
@@ -41,8 +50,8 @@
     <!-- ACTIVE SERVING / CALLING HERO BANNER -->
     <section class="serving-hero-section" id="servingHeroSection" style="display: none;">
       <div class="serving-hero-card" id="servingHeroCard">
-        <div class="hero-call-badge">
-          <span class="bell-ring">📢</span> QABULGA CHAQIRILMOQDA
+        <div class="hero-call-badge" id="heroCallBadge">
+          <span class="bell-ring">📢</span> <span id="heroCallBadgeText">QABULGA CHAQIRILMOQDA</span>
         </div>
         <div class="hero-patient-name" id="heroPatientName">XOSHIMOVA LOLA KABULOVA</div>
         <div class="hero-dest-details">
@@ -57,10 +66,10 @@
       <table class="queue-table">
         <thead>
           <tr>
-            <th style="width: 10%; text-align: center;">№</th>
-            <th style="width: 45%;">BEMOR FAMILIYA VA ISMI</th>
-            <th style="width: 25%;">XONA / QURILMA</th>
-            <th style="width: 20%; text-align: center;">HOLATI</th>
+            <th style="width: 8%; text-align: center;" id="thNum">№</th>
+            <th style="width: 47%;" id="thName">BEMOR FAMILIYA VA ISMI</th>
+            <th style="width: 25%;" id="thRoom">XONA / QURILMA</th>
+            <th style="width: 20%; text-align: center;" id="thStatus">HOLATI</th>
           </tr>
         </thead>
         <tbody id="queueTableBody">
@@ -88,12 +97,14 @@
   <div class="audio-overlay" id="audioOverlay" onclick="unlockAudio()">
     <div class="audio-box">
       <div class="audio-icon">🔊</div>
-      <h2>Ovozli E'lonlarni Yoqish</h2>
-      <p>Android TV pultidagi <b>[ OK ]</b> tugmasini yoki sichqonchani bosing</p>
-      <button class="btn-activate-audio">OVOZNI YOQISH</button>
+      <h2 id="audioModalTitle">Ovozli E'lonlarni Yoqish</h2>
+      <p id="audioModalText">Android TV pultidagi <b>[ OK ]</b> tugmasini yoki ekranga bir marta bosing</p>
+      <button class="btn-activate-audio" id="audioModalBtn">OVOZNI YOQISH</button>
     </div>
   </div>
 
+  <script src="/tv/i18n.js"></script>
+  <script src="i18n.js"></script>
   <script src="/tv/tv.js"></script>
   <script src="tv.js"></script>
 </body>

@@ -1,32 +1,82 @@
 /**
- * 2-Kengaytma: Bemor Vrachini O'zgartirish va Yo'naltirish Popup Logic
+ * 2-Kengaytma: Bemor Vrachini O'zgartirish Popup Logic (6 Ta Tilda)
  */
 
 let serverUrl = "http://localhost:3000";
+let currentLang = "uz";
 let allDoctors = [];
 let allPatients = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadSavedSettings();
   initUIListeners();
+  applyLanguage(currentLang);
   await checkServerAndFetchData();
 });
 
 // 1. SAQLANGAN SOZLAMALARNI YUKLASH
 async function loadSavedSettings() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(["serverUrl"], (res) => {
+    chrome.storage.local.get(["serverUrl", "lang"], (res) => {
       if (res.serverUrl) {
         serverUrl = res.serverUrl.replace(/\/+$/, "");
       }
+      if (res.lang && I18N_EXT2[res.lang]) {
+        currentLang = res.lang;
+      }
       const inputEl = document.getElementById("serverUrlInput");
       if (inputEl) inputEl.value = serverUrl;
+
+      const langSelect = document.getElementById("extLangSelect");
+      if (langSelect) langSelect.value = currentLang;
+
       resolve();
     });
   });
 }
 
-// 2. UI LISTENERS
+// 2. TILNI QO'LLASH
+function changeExtLanguage(lang) {
+  if (!I18N_EXT2[lang]) return;
+  currentLang = lang;
+  chrome.storage.local.set({ lang: lang });
+  applyLanguage(lang);
+}
+
+function applyLanguage(lang) {
+  const dict = I18N_EXT2[lang] || I18N_EXT2.uz;
+
+  const tTitle = document.getElementById("txtHeaderTitle");
+  const tSub = document.getElementById("txtHeaderSub");
+  const lblHost = document.getElementById("lblServerHost");
+  const btnSave = document.getElementById("btnSaveServerUrl");
+  const cTitle = document.getElementById("txtCardTitle");
+  const lblPat = document.getElementById("lblTargetPatient");
+  const lblDoc = document.getElementById("lblTargetDoctor");
+  const btnSub = document.getElementById("btnSubmitReassign");
+  const qTitle = document.getElementById("txtQueueTitle");
+  const sInput = document.getElementById("searchFilter");
+  const fNotice = document.getElementById("txtFooterNotice");
+  const btnRef = document.getElementById("btnRefresh");
+
+  if (tTitle) tTitle.innerText = dict.headerTitle;
+  if (tSub) tSub.innerText = dict.headerSub;
+  if (lblHost) lblHost.innerText = dict.serverHostLabel;
+  if (btnSave) btnSave.innerText = dict.btnSave;
+  if (cTitle) cTitle.innerText = dict.cardTitle;
+  if (lblPat) lblPat.innerText = dict.lblTargetPatient;
+  if (lblDoc) lblDoc.innerText = dict.lblTargetDoctor;
+  if (btnSub) btnSub.innerText = dict.btnSubmit;
+  if (qTitle) qTitle.innerText = dict.queueTitle;
+  if (sInput) sInput.placeholder = dict.searchPlaceholder;
+  if (fNotice) fNotice.innerText = dict.footerNotice;
+  if (btnRef) btnRef.innerText = dict.btnRefresh;
+
+  renderPatientsList(allPatients);
+  fetchDoctors();
+}
+
+// 3. UI LISTENERS
 function initUIListeners() {
   document.getElementById("btnSettingsToggle").addEventListener("click", () => {
     const p = document.getElementById("settingsPanel");
@@ -39,16 +89,13 @@ function initUIListeners() {
       serverUrl = val;
       await chrome.storage.local.set({ serverUrl: serverUrl });
       await checkServerAndFetchData();
-      alert("✅ Server manzili saqlandi: " + serverUrl);
+      alert("✅ Server URL: " + serverUrl);
     }
   });
 
   document.getElementById("btnRefresh").addEventListener("click", checkServerAndFetchData);
-
-  // Vrachni o'zgartirish formasi
   document.getElementById("btnSubmitReassign").addEventListener("click", handleManualReassign);
 
-  // Qidiruv
   document.getElementById("searchFilter").addEventListener("input", (e) => {
     const q = e.target.value.toLowerCase().trim();
     const filtered = allPatients.filter(p => p.patientName.toLowerCase().includes(q) || (p.patientId && p.patientId.includes(q)));
@@ -56,7 +103,7 @@ function initUIListeners() {
   });
 }
 
-// 3. SERVERDAN MA'LUMOTLARNI OLISH
+// 4. SERVER TEKSHIRUV
 async function checkServerAndFetchData() {
   const dot = document.querySelector(".status-dot");
   const txt = document.getElementById("serverStatusText");
@@ -76,14 +123,15 @@ async function checkServerAndFetchData() {
   }
 }
 
-// 4. VRACHLAR RO'YXATI
+// 5. VRACHLAR
 async function fetchDoctors() {
+  const dict = I18N_EXT2[currentLang] || I18N_EXT2.uz;
   try {
     const res = await fetch(`${serverUrl}/api/doctors`);
     allDoctors = await res.json();
 
     const select = document.getElementById("targetDoctorSelect");
-    select.innerHTML = `<option value="">-- Yangi Vrach / Xonani tanlang --</option>`;
+    select.innerHTML = `<option value="">${dict.selectTargetPlaceholder}</option>`;
 
     allDoctors.forEach(doc => {
       const opt = document.createElement("option");
@@ -94,7 +142,7 @@ async function fetchDoctors() {
   } catch (e) {}
 }
 
-// 5. BARCHA BEMORLARNI YUKLASH
+// 6. BEMORLAR
 async function fetchPatients() {
   try {
     const res = await fetch(`${serverUrl}/api/queue`);
@@ -106,12 +154,13 @@ async function fetchPatients() {
   } catch (e) {}
 }
 
-// 6. BEMORLARNI CHIZISH
 function renderPatientsList(patients) {
+  const dict = I18N_EXT2[currentLang] || I18N_EXT2.uz;
   const list = document.getElementById("reassignPatientsList");
+  if (!list) return;
 
   if (patients.length === 0) {
-    list.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:12px;">Hozircha bemorlar yo'q</div>`;
+    list.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:12px;">${dict.emptyList}</div>`;
     return;
   }
 
@@ -128,7 +177,7 @@ function renderPatientsList(patients) {
       </div>
       <div class="r-actions">
         <button class="btn-quick-reassign" onclick="selectPatientForReassign('${escapeHtml(p.patientName)}')">
-          🔄 Ushbu bemor vrachini almashtirish
+          ${dict.btnQuickChange}
         </button>
       </div>
     </div>
@@ -143,13 +192,12 @@ function selectPatientForReassign(patientName) {
   }
 }
 
-// 7. BEMOR VRACHINI ALMASHTIRISH (POST /api/queue/reassign)
 async function handleManualReassign() {
   const patientName = document.getElementById("targetPatientInput").value.trim();
   const targetDoctorId = document.getElementById("targetDoctorSelect").value;
 
   if (!patientName) {
-    alert("Iltimos, bemor F.I.Sh yoki ID raqamini kiriting!");
+    alert("Iltimos, bemor nomini kiriting!");
     return;
   }
   if (!targetDoctorId) {
@@ -159,7 +207,6 @@ async function handleManualReassign() {
 
   const btn = document.getElementById("btnSubmitReassign");
   btn.disabled = true;
-  btn.innerText = "⏳ Yo'naltirilmoqda...";
 
   try {
     const res = await fetch(`${serverUrl}/api/queue/reassign`, {
@@ -173,10 +220,9 @@ async function handleManualReassign() {
     const data = await res.json();
 
     btn.disabled = false;
-    btn.innerText = "🔄 Vrachni O'zgartirish va Navbatga Yuborish";
 
     if (data.ok) {
-      alert(`✅ Muvaffaqiyatli!\n\n${patientName} bemori ${data.targetDoctor.name} (${data.targetDoctor.room}) navbatiga yo'naltirildi!`);
+      alert(`✅ Muvaffaqiyatli!\n\n${patientName} -> ${data.targetDoctor.name} (${data.targetDoctor.room})`);
       document.getElementById("targetPatientInput").value = "";
       document.getElementById("targetDoctorSelect").value = "";
       await fetchPatients();
@@ -185,8 +231,7 @@ async function handleManualReassign() {
     }
   } catch (err) {
     btn.disabled = false;
-    btn.innerText = "🔄 Vrachni O'zgartirish va Navbatga Yuborish";
-    alert("Lokal serverga ulanishda xatolik: " + err.message);
+    alert("Xatolik: " + err.message);
   }
 }
 
@@ -195,4 +240,5 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+window.changeExtLanguage = changeExtLanguage;
 window.selectPatientForReassign = selectPatientForReassign;

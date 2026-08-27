@@ -14,16 +14,26 @@
       <div class="header-left">
         <div class="logo-box">🔄</div>
         <div>
-          <h2>Vrachni O'zgartirish</h2>
-          <p>Bemorlarni Yangi Vrachga Yo'naltirish</p>
+          <h2 id="txtHeaderTitle">Vrachni O'zgartirish</h2>
+          <p id="txtHeaderSub">Bemorlarni Yangi Vrachga Yo'naltirish</p>
         </div>
       </div>
-      <button class="btn-settings-toggle" id="btnSettingsToggle" title="Server sozlamalari">⚙️</button>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <select id="extLangSelect" class="lang-mini-select" onchange="changeExtLanguage(this.value)">
+          <option value="uz">🇺🇿 UZ</option>
+          <option value="ru">🇷🇺 RU</option>
+          <option value="en">🇬🇧 EN</option>
+          <option value="tr">🇹🇷 TR</option>
+          <option value="kz">🇰🇿 KZ</option>
+          <option value="tg">🇹🇯 TG</option>
+        </select>
+        <button class="btn-settings-toggle" id="btnSettingsToggle" title="Server sozlamalari">⚙️</button>
+      </div>
     </header>
 
     <!-- SERVER SOZLAMALARI -->
     <section class="settings-panel" id="settingsPanel" style="display: none;">
-      <label class="field-label">Lokal Server Manzili (Host IP):</label>
+      <label class="field-label" id="lblServerHost">Lokal Server Manzili (Host IP):</label>
       <div class="input-row">
         <input type="text" id="serverUrlInput" placeholder="http://localhost:3000" class="input-text">
         <button id="btnSaveServerUrl" class="btn-sm btn-primary">Saqlash</button>
@@ -35,15 +45,15 @@
 
     <!-- TEZKOR YO'NALTIRISH FORMASI -->
     <section class="reassign-card">
-      <h3 class="card-title">Bemor Vrachini Almashtirish</h3>
+      <h3 class="card-title" id="txtCardTitle">Bemor Vrachini Almashtirish</h3>
       
       <div class="form-group">
-        <label class="field-label">1. Bemor F.I.Sh yoki ID raqami:</label>
-        <input type="text" id="targetPatientInput" class="input-text" placeholder="Masalan: Aliyev Vali yoki 53312" required>
+        <label class="field-label" id="lblTargetPatient">1. Bemor F.I.Sh yoki ID raqami:</label>
+        <input type="text" id="targetPatientInput" class="input-text" placeholder="Aliyev Vali" required>
       </div>
 
       <div class="form-group">
-        <label class="field-label">2. Yangi Qabul Vrachini Tanlang:</label>
+        <label class="field-label" id="lblTargetDoctor">2. Yangi Qabul Vrachini Tanlang:</label>
         <select id="targetDoctorSelect" class="input-select" required>
           <option value="">-- Yangi Vrach / Xonani tanlang --</option>
         </select>
@@ -57,7 +67,7 @@
     <!-- QABULDAGI VA NAVBATDAGI BEMORLAR RO'YXATI -->
     <section class="patient-list-section">
       <div class="list-header">
-        <h4>Navbatdagi Bemorlar (<span id="totalPatientsCount">0</span> ta)</h4>
+        <h4><span id="txtQueueTitle">Navbatdagi Bemorlar</span> (<span id="totalPatientsCount">0</span>)</h4>
         <input type="text" id="searchFilter" class="input-search" placeholder="Qidirish...">
       </div>
 
@@ -68,12 +78,13 @@
 
     <!-- FOOTER -->
     <footer class="popup-footer">
-      <span style="font-size:11px; color:#94a3b8;">1-kengaytma va TV ga avtomatik yetkaziladi</span>
+      <span style="font-size:11px; color:#94a3b8;" id="txtFooterNotice">1-kengaytma va TV ga avtomatik yetkaziladi</span>
       <button id="btnRefresh" class="btn-link">🔄 Yangilash</button>
     </footer>
 
   </div>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

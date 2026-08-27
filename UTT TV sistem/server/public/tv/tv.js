@@ -1,8 +1,9 @@
 /**
- * UTT TV SISTEM — TV DISPLAY LOGIC (Light Medical Theme)
- * 100% Offline (WebSocket + Audio Chime + Uzbek Voice Synthesis)
+ * UTT TV SISTEM — TV DISPLAY LOGIC (6 Ta Tilda: UZ, RU, EN, TR, KZ, TG)
+ * 100% Offline (WebSocket + Multi-language Audio Chime + Voice Synthesis)
  */
 
+let currentLang = "uz";
 let allPatients = [];
 let allDoctors = [];
 let selectedRoomFilter = "ALL";
@@ -10,10 +11,8 @@ let lastAnnouncementTimestamp = 0;
 let isAudioUnlocked = false;
 let audioContext = null;
 let activeCallTimer = null;
+let langRotationTimer = null;
 let ws = null;
-
-const UZBEK_WEEKDAYS = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
-const UZBEK_MONTHS = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
 
 document.addEventListener("DOMContentLoaded", () => {
   initClockAndDate();
@@ -21,32 +20,93 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchInitialState();
   initWebSocket();
   initRemoteKeys();
+  applyLanguage(currentLang);
 });
 
-// 1. VAQT VA O'ZBEKCHA SANA (Format: Payshanba 27 Avgust 2026)
-function initClockAndDate() {
-  function update() {
-    const now = new Date();
-    const clockEl = document.getElementById("tvClockStr");
-    const dateEl = document.getElementById("tvDateStr");
+// 1. TILNI O'ZGARTIRISH (6 TA TIL)
+function setLanguage(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  applyLanguage(lang);
+}
 
-    if (clockEl) {
-      clockEl.innerText = now.toLocaleTimeString("uz-UZ", { hour12: false });
+function applyLanguage(lang) {
+  const dict = I18N[lang] || I18N.uz;
+
+  // Tugmalarni aktivlashtirish
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    if (btn.dataset.lang === lang) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
     }
+  });
 
-    if (dateEl) {
-      const dayName = UZBEK_WEEKDAYS[now.getDay()];
-      const dayNum = now.getDate();
-      const monthName = UZBEK_MONTHS[now.getMonth()];
-      const year = now.getFullYear();
+  // Jadval sarlavhalari
+  const thNum = document.getElementById("thNum");
+  const thName = document.getElementById("thName");
+  const thRoom = document.getElementById("thRoom");
+  const thStatus = document.getElementById("thStatus");
+
+  if (thNum) thNum.innerText = dict.thNum;
+  if (thName) thName.innerText = dict.thName;
+  if (thRoom) thRoom.innerText = dict.thRoom;
+  if (thStatus) thStatus.innerText = dict.thStatus;
+
+  // Modal oynasi
+  const mTitle = document.getElementById("audioModalTitle");
+  const mText = document.getElementById("audioModalText");
+  const mBtn = document.getElementById("audioModalBtn");
+
+  if (mTitle) mTitle.innerText = dict.audioModalTitle;
+  if (mText) mText.innerHTML = dict.audioModalText;
+  if (mBtn) mBtn.innerText = dict.audioModalBtn;
+
+  // Pastki yuguruvchi satr
+  const ticker = document.getElementById("bottomMarqueeText");
+  if (ticker) ticker.innerText = dict.ticker;
+
+  // Chaqiruv kartasi badge
+  const heroBadge = document.getElementById("heroCallBadgeText");
+  if (heroBadge) heroBadge.innerText = dict.nowCalling;
+
+  // Jadval va sarlavhalarni qayta chizish
+  populateRoomFilterDropdown();
+  renderHeaderAndQueueTable();
+  updateClockAndDate();
+}
+
+// 2. VAQT VA SANA (Tanlangan tilda)
+function initClockAndDate() {
+  updateClockAndDate();
+  setInterval(updateClockAndDate, 1000);
+}
+
+function updateClockAndDate() {
+  const now = new Date();
+  const clockEl = document.getElementById("tvClockStr");
+  const dateEl = document.getElementById("tvDateStr");
+  const dict = I18N[currentLang] || I18N.uz;
+
+  if (clockEl) {
+    clockEl.innerText = now.toLocaleTimeString("uz-UZ", { hour12: false });
+  }
+
+  if (dateEl) {
+    const dayName = dict.weekdays[now.getDay()];
+    const dayNum = now.getDate();
+    const monthName = dict.months[now.getMonth()];
+    const year = now.getFullYear();
+
+    if (currentLang === "en") {
+      dateEl.innerText = `${dayName}, ${monthName} ${dayNum}, ${year}`;
+    } else {
       dateEl.innerText = `${dayName} ${dayNum} ${monthName} ${year}`;
     }
   }
-  update();
-  setInterval(update, 1000);
 }
 
-// 2. BOSHLANG'ICH MA'LUMOTLARNI YUKLASH
+// 3. BOSHLANG'ICH MA'LUMOTLARNI YUKLASH
 async function fetchInitialState() {
   try {
     const docRes = await fetch("/api/doctors");
@@ -68,7 +128,7 @@ async function fetchInitialState() {
   }
 }
 
-// 3. WEBSOCKET SYNC
+// 4. WEBSOCKET SYNC
 function initWebSocket() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${location.host}`;
@@ -96,7 +156,6 @@ function initWebSocket() {
     setTimeout(initWebSocket, 4000);
   }
 
-  // Backup polling
   setInterval(() => {
     if (!ws || ws.readyState !== 1) {
       fetchInitialState();
@@ -122,13 +181,14 @@ function handleWebSocketMessage(msg) {
   }
 }
 
-// 4. ROOM FILTER DROPDOWN
+// 5. ROOM FILTER DROPDOWN
 function populateRoomFilterDropdown() {
   const select = document.getElementById("roomFilterSelect");
   if (!select) return;
 
+  const dict = I18N[currentLang] || I18N.uz;
   const currentVal = select.value;
-  select.innerHTML = `<option value="ALL">🏢 Barcha Xonalar Monitori</option>`;
+  select.innerHTML = `<option value="ALL">${dict.allRoomsOption}</option>`;
 
   allDoctors.forEach(doc => {
     const opt = document.createElement("option");
@@ -145,13 +205,13 @@ function handleRoomChange(val) {
   renderHeaderAndQueueTable();
 }
 
-// 5. SARLAVHA VA NAVBAT JADVALINI CHIZISH
+// 6. SARLAVHA VA JADVALNI CHIZISH
 function renderHeaderAndQueueTable() {
+  const dict = I18N[currentLang] || I18N.uz;
   const headerTitle = document.getElementById("mainHeaderRoomTitle");
   const doctorSub = document.getElementById("mainHeaderDoctorSub");
   const tbody = document.getElementById("queueTableBody");
 
-  // A) Sarlavhani sozlash
   if (selectedRoomFilter !== "ALL") {
     const doc = allDoctors.find(d => d.id === selectedRoomFilter);
     if (doc) {
@@ -159,7 +219,6 @@ function renderHeaderAndQueueTable() {
       doctorSub.innerText = `${doc.specialty.toUpperCase()} -- ${doc.name}`;
     }
   } else {
-    // Agar xona tanlanmagan bo'lsa yoki default
     if (allDoctors.length > 0) {
       const firstDoc = allDoctors[0];
       headerTitle.innerText = firstDoc.room.toUpperCase();
@@ -170,7 +229,6 @@ function renderHeaderAndQueueTable() {
     }
   }
 
-  // B) Bemorlar ro'yxatini filtrlash
   let patientsToShow = allPatients;
   if (selectedRoomFilter !== "ALL") {
     patientsToShow = allPatients.filter(p => p.doctorId === selectedRoomFilter);
@@ -182,7 +240,7 @@ function renderHeaderAndQueueTable() {
     tbody.innerHTML = `
       <tr>
         <td colspan="4" style="text-align: center; padding: 40px; color: #64748b; font-size: 20px;">
-          Hozirda navbatda kutayotgan bemorlar yo'q
+          ${dict.emptyQueue}
         </td>
       </tr>
     `;
@@ -193,14 +251,14 @@ function renderHeaderAndQueueTable() {
     const isCalling = p.status === "calling";
     const isInProgress = p.status === "in_progress";
 
-    let statusText = "KUTILMOQDA";
+    let statusText = dict.statusWaiting;
     let statusClass = "waiting";
 
     if (isCalling) {
-      statusText = "📢 CHAQIRILMOQDA";
+      statusText = dict.statusCalling;
       statusClass = "calling";
     } else if (isInProgress) {
-      statusText = "▶️ QABULDA";
+      statusText = dict.statusInProgress;
       statusClass = "inprogress";
     }
 
@@ -225,18 +283,19 @@ function renderHeaderAndQueueTable() {
   }).join("");
 }
 
-// 6. CHAQIRUV BO'LGANDA (HERO BANNER + AUDIO CHIME + O'ZBEKCHA OVOZ)
+// 7. CHAQIRUV E'LONI VA OVOZLI O'QISH
 function handleCallingAnnouncement(data) {
   if (!data || !data.patientName) return;
 
+  const dict = I18N[currentLang] || I18N.uz;
   const heroSection = document.getElementById("servingHeroSection");
   const heroCard = document.getElementById("servingHeroCard");
 
   document.getElementById("heroPatientName").innerText = data.patientName.toUpperCase();
   document.getElementById("heroRoomText").innerText = data.room || "Qabul xonasi";
   document.getElementById("heroDoctorText").innerText = data.doctorName || "Shifokor";
+  document.getElementById("heroCallBadgeText").innerText = dict.nowCalling;
 
-  // Agar chaqirilgan xona bo'lsa, sarlavhani ham o'sha xonaga moslash
   document.getElementById("mainHeaderRoomTitle").innerText = (data.room || "UTT8-48 XONA").toUpperCase();
   document.getElementById("mainHeaderDoctorSub").innerText = `${(data.service || 'ULTRATOVUSH').toUpperCase()} -- ${data.doctorName || 'Shifokor'}`;
 
@@ -251,19 +310,18 @@ function handleCallingAnnouncement(data) {
   // 1. Audio Gong (Ding-Dong)
   playChime();
 
-  // 2. O'zbek tilida F.I.Sh va Xona raqami o'qiladi
-  speakUzbekAnnouncement(data);
+  // 2. Tanlangan tildagi ovozli e'lon (Uzbek, Rus, Ingliz, Turk, Qozoq, Tojik)
+  speakMultilingualAnnouncement(data, currentLang);
 
   renderHeaderAndQueueTable();
 
-  // 35 soniyadan so'ng hero banner yashiriladi
   if (activeCallTimer) clearTimeout(activeCallTimer);
   activeCallTimer = setTimeout(() => {
     if (heroSection) heroSection.style.display = "none";
   }, 35000);
 }
 
-// 7. GONG CHIME (100% OFFLINE)
+// 8. AUDIO CHIME (100% OFFLINE)
 function initAudio() {
   document.addEventListener("click", unlockAudio, { once: true });
 }
@@ -317,66 +375,56 @@ function playTone(ctx, freq, startTime, duration) {
   osc.stop(startTime + duration);
 }
 
-// 8. O'ZBEK TILI TALAFUZ VA OVOZLI E'LON
-function formatRoomForSpeech(roomStr) {
-  if (!roomStr) return "qabul xonasi";
-  let r = roomStr.trim();
-  r = r.replace(/UTT8-?48\s*XONA/i, "qirq sakkizinchi xona")
-       .replace(/48-?xona/i, "qirq sakkizinchi xona")
-       .replace(/101-?xona/i, "bir yuz birinchi xona")
-       .replace(/102-?xona/i, "bir yuz ikkinchi xona")
-       .replace(/1-?MRT\s*Xonasi/i, "birinchi MRT xonasi")
-       .replace(/1-?MSKT\s*Xonasi/i, "birinchi MSKT xonasi");
-  
-  return r;
-}
-
-function speakUzbekAnnouncement(data) {
+// 9. 6 TA TILDA OVOZLI E'LON (TTS)
+function speakMultilingualAnnouncement(data, lang) {
   if (!('speechSynthesis' in window)) return;
+
+  const dict = I18N[lang] || I18N.uz;
 
   setTimeout(() => {
     try {
       window.speechSynthesis.cancel();
 
       const patientName = (data.patientName || "Bemor").trim();
-      const roomSpeech = formatRoomForSpeech(data.room || data.doctorName);
-      
-      const speechText = `Diqqat! Bemor ${patientName}, ${roomSpeech} qabuliga kiring.`;
+      const roomSpeech = dict.formatRoomSpeech ? dict.formatRoomSpeech(data.room || data.doctorName) : (data.room || "xona");
+      const speechText = dict.formatSpeech(patientName, roomSpeech);
 
       const utterance = new SpeechSynthesisUtterance(speechText);
-      utterance.lang = "uz-UZ";
-      utterance.rate = 0.86;
+      utterance.lang = dict.langVoice || "uz-UZ";
+      utterance.rate = 0.88;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
-      const uzVoice = voices.find(v => v.lang === "uz-UZ" || v.lang.startsWith("uz") || (v.name && v.name.toLowerCase().includes("uzbek")));
-      const trVoice = voices.find(v => v.lang === "tr-TR" || v.lang.startsWith("tr"));
-      const ruVoice = voices.find(v => v.lang === "ru-RU" || v.lang.startsWith("ru"));
+      
+      // Mos til ovozini qidirish
+      let targetVoice = voices.find(v => v.lang === dict.langVoice || v.lang.startsWith(dict.code));
+      if (!targetVoice && (lang === "kz" || lang === "tg" || lang === "uz")) {
+        // Fallback qardosh tillar
+        targetVoice = voices.find(v => v.lang === "tr-TR" || v.lang === "ru-RU" || v.lang.startsWith("tr") || v.lang.startsWith("ru"));
+      }
 
-      if (uzVoice) {
-        utterance.voice = uzVoice;
-        utterance.lang = uzVoice.lang || "uz-UZ";
-      } else if (trVoice) {
-        utterance.voice = trVoice;
-        utterance.lang = "tr-TR";
-      } else if (ruVoice) {
-        utterance.voice = ruVoice;
-        utterance.lang = "ru-RU";
+      if (targetVoice) {
+        utterance.voice = targetVoice;
       }
 
       window.speechSynthesis.speak(utterance);
     } catch (err) {
-      console.warn("speakUzbekAnnouncement error:", err);
+      console.warn("speakMultilingualAnnouncement error:", err);
     }
   }, 1100);
 }
 
-// 9. TV REMOTE PULT TUGMASI (ENTER / OK)
+// 10. TV REMOTE PULT
 function initRemoteKeys() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.keyCode === 13) {
       if (!isAudioUnlocked) unlockAudio();
+    }
+    // Raqamlar orqali tilni tez o'zgartirish (1: UZ, 2: RU, 3: EN, 4: TR, 5: KZ, 6: TG)
+    const keyMap = { "1": "uz", "2": "ru", "3": "en", "4": "tr", "5": "kz", "6": "tg" };
+    if (keyMap[e.key]) {
+      setLanguage(keyMap[e.key]);
     }
   });
 }
@@ -386,5 +434,6 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+window.setLanguage = setLanguage;
 window.handleRoomChange = handleRoomChange;
 window.unlockAudio = unlockAudio;

@@ -59,34 +59,74 @@ body {
 /* Left */
 .top-left {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-left-row {
+  display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .hospital-icon-wrap {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   background: #fee2e2;
   border: 2px solid #fca5a5;
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .med-cross-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
+}
+
+.lang-selector-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.lang-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-btn:hover {
+  background: #e2e8f0;
+}
+
+.lang-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.room-selector-inline {
+  margin-bottom: 4px;
 }
 
 .room-select-dropdown {
   background: #ffffff;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid #93c5fd;
   border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
+  padding: 4px 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: #1e293b;
+  color: #1e3a8a;
   cursor: pointer;
 }
 

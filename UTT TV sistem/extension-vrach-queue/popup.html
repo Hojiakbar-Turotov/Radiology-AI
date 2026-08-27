@@ -14,16 +14,26 @@
       <div class="header-left">
         <div class="logo-box">🩺</div>
         <div>
-          <h2>Vrach Qabuli & Navbat</h2>
-          <p>Lokal Tarmoq (LAN) Tizimi</p>
+          <h2 id="txtHeaderTitle">Vrach Qabuli & Navbat</h2>
+          <p id="txtHeaderSub">Lokal Tarmoq (LAN) Tizimi</p>
         </div>
       </div>
-      <button class="btn-settings-toggle" id="btnSettingsToggle" title="Server sozlamalari">⚙️</button>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <select id="extLangSelect" class="lang-mini-select" onchange="changeExtLanguage(this.value)">
+          <option value="uz">🇺🇿 UZ</option>
+          <option value="ru">🇷🇺 RU</option>
+          <option value="en">🇬🇧 EN</option>
+          <option value="tr">🇹🇷 TR</option>
+          <option value="kz">🇰🇿 KZ</option>
+          <option value="tg">🇹🇯 TG</option>
+        </select>
+        <button class="btn-settings-toggle" id="btnSettingsToggle" title="Server sozlamalari">⚙️</button>
+      </div>
     </header>
 
-    <!-- SERVER SOZLAMALARI (Yashirin / Ochiluvchi) -->
+    <!-- SERVER SOZLAMALARI -->
     <section class="settings-panel" id="settingsPanel" style="display: none;">
-      <label class="field-label">Lokal Server Manzili (Host IP):</label>
+      <label class="field-label" id="lblServerHost">Lokal Server Manzili (Host IP):</label>
       <div class="input-row">
         <input type="text" id="serverUrlInput" placeholder="http://localhost:3000" class="input-text">
         <button id="btnSaveServerUrl" class="btn-sm btn-primary">Saqlash</button>
@@ -35,27 +45,27 @@
 
     <!-- VRACH VA XONA TANLASH -->
     <section class="doctor-select-card">
-      <label class="field-label">Sizning Qabul Xonangiz / Vrach:</label>
+      <label class="field-label" id="lblDoctorSelect">Sizning Qabul Xonangiz / Vrach:</label>
       <select id="doctorSelect" class="input-select">
         <option value="">Vrachni tanlang...</option>
       </select>
     </section>
 
-    <!-- TEZKOR CHAQIRUV TUGMASI (Navbatdagi 1-bemorni chaqirish) -->
+    <!-- TEZKOR CHAQIRUV TUGMASI -->
     <section class="quick-call-card">
       <button id="btnCallNext" class="btn-call-next" disabled>
         <span class="call-icon">📢</span>
         <div>
-          <div class="call-btn-title">NAVBATDAGI BEMORNI CHAQIRISH</div>
+          <div class="call-btn-title" id="txtCallNextTitle">NAVBATDAGI BEMORNI CHAQIRISH</div>
           <div class="call-btn-sub" id="nextPatientPreview">Navbatda bemor yo'q</div>
         </div>
       </button>
     </section>
 
-    <!-- TABS: Navbatdagilar & Qo'shish -->
+    <!-- TABS -->
     <div class="tab-buttons">
-      <button class="tab-btn active" id="tabQueue" onclick="switchTab('queue')">Navbatdagi Bemorlar (<span id="queueCount">0</span>)</button>
-      <button class="tab-btn" id="tabAdd" onclick="switchTab('add')">+ Bemor Qo'shish</button>
+      <button class="tab-btn active" id="tabQueue" onclick="switchTab('queue')"><span id="txtTabQueue">Navbatdagi Bemorlar</span> (<span id="queueCount">0</span>)</button>
+      <button class="tab-btn" id="tabAdd" onclick="switchTab('add')"><span id="txtTabAdd">+ Bemor Qo'shish</span></button>
     </div>
 
     <!-- TAB 1: BEMORLAR RO'YXATI -->
@@ -69,21 +79,21 @@
     <section class="add-patient-section" id="addSection" style="display: none;">
       <form id="addPatientForm" onsubmit="handleAddPatient(event)">
         <div class="form-group">
-          <label class="field-label">Bemor F.I.Sh:</label>
+          <label class="field-label" id="lblAddName">Bemor F.I.Sh:</label>
           <input type="text" id="addPatientName" class="input-text" placeholder="Familiya Ism Sharif" required>
         </div>
         <div class="form-group">
-          <label class="field-label">Bemor ID (Ixtiyoriy):</label>
+          <label class="field-label" id="lblAddId">Bemor ID (Ixtiyoriy):</label>
           <input type="text" id="addPatientId" class="input-text" placeholder="Masalan: 53312">
         </div>
         <div class="form-group">
-          <label class="field-label">Tekshiruv turi:</label>
+          <label class="field-label" id="lblAddService">Tekshiruv turi:</label>
           <input type="text" id="addService" class="input-text" placeholder="Masalan: Qorin bo'shlig'i UTT">
         </div>
         <div class="form-group-checkbox">
-          <label><input type="checkbox" id="addIsContrast"> Kontrastli tekshiruv</label>
+          <label><input type="checkbox" id="addIsContrast"> <span id="lblAddContrast">Kontrastli tekshiruv</span></label>
         </div>
-        <button type="submit" class="btn-submit-add">Navbatga Qo'shish</button>
+        <button type="submit" class="btn-submit-add" id="btnAddSubmit">Navbatga Qo'shish</button>
       </form>
     </section>
 
@@ -95,6 +105,7 @@
 
   </div>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
