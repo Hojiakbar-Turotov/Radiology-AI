@@ -8,10 +8,13 @@
       "doctorName": "Xoshimova Lola Kabulova",
       "room": "UTT8-48 XONA",
       "service": "Qorin bo'shlig'i UTT",
-      "status": "in_progress",
+      "status": "calling",
       "orderNumber": 1,
       "createdAt": 1756274400000,
-      "createdAtStr": "10:45"
+      "createdAtStr": "10:45",
+      "calledAt": 1787817338195,
+      "calledAtStr": "12:55",
+      "callCount": 1
     },
     {
       "id": "pat_2",
@@ -78,6 +81,15 @@
       "orderNumber": 5
     }
   ],
-  "current_announcement": null,
+  "current_announcement": {
+    "patientId": "pat_1",
+    "patientName": "KOBILOVA DILNOZA BAXTIYOROVNA",
+    "doctorId": "vrach_utt_48",
+    "doctorName": "Xoshimova Lola Kabulova",
+    "room": "UTT8-48 XONA",
+    "service": "Qorin bo'shlig'i UTT",
+    "callCount": 1,
+    "timestamp": 1787817338196
+  },
   "history": []
 }

@@ -461,7 +461,14 @@ function handleCallingAnnouncement(data) {
 
 // 8. AUDIO CHIME (100% OFFLINE)
 function initAudio() {
-  document.addEventListener("click", unlockAudio, { once: true });
+  if (isInsideIframe) {
+    const overlay = document.getElementById("audioOverlay");
+    if (overlay) overlay.style.display = "none";
+    return;
+  }
+  document.addEventListener("click", unlockAudio);
+  document.addEventListener("keydown", unlockAudio);
+  document.addEventListener("touchstart", unlockAudio);
 }
 
 function unlockAudio() {
@@ -476,7 +483,6 @@ function unlockAudio() {
       if (audioContext.state === "suspended") {
         audioContext.resume();
       }
-      playChime();
     }
   } catch (e) {}
 }
