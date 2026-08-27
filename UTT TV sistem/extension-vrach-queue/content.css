@@ -101,6 +101,69 @@
   margin-top: 2px;
 }
 
+/* ADMINDAN RUXSAT SO'RASH BLOKI */
+.utt-auth-lock-card {
+  background: linear-gradient(135deg, #451a03 0%, #292524 100%);
+  border: 1.5px solid #eab308;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.utt-auth-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #facc15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.utt-auth-desc {
+  font-size: 11.5px;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.utt-auth-doc-chip {
+  background: #0c0a09;
+  border: 1px solid #78716c;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin: 4px 0;
+}
+
+.utt-btn-request-auth {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+.utt-btn-request-auth:hover { background: #facc15; }
+
+.utt-btn-check-auth {
+  background: #334155;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* CHAQIRILGAN BEMOR VA 1 DAQIQALIK TAYMER BLOKI */
 .utt-calling-card {
   background: linear-gradient(135deg, #451a03 0%, #1e1b4b 100%);

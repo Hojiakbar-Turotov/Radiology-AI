@@ -1,11 +1,11 @@
 /**
  * UTT VRACH QABULI — KARMED / RADIOLOGIYA AVTOMATIK NAVBATNI O'QISH CONTENT SCRIPTI
  * 
- * 1. "Ulangan bo'lim" ustunidan Xona va Vrachni avtomatik oladi.
- * 2. Barcha bemorlarni vaqtinchalik xotiraga (Memory Cache) tuzib oladi.
- * 3. Bemor chaqirilganda 1 daqiqalik (60 soniya) jonli taymer boshlanadi.
- * 4. Bemor 1 daqiqada kelmasa "⚠️ Bemor kelmadi" xabari va holati beriladi.
- * 5. Vrach istalgan bemorni ro'yxatdan yoki jadvaldan tanlab chaqirishi mumkin.
+ * 1. Karmed yuqori panelidan tizimga kirgan Vrach F.I.Sh (masalan: Turatov Hojiakbar Shavkat ogli) ni aniqlaydi.
+ * 2. Agar vrach Admin ro'yxatida bo'lmasa, "Admindan ruxsat so'rash" holatida turadi va so'rov yuboradi.
+ * 3. "Ulangan bo'lim" ustunidan Xona va Vrachni oladi va barcha bemorlarni xotiraga tuzadi.
+ * 4. Bemor chaqirilganda 1 daqiqalik (60 soniya) jonli taymer ishlaydi (kelmasa "⚠️ Bemor kelmadi" xabari beriladi).
+ * 5. Vrach istagan bemorni ro'yxatdan yoki jadvaldan tanlab chaqirishi mumkin.
  */
 
 let serverUrl = "http://localhost:3000";
@@ -17,6 +17,13 @@ let lastSentSignature = "";
 let scanDebounceTimer = null;
 let searchQuery = "";
 let isAccordionOpen = false;
+
+// TIZIMGA KIRGAN VRACH VA RUXSAT HOLATI
+let detectedDoctorName = "";
+let isDoctorAuthorized = false;
+let matchedDoctorObj = null;
+let allServerDoctors = [];
+let myDeviceId = `ext_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
 // 60-SONIYALIK KUTISH TAYMERI O'ZGARUVCHILARI
 let currentCallingPatient = null;
@@ -43,6 +50,11 @@ const DOCTOR_MAPPINGS = [
   loadCachedQueueFromMemory();
   createFloatingWidget();
   startObservingTable();
+  
+  // Vrach nomini aniqlash va ruxsatni tekshirish
+  setTimeout(checkDoctorAuthorization, 500);
+  setInterval(checkDoctorAuthorization, 10000);
+
   scheduleScan();
   setInterval(scheduleScan, 15000);
 })();
@@ -50,9 +62,11 @@ const DOCTOR_MAPPINGS = [
 async function loadSettings() {
   return new Promise(resolve => {
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(["serverUrl", "selectedDoctorId"], res => {
+      chrome.storage.local.get(["serverUrl", "selectedDoctorId", "myDeviceId"], res => {
         if (res.serverUrl) serverUrl = res.serverUrl.replace(/\/+$/, "");
         if (res.selectedDoctorId) selectedDoctorId = res.selectedDoctorId;
+        if (res.myDeviceId) myDeviceId = res.myDeviceId;
+        else chrome.storage.local.set({ myDeviceId });
         resolve();
       });
     } else {
@@ -75,11 +89,130 @@ function scheduleScan() {
   scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 800);
 }
 
-// 2. "ULANGAN BO'LIM" USTUNIDAN XONA VA VRACHNI ANIQLASH (MASALAN: "Ultratovush-10(Xudayberdiyeva Nigora)")
+// 2. KARMED YUQORI PANELIDAN TIZIMGA KIRGAN VRACH FISH NI ANIQLASH (MASALAN: "Turatov Hojiakbar Shavkat ogli")
+function extractLoggedInDoctorName() {
+  // 1. Yuqori panel elementlarini qidirish (top < 80px)
+  const topEls = Array.from(document.querySelectorAll("div, span, td, a, b, p, label"))
+    .filter(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.top >= 0 && rect.top < 80 && rect.height > 0 && el.children.length === 0;
+    });
+
+  for (let i = 0; i < topEls.length; i++) {
+    const txt = topEls[i].innerText.trim();
+    if (txt.includes("Haqida")) {
+      for (let j = i + 1; j < Math.min(i + 6, topEls.length); j++) {
+        const nextTxt = topEls[j].innerText.trim();
+        if (nextTxt && !nextTxt.includes("Chiqish") && !nextTxt.includes("v:") && !nextTxt.includes("1.0.") && nextTxt.split(" ").length >= 2) {
+          return cleanDoctorName(nextTxt);
+        }
+      }
+    }
+  }
+
+  // 2. User / account class yoki id lari
+  const userNodes = document.querySelectorAll("[class*='user'], [class*='account'], [class*='profile'], [id*='user'], [id*='doctor']");
+  for (const node of userNodes) {
+    const txt = node.innerText.trim();
+    if (txt && txt.split(" ").length >= 2 && !txt.includes("Chiqish") && !txt.includes("Haqida")) {
+      return cleanDoctorName(txt);
+    }
+  }
+
+  // 3. Umumiy matndan "Turatov Hojiakbar..." kabi F.I.Sh qidirish
+  const bodyText = document.body ? document.body.innerText.substring(0, 3000) : "";
+  const nameMatch = bodyText.match(/(?:Haqida|Standart printer|👤)\s*[:\-–—]?\s*([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)/i);
+  if (nameMatch && nameMatch[1]) {
+    return cleanDoctorName(nameMatch[1]);
+  }
+
+  return "";
+}
+
+function cleanDoctorName(str) {
+  return str.replace(/^[👤\s\-_:\/|•\d.]+/, '')
+            .replace(/[❌\s\-_:\/|•\d.]+$/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+}
+
+// 3. VRACHNING ADMIN RO'YXATIDAGI RUXSATINI TEKSHIRISH
+async function checkDoctorAuthorization() {
+  const docName = extractLoggedInDoctorName();
+  if (docName) {
+    detectedDoctorName = docName;
+  }
+
+  try {
+    const res = await fetch(`${serverUrl}/api/doctors`);
+    if (res.ok) {
+      allServerDoctors = await res.json();
+    }
+  } catch (e) {}
+
+  // 1. Matched doctor qidirish
+  let foundDoc = null;
+  if (detectedDoctorName) {
+    const low = detectedDoctorName.toLowerCase().replace(/['`ʻ]/g, '');
+    foundDoc = allServerDoctors.find(d => {
+      const dLow = d.name.toLowerCase().replace(/['`ʻ]/g, '');
+      return dLow.includes(low) || low.includes(dLow);
+    });
+  }
+
+  // 2. Agar topilmasa, DOCTOR_MAPPINGS dan tekshirish
+  if (!foundDoc && detectedDoctorName) {
+    const low = detectedDoctorName.toLowerCase();
+    foundDoc = DOCTOR_MAPPINGS.find(d => d.name.toLowerCase().includes(low) || low.includes(d.key));
+  }
+
+  if (foundDoc) {
+    isDoctorAuthorized = true;
+    matchedDoctorObj = foundDoc;
+    selectedDoctorId = foundDoc.id;
+  } else {
+    // Agar vrach nomi aniqlangan bo'lsa-yu, lekin Admin ro'yxatida bo'lmasa -> RUXSAT SO'RASH holati!
+    if (detectedDoctorName) {
+      isDoctorAuthorized = false;
+      matchedDoctorObj = null;
+    } else {
+      isDoctorAuthorized = true; // Hozircha nom topilmagan bo'lsa default ishlash
+    }
+  }
+
+  updateWidgetUI();
+}
+
+// ADMINGA RUXSAT SO'ROVI YUBORISH
+async function sendDoctorAccessRequest() {
+  if (!detectedDoctorName) {
+    alert("Karmed tizimidagi vrach F.I.Sh aniqlanmadi.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${serverUrl}/api/doctors/request-access`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        doctorName: detectedDoctorName,
+        deviceId: myDeviceId
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showCallNotification("Ruxsat so'rovi yuborildi!", "Admin paneli tasdiqlashi kutilmoqda");
+    }
+  } catch (e) {
+    alert("Serverga ulanish xatosi: " + e.message);
+  }
+}
+
+// 4. "ULANGAN BO'LIM" USTUNIDAN XONA VA VRACHNI ANIQLASH (MASALAN: "Ultratovush-10(Xudayberdiyeva Nigora)")
 function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
   const combined = `${ulanganBolimStr || ''} ${fallbackDoctorStr || ''}`.trim();
   if (!combined) {
-    const def = DOCTOR_MAPPINGS.find(d => d.id === selectedDoctorId) || DOCTOR_MAPPINGS[0];
+    const def = matchedDoctorObj || DOCTOR_MAPPINGS.find(d => d.id === selectedDoctorId) || DOCTOR_MAPPINGS[0];
     return {
       doctorId: def.id,
       doctorName: def.name,
@@ -89,11 +222,11 @@ function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
     };
   }
 
-  // 1. Ultratovush raqamini qidirish (masalan: "Ultratovush-10", "Ultratovush 5", "UTT-2")
+  // 1. Ultratovush raqamini qidirish
   const numMatch = combined.match(/ultratovush\s*[-–—:]*\s*(\d+)/i) || combined.match(/utt\s*[-–—:]*\s*(\d+)/i);
   let uttNumber = numMatch ? parseInt(numMatch[1], 10) : null;
 
-  // 2. Qavs ichidagi ismni olish (masalan: "(Xudayberdiyeva Nigora Nizamovna)")
+  // 2. Qavs ichidagi ismni olish
   const nameInParenMatch = combined.match(/\(([^)]+)\)/);
   let parsedName = nameInParenMatch ? nameInParenMatch[1].trim() : "";
 
@@ -118,7 +251,6 @@ function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
     };
   }
 
-  // Lug'atda bo'lmasa, o'qilgan matndan to'g'ridan-to'g'ri shakllantirish
   return {
     doctorId: uttNumber ? `vrach_utt_${uttNumber}` : (selectedDoctorId || "vrach_utt_1"),
     doctorName: parsedName || fallbackDoctorStr || "UTT Shifokori",
@@ -128,10 +260,9 @@ function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
   };
 }
 
-// 3. SANANI UNIX TIMESTAMP GA AYLANTIRISH
+// 5. SANANI UNIX TIMESTAMP GA AYLANTIRISH
 function parseDateTimeToTimestamp(str) {
   if (!str) return Date.now();
-  // Format: "27.08.2026 10:54:06" yoki "27.08.2026 10:33"
   const match = str.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
   if (match) {
     const day = parseInt(match[1], 10);
@@ -145,7 +276,7 @@ function parseDateTimeToTimestamp(str) {
   return Date.now();
 }
 
-// 4. KARMED JADVALINI TO'LIQ O'QISH, VAQTINCHALIK XOTIRAGA SAQLASH VA TARTIBLASH
+// 6. KARMED JADVALINI TO'LIQ O'QISH, VAQTINCHALIK XOTIRAGA SAQLASH VA TARTIBLASH
 function scanKarmedTableAndSync() {
   if (isScanning) return;
   isScanning = true;
@@ -229,7 +360,6 @@ function scanKarmedTableAndSync() {
         // XONA VA VRACH MA'LUMOTINI "ULANGAN BO'LIM" USTUNIDAN OLISH
         const roomInfo = parseUlanganBolimInfo(ulanganBolimText, doctorCellText);
 
-        // Avvalgi holatini saqlab qolish (agar xotirada bo'lsa)
         const oldP = activeQueue.find(p => p.patientId === patId || p.patientName === fullName);
         const curStatus = oldP ? oldP.status : "waiting";
 
@@ -257,11 +387,9 @@ function scanKarmedTableAndSync() {
     });
 
     if (patients.length > 0) {
-      // 1. RO'YXATGA OLINGAN VAQTI BO'YICHA XRONOLOGIK SARALASH
       patients.sort((a, b) => a.registeredAtTimestamp - b.registeredAtTimestamp);
       activeQueue = patients;
 
-      // 2. VAQTINCHALIK XOTIRAGA (MEMORY CACHE) TUZIB OLISH
       window.__karmedPatientsCache = patients;
       try {
         localStorage.setItem("karmed_patients_memory_cache", JSON.stringify(patients));
@@ -270,7 +398,6 @@ function scanKarmedTableAndSync() {
         }
       } catch (e) {}
 
-      // 3. WIDGET VA SERVERNI YANGILASH
       updateWidgetUI();
       sendQueueToServer(patients);
     }
@@ -281,12 +408,10 @@ function scanKarmedTableAndSync() {
   }
 }
 
-// 5. LOKAL SERVERGA SINXRONLASH (FAQAT O'ZGARISH BO'LGANDA)
+// 7. LOKAL SERVERGA SINXRONLASH
 async function sendQueueToServer(patients) {
   const currentSig = JSON.stringify(patients.map(p => `${p.patientId}_${p.patientName}_${p.registeredAtStr}_${p.room}_${p.status}`));
-  if (currentSig === lastSentSignature) {
-    return; // Ma'lumot o'zgarmagan
-  }
+  if (currentSig === lastSentSignature) return;
 
   const primaryDocId = patients[0] ? patients[0].doctorId : selectedDoctorId;
 
@@ -299,18 +424,19 @@ async function sendQueueToServer(patients) {
     const data = await res.json();
     if (data.ok) {
       lastSentSignature = currentSig;
-      console.log(`✅ ${patients.length} ta bemor "Ulangan bo'lim" xonasi bilan serverga uzatildi`);
     }
-  } catch (e) {
-    console.warn("Lokal serverga ulanishda xatolik:", e.message);
-  }
+  } catch (e) {}
 }
 
-// 6. BEMORNI CHAQIRISH (1 DAQIQALIK TAYMER BILAN BIRGA)
+// 8. BEMORNI CHAQIRISH (1 DAQIQALIK TAYMER BILAN BIRGA)
 async function callPatientDirect(patient) {
+  if (!isDoctorAuthorized) {
+    alert("⚠️ Ushbu vrach F.I.Sh hali Admin tomonidan tasdiqlanmagan. Avval Admindan ruxsat so'rang.");
+    return;
+  }
+
   if (!patient) return;
 
-  // Bemor holatini chaqirilgan deb belgilash
   patient.status = "calling";
   currentCallingPatient = patient;
   waitCountdownSec = 60;
@@ -332,11 +458,8 @@ async function callPatientDirect(patient) {
     if (data.ok) {
       showCallNotification(patient.patientName, patient.room);
     }
-  } catch (err) {
-    console.warn("Serverga chaqiruv xatosi:", err.message);
-  }
+  } catch (err) {}
 
-  // 1 DAQIQALIK KUTISH TAYMERINI ISHGA TUSHIRISH
   startWaitCountdown(patient);
   updateWidgetUI();
 }
@@ -346,7 +469,6 @@ function startWaitCountdown(patient) {
 
   waitCountdownTimer = setInterval(() => {
     waitCountdownSec--;
-
     updateCountdownUI();
 
     if (waitCountdownSec <= 0) {
@@ -383,7 +505,6 @@ async function handlePatientMissedTimeout(patient) {
   updateWidgetUI();
 }
 
-// VRACHNING TEZKOR AMALLARI:
 async function acceptCurrentPatient() {
   if (waitCountdownTimer) clearInterval(waitCountdownTimer);
   waitCountdownTimer = null;
@@ -417,7 +538,7 @@ async function recallCurrentPatient() {
   }
 }
 
-// 7. SUZUVCHI BOSHQARUV WIDGETI (KARMED EKRANIDA)
+// 9. SUZUVCHI BOSHQARUV WIDGETI (KARMED EKRANIDA)
 function createFloatingWidget() {
   if (document.getElementById("uttVrachFloatingWidget")) return;
 
@@ -440,8 +561,20 @@ function createFloatingWidget() {
     </div>
 
     <div class="utt-widget-body" id="uttWidgetBody">
-      <!-- 1. VRACH VA XONA MA'LUMOTI (ULANGAN BO'LIMDAN) -->
-      <div class="utt-doc-info">
+      <!-- 0. ADMINDAN RUXSAT SO'RASH BLOKI (AGAR VRACH RO'YXATDA BO'LMASA) -->
+      <div class="utt-auth-lock-card" id="uttAuthLockCard" style="display: none;">
+        <div class="utt-auth-title">🔒 ADMINDAN RUXSAT SO'RASH</div>
+        <div class="utt-auth-desc">Tizimga kirgan shifokor:</div>
+        <div class="utt-auth-doc-chip" id="uttAuthDocName">Aniqlanmoqda...</div>
+        <div class="utt-auth-desc" style="color:#94a3b8; font-size:11px;">
+          Ushbu shifokor Admin panelda ro'yxatga olinmagan yoki xona biriktirilmagan.
+        </div>
+        <button class="utt-btn-request-auth" id="uttBtnRequestAuth">🔔 Admindan Ruxsat So'rash</button>
+        <button class="utt-btn-check-auth" id="uttBtnCheckAuth">🔄 Qayta Tekshirish</button>
+      </div>
+
+      <!-- 1. VRACH VA XONA MA'LUMOTI -->
+      <div class="utt-doc-info" id="uttDocInfoBlock">
         <div class="utt-doc-room" id="uttWidgetRoom">${currentRoomName}</div>
         <div class="utt-doc-name" id="uttWidgetDoc">${currentDocName}</div>
       </div>
@@ -510,8 +643,12 @@ function createFloatingWidget() {
   document.getElementById("uttBtnRecall").addEventListener("click", recallCurrentPatient);
   document.getElementById("uttBtnMissed").addEventListener("click", markCurrentPatientMissed);
 
+  document.getElementById("uttBtnRequestAuth").addEventListener("click", sendDoctorAccessRequest);
+  document.getElementById("uttBtnCheckAuth").addEventListener("click", checkDoctorAuthorization);
+
   document.getElementById("uttBtnRescan").addEventListener("click", () => {
     scanKarmedTableAndSync();
+    checkDoctorAuthorization();
   });
 
   document.getElementById("uttBtnMin").addEventListener("click", () => {
@@ -567,6 +704,22 @@ function updateWidgetUI() {
   const callingName = document.getElementById("uttCallingName");
   const accCount = document.getElementById("uttAccordionCount");
 
+  const authCard = document.getElementById("uttAuthLockCard");
+  const authDocName = document.getElementById("uttAuthDocName");
+  const docInfoBlock = document.getElementById("uttDocInfoBlock");
+
+  // Ruxsat holatini tekshirish
+  if (!isDoctorAuthorized && detectedDoctorName) {
+    if (authCard) authCard.style.display = "flex";
+    if (authDocName) authDocName.innerText = `👤 ${detectedDoctorName}`;
+    if (docInfoBlock) docInfoBlock.style.display = "none";
+    if (btnCall) btnCall.disabled = true;
+  } else {
+    if (authCard) authCard.style.display = "none";
+    if (docInfoBlock) docInfoBlock.style.display = "block";
+    if (btnCall) btnCall.disabled = false;
+  }
+
   if (accCount) accCount.innerText = activeQueue.length;
 
   const firstP = activeQueue[0];
@@ -588,7 +741,7 @@ function updateWidgetUI() {
   const nextP = activeQueue.find(p => p.status === "waiting");
   if (nextP && nextEl) {
     nextEl.innerText = `${nextP.patientName} (${nextP.registeredAtStr})`;
-    if (btnCall) btnCall.disabled = false;
+    if (btnCall && isDoctorAuthorized) btnCall.disabled = false;
   } else if (nextEl) {
     nextEl.innerText = "Kutayotgan bemorlar yo'q";
     if (btnCall) btnCall.disabled = true;
@@ -653,7 +806,7 @@ window.__callPatientFromList = function(patientId) {
   }
 };
 
-// 8. KARMED JADVAL QATORIGA CHAQIRUV TUGMASINI QO'SHISH
+// 10. KARMED JADVAL QATORIGA CHAQIRUV TUGMASINI QO'SHISH
 function attachRowCallButton(row, patient) {
   if (row.querySelector(".utt-row-call-btn")) return;
 
@@ -689,7 +842,7 @@ function showMissedNotification(name, room) {
   setTimeout(() => toast.remove(), 5000);
 }
 
-// 9. SUDRAB YURISH (DRAGGABLE)
+// 11. SUDRAB YURISH (DRAGGABLE)
 function makeDraggable(el, handle) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   handle.onmousedown = dragMouseDown;
@@ -720,7 +873,7 @@ function makeDraggable(el, handle) {
   }
 }
 
-// 10. DOM O'ZGARISHLARINI KUZATISH (DEBOUNCED)
+// 12. DOM O'ZGARISHLARINI KUZATISH (DEBOUNCED)
 function startObservingTable() {
   const observer = new MutationObserver(() => {
     scheduleScan();

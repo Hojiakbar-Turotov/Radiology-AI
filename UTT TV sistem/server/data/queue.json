@@ -43,28 +43,6 @@
       "createdAtStr": "10:55"
     },
     {
-      "id": "karmed_6685_1",
-      "patientId": "6685",
-      "patientName": "NORQUZIYEVA MAXBUBA XXX",
-      "pinfl": "41703575450012",
-      "birthDate": "17.03.1957",
-      "department": "Ginekologiya",
-      "service": "UTT (Ginekologiya)",
-      "registeredAtStr": "27.08.2026 08:22",
-      "registeredAtTimestamp": 1787800920000,
-      "doctorId": "vrach_utt_1",
-      "doctorName": "Juravlev Igor Ivanovich",
-      "room": "UTT 1 - 53 XONA",
-      "isContrast": false,
-      "status": "calling",
-      "createdAt": 1787818248603,
-      "createdAtStr": "13:10",
-      "orderNumber": 4,
-      "calledAt": 1787818288330,
-      "calledAtStr": "13:11",
-      "callCount": 2
-    },
-    {
       "id": "karmed_42520_1",
       "patientId": "42520",
       "patientName": "YARASHEV SAYFULLA TOSHBAYEVICH",
@@ -81,7 +59,7 @@
       "status": "waiting",
       "createdAt": 1787815646777,
       "createdAtStr": "12:27",
-      "orderNumber": 5
+      "orderNumber": 4
     },
     {
       "id": "karmed_54978_1",
@@ -100,7 +78,7 @@
       "status": "waiting",
       "createdAt": 1787816054679,
       "createdAtStr": "12:34",
-      "orderNumber": 6
+      "orderNumber": 5
     },
     {
       "id": "karmed_📢\nDr. Niyozaliyev Umid Sharafitdinovich_1",
@@ -119,7 +97,7 @@
       "status": "waiting",
       "createdAt": 1787818372527,
       "createdAtStr": "13:12",
-      "orderNumber": 7
+      "orderNumber": 6
     },
     {
       "id": "karmed_XUDAYBERDIYEVA_1",
@@ -138,7 +116,7 @@
       "status": "calling",
       "createdAt": 1787818482121,
       "createdAtStr": "13:14",
-      "orderNumber": 8,
+      "orderNumber": 7,
       "calledAt": 1787818493439,
       "calledAtStr": "13:14",
       "callCount": 1
@@ -151,8 +129,8 @@
       "birthDate": "23.09.1962",
       "department": "Proktologiya",
       "service": "UTT (Proktologiya)",
-      "registeredAtStr": "13:18",
-      "registeredAtTimestamp": 1787818680708,
+      "registeredAtStr": "13:20",
+      "registeredAtTimestamp": 1787818800333,
       "doctorId": "vrach_utt_10",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "room": "UTT 10 - 51 XONA",
@@ -160,19 +138,33 @@
       "status": "waiting",
       "createdAt": 1787818315672,
       "createdAtStr": "13:11",
-      "orderNumber": 9
+      "orderNumber": 8
+    },
+    {
+      "id": "karmed_6685_1",
+      "patientId": "6685",
+      "patientName": "NORQUZIYEVA MAXBUBA XXX",
+      "pinfl": "41703575450012",
+      "birthDate": "17.03.1957",
+      "department": "Ginekologiya",
+      "service": "UTT (Ginekologiya)",
+      "registeredAtStr": "13:21",
+      "registeredAtTimestamp": 1787818862575,
+      "doctorId": "vrach_utt_1",
+      "doctorName": "Juravlev Igor Ivanovich",
+      "room": "UTT 1 - 53 XONA",
+      "isContrast": false,
+      "status": "missed",
+      "createdAt": 1787818248603,
+      "createdAtStr": "13:10",
+      "orderNumber": 9,
+      "calledAt": 1787818856918,
+      "calledAtStr": "13:20",
+      "callCount": 4,
+      "missedAt": 1787818859815,
+      "missedAtStr": "13:20"
     }
   ],
-  "current_announcement": {
-    "patientId": "karmed_XUDAYBERDIYEVA_1",
-    "patientName": "SAYARA FEYRUSOVNA Statsionar",
-    "doctorId": "vrach_utt_10",
-    "doctorName": "Xudayberdiyeva Nigora Nizamovna",
-    "room": "UTT 10 - 51 XONA",
-    "service": "UTT (2737559)",
-    "isContrast": false,
-    "callCount": 1,
-    "timestamp": 1787818493440
-  },
+  "current_announcement": null,
   "history": []
 }

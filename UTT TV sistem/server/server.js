@@ -273,7 +273,7 @@ const server = http.createServer((req, res) => {
     }));
   }
 
-  // B1.6) Qurilmaga Ruxsat Berish (POST /api/devices/approve)
+  // B1.6) Qurilmaga / Vrachga Ruxsat Berish (POST /api/devices/approve)
   if (pathname === "/api/devices/approve" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || !body.clientId) {
@@ -281,10 +281,34 @@ const server = http.createServer((req, res) => {
         return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
       }
 
+      // Agar vrachga xona biriktirilayotgan bo'lsa
+      if (body.doctorName && body.roomId) {
+        const roomDoc = doctorsData.find(d => d.id === body.roomId) || { room: body.roomId, roomNum: body.roomId.replace(/\D/g, '') };
+        const existingDoc = doctorsData.find(d => d.name.toLowerCase().includes(body.doctorName.toLowerCase()) || body.doctorName.toLowerCase().includes(d.name.toLowerCase()));
+        if (existingDoc) {
+          existingDoc.room = roomDoc.room;
+          existingDoc.roomNum = roomDoc.roomNum;
+        } else {
+          doctorsData.push({
+            id: `vrach_utt_${Date.now()}`,
+            name: body.doctorName.trim(),
+            specialty: `ULTRATOVUSH`,
+            room: roomDoc.room,
+            roomNum: roomDoc.roomNum,
+            color: "#0284c7"
+          });
+        }
+        writeJsonFile(DOCTORS_FILE, doctorsData);
+        broadcastMessage({ type: "DOCTORS_UPDATED", data: doctorsData });
+        console.log(`👨‍⚕️ YANGI VRACH ADMIN TOMONIDAN RO'YXATGA OLINDI: ${body.doctorName} -> ${roomDoc.room}`);
+      }
+
       for (const [ws, info] of wsClientsMap.entries()) {
         if (info.id === body.clientId) {
           info.status = "approved";
           info.isApproved = true;
+          if (body.doctorName) info.doctorName = body.doctorName;
+          if (body.roomId) info.roomId = body.roomId;
           if (info.deviceId && !approvedDevices.includes(info.deviceId)) {
             approvedDevices.push(info.deviceId);
             writeJsonFile(APPROVED_DEVICES_FILE, approvedDevices);
@@ -292,10 +316,10 @@ const server = http.createServer((req, res) => {
           if (ws.readyState === 1) {
             ws.send(JSON.stringify({
               type: "DEVICE_APPROVED",
-              data: { isApproved: true }
+              data: { isApproved: true, doctorName: body.doctorName, roomId: body.roomId }
             }));
           }
-          console.log(`✅ QURILMAGA RUXSAT BERILDI: ${info.name} (${info.ip})`);
+          console.log(`✅ QURILMAGA/VRACHGA RUXSAT BERILDI: ${info.name} (${info.ip})`);
           break;
         }
       }
@@ -304,7 +328,54 @@ const server = http.createServer((req, res) => {
       broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
 
       res.writeHead(200, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ ok: true, clients: getActiveClientsList(), pending: getPendingClientsList() }));
+      return res.end(JSON.stringify({ ok: true, clients: getActiveClientsList(), pending: getPendingClientsList(), doctors: doctorsData }));
+    });
+    return;
+  }
+
+  // B1.65) Vrach Kengaytmasidan Ruxsat So'rovi (POST /api/doctors/request-access)
+  if (pathname === "/api/doctors/request-access" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      const clientIp = req.socket.remoteAddress ? req.socket.remoteAddress.replace(/^.*:/, '') : "Local";
+      const docName = (body.doctorName || "Shifokor").trim();
+      const devId = body.deviceId || `ext_${Date.now()}`;
+
+      // wsClientsMap da ushbu kengaytma bormi?
+      let found = false;
+      for (const [ws, info] of wsClientsMap.entries()) {
+        if (info.deviceId === devId || info.id === body.clientId) {
+          info.type = "extension";
+          info.name = `💻 Vrach: ${docName}`;
+          info.doctorName = docName;
+          info.status = "pending";
+          info.isApproved = false;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        const dummyId = `ext_${Date.now()}`;
+        wsClientsMap.set({ readyState: 1, send: () => {} }, {
+          id: dummyId,
+          deviceId: devId,
+          ip: clientIp,
+          type: "extension",
+          name: `💻 Vrach: ${docName}`,
+          doctorName: docName,
+          status: "pending",
+          isApproved: false,
+          connectedAt: Date.now(),
+          connectedAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
+          lastSeen: Date.now()
+        });
+      }
+
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
+      console.log(`🔔 VRACH RUXSAT SO'RADI: ${docName} (${clientIp})`);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, message: "Ruxsat so'rovi adminga yuborildi" }));
     });
     return;
   }

@@ -307,37 +307,57 @@ function renderPendingDevicesList(pendingList) {
   }
 
   card.style.display = "block";
-  listEl.innerHTML = pendingList.map(dev => `
-    <div class="device-item" style="border-color:#eab308; background:#292524;">
-      <div class="dev-header-row">
-        <div class="dev-info">
-          <div class="dev-icon">📺</div>
-          <div>
-            <div class="dev-name" style="color:#facc15;">${escapeHtml(dev.name)}</div>
-            <div class="dev-meta">IP: <code>${escapeHtml(dev.ip)}</code> • So'rov vaqti: ${dev.connectedAtStr || ''}</div>
+  listEl.innerHTML = pendingList.map(dev => {
+    const isDoc = dev.type === "extension" || dev.doctorName;
+    const docName = dev.doctorName || dev.name;
+
+    return `
+      <div class="device-item" style="border-color:#eab308; background:#292524; flex-direction:column; gap:10px;">
+        <div class="dev-header-row" style="width:100%;">
+          <div class="dev-info">
+            <div class="dev-icon">${isDoc ? '👨‍⚕️' : '📺'}</div>
+            <div>
+              <div class="dev-name" style="color:#facc15;">${escapeHtml(dev.name)}</div>
+              <div class="dev-meta">IP: <code>${escapeHtml(dev.ip)}</code> • So'rov vaqti: ${dev.connectedAtStr || ''}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-success" style="padding:6px 12px; font-size:12px;" onclick="approveDevice('${dev.id}', '${escapeHtml(docName)}')">✅ Ruxsat Berish</button>
+            <button class="btn-danger-sm" style="padding:6px 10px; font-size:12px;" onclick="rejectDevice('${dev.id}')">🚫 Rad Etish</button>
           </div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button class="btn-success" style="padding:6px 12px; font-size:12px;" onclick="approveDevice('${dev.id}')">✅ Ruxsat Berish</button>
-          <button class="btn-danger-sm" style="padding:6px 10px; font-size:12px;" onclick="rejectDevice('${dev.id}')">🚫 Rad Etish</button>
-        </div>
+
+        ${isDoc ? `
+          <!-- VRACHNI XONAGA BIRIKTIRISH -->
+          <div style="display:flex; align-items:center; gap:8px; width:100%; background:#1c1917; padding:8px 10px; border-radius:8px; border:1px solid #44403c;">
+            <span style="font-size:12px; color:#a8a29e; font-weight:700;">Biriktiriladigan Xona:</span>
+            <select id="pendingRoomSelect_${dev.id}" style="background:#0c0a09; color:#facc15; border:1px solid #78716c; padding:4px 8px; border-radius:6px; font-size:12px; flex:1;">
+              ${allDoctors.map(d => `<option value="${d.id}">${escapeHtml(d.room)} (${escapeHtml(d.name)})</option>`).join("")}
+            </select>
+          </div>
+        ` : ''}
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
-async function approveDevice(clientId) {
+async function approveDevice(clientId, doctorName = "") {
   try {
+    const roomSelect = document.getElementById(`pendingRoomSelect_${clientId}`);
+    const roomId = roomSelect ? roomSelect.value : "";
+
     const res = await fetch("/api/devices/approve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientId: clientId })
+      body: JSON.stringify({ clientId: clientId, doctorName: doctorName, roomId: roomId })
     });
     const data = await res.json();
     if (data.ok) {
       allClients = data.clients || [];
+      if (data.doctors) allDoctors = data.doctors;
       renderClientsListSmart(allClients, true);
       renderPendingDevicesList(data.pending || []);
+      renderDoctorsSelect();
     }
   } catch (err) {
     alert("Xatolik: " + err.message);
