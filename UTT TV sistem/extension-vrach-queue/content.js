@@ -173,7 +173,9 @@ function cleanDoctorName(str) {
             .trim();
 }
 
-// 4. VRACHNING ADMIN RO'YXATIDAGI RUXSATINI TEKSHIRISH
+// 4. VRACHNING ADMIN RO'YXATIDAGI RUXSATINI TEKSHIRISH (BEGONA VRACH KIRSA ADMINDAN RUXSAT OLADI)
+let hasAutoRequestedAuth = false;
+
 async function checkDoctorAuthorization() {
   const docName = extractLoggedInDoctorName();
   if (docName) {
@@ -188,19 +190,11 @@ async function checkDoctorAuthorization() {
   } catch (e) {}
 
   let foundDoc = null;
-  if (detectedDoctorName) {
+  if (detectedDoctorName && allServerDoctors.length > 0) {
     const cleanDetected = detectedDoctorName.toLowerCase().replace(/[^a-zа-яё]/gi, '');
     foundDoc = allServerDoctors.find(d => {
       const cleanDoc = d.name.toLowerCase().replace(/[^a-zа-яё]/gi, '');
-      return cleanDoc.includes(cleanDetected) || cleanDetected.includes(cleanDoc);
-    });
-  }
-
-  if (!foundDoc && detectedDoctorName) {
-    const cleanDetected = detectedDoctorName.toLowerCase().replace(/[^a-zа-яё]/gi, '');
-    foundDoc = DOCTOR_MAPPINGS.find(d => {
-      const cleanDoc = d.name.toLowerCase().replace(/[^a-zа-яё]/gi, '');
-      return cleanDoc.includes(cleanDetected) || cleanDetected.includes(cleanDoc) || cleanDetected.includes(d.key);
+      return (cleanDoc && cleanDetected) && (cleanDoc.includes(cleanDetected) || cleanDetected.includes(cleanDoc));
     });
   }
 
@@ -209,12 +203,13 @@ async function checkDoctorAuthorization() {
     matchedDoctorObj = foundDoc;
     selectedDoctorId = foundDoc.id;
   } else {
-    // Agar serverda vrachlar ro'yxati kelgan bo'lsa va bu vrach topilmasa -> Ruxsat so'rash holatida turadi
-    if (detectedDoctorName && allServerDoctors.length > 0) {
-      isDoctorAuthorized = false;
-      matchedDoctorObj = null;
-    } else {
-      isDoctorAuthorized = true;
+    // BEGONA VRACH: ADMIN RO'YXATIDA YO'Q BO'LSA RUXSAT SO'RASH HOLATIDA TURADI
+    isDoctorAuthorized = false;
+    matchedDoctorObj = null;
+
+    if (detectedDoctorName && !hasAutoRequestedAuth) {
+      hasAutoRequestedAuth = true;
+      sendDoctorAccessRequest();
     }
   }
 
