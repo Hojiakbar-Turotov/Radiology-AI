@@ -269,7 +269,8 @@ function initWebSocket() {
 function handleWebSocketMessage(msg) {
   if (msg.type === "INITIAL_STATE") {
     allDoctors = msg.data.doctors || [];
-    allPatients = msg.data.queue.patients || [];
+    allPatients = msg.data.queue ? (msg.data.queue.patients || []) : [];
+    serverGuidelines = msg.data.guidelines || [];
     if (msg.data.isApproved === false && !isInsideIframe) {
       showApprovalOverlay(myDeviceId);
     } else {
@@ -280,6 +281,8 @@ function handleWebSocketMessage(msg) {
       if (msg.data.settings.activeRoomId) selectedRoomFilter = msg.data.settings.activeRoomId;
     }
     applyLanguage(currentLang);
+    renderCurrentSlide();
+    renderHeaderAndQueueTable();
   } else if (msg.type === "DEVICE_PENDING_APPROVAL") {
     if (!isInsideIframe) showApprovalOverlay(msg.data.deviceId || myDeviceId);
   } else if (msg.type === "DEVICE_APPROVED") {
