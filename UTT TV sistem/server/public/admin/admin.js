@@ -9,6 +9,9 @@ let allPatients = [];
 let allClients = [];
 let allGuidelines = [];
 let currentSettings = { activeLang: "uz", activeRoomId: "ALL", tickerText: "" };
+const openPreviews = new Set(); // Ochiq qoldirilgan jonli previewlar
+
+let clientsRenderDebounceTimer = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchServerInfo();
@@ -77,19 +80,11 @@ function initWebSocket() {
     };
 
     ws.onclose = () => {
-      setTimeout(initWebSocket, 3000);
+      setTimeout(initWebSocket, 4000);
     };
   } catch (err) {
-    setTimeout(initWebSocket, 4000);
+    setTimeout(initWebSocket, 5000);
   }
-
-  // Barqaror fon yangilanishi (Faqat WebSocket uzilganda va foydalanuvchi yozmayotganda)
-  setInterval(() => {
-    if (!ws || ws.readyState !== 1) {
-      fetchClients();
-      fetchQueue();
-    }
-  }, 20000);
 }
 
 function handleWebSocketMessage(msg) {
@@ -106,7 +101,11 @@ function handleWebSocketMessage(msg) {
     renderGuidelinesList();
   } else if (msg.type === "CLIENTS_UPDATED") {
     allClients = msg.data || [];
-    renderClientsList(allClients);
+    // Kamida 3 soniya sokin debounce bilan yangilash (foydalanuvchiga xalal bermaslik uchun)
+    if (clientsRenderDebounceTimer) clearTimeout(clientsRenderDebounceTimer);
+    clientsRenderDebounceTimer = setTimeout(() => {
+      renderClientsListSmart(allClients);
+    }, 2500);
   } else if (msg.type === "QUEUE_UPDATED") {
     allPatients = msg.data.patients || [];
     renderPatientsList();
@@ -122,19 +121,17 @@ function handleWebSocketMessage(msg) {
   }
 }
 
-// 3. ULANGAN QURILMALARNI YUKLASH VA BARQAROR CHIZISH
-const openPreviews = new Set(); // Ochiq qoldirilgan jonli previewlar
-
+// 3. ULANGAN QURILMALARNI YUKLASH VA TINGCH/BARQAROR CHIZISH (SMART IN-PLACE DIFF)
 async function fetchClients() {
   try {
     const res = await fetch("/api/clients");
     const data = await res.json();
     allClients = data.clients || [];
-    renderClientsList(allClients);
+    renderClientsListSmart(allClients, true);
   } catch (e) {}
 }
 
-function renderClientsList(clients) {
+function renderClientsListSmart(clients, forceInitial = false) {
   const listEl = document.getElementById("devicesList");
   const countEl = document.getElementById("devicesCount");
   const activeTopCount = document.getElementById("activeClientsCount");
@@ -144,9 +141,19 @@ function renderClientsList(clients) {
 
   if (!listEl) return;
 
-  // Agar foydalanuvchi ayni damda ro'yxat ichidagi select yoki input bilan ishlayotgan bo'lsa, o'chirib yubormaslik!
+  // Agar foydalanuvchi ayni damda biror input yoki select ichida bo'lsa, mutlaqo qayta chizmaslik!
   if (document.activeElement && listEl.contains(document.activeElement)) {
     return;
+  }
+
+  // Mavjud kartalarni tekshirish
+  const existingCardIds = Array.from(listEl.querySelectorAll(".device-item")).map(el => el.dataset.clientId).filter(Boolean);
+  const newClientIds = clients.map(c => c.id);
+
+  // Agar qurilmalar o'zgarmagan bo'lsa va bu birinchi yuklanish bo'lmasa, DOM ni qayta tuzmaslik!
+  const isSame = existingCardIds.length === newClientIds.length && existingCardIds.every((id, i) => id === newClientIds[i]);
+  if (isSame && !forceInitial && listEl.children.length > 0) {
+    return; // Dropdown va oynalar joyida sokin turadi!
   }
 
   if (clients.length === 0) {
@@ -185,7 +192,7 @@ function renderClientsList(clients) {
     `;
 
     return `
-      <div class="device-item ${isTv ? 'tv-device-card' : ''}" id="devCard_${client.id}">
+      <div class="device-item ${isTv ? 'tv-device-card' : ''}" id="devCard_${client.id}" data-client-id="${client.id}">
         <div class="dev-header-row">
           <div class="dev-info">
             <div class="dev-icon">${icon}</div>
@@ -268,7 +275,6 @@ async function setDeviceConfig(clientId, config) {
     const data = await res.json();
     if (data.ok) {
       allClients = data.clients || [];
-      // Interaktiv elementlar buzilmasligi uchun tugma holatini joyida yangilash
       updateDeviceUIInPlace(clientId, config);
     }
   } catch (err) {
@@ -344,12 +350,12 @@ function applySettingsToUI(settings) {
   });
 
   const roomSelect = document.getElementById("adminRoomSelect");
-  if (roomSelect && settings.activeRoomId) {
+  if (roomSelect && settings.activeRoomId && document.activeElement !== roomSelect) {
     roomSelect.value = settings.activeRoomId;
   }
 
   const tickerInput = document.getElementById("adminTickerInput");
-  if (tickerInput && settings.tickerText && !tickerInput.value) {
+  if (tickerInput && settings.tickerText && !tickerInput.value && document.activeElement !== tickerInput) {
     tickerInput.value = settings.tickerText;
   }
 }
@@ -414,7 +420,7 @@ async function sendTestCall() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         patientName: name,
-        doctorId: currentSettings.activeRoomId !== "ALL" ? currentSettings.activeRoomId : (allDoctors[0] ? allDoctors[0].id : "vrach_utt_48")
+        doctorId: currentSettings.activeRoomId !== "ALL" ? currentSettings.activeRoomId : (allDoctors[0] ? allDoctors[0].id : "vrach_utt_1")
       })
     });
     const data = await res.json();
@@ -439,7 +445,7 @@ function renderDoctorsSelect() {
   const adminRoomSelect = document.getElementById("adminRoomSelect");
   const addDocSelect = document.getElementById("addDoctor");
 
-  if (adminRoomSelect) {
+  if (adminRoomSelect && document.activeElement !== adminRoomSelect) {
     adminRoomSelect.innerHTML = `<option value="ALL">🏢 Barcha Xonalar Monitori</option>`;
     allDoctors.forEach(doc => {
       const opt = document.createElement("option");
@@ -450,7 +456,7 @@ function renderDoctorsSelect() {
     });
   }
 
-  if (addDocSelect) {
+  if (addDocSelect && document.activeElement !== addDocSelect) {
     addDocSelect.innerHTML = `<option value="">Vrachni tanlang...</option>`;
     allDoctors.forEach(doc => {
       const opt = document.createElement("option");
