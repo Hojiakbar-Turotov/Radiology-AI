@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UTT TV Sistem — Navbat Monitori</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="tv-container">
+    
+    <!-- TOP HEADER BAR -->
+    <header class="tv-header">
+      <div class="header-left">
+        <div class="hospital-logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 6v12M6 12h12"/>
+          </svg>
+        </div>
+        <div class="header-titles">
+          <h1>Respublika Onkologiya va Radiologiya Markazi</h1>
+          <p>Tibbiy Diagnostika va Qabul Navbat Tizimi (Lokal Tarmoq)</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="network-badge" id="netBadge">
+          <span class="net-dot"></span>
+          <span id="netStatusText">Lokal Tarmoq: Ulangan</span>
+        </div>
+        <div class="clock-display" id="liveClock">00:00:00</div>
+        <div class="date-display" id="liveDate">--.--.----</div>
+      </div>
+    </header>
+
+    <!-- CALLING HERO ANNOUNCEMENT (Chaqiruv paytida ochiladi) -->
+    <section class="calling-hero-banner" id="callingHeroBanner" style="display: none;">
+      <div class="calling-hero-card" id="callingHeroCard">
+        <div class="hero-alert-tag">
+          <span class="pulse-icon">📢</span> DIQQAT! QABULGA CHAQIRUV
+        </div>
+
+        <div class="hero-patient-name" id="heroPatientName">BEMOR F.I.SH</div>
+        
+        <div class="hero-destination-box">
+          <div class="dest-item">
+            <span class="dest-label">QABUL XONASI:</span>
+            <span class="dest-val dest-room" id="heroRoomNum">101-xona</span>
+          </div>
+          <div class="dest-divider"></div>
+          <div class="dest-item">
+            <span class="dest-label">SHIFOKOR / QURILMA:</span>
+            <span class="dest-val dest-doctor" id="heroDoctorName">Dr. Turotov H.B.</span>
+          </div>
+        </div>
+
+        <div class="hero-service-tag" id="heroServiceTag">Ultratovush Diagnostikasi (UTT)</div>
+      </div>
+    </section>
+
+    <!-- DOCTORS & ROOMS GRID -->
+    <main class="rooms-grid" id="roomsGrid">
+      <!-- Dinamik ravishda tv.js orqali chiziladi -->
+    </main>
+
+    <!-- FOOTER TICKER (Yuguruvchi satr) -->
+    <footer class="tv-footer">
+      <div class="ticker-badge">ESLATMA</div>
+      <div class="ticker-content">
+        <div class="ticker-text" id="tickerText">
+          Hurmatli bemorlar! Iltimos, xona raqami va F.I.Sh e'lon qilinganda tegishli qabul xonasi oldiga keling. Barcha tekshiruvlar navbat asosida amalga oshiriladi.
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- AUDIO UNLOCK OVERLAY (Android TV va Brauzerlarda avtomatik ovoz bloklanishini ochish uchun) -->
+  <div class="audio-overlay" id="audioOverlay" onclick="unlockAudio()">
+    <div class="audio-overlay-box">
+      <div class="audio-icon-big">🔊</div>
+      <h2>Ovozli E'lonlarni Faollashtirish</h2>
+      <p>Android TV pulti orqali <b>[ OK ]</b> tugmasini yoki ekranga bir marta bosing</p>
+      <button class="btn-unlock-audio">OVOZNI YOQISH</button>
+    </div>
+  </div>
+
+  <script src="tv.js"></script>
+</body>
+</html>

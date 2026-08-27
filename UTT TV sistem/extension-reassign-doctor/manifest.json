@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "UTT Bemor Vrachini O'zgartirish va Yo'naltirish",
+  "version": "1.0.0",
+  "description": "Karmed orqali vrachga yozilgan bemorlarni aniqlash va ularni boshqa vrach qabuli navbatiga yo'naltirish kengaytmasi",
+  "icons": {
+    "16": "icons/logo-onko.png",
+    "48": "icons/logo-onko.png",
+    "128": "icons/logo-onko.png"
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "http://192.168.*:*/*",
+    "http://10.*:*/*",
+    "http://172.*:*/*",
+    "http://192.168.150.111:*/*",
+    "http://213.230.91.59:*/*",
+    "*://*.karmed.uz/*",
+    "*://*.karmed.com/*",
+    "*://*.kardelen.uz/*",
+    "*://*.kardelen.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bemor Vrachini O'zgartirish",
+    "default_icon": {
+      "16": "icons/logo-onko.png",
+      "48": "icons/logo-onko.png",
+      "128": "icons/logo-onko.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*",
+        "http://192.168.*:*/*",
+        "http://10.*:*/*",
+        "http://172.*:*/*",
+        "http://192.168.150.111:*/*",
+        "http://213.230.91.59:*/*",
+        "*://*.karmed.uz/*",
+        "*://*.karmed.com/*",
+        "*://*.kardelen.uz/*",
+        "*://*.kardelen.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Bemor Vrachini O'zgartirish</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <div class="popup-container">
+    
+    <!-- HEADER -->
+    <header class="popup-header">
+      <div class="header-left">
+        <div class="logo-box">🔄</div>
+        <div>
+          <h2>Vrachni O'zgartirish</h2>
+          <p>Bemorlarni Yangi Vrachga Yo'naltirish</p>
+        </div>
+      </div>
+      <button class="btn-settings-toggle" id="btnSettingsToggle" title="Server sozlamalari">⚙️</button>
+    </header>
+
+    <!-- SERVER SOZLAMALARI -->
+    <section class="settings-panel" id="settingsPanel" style="display: none;">
+      <label class="field-label">Lokal Server Manzili (Host IP):</label>
+      <div class="input-row">
+        <input type="text" id="serverUrlInput" placeholder="http://localhost:3000" class="input-text">
+        <button id="btnSaveServerUrl" class="btn-sm btn-primary">Saqlash</button>
+      </div>
+      <div class="server-status" id="serverStatusBadge">
+        <span class="status-dot"></span> <span id="serverStatusText">Tekshirilmoqda...</span>
+      </div>
+    </section>
+
+    <!-- TEZKOR YO'NALTIRISH FORMASI -->
+    <section class="reassign-card">
+      <h3 class="card-title">Bemor Vrachini Almashtirish</h3>
+      
+      <div class="form-group">
+        <label class="field-label">1. Bemor F.I.Sh yoki ID raqami:</label>
+        <input type="text" id="targetPatientInput" class="input-text" placeholder="Masalan: Aliyev Vali yoki 53312" required>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">2. Yangi Qabul Vrachini Tanlang:</label>
+        <select id="targetDoctorSelect" class="input-select" required>
+          <option value="">-- Yangi Vrach / Xonani tanlang --</option>
+        </select>
+      </div>
+
+      <button id="btnSubmitReassign" class="btn-submit-reassign">
+        🔄 Vrachni O'zgartirish va Navbatga Yuborish
+      </button>
+    </section>
+
+    <!-- QABULDAGI VA NAVBATDAGI BEMORLAR RO'YXATI -->
+    <section class="patient-list-section">
+      <div class="list-header">
+        <h4>Navbatdagi Bemorlar (<span id="totalPatientsCount">0</span> ta)</h4>
+        <input type="text" id="searchFilter" class="input-search" placeholder="Qidirish...">
+      </div>
+
+      <div class="reassign-patients-list" id="reassignPatientsList">
+        <!-- Dinamik chiziladi -->
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="popup-footer">
+      <span style="font-size:11px; color:#94a3b8;">1-kengaytma va TV ga avtomatik yetkaziladi</span>
+      <button id="btnRefresh" class="btn-link">🔄 Yangilash</button>
+    </footer>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "vrach_utt_1",
+    "name": "Dr. Turotov H.B.",
+    "specialty": "Ultratovush Diagnostikasi (UTT)",
+    "room": "101-xona (UTT 1)",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_2",
+    "name": "Dr. Dadaboyev A.A.",
+    "specialty": "Ultratovush Diagnostikasi (UTT)",
+    "room": "102-xona (UTT 2)",
+    "color": "#16a34a",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_mrt_1",
+    "name": "MRT 1-Qurilma",
+    "specialty": "Magnit-Rezonans Tomografiya (MRT)",
+    "room": "1-MRT Xonasi",
+    "color": "#7e22ce",
+    "icon": "fa-brain"
+  },
+  {
+    "id": "vrach_mskt_1",
+    "name": "MSKT 1-Qurilma",
+    "specialty": "Multispiral Kompyuter Tomografiyasi (MSKT)",
+    "room": "1-MSKT Xonasi",
+    "color": "#ea580c",
+    "icon": "fa-circle-nodes"
+  },
+  {
+    "id": "vrach_rentgen_1",
+    "name": "Rentgen 1-Qurilma",
+    "specialty": "Rentgenodiagnostika",
+    "room": "Rentgen Xonasi",
+    "color": "#d97706",
+    "icon": "fa-x-ray"
+  }
+]
