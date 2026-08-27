@@ -13,17 +13,9 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://localhost:*/*",
-    "http://127.0.0.1:*/*",
-    "http://192.168.*:*/*",
-    "http://10.*:*/*",
-    "http://172.*:*/*",
-    "http://192.168.150.111:*/*",
-    "http://213.230.91.59:*/*",
-    "*://*.karmed.uz/*",
-    "*://*.karmed.com/*",
-    "*://*.kardelen.uz/*",
-    "*://*.kardelen.com/*"
+    "<all_urls>",
+    "http://*/*",
+    "https://*/*"
   ],
   "action": {
     "default_popup": "popup.html",
