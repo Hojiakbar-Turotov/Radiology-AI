@@ -1,0 +1,89 @@
+/* ===================================================
+   KARMED HISOBCHI EXTENSION - ON-PAGE CONTENT STYLES
+   =================================================== */
+
+.karmed-accountant-hud {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 9999999;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 10px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: hudSlideIn 0.3s ease-out;
+  display: none;
+  min-width: 280px;
+  max-width: 380px;
+}
+
+@keyframes hudSlideIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hud-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-content.error {
+  border-color: #ef4444;
+}
+
+.hud-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  animation: spinSlow 8s linear infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.hud-body {
+  flex: 1;
+}
+
+.hud-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #0284c7;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.hud-status {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 3px 0;
+}
+
+.hud-content.error .hud-status {
+  color: #dc2626;
+}
+
+.hud-progress-bg {
+  width: 100%;
+  height: 5px;
+  background: #e0f2fe;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.hud-progress-fill {
+  height: 100%;
+  background: #0284c7;
+  transition: width 0.3s ease;
+}
+
+.hud-content.error .hud-progress-fill {
+  background: #ef4444;
+}

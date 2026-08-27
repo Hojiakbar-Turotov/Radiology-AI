@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Karmed Hisobchi Portali</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- 1. HEADER -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <img src="icons/logo-onko.png" alt="RONS Logo" class="brand-logo">
+        <div>
+          <h2>KARMED HISOBCHI</h2>
+          <p>Shifokor Bemorlari & Xizmatlar Sanagichi</p>
+        </div>
+      </div>
+      <span class="status-badge live" id="connectionBadge">
+        <i class="fa-solid fa-circle"></i> Karmed Tayyor
+      </span>
+    </header>
+
+    <!-- 2. PARAMETRLAR / FILTRLAR -->
+    <div class="card-box">
+      <!-- Sana tanlash -->
+      <div class="form-group">
+        <div class="label-row">
+          <label for="reportDateInput">
+            <i class="fa-solid fa-calendar-day" style="color: #0284c7;"></i> <strong>Hisobot Sanasi (Tasdiqlangan sana):</strong>
+          </label>
+          <div class="quick-date-btns">
+            <button type="button" class="btn-date-quick active" id="btnDateToday">Bugun</button>
+            <button type="button" class="btn-date-quick" id="btnDateYesterday">Kecha</button>
+          </div>
+        </div>
+        <input type="date" id="reportDateInput" class="form-control">
+      </div>
+
+      <!-- Shifokor tanlash -->
+      <div class="form-group">
+        <div class="label-row">
+          <label for="doctorSelect">
+            <i class="fa-solid fa-user-doctor" style="color: #10b981;"></i> <strong>Qabul Qiluvchi Shifokor:</strong>
+          </label>
+          <button type="button" class="btn-text-action" id="btnAutoDetectDoctor" title="Karmed sahifasidagi shifokorlarni avtomatik aniqlash">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Sahifadan olish
+          </button>
+        </div>
+        <select id="doctorSelect" class="form-control">
+          <option value="">-- Barcha Shifokorlar (Umumiy sanash) --</option>
+          <!-- Standart UTT Shifokorlari -->
+          <optgroup label="🏥 UTT Shifokorlari">
+            <option value="Xusanova Feruza Ikromjonovna">Xusanova Feruza Ikromjonovna (UTT 9 - 50 XONA)</option>
+            <option value="Yulchiyeva Nodira Siddikovna">Yulchiyeva Nodira Siddikovna (UTT)</option>
+            <option value="Juravlev Igor Ivanovich">Juravlev Igor Ivanovich (UTT 1 - 53 XONA)</option>
+            <option value="Kurbanova Sevinch Musayevna">Kurbanova Sevinch Musayevna (UTT 2 - 54 XONA)</option>
+            <option value="Abidjanov Alisher Maxamataliyevich">Abidjanov Alisher Maxamataliyevich (UTT 3 - 46 XONA)</option>
+            <option value="Ziyayeva Zarina Abduganiyevna">Ziyayeva Zarina Abduganiyevna (UTT 4 - 47 XONA)</option>
+            <option value="Xoshimova Lola Kabulovna">Xoshimova Lola Kabulovna (UTT 5 - 48 XONA)</option>
+            <option value="Toirova Shaxlo Oybek qizi">Toirova Shaxlo Oybek qizi (UTT 6 - 52 XONA)</option>
+            <option value="Asadova Dildoraxon Asatullayevna">Asadova Dildoraxon Asatullayevna (UTT 7 - 45 XONA)</option>
+            <option value="Saidbayeva Zulfiya Yergeshovna">Saidbayeva Zulfiya Yergeshovna (UTT 8 - 49 XONA)</option>
+            <option value="Xudayberdiyeva Nigora Nizamovna">Xudayberdiyeva Nigora Nizamovna (UTT 10 - 51 XONA)</option>
+            <option value="Turatov Hojiakbar Shavkat ogli">Turatov Hojiakbar Shavkat ogli (UTT)</option>
+          </optgroup>
+          <!-- Boshqa aniqlangan shifokorlar dinamik qo'shiladi -->
+          <optgroup label="📋 Sahifadagi Boshqa Shifokorlar" id="detectedDoctorsGroup" style="display:none;"></optgroup>
+        </select>
+      </div>
+
+      <!-- Skanerlash Sozlamalari -->
+      <div class="options-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkStrictDoctorMatch" checked>
+          <span>Qabul qiluvchini qat'iy tekshirish</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkAutoPagination" checked>
+          <span>Ko'p sahifali (1-N) avto-varaqlash</span>
+        </label>
+      </div>
+
+      <!-- Asosiy tugma -->
+      <button type="button" class="btn btn-primary btn-block" id="btnStartScan">
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Karmed Jadvalini Skanerlash & Sanash
+      </button>
+    </div>
+
+    <!-- 3. SKANERLASH PROGRESSI & NATIJALARI -->
+    <div id="scanResultsSection" style="display: none;">
+      <!-- Progress indikator -->
+      <div class="progress-box" id="scanProgressBox">
+        <div class="progress-text" id="scanProgressText">
+          <i class="fa-solid fa-spinner fa-spin"></i> Jadval skanerlanmoqda...
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="scanProgressFill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- KPI Kartochkalari -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label"><i class="fa-solid fa-users"></i> Bemorlar:</span>
+          <strong class="kpi-value" id="resPatientCount">0</strong>
+        </div>
+        <div class="kpi-card highlight">
+          <span class="kpi-label"><i class="fa-solid fa-microscope"></i> Sohalar:</span>
+          <strong class="kpi-value" id="resServiceCount">0</strong>
+        </div>
+      </div>
+
+      <!-- Kodlar bo'yicha taqsimot -->
+      <div class="breakdown-card">
+        <div class="breakdown-header">
+          <span><i class="fa-solid fa-tags"></i> Tekshiruv Kodlari Taqsimoti:</span>
+        </div>
+        <div class="badges-wrap" id="resCodesBadgesWrap">
+          <!-- Dinamik chiqadi -->
+        </div>
+      </div>
+
+      <!-- Bemorlar ro'yxati (Accordion / Preview) -->
+      <div class="preview-card">
+        <div class="preview-header" id="btnTogglePreview">
+          <span><i class="fa-solid fa-list-ol"></i> Bemorlar Reyestri (<span id="resListCount">0</span> ta)</span>
+          <i class="fa-solid fa-chevron-down" id="previewChevron"></i>
+        </div>
+        <div class="preview-body" id="previewBody">
+          <div class="patients-scroll-list" id="resPatientsList">
+            <!-- Dinamik chiqadi -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Bazasiga Saqlash Tugmasi -->
+      <div class="action-footer">
+        <button type="button" class="btn btn-success btn-block" id="btnSaveToFirebase">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Hisobchi Bazasiga Saqlash (Firebase)
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. FOOTER & LINK TO ACCOUNTANT PORTAL -->
+    <footer class="popup-footer">
+      <a href="http://localhost:5000/app6-hisobchi/index.html" target="_blank" class="footer-portal-link" id="linkOpenAccountantPortal">
+        <i class="fa-solid fa-chart-line"></i> <strong>Hisobchi Tahlil Portalini Ochish</strong> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

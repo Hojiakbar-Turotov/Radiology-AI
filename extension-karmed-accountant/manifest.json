@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "Karmed Vrach Bemorlarini Sanash & Hisobchi Portali",
+  "version": "1.0.0",
+  "description": "Karmed tizimidagi bemorlarni sanash, qabul qiluvchi shifokor va tasdiqlangan sana bo'yicha tekshiruv sohalari (kodlari) bilan birga yig'ish va hisobchi bazasiga yuborish kengaytmasi.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "icons": {
+    "16": "icons/logo-onko.png",
+    "48": "icons/logo-onko.png",
+    "128": "icons/logo-onko.png"
+  },
+  "host_permissions": [
+    "http://192.168.150.111:2025/*",
+    "http://192.168.150.111/*",
+    "https://192.168.150.111:2025/*",
+    "https://192.168.150.111/*",
+    "http://213.230.91.59:2025/*",
+    "http://213.230.91.59/*",
+    "https://213.230.91.59:2025/*",
+    "https://213.230.91.59/*",
+    "*://*.karmed.uz/*",
+    "*://*.karmed.com/*",
+    "*://*.kardelen.uz/*",
+    "*://*.kardelen.com/*",
+    "https://xabarlashgich-default-rtdb.firebaseio.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Karmed Hisobchi Portali",
+    "default_icon": {
+      "16": "icons/logo-onko.png",
+      "48": "icons/logo-onko.png",
+      "128": "icons/logo-onko.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://192.168.150.111:2025/*",
+        "http://192.168.150.111/*",
+        "https://192.168.150.111:2025/*",
+        "https://192.168.150.111/*",
+        "http://213.230.91.59:2025/*",
+        "http://213.230.91.59/*",
+        "https://213.230.91.59:2025/*",
+        "https://213.230.91.59/*",
+        "*://*.karmed.uz/*",
+        "*://*.karmed.com/*",
+        "*://*.kardelen.uz/*",
+        "*://*.kardelen.com/*"
+      ],
+      "all_frames": false,
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buxgalteriya & Hisobchi Portali — Shifokorlar Ko'rgan Bemorlar Tahlili</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- 1. YUQORI ASOSIY PANEL (HEADER) -->
+    <header class="main-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <i class="fa-solid fa-hospital-user logo-icon"></i>
+        </div>
+        <div class="header-titles">
+          <span class="org-name">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</span>
+          <h1>📊 Buxgalteriya & Hisobchi Portali <span class="badge-tag">KARMED TAHLILI</span></h1>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="live-clock-card">
+          <div class="clock-time" id="headerClock">12:00:00</div>
+          <div class="clock-date" id="headerDate">Dushanba, 27-Avgust 2026</div>
+        </div>
+
+        <div class="user-profile-badge">
+          <div class="user-avatar"><i class="fa-solid fa-user-tie"></i></div>
+          <div class="user-info">
+            <span class="user-name">Bosh Hisobchi</span>
+            <span class="user-role"><i class="fa-solid fa-circle status-dot"></i> Buxgalteriya & Audit</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. BOSHQARUV VA FILTRLAR PANELI (TOOLBAR) -->
+    <section class="toolbar-section">
+      <div class="filter-card">
+        <div class="filter-row">
+          <!-- Sana Filtrlari -->
+          <div class="filter-group date-filter-group">
+            <label><i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> <strong>Hisobot Sanasi:</strong></label>
+            <div class="date-inputs-wrapper">
+              <input type="date" id="filterStartDate" class="input-control">
+              <span class="date-sep">—</span>
+              <input type="date" id="filterEndDate" class="input-control">
+            </div>
+            <div class="quick-preset-chips">
+              <button type="button" class="chip-btn active" data-preset="today">Bugun</button>
+              <button type="button" class="chip-btn" data-preset="yesterday">Kecha</button>
+              <button type="button" class="chip-btn" data-preset="thisWeek">Bu Hafta</button>
+              <button type="button" class="chip-btn" data-preset="thisMonth">Bu Oy</button>
+              <button type="button" class="chip-btn" data-preset="all">Barcha Sanalar</button>
+            </div>
+          </div>
+
+          <!-- Shifokor Filtri -->
+          <div class="filter-group doctor-filter-group">
+            <label><i class="fa-solid fa-user-doctor" style="color: #10b981;"></i> <strong>Shifokor (Qabul Qiluvchi):</strong></label>
+            <select id="filterDoctorSelect" class="input-control">
+              <option value="ALL">-- Barcha Shifokorlar --</option>
+              <!-- Dinamik to'ldiriladi -->
+            </select>
+          </div>
+
+          <!-- Bo'lim Filtri -->
+          <div class="filter-group">
+            <label><i class="fa-solid fa-building-user" style="color: #8b5cf6;"></i> <strong>Bo'lim / Bemor Turi:</strong></label>
+            <select id="filterDepartmentSelect" class="input-control">
+              <option value="ALL">Barchasi (Statsionar / Ambulator)</option>
+              <option value="Statsionar">Faqat Statsionar</option>
+              <option value="Ambulator">Faqat Ambulator</option>
+            </select>
+          </div>
+
+          <!-- Tezkor Qidiruv -->
+          <div class="filter-group search-filter-group">
+            <label><i class="fa-solid fa-magnifying-glass" style="color: #f59e0b;"></i> <strong>Qidiruv (FISH, ID, Kod):</strong></label>
+            <div class="search-input-box">
+              <i class="fa-solid fa-search search-icon"></i>
+              <input type="text" id="filterSearchInput" class="input-control search-field" placeholder="Bemor ismi, ID yoki R62, R87...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tugmalar Paneli -->
+        <div class="actions-row">
+          <div class="data-status-info" id="dataStatusInfo">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Firebase-dan ma'lumotlar yangilanmoqda...
+          </div>
+
+          <div class="action-buttons-group">
+            <button type="button" class="btn btn-secondary" id="btnRefreshData" title="Ma'lumotlarni qayta yuklash">
+              <i class="fa-solid fa-arrows-rotate"></i> Yangilash
+            </button>
+            <button type="button" class="btn btn-excel" id="btnExportExcel" title="Excel jadvalini yuklab olish">
+              <i class="fa-solid fa-file-excel"></i> Excel (.xlsx)
+            </button>
+            <button type="button" class="btn btn-csv" id="btnExportCSV" title="CSV formatida yuklab olish">
+              <i class="fa-solid fa-file-csv"></i> CSV
+            </button>
+            <button type="button" class="btn btn-print" id="btnPrintReport" title="Rasmiy A4 hisobotini chop etish">
+              <i class="fa-solid fa-print"></i> Chop Etish
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ASOSIY STATISTIK KO'RSATKICHLAR (KPI CARDS) -->
+    <section class="kpi-section">
+      <div class="kpi-card card-blue">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-users-viewfinder"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">JAMI KO'RILGAN BEMORLAR</span>
+          <div class="kpi-value-row">
+            <strong class="kpi-number" id="kpiTotalPatients">0</strong>
+            <span class="kpi-unit">nafar</span>
+          </div>
+          <span class="kpi-subtext" id="kpiPatientsSub">Tanlangan davr bo'yicha</span>
+        </div>
+      </div>
+
+      <div class="kpi-card card-green">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-microscope"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">JAMI TEKSHIRUV SOHALARI</span>
+          <div class="kpi-value-row">
+            <strong class="kpi-number" id="kpiTotalServices">0</strong>
+            <span class="kpi-unit">ta xizmat</span>
+          </div>
+          <span class="kpi-subtext" id="kpiServicesSub">O'rtacha 1 bemorga: 0 ta</span>
+        </div>
+      </div>
+
+      <div class="kpi-card card-purple">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-user-doctor"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">FAOL SHIFOKORLAR</span>
+          <div class="kpi-value-row">
+            <strong class="kpi-number" id="kpiActiveDoctors">0</strong>
+            <span class="kpi-unit">nafar</span>
+          </div>
+          <span class="kpi-subtext" id="kpiDoctorsSub">Hisobot topshirganlar</span>
+        </div>
+      </div>
+
+      <div class="kpi-card card-amber">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-tags"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">TURFA TEKSHIRUV KODLARI</span>
+          <div class="kpi-value-row">
+            <strong class="kpi-number" id="kpiUniqueCodes">0</strong>
+            <span class="kpi-unit">xil kod</span>
+          </div>
+          <span class="kpi-subtext" id="kpiCodesSub">R62, R87, R66, R64...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TAHLILIY GRAFIKLAR (CHARTS) -->
+    <section class="charts-section">
+      <!-- 1-Grafik: Shifokorlar yuklamasi -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fa-solid fa-chart-column" style="color: #0284c7;"></i>
+            <h3>Shifokorlar Kesimida Bemorlar va Sohalar Soni</h3>
+          </div>
+          <span class="chart-badge">Qiyosiy Diagramma</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartDoctorsWorkload"></canvas>
+        </div>
+      </div>
+
+      <!-- 2-Grafik: Tekshiruv kodlari taqsimoti -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fa-solid fa-chart-pie" style="color: #10b981;"></i>
+            <h3>Tekshiruv Kodlari Taqsimoti (Top Xizmatlar)</h3>
+          </div>
+          <span class="chart-badge">Ulush (%)</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartServicesBreakdown"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ASOSIY MA'LUMOTLAR JADVALLARI (TABS) -->
+    <section class="tables-section">
+      <div class="tabs-header">
+        <button type="button" class="tab-btn active" data-tab="tabDoctorsSummary">
+          <i class="fa-solid fa-table-list"></i> 1. Shifokorlar Umumiy Hisoboti
+        </button>
+        <button type="button" class="tab-btn" data-tab="tabPatientsRegistry">
+          <i class="fa-solid fa-address-book"></i> 2. Bemorlar va Sohalar Reyestri (<span id="tabBadgePatientsCount">0</span>)
+        </button>
+        <button type="button" class="tab-btn" data-tab="tabCodesMatrix">
+          <i class="fa-solid fa-cubes"></i> 3. Tekshiruv Kodlari Matrisasi (<span id="tabBadgeCodesCount">0</span>)
+        </button>
+      </div>
+
+      <!-- TAB 1: SHIFOKORLAR UMUMIY HISOBOTI -->
+      <div class="tab-content active" id="tabDoctorsSummary">
+        <div class="table-responsive">
+          <table class="data-table" id="tableDoctorsSummary">
+            <thead>
+              <tr>
+                <th style="width: 50px;">T/r</th>
+                <th>Shifokor (Qabul Qiluvchi)</th>
+                <th>Bo'lim / Xona</th>
+                <th style="text-align: center;">Ko'rilgan Bemorlar</th>
+                <th style="text-align: center;">Bajarilgan Sohalar</th>
+                <th style="text-align: center;">O'rtacha Soha/Bemor</th>
+                <th>Eng Ko'p Tekshirilgan Kodlar</th>
+                <th style="text-align: center; width: 130px;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDoctorsSummary">
+              <tr>
+                <td colspan="8" class="text-center py-4">Ma'lumotlar yuklanmoqda...</td>
+              </tr>
+            </tbody>
+            <tfoot id="tfootDoctorsSummary">
+              <!-- Jami qatori dinamik chiqadi -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: BEMORLAR VA SOHALAR REYESTRI -->
+      <div class="tab-content" id="tabPatientsRegistry">
+        <div class="table-responsive">
+          <table class="data-table" id="tablePatientsRegistry">
+            <thead>
+              <tr>
+                <th style="width: 45px;">T/r</th>
+                <th style="width: 100px;">Bemor ID</th>
+                <th>Bemor F.I.SH</th>
+                <th>Qabul Qiluvchi Shifokor</th>
+                <th>Tasdiqlangan Sana</th>
+                <th>Tekshiruv Sohalari (Kodlar)</th>
+                <th style="text-align: center;">Soni</th>
+                <th>Bo'lim / Ustuvorlik</th>
+                <th>Fayl Shifokori</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPatientsRegistry">
+              <tr>
+                <td colspan="9" class="text-center py-4">Ma'lumotlar yuklanmoqda...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: TEKSHIRUV KODLARI MATRISASI -->
+      <div class="tab-content" id="tabCodesMatrix">
+        <div class="table-responsive">
+          <table class="data-table" id="tableCodesMatrix">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Kod</th>
+                <th>Tekshiruv Sohasi Nomi</th>
+                <th style="text-align: center; width: 120px;">Jami Bajarildi</th>
+                <th style="text-align: center; width: 120px;">Ulush (%)</th>
+                <th>Shifokorlar Bo'yicha Taqsimoti</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyCodesMatrix">
+              <tr>
+                <td colspan="5" class="text-center py-4">Ma'lumotlar yuklanmoqda...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. MODAL: SHIFOKORNING BATAFSIL HISTOGIYASI -->
+    <div class="modal-backdrop" id="doctorDetailsModal" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div>
+            <h3 id="modalDoctorTitle">Dr. Xusanova Feruza Ikromjonovna</h3>
+            <p id="modalDoctorSubtitle">Bemorlar va tekshiruvlar to'liq ro'yxati</p>
+          </div>
+          <button type="button" class="btn-close-modal" id="btnCloseDoctorModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-kpi-row" id="modalDoctorKpis">
+            <!-- Dinamik chiqadi -->
+          </div>
+          <div class="table-responsive" style="max-height: 400px;">
+            <table class="data-table modal-table">
+              <thead>
+                <tr>
+                  <th>T/r</th>
+                  <th>Bemor ID</th>
+                  <th>F.I.SH</th>
+                  <th>Tasdiqlangan sana</th>
+                  <th>Tekshiruv Sohalari</th>
+                  <th>Bo'lim</th>
+                </tr>
+              </thead>
+              <tbody id="modalDoctorPatientsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCloseDoctorModalBtn">Yopish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. CHOP ETISH FORMATI (PRINT PREVIEW BLANKA) -->
+    <div id="printReportBlank" class="print-only">
+      <div class="print-header">
+        <h2>RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
+        <h3>RADIOLOGIYA VA ULTRATOVUSH (UTT) BO'LIMI SHIFOKORLARI KO'RGAN BEMORLAR HISOBOTI</h3>
+        <p id="printMetaLine">Hisobot davri: 01.05.2026 — 01.05.2026 | Shakllantirildi: 27.08.2026 20:30</p>
+      </div>
+      <div id="printTableContainer"></div>
+      <div class="print-signatures">
+        <div class="sig-block">
+          <p>Bosh Hisobchi: ______________________</p>
+        </div>
+        <div class="sig-block">
+          <p>Bo'lim Mudiri: ______________________</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

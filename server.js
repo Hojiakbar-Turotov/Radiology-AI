@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -72,12 +72,16 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('  UTT TIBBIY NAVBAT TIZIMI - LOKAL SERVER ISHLAMOQDA');
   console.log('====================================================');
   console.log('\n[1] Ushbu kompyuterda:');
-  console.log('   - Registratura: http://localhost:' + PORT + '/app1-registratura/');
-  console.log('   - Vrach Xonasi: http://localhost:' + PORT + '/app2-vrach/');
-  console.log('   - TV Tablo:     http://localhost:' + PORT + '/app3-android-tv/');
+  console.log('   - Asosiy Portal: http://localhost:' + PORT + '/index.html');
+  console.log('   - Registratura:  http://localhost:' + PORT + '/app1-registratura/');
+  console.log('   - Vrach Xonasi:  http://localhost:' + PORT + '/app2-vrach/');
+  console.log('   - TV Tablo:      http://localhost:' + PORT + '/app3-android-tv/');
+  console.log('   - Admin Paneli:  http://localhost:' + PORT + '/app4-admin/');
+  console.log('   - Hisobchi:      http://localhost:' + PORT + '/app6-hisobchi/');
   console.log('\n[2] Klinika tarmogidagi boshqa kompyuter va televizorlar uchun:');
-  console.log('   - Registratura: http://' + ip + ':' + PORT + '/app1-registratura/');
-  console.log('   - Vrach Xonasi: http://' + ip + ':' + PORT + '/app2-vrach/');
-  console.log('   - TV Tablo:     http://' + ip + ':' + PORT + '/app3-android-tv/');
+  console.log('   - Registratura:  http://' + ip + ':' + PORT + '/app1-registratura/');
+  console.log('   - Vrach Xonasi:  http://' + ip + ':' + PORT + '/app2-vrach/');
+  console.log('   - TV Tablo:      http://' + ip + ':' + PORT + '/app3-android-tv/');
+  console.log('   - Hisobchi:      http://' + ip + ':' + PORT + '/app6-hisobchi/');
   console.log('\n====================================================');
 });
