@@ -46,14 +46,6 @@ function applyLanguage(lang) {
   const infoHeader = document.getElementById("infoBoxHeader");
   if (infoHeader && dict.infoBoxHeader) infoHeader.innerText = dict.infoBoxHeader;
 
-  const mTitle = document.getElementById("audioModalTitle");
-  const mText = document.getElementById("audioModalText");
-  const mBtn = document.getElementById("audioModalBtn");
-
-  if (mTitle) mTitle.innerText = dict.audioModalTitle;
-  if (mText) mText.innerHTML = dict.audioModalText;
-  if (mBtn) mBtn.innerText = dict.audioModalBtn;
-
   const ticker = document.getElementById("bottomMarqueeText");
   if (ticker) ticker.innerText = dict.ticker;
 

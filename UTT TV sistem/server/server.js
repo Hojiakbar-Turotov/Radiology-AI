@@ -898,6 +898,7 @@ if (WebSocketServer) {
     const clientIp = req.socket.remoteAddress ? req.socket.remoteAddress.replace(/^.*:/, '') : "Local";
     const clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const isPreviewReq = req.url && req.url.includes("preview=1");
+    const isLocalMachine = clientIp === "127.0.0.1" || clientIp === "::1" || clientIp === "Local" || clientIp === "localhost";
 
     const clientInfo = {
       id: clientId,
@@ -905,8 +906,8 @@ if (WebSocketServer) {
       ip: clientIp,
       type: "tv", // default 'tv', 'admin', 'extension'
       name: `Qurilma (${clientIp})`,
-      status: isPreviewReq ? "approved" : "pending",
-      isApproved: isPreviewReq ? true : false,
+      status: (isPreviewReq || isLocalMachine) ? "approved" : "pending",
+      isApproved: (isPreviewReq || isLocalMachine) ? true : false,
       isPreview: isPreviewReq,
       connectedAt: Date.now(),
       connectedAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
@@ -943,10 +944,14 @@ if (WebSocketServer) {
           clientInfo.deviceId = msg.data.deviceId || clientInfo.deviceId || clientId;
           if (msg.data.isPreview) clientInfo.isPreview = true;
 
-          // Admin panel yoki preview avtomatik tasdiqlangan
-          if (clientInfo.type === "admin" || clientInfo.isPreview) {
+          // Admin panel, localhost yoki preview avtomatik tasdiqlangan
+          if (clientInfo.type === "admin" || clientInfo.isPreview || isLocalMachine) {
             clientInfo.status = "approved";
             clientInfo.isApproved = true;
+            ws.send(JSON.stringify({
+              type: "DEVICE_APPROVED",
+              data: { isApproved: true }
+            }));
           } else {
             // Tasdiqlangan qurilmalar ro'yxatida bormi?
             if (approvedDevices.includes(clientInfo.deviceId) || approvedDevices.includes(clientIp)) {
