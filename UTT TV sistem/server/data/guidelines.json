@@ -1,0 +1,158 @@
+[
+  {
+    "id": "g_abdomen",
+    "code": "R62, R63, R79, R83",
+    "icon": "🍏",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "Jigar, O't qopi, Oshqozon osti bezi va Taloq UTT (Qorin bo'shlig'i)",
+    "title_ru": "УЗИ Печени, Желчного пузыря, Поджелудочной железы и Селезенки",
+    "title_en": "Abdominal Ultrasound (Liver, Gallbladder, Pancreas, Spleen)",
+    "points": [
+      "Tekshiruvdan kamida 6 soat oldin ovqatlanmaslik (och qoringa kelish) talab etiladi.",
+      "1 kun oldin gaz hosil qiluvchi mahsulotlar (dukkaklilar, xom sabzavot, gazli ichimliklar) yemang.",
+      "Erta tongda ko'p miqdorda suv ichish tavsiya etilmaydi."
+    ],
+    "points_ru": [
+      "Исследование строго натощак (не принимать пищу минимум 6 часов).",
+      "За 1 день исключить газообразующие продукты (бобовые, сырые овощи, газировку).",
+      "Утром перед процедурой не пить много воды."
+    ],
+    "points_en": [
+      "Fasting is mandatory for at least 6 hours prior to the scan.",
+      "Avoid gas-forming foods (beans, raw vegetables, carbonated drinks) 1 day before.",
+      "Do not drink large amounts of water on the morning of the exam."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_thyroid",
+    "code": "R75, R76, R89, R78",
+    "icon": "🩺",
+    "image": "/tv/assets/ultrasound_thyroid.jpg",
+    "video": "",
+    "title": "Qalqonsimon Bez, Sonoelastografiya va Limfa Tugunlar UTT",
+    "title_ru": "УЗИ Щитовидной железы, Соноэластография и Лимфоузлы",
+    "title_en": "Thyroid Gland, Sonoelastography & Lymph Nodes Ultrasound",
+    "points": [
+      "Maxsus och qolish yoki parhez talab etilmaydi.",
+      "Bo'yindagi barcha taqinchoq, zanjir va sharflarni yechib qo'yish kerak.",
+      "Oldingi UTT xulosalari va qon tahlillari (TTG, T3, T4) bo'lsa shifokorga ko'rsating."
+    ],
+    "points_ru": [
+      "Специального голодания или диеты не требуется.",
+      "Снимите с шеи цепочки, украшения и шарфы перед процедурой.",
+      "Возьмите с собой результаты предыдущих УЗИ и анализов (ТТГ, Т3, Т4)."
+    ],
+    "points_en": [
+      "No special fasting or diet is required.",
+      "Remove necklaces, jewelry, and scarves from the neck area.",
+      "Bring prior ultrasound reports and thyroid lab tests if available."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_urinary",
+    "code": "R64, R65, R66, R67, R69, R70, R86",
+    "icon": "💧",
+    "image": "/tv/assets/ultrasound_kidney_bladder.jpg",
+    "video": "",
+    "title": "Buyraklar, Siydik Pufagi, Prostata va Bachadon UTT",
+    "title_ru": "УЗИ Почек, Мочевого пузыря, Простаты и Матки",
+    "title_en": "Kidneys, Bladder, Prostate & Pelvic Ultrasound",
+    "points": [
+      "Tekshiruvdan 1–1.5 soat oldin 1 litr toza gazsiz suv ichish zarur.",
+      "Siydik pufagi to'lgan (peshob qistagan) holatda tekshiruv xonasiga kiring.",
+      "Transrektal (TR UTT) yoki Transvaginal (TV UTT) tekshiruvida shifokor ko'rsatmasiga rioya qiling."
+    ],
+    "points_ru": [
+      "За 1–1.5 часа до процедуры выпейте 1 литр чистой негазированной воды.",
+      "Исследование проводится при наполненном мочевом пузыре.",
+      "При ТРУЗИ или ТВУЗИ следуйте индивидуальным указаниям врача."
+    ],
+    "points_en": [
+      "Drink 1 liter of still water 1–1.5 hours before the appointment.",
+      "The bladder must be comfortably full during the ultrasound examination.",
+      "Follow specific physician instructions for TRUS or TVUS exams."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_breast",
+    "code": "R73, R74, R88, R92",
+    "icon": "🎗️",
+    "image": "/tv/assets/ultrasound_breast.jpg",
+    "video": "",
+    "title": "Sut Bezlari, Qo'ltiq osti Limfa Tugunlari va Elastografiya",
+    "title_ru": "УЗИ Молочных желез, Подмышечных лимфоузлов и Эластография",
+    "title_en": "Breast Ultrasound, Axillary Lymph Nodes & Elastography",
+    "points": [
+      "Tekshiruvni hayz siklining 5–10 kunlarida o'tkazish eng aniq natija beradi.",
+      "Tekshiruv kuni ko'krak va qo'ltiq sohasiga dezodorant yoki krem surtmang.",
+      "Oldingi mammografiya yoki UTT natijalari bo'lsa shifokorga taqdim eting."
+    ],
+    "points_ru": [
+      "Наиболее информативно проводить на 5–10 день менструального цикла.",
+      "В день процедуры не наносите дезодоранты, тальк или кремы на область груди и подмышек.",
+      "Возьмите с собой результаты предыдущих маммографий или УЗИ."
+    ],
+    "points_en": [
+      "Best performed between days 5–10 of the menstrual cycle.",
+      "Do not apply deodorants, powders, or lotions to the breast/axilla area on the exam day.",
+      "Bring prior mammography or ultrasound records for comparison."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_doppler",
+    "code": "R71, R72, R77, R80, R81, R90, R91",
+    "icon": "🩸",
+    "image": "/tv/assets/ultrasound_abdomen.jpg",
+    "video": "",
+    "title": "Doppler Qon Tomirlari, Orbita (Ko'z), Yorgoq va Yumshoq To'qimalar UTT",
+    "title_ru": "Допплерография Сосудов, Глазницы, Органов мошонки и Мягких тканей",
+    "title_en": "Vascular Doppler, Eye Orbit, Scrotum & Soft Tissue Ultrasound",
+    "points": [
+      "Tomirlar va yumshoq to'qimalar uchun maxsus och qolish talab etilmaydi.",
+      "Ko'z olmasi (Orbita) UTT tekshiruvidan oldin kontakt linzalarni yechib qo'ying.",
+      "Qon bosimi yoki tomir dorilarini qabul qilayotgan bo'lsangiz shifokorga xabar bering."
+    ],
+    "points_ru": [
+      "Специального голодания для мягких тканей и сосудов не требуется.",
+      "Перед УЗИ орбиты (глаз) необходимо снять контактные линзы.",
+      "Сообщите врачу, если принимаете сосудистые или гипотензивные препараты."
+    ],
+    "points_en": [
+      "No fasting required for soft tissue and peripheral vascular doppler.",
+      "Remove contact lenses prior to orbital (eye) ultrasound scans.",
+      "Inform the sonographer if you are taking blood pressure or vascular medications."
+    ],
+    "isActive": true
+  },
+  {
+    "id": "g_rentgen",
+    "code": "R96, R110, R111, R112, R113, R114, R115, R116, R117, R118",
+    "icon": "☢️",
+    "image": "/tv/assets/ultrasound_thyroid.jpg",
+    "video": "",
+    "title": "Ko'krak Qafasi, Suyaklar, Umurtqa va Qorin Bo'shlig'i Rentgenografiyasi",
+    "title_ru": "Рентгенография Грудной клетки, Костей, Позвоночника и Брюшной полости",
+    "title_en": "Chest, Bones, Spine & Abdominal Digital Radiography (X-Ray)",
+    "points": [
+      "Rentgen xonasiga kirishda tekshirilayotgan sohadagi kiyim, taqinchoq va tugmalarni yeching.",
+      "Homiladorlik ehtimoli bo'lsa darhol rentgen-laborantga xabar berish shart.",
+      "Suratga olish vaqtida laborant buyrug'i bilan nafasni bir necha soniyaga ushlab turing."
+    ],
+    "points_ru": [
+      "Снимите одежду с металлическими пуговицами и украшения в области исследования.",
+      "Обязательно предупредите рентген-лаборанта при подозрении на беременность.",
+      "Во время снимка задержите дыхание по команде лаборанта."
+    ],
+    "points_en": [
+      "Remove metal objects, buttons, and jewelry from the examination area.",
+      "Inform the radiographer immediately if you are or might be pregnant.",
+      "Hold your breath for a few seconds when instructed by the radiographer."
+    ],
+    "isActive": true
+  }
+]

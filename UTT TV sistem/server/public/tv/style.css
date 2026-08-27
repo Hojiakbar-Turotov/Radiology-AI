@@ -377,43 +377,76 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.info-media-wrap {
+  width: 100%;
+  height: 190px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: #0f172a;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.info-slide-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.info-text-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.info-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .info-service-icon {
-  font-size: 42px;
-  margin-bottom: 8px;
+  font-size: 32px;
+  flex-shrink: 0;
 }
 
 .info-service-title {
-  font-size: 24px;
+  font-size: 19px;
   font-weight: 900;
   color: #0f172a;
-  margin-bottom: 16px;
   line-height: 1.25;
 }
 
 .info-points-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .info-point-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 16.5px;
+  gap: 8px;
+  font-size: 14.5px;
   color: #334155;
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .point-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: #2563eb;
   border-radius: 50%;
-  margin-top: 6px;
+  margin-top: 5px;
   flex-shrink: 0;
 }
 

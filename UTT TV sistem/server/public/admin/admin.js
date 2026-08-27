@@ -1,12 +1,13 @@
 /**
  * UTT TV SISTEM — ADMIN PANEL JAVASCRIPT
- * Masofadan barcha TV monitorlari, tillar, xonalar va ulangan qurilmalarni boshqarish
+ * Masofadan barcha TV monitorlari, tillar, xonalar, ulangan qurilmalar va tekshiruvlar media boshqaruvi
  */
 
 let ws = null;
 let allDoctors = [];
 let allPatients = [];
 let allClients = [];
+let allGuidelines = [];
 let currentSettings = { activeLang: "uz", activeRoomId: "ALL", tickerText: "" };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await fetchDoctors();
   await fetchQueue();
   await fetchClients();
+  await fetchGuidelines();
   initWebSocket();
 });
 
@@ -29,7 +31,6 @@ async function fetchServerInfo() {
       applySettingsToUI(currentSettings);
     }
 
-    // IP manzillarni chizish
     renderNetworkLinks(data.hostIps || [], data.port);
   } catch (err) {
     console.warn("fetchServerInfo error:", err);
@@ -82,10 +83,10 @@ function initWebSocket() {
     setTimeout(initWebSocket, 4000);
   }
 
-  // Backup polling
   setInterval(() => {
     fetchClients();
     fetchQueue();
+    fetchGuidelines();
   }, 5000);
 }
 
@@ -93,12 +94,14 @@ function handleWebSocketMessage(msg) {
   if (msg.type === "INITIAL_STATE") {
     allDoctors = msg.data.doctors || [];
     allPatients = msg.data.queue.patients || [];
+    allGuidelines = msg.data.guidelines || [];
     if (msg.data.settings) {
       currentSettings = msg.data.settings;
       applySettingsToUI(currentSettings);
     }
     renderDoctorsSelect();
     renderPatientsList();
+    renderGuidelinesList();
   } else if (msg.type === "CLIENTS_UPDATED") {
     allClients = msg.data || [];
     renderClientsList(allClients);
@@ -108,6 +111,9 @@ function handleWebSocketMessage(msg) {
   } else if (msg.type === "DOCTORS_UPDATED") {
     allDoctors = msg.data || [];
     renderDoctorsSelect();
+  } else if (msg.type === "GUIDELINES_UPDATED") {
+    allGuidelines = msg.data || [];
+    renderGuidelinesList();
   } else if (msg.type === "TV_CONFIG_CHANGED") {
     currentSettings = { ...currentSettings, ...msg.data };
     applySettingsToUI(currentSettings);
@@ -171,7 +177,6 @@ function renderClientsList(clients) {
 
 // 4. TV MONITORLARINI MASOFADAN BOSHQARISH
 function applySettingsToUI(settings) {
-  // Til tugmalari
   document.querySelectorAll(".btn-lang").forEach(btn => {
     if (btn.dataset.lang === settings.activeLang) {
       btn.classList.add("active");
@@ -180,13 +185,11 @@ function applySettingsToUI(settings) {
     }
   });
 
-  // Xona tanlash
   const roomSelect = document.getElementById("adminRoomSelect");
   if (roomSelect && settings.activeRoomId) {
     roomSelect.value = settings.activeRoomId;
   }
 
-  // Ticker
   const tickerInput = document.getElementById("adminTickerInput");
   if (tickerInput && settings.tickerText && !tickerInput.value) {
     tickerInput.value = settings.tickerText;
@@ -395,6 +398,145 @@ async function clearQueue() {
   }
 }
 
+// =========================================================
+// 7. TEKSHIRUVLAR, RASM VA VIDEO MEDIA BOSHQARUVI (GUIDELINES)
+// =========================================================
+async function fetchGuidelines() {
+  try {
+    const res = await fetch("/api/guidelines");
+    allGuidelines = await res.json();
+    renderGuidelinesList();
+  } catch (e) {}
+}
+
+function renderGuidelinesList() {
+  const listEl = document.getElementById("guidelinesList");
+  const countEl = document.getElementById("guidelinesCount");
+
+  if (countEl) countEl.innerText = allGuidelines.length;
+  if (!listEl) return;
+
+  if (allGuidelines.length === 0) {
+    listEl.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Hozircha tekshiruvlar kiritilmagan</div>`;
+    return;
+  }
+
+  listEl.innerHTML = allGuidelines.map(g => {
+    const pointsCount = (g.points || []).length;
+    const isAct = g.isActive !== false;
+
+    return `
+      <div class="guide-item ${isAct ? '' : 'inactive-guide'}">
+        <div class="guide-item-left">
+          <div class="guide-thumb-wrap">
+            ${g.video ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:18px;">🎬</div>` : `<img class="guide-thumb-img" src="${g.image || '/tv/assets/ultrasound_abdomen.jpg'}" alt="Media">`}
+          </div>
+          <div>
+            <div class="guide-item-title">${g.icon || 'ℹ️'} ${escapeHtml(g.title)}</div>
+            <div class="guide-item-meta">${g.code ? `Kodi: <b>${escapeHtml(g.code)}</b> • ` : ''}${pointsCount} ta qoida • ${g.video ? '🎥 Video' : '🖼️ Rasm'}</div>
+          </div>
+        </div>
+        <div class="guide-item-actions">
+          <button class="btn-sm" onclick="editGuideline('${g.id}')">✏️ Tahrirlash</button>
+          <button class="btn-danger-sm" onclick="deleteGuideline('${g.id}')">🗑️ Ayirish</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleAddGuidelineForm(forceShow) {
+  const form = document.getElementById("adminGuidelineForm");
+  if (!form) return;
+
+  if (forceShow !== undefined) {
+    form.style.display = forceShow ? "flex" : "none";
+  } else {
+    form.style.display = form.style.display === "none" ? "flex" : "none";
+  }
+
+  if (form.style.display === "flex" && !document.getElementById("guideId").value) {
+    document.getElementById("adminGuidelineForm").reset();
+    document.getElementById("guideId").value = "";
+  }
+}
+
+function editGuideline(id) {
+  const g = allGuidelines.find(item => item.id === id);
+  if (!g) return;
+
+  document.getElementById("guideId").value = g.id;
+  document.getElementById("guideCode").value = g.code || "";
+  document.getElementById("guideIcon").value = g.icon || "🍏";
+  document.getElementById("guideTitle").value = g.title || "";
+  document.getElementById("guideImageUrl").value = g.image || "/tv/assets/ultrasound_abdomen.jpg";
+  document.getElementById("guideVideoUrl").value = g.video || "";
+  document.getElementById("guidePoints").value = (g.points || []).join("\n");
+
+  toggleAddGuidelineForm(true);
+  document.getElementById("guideTitle").focus();
+}
+
+async function handleSaveGuideline(e) {
+  e.preventDefault();
+
+  const id = document.getElementById("guideId").value;
+  const code = document.getElementById("guideCode").value.trim();
+  const icon = document.getElementById("guideIcon").value.trim() || "ℹ️";
+  const title = document.getElementById("guideTitle").value.trim();
+  const imageUrl = document.getElementById("guideImageUrl").value.trim();
+  const videoUrl = document.getElementById("guideVideoUrl").value.trim();
+  const pointsRaw = document.getElementById("guidePoints").value.trim();
+
+  const points = pointsRaw.split("\n").map(p => p.trim()).filter(Boolean);
+
+  const payload = {
+    id: id || `g_${Date.now()}`,
+    code: code,
+    icon: icon,
+    title: title,
+    image: imageUrl,
+    video: videoUrl,
+    points: points,
+    isActive: true
+  };
+
+  try {
+    const res = await fetch("/api/guidelines", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById("adminGuidelineForm").reset();
+      document.getElementById("guideId").value = "";
+      toggleAddGuidelineForm(false);
+      await fetchGuidelines();
+    }
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
+}
+
+async function deleteGuideline(id) {
+  if (confirm("Ushbu tekshiruv tayyorgarligi va rasmini TV dan ayirishni (o'chirishni) tasdiqlaysizmi?")) {
+    try {
+      const res = await fetch("/api/guidelines/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: id })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchGuidelines();
+      }
+    } catch (e) {
+      alert("Xatolik: " + e.message);
+    }
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -409,3 +551,7 @@ window.handleAddPatient = handleAddPatient;
 window.callPatient = callPatient;
 window.updatePatientStatus = updatePatientStatus;
 window.clearQueue = clearQueue;
+window.toggleAddGuidelineForm = toggleAddGuidelineForm;
+window.editGuideline = editGuideline;
+window.handleSaveGuideline = handleSaveGuideline;
+window.deleteGuideline = deleteGuideline;

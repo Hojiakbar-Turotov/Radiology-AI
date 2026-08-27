@@ -16,6 +16,7 @@ const ADMIN_DIR = path.join(PUBLIC_DIR, "admin");
 const QUEUE_FILE = path.join(DATA_DIR, "queue.json");
 const DOCTORS_FILE = path.join(DATA_DIR, "doctors.json");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
+const GUIDELINES_FILE = path.join(DATA_DIR, "guidelines.json");
 
 // 1. MA'LUMOTLARNI YUKLASH VA SAQLASH FUNKSIYALARI
 function readJsonFile(filePath, defaultVal) {
@@ -45,6 +46,7 @@ function writeJsonFile(filePath, data) {
 
 let queueData = readJsonFile(QUEUE_FILE, { patients: [], current_announcement: null, history: [] });
 let doctorsData = readJsonFile(DOCTORS_FILE, []);
+let guidelinesData = readJsonFile(GUIDELINES_FILE, []);
 let settingsData = readJsonFile(SETTINGS_FILE, {
   activeLang: "uz",
   activeRoomId: "ALL",
@@ -212,6 +214,63 @@ const server = http.createServer((req, res) => {
       broadcastMessage({ type: "DOCTORS_UPDATED", data: doctorsData });
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ ok: true, doctors: doctorsData }));
+    });
+    return;
+  }
+
+  // E2) TEKSHIRUV TAYYORGARLIKLARI VA MEDIA (GET /api/guidelines)
+  if (pathname === "/api/guidelines" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(guidelinesData));
+  }
+
+  // E3) TEKSHIRUV TAYYORGARLIGINI QO'SHISH / TAHRIRLASH (POST /api/guidelines)
+  if (pathname === "/api/guidelines" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.title) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Tekshiruv sarlavhasi talab etiladi" }));
+      }
+      const existingIdx = guidelinesData.findIndex(g => g.id === body.id);
+      if (existingIdx >= 0) {
+        guidelinesData[existingIdx] = { ...guidelinesData[existingIdx], ...body };
+      } else {
+        const newGuideline = {
+          id: body.id || `g_${Date.now()}`,
+          code: body.code || "",
+          icon: body.icon || "ℹ️",
+          image: body.image || "/tv/assets/ultrasound_abdomen.jpg",
+          video: body.video || "",
+          title: body.title,
+          title_ru: body.title_ru || body.title,
+          title_en: body.title_en || body.title,
+          points: Array.isArray(body.points) ? body.points : (body.points ? body.points.split("\n").filter(Boolean) : []),
+          points_ru: Array.isArray(body.points_ru) ? body.points_ru : [],
+          points_en: Array.isArray(body.points_en) ? body.points_en : [],
+          isActive: body.isActive !== undefined ? body.isActive : true
+        };
+        guidelinesData.push(newGuideline);
+      }
+      writeJsonFile(GUIDELINES_FILE, guidelinesData);
+      broadcastMessage({ type: "GUIDELINES_UPDATED", data: guidelinesData });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, guidelines: guidelinesData }));
+    });
+    return;
+  }
+
+  // E4) TEKSHIRUV TAYYORGARLIGINI O'CHIRISH (POST /api/guidelines/delete)
+  if (pathname === "/api/guidelines/delete" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.id) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "O'chirish uchun ID talab etiladi" }));
+      }
+      guidelinesData = guidelinesData.filter(g => g.id !== body.id);
+      writeJsonFile(GUIDELINES_FILE, guidelinesData);
+      broadcastMessage({ type: "GUIDELINES_UPDATED", data: guidelinesData });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, guidelines: guidelinesData }));
     });
     return;
   }
@@ -528,6 +587,7 @@ if (WebSocketServer) {
       data: {
         queue: queueData,
         doctors: doctorsData,
+        guidelines: guidelinesData,
         settings: settingsData,
         clientId: clientId
       }

@@ -95,6 +95,16 @@ function updateClockAndDate() {
   }
 }
 
+let serverGuidelines = [];
+
+function getActiveSlides() {
+  const activeFromServer = serverGuidelines.filter(g => g.isActive !== false);
+  if (activeFromServer.length > 0) return activeFromServer;
+
+  const dict = I18N[currentLang] || I18N.uz;
+  return dict.guidelines || [];
+}
+
 // 3. TEKSHIRUVLAR HAQIDA MA'LUMOT SLAYDSHOUSI (O'NG TOMON)
 function initGuidelinesSlideshow() {
   currentSlideIdx = 0;
@@ -111,8 +121,7 @@ function initGuidelinesSlideshow() {
 
     if (slideRemainingSec <= 0) {
       slideRemainingSec = SLIDE_DURATION_SEC;
-      const dict = I18N[currentLang] || I18N.uz;
-      const slides = dict.guidelines || [];
+      const slides = getActiveSlides();
       if (slides.length > 0) {
         currentSlideIdx = (currentSlideIdx + 1) % slides.length;
         renderCurrentSlide();
@@ -122,8 +131,7 @@ function initGuidelinesSlideshow() {
 }
 
 function renderCurrentSlide() {
-  const dict = I18N[currentLang] || I18N.uz;
-  const slides = dict.guidelines || [];
+  const slides = getActiveSlides();
   if (slides.length === 0) return;
 
   if (currentSlideIdx >= slides.length) currentSlideIdx = 0;
@@ -134,14 +142,51 @@ function renderCurrentSlide() {
   const titleEl = document.getElementById("infoServiceTitle");
   const pointsEl = document.getElementById("infoPointsList");
   const barEl = document.getElementById("slideProgressBar");
+  const mediaWrap = document.getElementById("infoMediaWrap");
+  const imgEl = document.getElementById("infoSlideImg");
+  const videoEl = document.getElementById("infoSlideVideo");
 
   if (indicator) indicator.innerText = `${currentSlideIdx + 1} / ${slides.length}`;
   if (iconEl) iconEl.innerText = slide.icon || "ℹ️";
-  if (titleEl) titleEl.innerText = slide.title || "Tekshiruv";
+
+  // Tilga moslashtirish
+  let title = slide.title || "Tekshiruv";
+  let points = slide.points || [];
+
+  if (currentLang === "ru") {
+    if (slide.title_ru) title = slide.title_ru;
+    if (slide.points_ru && slide.points_ru.length > 0) points = slide.points_ru;
+  } else if (currentLang === "en") {
+    if (slide.title_en) title = slide.title_en;
+    if (slide.points_en && slide.points_en.length > 0) points = slide.points_en;
+  }
+
+  if (titleEl) titleEl.innerText = title;
   if (barEl) barEl.style.width = "0%";
 
+  // Media (Rasm yoki Video)
+  if (mediaWrap) {
+    if (slide.video) {
+      mediaWrap.style.display = "block";
+      if (videoEl) {
+        videoEl.style.display = "block";
+        videoEl.src = slide.video;
+      }
+      if (imgEl) imgEl.style.display = "none";
+    } else if (slide.image) {
+      mediaWrap.style.display = "block";
+      if (imgEl) {
+        imgEl.style.display = "block";
+        imgEl.src = slide.image;
+      }
+      if (videoEl) videoEl.style.display = "none";
+    } else {
+      mediaWrap.style.display = "none";
+    }
+  }
+
   if (pointsEl) {
-    pointsEl.innerHTML = (slide.points || []).map(pt => `
+    pointsEl.innerHTML = points.map(pt => `
       <div class="info-point-item">
         <span class="point-dot"></span>
         <span>${escapeHtml(pt)}</span>
@@ -160,6 +205,11 @@ async function fetchInitialState() {
       if (infoData.settings.activeRoomId) selectedRoomFilter = infoData.settings.activeRoomId;
     }
 
+    const guideRes = await fetch("/api/guidelines");
+    if (guideRes.ok) {
+      serverGuidelines = await guideRes.json();
+    }
+
     const docRes = await fetch("/api/doctors");
     allDoctors = await docRes.json();
 
@@ -168,6 +218,7 @@ async function fetchInitialState() {
 
     allPatients = qData.patients || [];
     applyLanguage(currentLang);
+    renderCurrentSlide();
 
     if (qData.current_announcement && qData.current_announcement.timestamp > lastAnnouncementTimestamp) {
       lastAnnouncementTimestamp = qData.current_announcement.timestamp;
@@ -247,6 +298,9 @@ function handleWebSocketMessage(msg) {
   } else if (msg.type === "DOCTORS_UPDATED") {
     allDoctors = msg.data || [];
     renderHeaderAndQueueTable();
+  } else if (msg.type === "GUIDELINES_UPDATED") {
+    serverGuidelines = msg.data || [];
+    renderCurrentSlide();
   } else if (msg.type === "CALL_ANNOUNCEMENT") {
     handleCallingAnnouncement(msg.data);
   }

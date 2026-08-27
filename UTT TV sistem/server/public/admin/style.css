@@ -464,3 +464,118 @@ body {
 .btn-act-start { background: #16a34a; color: #ffffff; }
 .btn-act-finish { background: #475569; color: #ffffff; }
 .btn-act-del { background: #dc2626; color: #ffffff; }
+
+/* GUIDELINES & MEDIA MANAGER */
+.guideline-form {
+  background: #0f172a;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.guide-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-group-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group-sm label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.form-textarea {
+  background: #0f172a;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.guide-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.guidelines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.guide-item {
+  background: #0f172a;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guide-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.guide-thumb-wrap {
+  width: 56px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.guide-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guide-item-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.guide-item-meta {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.guide-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

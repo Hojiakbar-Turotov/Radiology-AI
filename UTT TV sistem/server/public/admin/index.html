@@ -141,6 +141,68 @@
           </div>
         </div>
 
+        <!-- 3. TEKSHIRUVLAR HAQIDAGI OYNA (RASM, YOZUV, VIDEO QO'SHISH VA AYIRISH) -->
+        <div class="admin-card">
+          <div class="card-header">
+            <h3>🖼️ TV O'ng Tomoni: Tekshiruvlar, Rasm va Video Boshqaruvi (<span id="guidelinesCount">0</span> ta)</h3>
+            <button class="btn-sm btn-primary" onclick="toggleAddGuidelineForm()">+ Yangi Qo'shish</button>
+          </div>
+
+          <!-- Yangi Tayyorgarlik Qo'shish / Tahrirlash Formasi -->
+          <form id="adminGuidelineForm" onsubmit="handleSaveGuideline(event)" class="guideline-form" style="display: none;">
+            <input type="hidden" id="guideId" value="">
+            
+            <div class="guide-form-row">
+              <div class="form-group-sm">
+                <label>Kodi (masalan: R62, R75):</label>
+                <input type="text" id="guideCode" class="form-input" placeholder="R62, R63">
+              </div>
+              <div class="form-group-sm">
+                <label>Belgisi (Emoji / Ikonka):</label>
+                <input type="text" id="guideIcon" class="form-input" placeholder="🍏" value="🍏">
+              </div>
+            </div>
+
+            <div class="form-group-sm">
+              <label>Tekshiruv Nomi (Sarlavha):</label>
+              <input type="text" id="guideTitle" class="form-input" placeholder="Jigar va O't qopi UTT tekshiruvi" required>
+            </div>
+
+            <div class="guide-form-row">
+              <div class="form-group-sm">
+                <label>Rasm Tanlash / Manzili:</label>
+                <select id="guideImageSelect" class="form-select" onchange="document.getElementById('guideImageUrl').value = this.value">
+                  <option value="/tv/assets/ultrasound_abdomen.jpg">🍏 Qorin Bo'shlig'i UTT Rasmi</option>
+                  <option value="/tv/assets/ultrasound_thyroid.jpg">🩺 Qalqonsimon Bez UTT Rasmi</option>
+                  <option value="/tv/assets/ultrasound_kidney_bladder.jpg">💧 Buyrak va Qovuq UTT Rasmi</option>
+                  <option value="/tv/assets/ultrasound_breast.jpg">🎗️ Sut Bezlari UTT Rasmi</option>
+                  <option value="/tv/assets/ultrasound_xray.jpg">☢️ Rentgen Xonasi Rasmi</option>
+                </select>
+                <input type="text" id="guideImageUrl" class="form-input" style="margin-top: 4px;" placeholder="/tv/assets/ultrasound_abdomen.jpg" value="/tv/assets/ultrasound_abdomen.jpg">
+              </div>
+              <div class="form-group-sm">
+                <label>Video Manzili (Ixtiyoriy):</label>
+                <input type="text" id="guideVideoUrl" class="form-input" placeholder="http://... yoki video.mp4">
+              </div>
+            </div>
+
+            <div class="form-group-sm">
+              <label>Tayyorgarlik Qoidalari (Har bir qator 1 ta punkt bo'ladi):</label>
+              <textarea id="guidePoints" class="form-textarea" rows="3" placeholder="Kamida 6 soat oldin ovqatlanmaslik shart&#10;1 kun oldin gaz hosil qiluvchi taomlar yemang&#10;Ertalab ko'p suv ichmang" required></textarea>
+            </div>
+
+            <div class="guide-form-actions">
+              <button type="submit" class="btn-success">💾 Saqlash va TV ga Yuborish</button>
+              <button type="button" class="btn-sm" onclick="toggleAddGuidelineForm()">Bekor qilish</button>
+            </div>
+          </form>
+
+          <!-- Mavjud Tayyorgarliklar Ro'yxati -->
+          <div class="guidelines-list" id="guidelinesList">
+            <!-- Dinamik chiziladi -->
+          </div>
+        </div>
+
       </div>
 
     </div>
