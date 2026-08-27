@@ -1,5 +1,5 @@
 /**
- * UTT TV SISTEM — TV DISPLAY LOGIC (100% Toza Monitor, Masofadan Admin Paneldan Boshqariladi)
+ * UTT TV SISTEM — TV DISPLAY LOGIC (Split: Chapda Navbat, O'ngda Tekshiruv Ma'lumoti)
  * 100% Offline (WebSocket + Audio Chime + Multi-language Voice Synthesis)
  */
 
@@ -13,9 +13,16 @@ let audioContext = null;
 let activeCallTimer = null;
 let ws = null;
 
+// SLAYDSHOU O'ZGARUVCHILARI
+let currentSlideIdx = 0;
+let slideProgressTimer = null;
+const SLIDE_DURATION_SEC = 18; // Har bir ma'lumot 18 soniya turadi
+let slideRemainingSec = SLIDE_DURATION_SEC;
+
 document.addEventListener("DOMContentLoaded", () => {
   initClockAndDate();
   initAudio();
+  initGuidelinesSlideshow();
   fetchInitialState();
   initWebSocket();
   initRemoteKeys();
@@ -28,18 +35,17 @@ function applyLanguage(lang) {
   currentLang = lang;
   const dict = I18N[lang] || I18N.uz;
 
-  // Jadval sarlavhalari
   const thNum = document.getElementById("thNum");
   const thName = document.getElementById("thName");
-  const thRoom = document.getElementById("thRoom");
   const thStatus = document.getElementById("thStatus");
 
   if (thNum) thNum.innerText = dict.thNum;
   if (thName) thName.innerText = dict.thName;
-  if (thRoom) thRoom.innerText = dict.thRoom;
   if (thStatus) thStatus.innerText = dict.thStatus;
 
-  // Modal oynasi
+  const infoHeader = document.getElementById("infoBoxHeader");
+  if (infoHeader && dict.infoBoxHeader) infoHeader.innerText = dict.infoBoxHeader;
+
   const mTitle = document.getElementById("audioModalTitle");
   const mText = document.getElementById("audioModalText");
   const mBtn = document.getElementById("audioModalBtn");
@@ -48,15 +54,14 @@ function applyLanguage(lang) {
   if (mText) mText.innerHTML = dict.audioModalText;
   if (mBtn) mBtn.innerText = dict.audioModalBtn;
 
-  // Pastki yuguruvchi satr
   const ticker = document.getElementById("bottomMarqueeText");
   if (ticker) ticker.innerText = dict.ticker;
 
-  // Chaqiruv kartasi badge
   const heroBadge = document.getElementById("heroCallBadgeText");
   if (heroBadge) heroBadge.innerText = dict.nowCalling;
 
   renderHeaderAndQueueTable();
+  renderCurrentSlide();
   updateClockAndDate();
 }
 
@@ -90,7 +95,62 @@ function updateClockAndDate() {
   }
 }
 
-// 3. BOSHLANG'ICH MA'LUMOTLARNI YUKLASH
+// 3. TEKSHIRUVLAR HAQIDA MA'LUMOT SLAYDSHOUSI (O'NG TOMON)
+function initGuidelinesSlideshow() {
+  currentSlideIdx = 0;
+  slideRemainingSec = SLIDE_DURATION_SEC;
+  renderCurrentSlide();
+
+  if (slideProgressTimer) clearInterval(slideProgressTimer);
+
+  slideProgressTimer = setInterval(() => {
+    slideRemainingSec--;
+    const progressPercent = ((SLIDE_DURATION_SEC - slideRemainingSec) / SLIDE_DURATION_SEC) * 100;
+    const barEl = document.getElementById("slideProgressBar");
+    if (barEl) barEl.style.width = `${progressPercent}%`;
+
+    if (slideRemainingSec <= 0) {
+      slideRemainingSec = SLIDE_DURATION_SEC;
+      const dict = I18N[currentLang] || I18N.uz;
+      const slides = dict.guidelines || [];
+      if (slides.length > 0) {
+        currentSlideIdx = (currentSlideIdx + 1) % slides.length;
+        renderCurrentSlide();
+      }
+    }
+  }, 1000);
+}
+
+function renderCurrentSlide() {
+  const dict = I18N[currentLang] || I18N.uz;
+  const slides = dict.guidelines || [];
+  if (slides.length === 0) return;
+
+  if (currentSlideIdx >= slides.length) currentSlideIdx = 0;
+  const slide = slides[currentSlideIdx];
+
+  const indicator = document.getElementById("slideIndicator");
+  const iconEl = document.getElementById("infoServiceIcon");
+  const titleEl = document.getElementById("infoServiceTitle");
+  const pointsEl = document.getElementById("infoPointsList");
+  const barEl = document.getElementById("slideProgressBar");
+
+  if (indicator) indicator.innerText = `${currentSlideIdx + 1} / ${slides.length}`;
+  if (iconEl) iconEl.innerText = slide.icon || "ℹ️";
+  if (titleEl) titleEl.innerText = slide.title || "Tekshiruv";
+  if (barEl) barEl.style.width = "0%";
+
+  if (pointsEl) {
+    pointsEl.innerHTML = (slide.points || []).map(pt => `
+      <div class="info-point-item">
+        <span class="point-dot"></span>
+        <span>${escapeHtml(pt)}</span>
+      </div>
+    `).join("");
+  }
+}
+
+// 4. BOSHLANG'ICH MA'LUMOTLARNI YUKLASH
 async function fetchInitialState() {
   try {
     const infoRes = await fetch("/api/info");
@@ -118,7 +178,7 @@ async function fetchInitialState() {
   }
 }
 
-// 4. WEBSOCKET SYNC VA CLIENT IDENTIFY
+// 5. WEBSOCKET SYNC
 function initWebSocket() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${location.host}`;
@@ -128,7 +188,6 @@ function initWebSocket() {
 
     ws.onopen = () => {
       console.log("✅ TV WebSocket serverga ulandi");
-      // O'zini TV qurilmasi sifatida tanishtirish
       ws.send(JSON.stringify({
         type: "CLIENT_IDENTIFY",
         data: {
@@ -171,7 +230,6 @@ function handleWebSocketMessage(msg) {
     }
     applyLanguage(currentLang);
   } else if (msg.type === "TV_CONFIG_CHANGED") {
-    // Admin paneldan kelgan masofaviy boshqaruv buyrug'i
     if (msg.data.activeLang && msg.data.activeLang !== currentLang) {
       applyLanguage(msg.data.activeLang);
     }
@@ -194,7 +252,7 @@ function handleWebSocketMessage(msg) {
   }
 }
 
-// 5. SARLAVHA VA JADVALNI CHIZISH
+// 6. SARLAVHA VA JADVALNI CHIZISH (3 TA USTUN: №, BEMOR F.I.SH, HOLATI)
 function renderHeaderAndQueueTable() {
   const dict = I18N[currentLang] || I18N.uz;
   const headerTitle = document.getElementById("mainHeaderRoomTitle");
@@ -214,7 +272,7 @@ function renderHeaderAndQueueTable() {
       doctorSub.innerText = `${firstDoc.specialty.toUpperCase()} -- ${firstDoc.name}`;
     } else {
       headerTitle.innerText = "UTT8-48 XONA";
-      doctorSub.innerText = "ULTRATOVUSH --5 Xoshimova Lola Kabulova";
+      doctorSub.innerText = "ULTRATOVUSH --5 -- Xoshimova Lola Kabulova";
     }
   }
 
@@ -228,7 +286,7 @@ function renderHeaderAndQueueTable() {
   if (patientsToShow.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" style="text-align: center; padding: 40px; color: #64748b; font-size: 20px;">
+        <td colspan="3" style="text-align: center; padding: 40px; color: #64748b; font-size: 18px;">
           ${dict.emptyQueue}
         </td>
       </tr>
@@ -260,10 +318,6 @@ function renderHeaderAndQueueTable() {
           <div class="patient-name-text">${escapeHtml(p.patientName)}</div>
           <div class="patient-sub-service">${escapeHtml(p.service || 'Ko\'rik')} ${p.isContrast ? '<b style="color:#ef4444;">(KONTRAST)</b>' : ''}</div>
         </td>
-        <td>
-          <div class="room-badge-pill">${escapeHtml(p.room || 'Qabul xonasi')}</div>
-          <div style="font-size: 13px; color: #64748b; margin-top: 3px;">${escapeHtml(p.doctorName || '')}</div>
-        </td>
         <td style="text-align: center;">
           <span class="status-badge ${statusClass}">${statusText}</span>
         </td>
@@ -272,7 +326,7 @@ function renderHeaderAndQueueTable() {
   }).join("");
 }
 
-// 6. CHAQIRUV E'LONI VA OVOZLI O'QISH
+// 7. CHAQIRUV E'LONI VA OVOZLI O'QISH
 function handleCallingAnnouncement(data) {
   if (!data || !data.patientName) return;
 
@@ -296,12 +350,8 @@ function handleCallingAnnouncement(data) {
     heroCard.classList.add("active-pulse");
   }
 
-  // 1. Audio Gong (Ding-Dong)
   playChime();
-
-  // 2. Tanlangan tildagi ovozli e'lon
   speakMultilingualAnnouncement(data, currentLang);
-
   renderHeaderAndQueueTable();
 
   if (activeCallTimer) clearTimeout(activeCallTimer);
@@ -310,7 +360,7 @@ function handleCallingAnnouncement(data) {
   }, 35000);
 }
 
-// 7. AUDIO CHIME (100% OFFLINE)
+// 8. AUDIO CHIME (100% OFFLINE)
 function initAudio() {
   document.addEventListener("click", unlockAudio, { once: true });
 }
@@ -364,7 +414,7 @@ function playTone(ctx, freq, startTime, duration) {
   osc.stop(startTime + duration);
 }
 
-// 8. 6 TA TILDA OVOZLI E'LON (TTS)
+// 9. 6 TA TILDA OVOZLI E'LON
 function speakMultilingualAnnouncement(data, lang) {
   if (!('speechSynthesis' in window)) return;
 
@@ -401,7 +451,7 @@ function speakMultilingualAnnouncement(data, lang) {
   }, 1100);
 }
 
-// 9. TV REMOTE PULT
+// 10. TV REMOTE KEYS
 function initRemoteKeys() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.keyCode === 13) {

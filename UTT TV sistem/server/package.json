@@ -4,7 +4,8 @@
   "description": "UTT TV System - 100% Lokal Tarmoq (LAN) Realtime Serveri",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "radiology",

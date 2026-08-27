@@ -24,7 +24,7 @@
 
       <div class="top-center">
         <h1 class="main-room-title" id="mainHeaderRoomTitle">UTT8-48 XONA</h1>
-        <div class="doctor-sub-title" id="mainHeaderDoctorSub">ULTRATOVUSH --5 Xoshimova Lola Kabulova</div>
+        <div class="doctor-sub-title" id="mainHeaderDoctorSub">ULTRATOVUSH --5 -- Xoshimova Lola Kabulova</div>
       </div>
 
       <div class="top-right">
@@ -47,22 +47,50 @@
       </div>
     </section>
 
-    <!-- PATIENT QUEUE TABLE -->
-    <main class="tv-main-table-wrap">
-      <table class="queue-table">
-        <thead>
-          <tr>
-            <th style="width: 8%; text-align: center;" id="thNum">№</th>
-            <th style="width: 47%;" id="thName">BEMOR FAMILIYA VA ISMI</th>
-            <th style="width: 25%;" id="thRoom">XONA / QURILMA</th>
-            <th style="width: 20%; text-align: center;" id="thStatus">HOLATI</th>
-          </tr>
-        </thead>
-        <tbody id="queueTableBody">
-          <!-- Dinamik chiziladi -->
-        </tbody>
-      </table>
-    </main>
+    <!-- SPLIT CONTENT: CHAPDA NAVBAT JADVALI | O'NGDA TEKSHIRUV MA'LUMOTLARI -->
+    <div class="tv-split-container">
+      
+      <!-- CHAP TOMON: NAVBAT JADVALI (3 ta ustun: №, BEMOR F.I.SH, HOLATI) -->
+      <main class="tv-queue-col">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th style="width: 12%; text-align: center;" id="thNum">№</th>
+              <th style="width: 63%;" id="thName">BEMOR FAMILIYA VA ISMI</th>
+              <th style="width: 25%; text-align: center;" id="thStatus">HOLATI</th>
+            </tr>
+          </thead>
+          <tbody id="queueTableBody">
+            <!-- Dinamik chiziladi -->
+          </tbody>
+        </table>
+      </main>
+
+      <!-- O'NG TOMON: TEKSHIRUVLAR HAQIDA MA'LUMOT (TAYYORGARLIK SLAYDSHOUSI) -->
+      <aside class="tv-info-col">
+        <div class="info-card-box">
+          <div class="info-card-header">
+            <div class="info-header-title" id="infoBoxHeader">ℹ️ TEKSHIRUVGA TAYYORGARLIK</div>
+            <div class="slide-indicator" id="slideIndicator">1 / 5</div>
+          </div>
+
+          <div class="info-card-body" id="infoCardBody">
+            <div class="info-service-icon" id="infoServiceIcon">🍏</div>
+            <h3 class="info-service-title" id="infoServiceTitle">Qorin Bo'shlig'i UTT Tekshiruvi</h3>
+            
+            <div class="info-points-list" id="infoPointsList">
+              <!-- Dinamik chiziladi -->
+            </div>
+          </div>
+
+          <!-- SLIDE PROGRESS BAR -->
+          <div class="slide-progress-track">
+            <div class="slide-progress-bar" id="slideProgressBar"></div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
 
     <!-- BLUE BOTTOM RUNNING FOOTER -->
     <footer class="tv-bottom-bar">

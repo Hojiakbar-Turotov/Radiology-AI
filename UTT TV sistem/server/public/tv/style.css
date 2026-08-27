@@ -1,5 +1,5 @@
 /**
- * UTT TV SISTEM — TV DISPLAY STYLES (Light & Clean Medical Theme)
+ * UTT TV SISTEM — TV DISPLAY STYLES (Split: Chapda Navbat, O'ngda Ma'lumot)
  * 100% Offline (Hech qanday tashqi internetga ulanmasdan ishlaydi)
  */
 
@@ -50,87 +50,33 @@ body {
   border-bottom: 3px solid #bfdbfe;
   padding: 12px 24px;
   display: grid;
-  grid-template-columns: 260px 1fr 260px;
+  grid-template-columns: 80px 1fr 260px;
   align-items: center;
   box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);
   flex-shrink: 0;
 }
 
-/* Left */
 .top-left {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.top-left-row {
-  display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .hospital-icon-wrap {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   background: #fee2e2;
   border: 2px solid #fca5a5;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .med-cross-icon {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
 }
 
-.lang-selector-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.lang-btn {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  font-size: 11.5px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.lang-btn:hover {
-  background: #e2e8f0;
-}
-
-.lang-btn.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #1d4ed8;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
-}
-
-.room-selector-inline {
-  margin-bottom: 4px;
-}
-
-.room-select-dropdown {
-  background: #ffffff;
-  border: 1.5px solid #93c5fd;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e3a8a;
-  cursor: pointer;
-}
-
-/* Center */
 .top-center {
   text-align: center;
 }
@@ -153,7 +99,6 @@ body {
   margin-top: 4px;
 }
 
-/* Right */
 .top-right {
   text-align: right;
 }
@@ -191,12 +136,10 @@ body {
   background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   border: 3px solid #fbbf24;
   border-radius: 18px;
-  padding: 18px 24px;
+  padding: 16px 24px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(30, 58, 138, 0.35);
   color: #ffffff;
-  position: relative;
-  overflow: hidden;
 }
 
 .hero-call-badge {
@@ -210,7 +153,7 @@ body {
   letter-spacing: 1.5px;
   padding: 5px 18px;
   border-radius: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   animation: pulseCall 1.2s infinite;
 }
 
@@ -220,13 +163,12 @@ body {
 }
 
 .hero-patient-name {
-  font-size: 46px;
+  font-size: 44px;
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  margin-bottom: 6px;
 }
 
 .hero-dest-details {
@@ -238,28 +180,37 @@ body {
 .dest-room-badge {
   background: #facc15;
   color: #000000;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
-  padding: 4px 16px;
-  border-radius: 10px;
+  padding: 4px 14px;
+  border-radius: 8px;
 }
 
 .dest-doc-badge {
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
-  padding: 4px 16px;
-  border-radius: 10px;
+  padding: 4px 14px;
+  border-radius: 8px;
 }
 
 /* =========================================================
-   3. PATIENT QUEUE TABLE
+   3. SPLIT CONTAINER (CHAPDA NAVBAT | O'NGDA MA'LUMOT)
 ========================================================= */
-.tv-main-table-wrap {
+.tv-split-container {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
   flex: 1;
   padding: 16px 24px;
+  overflow: hidden;
+}
+
+/* CHAP: NAVBAT JADVALI */
+.tv-queue-col {
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .queue-table {
@@ -271,9 +222,9 @@ body {
 .queue-table thead th {
   background: #e2e8f0;
   color: #334155;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
-  padding: 12px 16px;
+  padding: 12px 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: none;
@@ -301,7 +252,7 @@ body {
 }
 
 .queue-table tbody td {
-  padding: 16px 18px;
+  padding: 16px 16px;
   font-size: 20px;
   font-weight: 700;
   color: #1e293b;
@@ -335,36 +286,28 @@ body {
 }
 
 .patient-name-text {
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 900;
   color: #0f172a;
   text-transform: uppercase;
+  line-height: 1.25;
 }
 
 .patient-sub-service {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #64748b;
   font-weight: 600;
-  margin-top: 2px;
-}
-
-.room-badge-pill {
-  display: inline-block;
-  background: #e0f2fe;
-  color: #0369a1;
-  font-size: 16px;
-  font-weight: 800;
-  padding: 6px 14px;
-  border-radius: 10px;
+  margin-top: 3px;
 }
 
 .status-badge {
   display: inline-block;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 20px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .status-badge.calling {
@@ -382,6 +325,114 @@ body {
   background: #f1f5f9;
   color: #475569;
   border: 1px solid #cbd5e1;
+}
+
+/* O'NG: TEKSHIRUVLAR HAQIDA MA'LUMOT (INFO CARD) */
+.tv-info-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card-box {
+  background: #ffffff;
+  border: 2.5px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.info-header-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #1e40af;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.slide-indicator {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.info-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-service-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+.info-service-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.info-points-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-point-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 16.5px;
+  color: #334155;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.point-dot {
+  width: 10px;
+  height: 10px;
+  background: #2563eb;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+/* SLIDE PROGRESS TRACK */
+.slide-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 18px;
+}
+
+.slide-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8 0%, #2563eb 100%);
+  border-radius: 6px;
+  transition: width 1s linear;
 }
 
 /* =========================================================
