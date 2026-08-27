@@ -309,7 +309,7 @@ function renderPendingDevicesList(pendingList) {
   card.style.display = "block";
   listEl.innerHTML = pendingList.map(dev => {
     const isDoc = dev.type === "extension" || dev.doctorName;
-    const docName = dev.doctorName || dev.name;
+    const docName = dev.doctorName || dev.name || "";
 
     return `
       <div class="device-item" style="border-color:#eab308; background:#292524; flex-direction:column; gap:10px;">
@@ -322,8 +322,8 @@ function renderPendingDevicesList(pendingList) {
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn-success" style="padding:6px 12px; font-size:12px;" onclick="approveDevice('${dev.id}', '${escapeHtml(docName)}')">✅ Ruxsat Berish</button>
-            <button class="btn-danger-sm" style="padding:6px 10px; font-size:12px;" onclick="rejectDevice('${dev.id}')">🚫 Rad Etish</button>
+            <button class="btn-success" style="padding:6px 12px; font-size:12px;" data-client-id="${escapeHtml(dev.id)}" data-doc-name="${escapeHtml(docName)}" onclick="approveDeviceFromBtn(this)">✅ Ruxsat Berish</button>
+            <button class="btn-danger-sm" style="padding:6px 10px; font-size:12px;" data-client-id="${escapeHtml(dev.id)}" onclick="rejectDeviceFromBtn(this)">🚫 Rad Etish</button>
           </div>
         </div>
 
@@ -339,6 +339,17 @@ function renderPendingDevicesList(pendingList) {
       </div>
     `;
   }).join("");
+}
+
+async function approveDeviceFromBtn(btn) {
+  const clientId = btn.dataset.clientId;
+  const doctorName = btn.dataset.docName || "";
+  await approveDevice(clientId, doctorName);
+}
+
+async function rejectDeviceFromBtn(btn) {
+  const clientId = btn.dataset.clientId;
+  await rejectDevice(clientId);
 }
 
 async function approveDevice(clientId, doctorName = "") {
@@ -361,6 +372,26 @@ async function approveDevice(clientId, doctorName = "") {
     }
   } catch (err) {
     alert("Xatolik: " + err.message);
+  }
+}
+
+async function rejectDevice(clientId) {
+  if (confirm("Ushbu qurilmaning ulanish so'rovini rad etasizmi?")) {
+    try {
+      const res = await fetch("/api/devices/reject", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: clientId })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        allClients = data.clients || [];
+        renderClientsListSmart(allClients, true);
+        renderPendingDevicesList(data.pending || []);
+      }
+    } catch (err) {
+      alert("Xatolik: " + err.message);
+    }
   }
 }
 
