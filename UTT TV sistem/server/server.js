@@ -670,7 +670,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // G2) BEMORLARNI RO'YXATGA OLINGAN VAQTI BO'YICHA AVTOMATIK SINXRONIZATSIYA (POST /api/queue/sync)
+  // G2) BEMORLARNI RO'YXATGA OLINGAN VAQTI BO'YICHA TO'G'RIDAN-TO'G'RI SINXRONIZATSIYA (POST /api/queue/sync)
   if (pathname === "/api/queue/sync" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || !Array.isArray(body.patients)) {
@@ -681,57 +681,41 @@ const server = http.createServer((req, res) => {
       const scannedPatients = body.patients;
       const targetDoctorId = body.doctorId;
 
-      scannedPatients.forEach(sp => {
-        let existing = queueData.patients.find(p => (sp.patientId && p.patientId === sp.patientId) || (sp.patientName && p.patientName.toLowerCase() === sp.patientName.toLowerCase()));
+      // XOTIRADA ESKI BEMORLAR SAQLANMAYDI: TO'G'RIDAN-TO'G'RI FAQAT EKSTENSHNDAGI BEMORLAR TV GA CHIQAREDILADI
+      queueData.patients = scannedPatients.map((sp, idx) => {
+        const doc = doctorsData.find(d => d.id === sp.doctorId) || (targetDoctorId ? doctorsData.find(d => d.id === targetDoctorId) : null) || {
+          id: sp.doctorId || "vrach_utt_1",
+          name: sp.doctorName || "Juravlev Igor Ivanovich",
+          room: sp.room || "UTT 1 - 53 XONA"
+        };
 
-        if (existing) {
-          existing.patientName = sp.patientName || existing.patientName;
-          existing.registeredAtStr = sp.registeredAtStr || existing.registeredAtStr;
-          if (sp.registeredAtTimestamp) existing.registeredAtTimestamp = sp.registeredAtTimestamp;
-          if (sp.service) existing.service = sp.service;
-          if (sp.pinfl) existing.pinfl = sp.pinfl;
-          if (sp.birthDate) existing.birthDate = sp.birthDate;
-          if (sp.department) existing.department = sp.department;
-          if (sp.doctorId) existing.doctorId = sp.doctorId;
-          if (sp.doctorName) existing.doctorName = sp.doctorName;
-          if (sp.room) existing.room = sp.room;
-        } else {
-          const doc = doctorsData.find(d => d.id === sp.doctorId) || (targetDoctorId ? doctorsData.find(d => d.id === targetDoctorId) : null) || {
-            id: sp.doctorId || "vrach_utt_1",
-            name: sp.doctorName || "Juravlev Igor Ivanovich",
-            room: sp.room || "UTT 1 - 53 XONA"
-          };
-
-          const newPatient = {
-            id: sp.id || `pat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            patientId: sp.patientId || "",
-            patientName: (sp.patientName || "").trim(),
-            pinfl: sp.pinfl || "",
-            birthDate: sp.birthDate || "",
-            department: sp.department || "",
-            service: sp.service || "Ultratovush (UTT)",
-            registeredAtStr: sp.registeredAtStr || "",
-            registeredAtTimestamp: sp.registeredAtTimestamp || Date.now(),
-            doctorId: doc.id,
-            doctorName: doc.name,
-            room: doc.room,
-            isContrast: !!sp.isContrast,
-            status: sp.status || "waiting",
-            createdAt: Date.now(),
-            createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
-          };
-          queueData.patients.push(newPatient);
-        }
+        return {
+          id: sp.id || `pat_${idx}_${Date.now()}`,
+          patientId: sp.patientId || "",
+          patientName: (sp.patientName || "").trim(),
+          pinfl: sp.pinfl || "",
+          birthDate: sp.birthDate || "",
+          department: sp.department || "",
+          service: sp.service || "Ultratovush (UTT)",
+          registeredAtStr: sp.registeredAtStr || "",
+          registeredAtTimestamp: sp.registeredAtTimestamp || Date.now(),
+          doctorId: doc.id,
+          doctorName: doc.name,
+          room: doc.room,
+          isContrast: !!sp.isContrast,
+          status: (queueData.current_announcement && queueData.current_announcement.patientName && queueData.current_announcement.patientName.toLowerCase() === (sp.patientName || '').toLowerCase()) ? "calling" : (sp.status || "waiting"),
+          orderNumber: idx + 1,
+          createdAt: Date.now(),
+          createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
+        };
       });
 
-      // RO'YXATGA OLINGAN VAQTI (REGISTRATION TIME) BO'YICHA XRONOLOGIK TARTIBLASH
+      // RO'YXATGA OLINGAN VAQTI (REGISTRATION TIME) BO'YICHA TARTIBLASH
       queueData.patients.sort((a, b) => (a.registeredAtTimestamp || a.createdAt || 0) - (b.registeredAtTimestamp || b.createdAt || 0));
       queueData.patients.forEach((p, idx) => { p.orderNumber = idx + 1; });
 
       writeJsonFile(QUEUE_FILE, queueData);
       broadcastMessage({ type: "QUEUE_UPDATED", data: queueData });
-
-      console.log(`🔄 Karmed'dan ${scannedPatients.length} ta bemor vaqti bo'yicha navbatga sinxronlandi`);
 
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ ok: true, total: queueData.patients.length, patients: queueData.patients }));

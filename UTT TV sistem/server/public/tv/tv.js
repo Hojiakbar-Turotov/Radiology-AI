@@ -379,8 +379,9 @@ function renderHeaderAndQueueTable() {
   if (patientsToShow.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="3" style="text-align: center; padding: 40px; color: #64748b; font-size: 18px;">
-          ${dict.emptyQueue}
+        <td colspan="3" style="text-align: center; padding: 60px 20px; color: #94a3b8; font-size: 20px; font-weight: 700;">
+          <div style="font-size: 36px; margin-bottom: 12px; animation: pulse 2s infinite;">⏳</div>
+          Kengaytma ulanishi va bemorlar ro'yxati kutilmoqda...
         </td>
       </tr>
     `;
