@@ -31,6 +31,7 @@ let filteredData = {
 
 let chartDoctorsInstance = null;
 let chartServicesInstance = null;
+let db = null;
 
 // DOM Elementlari
 let elFilterStartDate, elFilterEndDate, elFilterDoctor, elFilterDepartment, elFilterSearch;
@@ -45,8 +46,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initLiveClock();
   setupFilterEventListeners();
   setupTabNavigation();
-  initDatePresets("today");
-  await fetchAllReportsFromFirebase();
+  initDatePresets("all"); // Barcha ma'lumotlar darhol ko'rinishi uchun
+  initFirebaseRealtime();
 });
 
 function initDOMElements() {
@@ -103,7 +104,7 @@ function initLiveClock() {
 }
 
 // 3. SANA PRESETLARI
-function initDatePresets(presetName = "today") {
+function initDatePresets(presetName = "all") {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -128,9 +129,9 @@ function initDatePresets(presetName = "today") {
     elFilterStartDate.value = monStr;
     elFilterEndDate.value = todayStr;
   } else if (presetName === "thisMonth") {
-    const firstDayStr = `${yyyy}-${mm}-01`;
-    elFilterStartDate.value = firstDayStr;
-    elFilterEndDate.value = todayStr;
+    const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
+    elFilterStartDate.value = `${yyyy}-${mm}-01`;
+    elFilterEndDate.value = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
   } else if (presetName === "all") {
     elFilterStartDate.value = "";
     elFilterEndDate.value = "";
@@ -181,9 +182,39 @@ function setupTabNavigation() {
   });
 }
 
-// 4. FIREBASE-DAN BARCHA HISOBOTLARNI YUKLASH
+// 4. FIREBASE REALTIME LISTENER & FETCH
+function initFirebaseRealtime() {
+  try {
+    if (typeof firebase !== "undefined") {
+      if (!firebase.apps.length) {
+        firebase.initializeApp({
+          databaseURL: FIREBASE_DB_URL
+        });
+      }
+      db = firebase.database();
+      
+      // Jonli tinglovchi (Realtime Listener)
+      db.ref("accountant_reports").on("value", (snapshot) => {
+        const data = snapshot.val();
+        allFirebaseReports = data || {};
+        populateDoctorDropdown(allFirebaseReports);
+        applyFiltersAndRender();
+
+        const dateCount = Object.keys(allFirebaseReports).length;
+        elDataStatusInfo.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> Jonli ulanish faol (${dateCount} kunlik ma'lumotlar mavjud)`;
+      });
+      return;
+    }
+  } catch (e) {
+    console.warn("Firebase SDK realtime init fallback to fetch:", e);
+  }
+
+  // Fallback to fetch
+  fetchAllReportsFromFirebase();
+}
+
 async function fetchAllReportsFromFirebase() {
-  elDataStatusInfo.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Firebase-dan ma'lumotlar yuklanmoqda...`;
+  elDataStatusInfo.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Firebase-dan yangilanmoqda...`;
 
   try {
     const res = await fetch(`${FIREBASE_DB_URL}/accountant_reports.json`);
@@ -201,8 +232,6 @@ async function fetchAllReportsFromFirebase() {
   } catch (err) {
     console.error("fetchAllReportsFromFirebase error:", err);
     elDataStatusInfo.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Xatolik: ${err.message}</span>`;
-    
-    // Agar Firebase bo'sh bo'lsa yoki test uchun
     applyFiltersAndRender();
   }
 }
@@ -218,6 +247,11 @@ function populateDoctorDropdown(reportsData) {
         Object.values(dateReports).forEach(rep => {
           if (rep && rep.doctorName && rep.doctorName !== "Barcha Shifokorlar") {
             docSet.add(rep.doctorName);
+          }
+          if (rep && Array.isArray(rep.patientsList)) {
+            rep.patientsList.forEach(p => {
+              if (p && p.doctorName) docSet.add(p.doctorName);
+            });
           }
         });
       }
@@ -250,11 +284,11 @@ function applyFiltersAndRender() {
   const globalCodesMap = {};
   const seenPatientsMap = new Set();
 
-  if (allFirebaseReports) {
+  if (allFirebaseReports && typeof allFirebaseReports === "object") {
     const dateKeys = Object.keys(allFirebaseReports);
 
     for (const dKey of dateKeys) {
-      // Sana filtri (YYYY-MM-DD taqqoslash)
+      // Sana filtri (agar tanlangan bo'lsa)
       if (startDate && dKey < startDate) continue;
       if (endDate && dKey > endDate) continue;
 
@@ -272,9 +306,15 @@ function applyFiltersAndRender() {
         }
 
         rep.patientsList.forEach(pat => {
-          // Bemorning o'z shifokorini tekshirish (agar umumiy skanerlangan bo'lsa)
+          // Bemorning o'z shifokorini tekshirish
           if (selDoc !== "ALL" && pat.doctorName && !isDoctorMatch(pat.doctorName, selDoc)) {
             return;
+          }
+
+          // Bemorning o'z tasdiqlangan sanasi bo'yicha ham tekshirish (agar oraliq bo'lsa)
+          if (pat.confirmDateNorm) {
+            if (startDate && pat.confirmDateNorm < startDate) return;
+            if (endDate && pat.confirmDateNorm > endDate) return;
           }
 
           // Bo'lim filtri
@@ -382,7 +422,10 @@ function renderKPIs(kpis) {
 
   const ratio = kpis.totalPatients > 0 ? (kpis.totalServices / kpis.totalPatients).toFixed(1) : "0";
   elKpiServicesSub.textContent = `O'rtacha 1 bemorga: ${ratio} ta tekshiruv`;
-  elKpiPatientsSub.textContent = `${elFilterStartDate.value || 'Barcha'} — ${elFilterEndDate.value || 'Barcha'}`;
+  
+  const startLabel = elFilterStartDate.value || 'Boshidan';
+  const endLabel = elFilterEndDate.value || 'Hozirgacha';
+  elKpiPatientsSub.textContent = (startLabel === 'Boshidan' && endLabel === 'Hozirgacha') ? 'Barcha davr' : `${startLabel} — ${endLabel}`;
 
   elBadgePatientsCount.textContent = kpis.totalPatients;
   elBadgeCodesCount.textContent = kpis.uniqueCodes;

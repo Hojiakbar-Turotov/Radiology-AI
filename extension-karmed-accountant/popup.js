@@ -5,7 +5,8 @@
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 
 // DOM Elementlari
-let elReportDate, elBtnDateToday, elBtnDateYesterday;
+let elReportStartDate, elReportEndDate;
+let elBtnDateToday, elBtnDateYesterday, elBtnDateThisMonth, elBtnDateLastMonth, elBtnDateAll;
 let elDoctorSelect, elBtnAutoDetectDoctor, elDetectedGroup;
 let elChkStrictDoctor, elChkAutoPagination;
 let elBtnStartScan, elScanResultsSection, elScanProgressBox, elScanProgressText, elScanProgressFill;
@@ -23,9 +24,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function initDOMElements() {
-  elReportDate = document.getElementById("reportDateInput");
+  elReportStartDate = document.getElementById("reportStartDateInput");
+  elReportEndDate = document.getElementById("reportEndDateInput");
+
   elBtnDateToday = document.getElementById("btnDateToday");
   elBtnDateYesterday = document.getElementById("btnDateYesterday");
+  elBtnDateThisMonth = document.getElementById("btnDateThisMonth");
+  elBtnDateLastMonth = document.getElementById("btnDateLastMonth");
+  elBtnDateAll = document.getElementById("btnDateAll");
 
   elDoctorSelect = document.getElementById("doctorSelect");
   elBtnAutoDetectDoctor = document.getElementById("btnAutoDetectDoctor");
@@ -57,11 +63,18 @@ function initDOMElements() {
 
 function setupEventListeners() {
   // Sana tezkor tugmalari
-  elBtnDateToday.addEventListener("click", () => setDateOffset(0));
-  elBtnDateYesterday.addEventListener("click", () => setDateOffset(-1));
+  elBtnDateToday.addEventListener("click", () => applyDatePreset("today"));
+  elBtnDateYesterday.addEventListener("click", () => applyDatePreset("yesterday"));
+  elBtnDateThisMonth.addEventListener("click", () => applyDatePreset("thisMonth"));
+  elBtnDateLastMonth.addEventListener("click", () => applyDatePreset("lastMonth"));
+  elBtnDateAll.addEventListener("click", () => applyDatePreset("all"));
 
-  elReportDate.addEventListener("change", () => {
-    updateDateButtonState();
+  elReportStartDate.addEventListener("change", () => {
+    clearActiveDatePreset();
+    savePreferences();
+  });
+  elReportEndDate.addEventListener("change", () => {
+    clearActiveDatePreset();
     savePreferences();
   });
 
@@ -83,11 +96,12 @@ function setupEventListeners() {
 }
 
 function initDefaults() {
-  setDateOffset(0);
+  // Standart 1 oylik yoki bugun
+  applyDatePreset("today");
 
   // Xotiradan oldingi tanlovlarni yuklash
   if (chrome.storage && chrome.storage.local) {
-    chrome.storage.local.get(["lastTargetDoctor", "lastStrictDoctor", "lastAutoPage"], (res) => {
+    chrome.storage.local.get(["lastTargetDoctor", "lastStrictDoctor", "lastAutoPage", "lastStartDate", "lastEndDate"], (res) => {
       if (res.lastTargetDoctor && elDoctorSelect) {
         elDoctorSelect.value = res.lastTargetDoctor;
       }
@@ -97,30 +111,62 @@ function initDefaults() {
       if (res.lastAutoPage !== undefined && elChkAutoPagination) {
         elChkAutoPagination.checked = Boolean(res.lastAutoPage);
       }
+      if (res.lastStartDate && res.lastEndDate) {
+        elReportStartDate.value = res.lastStartDate;
+        elReportEndDate.value = res.lastEndDate;
+        clearActiveDatePreset();
+      }
     });
   }
 }
 
-function setDateOffset(daysOffset) {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  elReportDate.value = `${yyyy}-${mm}-${dd}`;
-  updateDateButtonState();
+function applyDatePreset(preset) {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  clearActiveDatePreset();
+
+  if (preset === "today") {
+    elReportStartDate.value = todayStr;
+    elReportEndDate.value = todayStr;
+    elBtnDateToday.classList.add("active");
+  } else if (preset === "yesterday") {
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yStr = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
+    elReportStartDate.value = yStr;
+    elReportEndDate.value = yStr;
+    elBtnDateYesterday.classList.add("active");
+  } else if (preset === "thisMonth") {
+    // 1 Oylik: oyning 1-kunidan oxirgi kunigacha
+    const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
+    elReportStartDate.value = `${yyyy}-${mm}-01`;
+    elReportEndDate.value = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
+    elBtnDateThisMonth.classList.add("active");
+  } else if (preset === "lastMonth") {
+    const prevMonthDate = new Date(yyyy, now.getMonth() - 1, 1);
+    const pY = prevMonthDate.getFullYear();
+    const pM = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+    const pLastDay = new Date(pY, prevMonthDate.getMonth() + 1, 0).getDate();
+    elReportStartDate.value = `${pY}-${pM}-01`;
+    elReportEndDate.value = `${pY}-${pM}-${String(pLastDay).padStart(2, '0')}`;
+    elBtnDateLastMonth.classList.add("active");
+  } else if (preset === "all") {
+    elReportStartDate.value = "";
+    elReportEndDate.value = "";
+    elBtnDateAll.classList.add("active");
+  }
+
+  savePreferences();
 }
 
-function updateDateButtonState() {
-  const val = elReportDate.value;
-  const today = new Date().toISOString().split('T')[0];
-  
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  const yesterday = y.toISOString().split('T')[0];
-
-  elBtnDateToday.classList.toggle("active", val === today);
-  elBtnDateYesterday.classList.toggle("active", val === yesterday);
+function clearActiveDatePreset() {
+  [elBtnDateToday, elBtnDateYesterday, elBtnDateThisMonth, elBtnDateLastMonth, elBtnDateAll].forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
 }
 
 function savePreferences() {
@@ -128,7 +174,9 @@ function savePreferences() {
     chrome.storage.local.set({
       lastTargetDoctor: elDoctorSelect.value,
       lastStrictDoctor: elChkStrictDoctor.checked,
-      lastAutoPage: elChkAutoPagination.checked
+      lastAutoPage: elChkAutoPagination.checked,
+      lastStartDate: elReportStartDate.value,
+      lastEndDate: elReportEndDate.value
     });
   }
 }
@@ -189,13 +237,9 @@ async function handleAutoDetectDoctors() {
 
 // 2. SKANERLASH VA SANASH
 async function handleStartScan() {
-  const targetDate = elReportDate.value;
+  const startDate = elReportStartDate.value;
+  const endDate = elReportEndDate.value;
   const targetDoctor = elDoctorSelect.value;
-
-  if (!targetDate) {
-    alert("Iltimos, hisobot sanasini tanlang!");
-    return;
-  }
 
   elBtnStartScan.disabled = true;
   elBtnStartScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Skanerlanmoqda...`;
@@ -212,7 +256,8 @@ async function handleStartScan() {
     }
 
     const payload = {
-      targetDate: targetDate,
+      targetStartDate: startDate,
+      targetEndDate: endDate,
       targetDoctorName: targetDoctor,
       options: {
         strictDoctorMatch: elChkStrictDoctor.checked,
@@ -252,7 +297,7 @@ async function handleStartScan() {
 function renderScanResults(report) {
   elScanProgressFill.style.width = "100%";
   elScanProgressFill.style.background = "#10b981";
-  elScanProgressText.innerHTML = `✅ Skanerlash muvaffaqiyatli yakunlandi!`;
+  elScanProgressText.innerHTML = `✅ Skanerlash yakunlandi! Jami: ${report.totalPatientsCount} ta bemor, ${report.totalServicesCount} ta soha topildi.`;
 
   elResPatientCount.textContent = report.totalPatientsCount || 0;
   elResServiceCount.textContent = report.totalServicesCount || 0;
@@ -294,7 +339,7 @@ function renderScanResults(report) {
           <span style="color:#0284c7;">ID: ${escapeHtml(pat.patientId)}</span>
         </div>
         <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
-          📅 ${escapeHtml(pat.confirmDate)} | 🏢 ${escapeHtml(pat.department || pat.priority || '')}
+          📅 ${escapeHtml(pat.confirmDate)} | 👨‍⚕️ ${escapeHtml(pat.doctorName || '')} | 🏢 ${escapeHtml(pat.department || pat.priority || '')}
         </div>
         <div class="patient-mini-services">
           ${srvBadges || '<span style="color:#94a3b8; font-size:10px;">Xizmat ko\'rsatilgan</span>'}
@@ -316,7 +361,7 @@ function togglePreviewAccordion() {
   elPreviewChevron.className = isVisible ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-up";
 }
 
-// 5. FIREBASE GA SAQLASH
+// 5. FIREBASE GA SAQLASH (KUNBAY VA ORALIQ GURUHLASH)
 async function handleSaveToFirebase() {
   if (!currentScannedReport) {
     alert("Saqlash uchun skanerlangan hisobot mavjud emas!");
@@ -327,37 +372,60 @@ async function handleSaveToFirebase() {
   elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Firebase-ga yozilmoqda...`;
 
   try {
-    const dateKey = currentScannedReport.date;
+    const patients = currentScannedReport.patientsList || [];
+    
+    // 1. Bemorlarni kunbay guruhlash (har bir bemor o'zining tasdiqlangan sanasi bo'yicha)
+    const dayGroups = {};
+    patients.forEach(p => {
+      const d = p.confirmDateNorm || currentScannedReport.startDate || new Date().toISOString().split('T')[0];
+      if (!dayGroups[d]) dayGroups[d] = [];
+      dayGroups[d].push(p);
+    });
+
     const docSlug = (currentScannedReport.doctorName || 'all_doctors')
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '_')
       .replace(/_+/g, '_');
 
-    // 1. Asosiy to'liq hisobotni saqlash
-    const resMain = await fetch(`${FIREBASE_DB_URL}/accountant_reports/${dateKey}/${docSlug}.json`, {
+    // Har bir kun uchun hisobotni Firebase-ga PUT qilish
+    for (const dKey of Object.keys(dayGroups)) {
+      const dayPatients = dayGroups[dKey];
+      const dayBreakdown = {};
+      let dayServicesCount = 0;
+
+      dayPatients.forEach(p => {
+        (p.services || []).forEach(s => {
+          dayServicesCount++;
+          const c = s.code || "OTHER";
+          if (!dayBreakdown[c]) dayBreakdown[c] = { code: c, name: s.name, count: 0 };
+          dayBreakdown[c].count++;
+        });
+      });
+
+      const dayReportData = {
+        reportId: `rep_${dKey}_${docSlug}`,
+        date: dKey,
+        doctorName: currentScannedReport.doctorName,
+        totalPatientsCount: dayPatients.length,
+        totalServicesCount: dayServicesCount,
+        servicesBreakdown: dayBreakdown,
+        patientsList: dayPatients,
+        updatedAt: Date.now()
+      };
+
+      await fetch(`${FIREBASE_DB_URL}/accountant_reports/${dKey}/${docSlug}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dayReportData)
+      });
+    }
+
+    // 2. Oraliq hisobotini ham alohida saqlash (Range / Monthly)
+    const rangeKey = `${currentScannedReport.startDate || 'all'}_to_${currentScannedReport.endDate || 'all'}`;
+    await fetch(`${FIREBASE_DB_URL}/accountant_reports_range/${rangeKey}/${docSlug}.json`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(currentScannedReport)
-    });
-
-    if (!resMain.ok) throw new Error("Asosiy hisobotni yozishda xatolik!");
-
-    // 2. Hisobot indeksini yangilash
-    const summaryData = {
-      reportId: currentScannedReport.reportId,
-      date: currentScannedReport.date,
-      dateFormatted: currentScannedReport.dateFormatted,
-      doctorName: currentScannedReport.doctorName,
-      totalPatientsCount: currentScannedReport.totalPatientsCount,
-      totalServicesCount: currentScannedReport.totalServicesCount,
-      servicesBreakdown: currentScannedReport.servicesBreakdown,
-      updatedAt: Date.now()
-    };
-
-    await fetch(`${FIREBASE_DB_URL}/accountant_reports_summary/${dateKey}/${docSlug}.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(summaryData)
     });
 
     elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-circle-check"></i> Muvaffaqiyatli Saqlandi!`;

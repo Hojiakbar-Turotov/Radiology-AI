@@ -177,7 +177,7 @@ function isDoctorNameMatch(actualDoctor, targetDoctor) {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// 6. ASOSIY SKANERLASH VA SANASH FUNKSIYASI
+// 6. ASOSIY SKANERLASH VA SANASH FUNKSIYASI (SANA ORALIG'I VA 1 OYLIK TAHLIL BILAN)
 async function startKarmedScan(payload) {
   if (isScanningInProgress) {
     throw new Error("Skanerlash jarayoni allaqachon bajarilmoqda!");
@@ -186,8 +186,9 @@ async function startKarmedScan(payload) {
   isScanningInProgress = true;
   showScanHUD("🔍 Skanerlash boshlanmoqda...", 5);
 
-  const { targetDate, targetDoctorName, options } = payload;
-  const targetDateNorm = normalizeDate(targetDate);
+  const { targetStartDate, targetEndDate, targetDate, targetDoctorName, options } = payload;
+  const startNorm = normalizeDate(targetStartDate || targetDate);
+  const endNorm = normalizeDate(targetEndDate || targetDate);
   const strictDoc = options?.strictDoctorMatch !== false;
   const autoPage = options?.autoPagination !== false;
 
@@ -198,13 +199,13 @@ async function startKarmedScan(payload) {
   try {
     let currentPage = 1;
     let hasNextPage = true;
-    let maxPages = autoPage ? 20 : 1;
+    let maxPages = autoPage ? 30 : 1;
 
     while (hasNextPage && currentPage <= maxPages) {
-      showScanHUD(`📄 ${currentPage}-sahifa skanerlanmoqda... (Bemorlar: ${collectedPatients.length})`, 20 + (currentPage * 10));
+      showScanHUD(`📄 ${currentPage}-sahifa skanerlanmoqda... (Bemorlar: ${collectedPatients.length})`, 15 + Math.min(currentPage * 8, 80));
 
       // Sahifadagi asosiy jadval qatorlarini yig'ish
-      const pageResults = await scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc);
+      const pageResults = await scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc);
 
       for (const p of pageResults) {
         const uniqueKey = `${p.patientId}_${p.fullName}_${p.confirmDate}`;
@@ -235,7 +236,7 @@ async function startKarmedScan(payload) {
         if (nextBtn && isElementClickable(nextBtn)) {
           nextBtn.click();
           currentPage++;
-          await sleep(700); // Karmed DevExpress AJAX jadval yuklanishini kutish
+          await sleep(750); // Karmed DevExpress AJAX jadval yuklanishini kutish
         } else {
           hasNextPage = false;
         }
@@ -251,9 +252,11 @@ async function startKarmedScan(payload) {
     });
 
     const reportData = {
-      reportId: `rep_${targetDateNorm}_${(targetDoctorName || 'all').toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
-      date: targetDateNorm,
-      dateFormatted: formatDateToDDMMYYYY(targetDateNorm),
+      reportId: `rep_${startNorm || 'all'}_${endNorm || 'all'}_${(targetDoctorName || 'all').toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+      startDate: startNorm,
+      endDate: endNorm,
+      date: startNorm,
+      dateFormatted: (startNorm && endNorm && startNorm !== endNorm) ? `${formatDateToDDMMYYYY(startNorm)} — ${formatDateToDDMMYYYY(endNorm)}` : formatDateToDDMMYYYY(startNorm || endNorm),
       doctorName: targetDoctorName || "Barcha Shifokorlar",
       totalPatientsCount: collectedPatients.length,
       totalServicesCount: totalServicesCount,
@@ -277,8 +280,8 @@ async function startKarmedScan(payload) {
   }
 }
 
-// 7. BITTA SAHIFADAGI QATORLARNI SKANERLASH
-async function scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc) {
+// 7. BITTA SAHIFADAGI QATORLARNI SKANERLASH (SANA ORALIG'I BILAN)
+async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc) {
   const matchedPatients = [];
   const allTables = Array.from(document.querySelectorAll("table"));
 
@@ -293,7 +296,6 @@ async function scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc) 
   }
 
   if (!mainTable) {
-    // Agar aniq thead bo'lmasa, barcha tr lar bo'yicha qidiramiz
     mainTable = document.querySelector(".dxgvTable_DevEx, .dxgvControl_DevEx, table");
   }
 
@@ -306,7 +308,7 @@ async function scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc) 
     if (cells.length < 6) continue;
 
     const rowText = row.innerText.trim();
-    if (rowText.includes("Kod") && rowText.includes("Xizmatlar Nomi")) continue; // sub-table sarlavhasi
+    if (rowText.includes("Kod") && rowText.includes("Xizmatlar Nomi")) continue;
     if (rowText.includes("Tranzaksiya") && rowText.includes("Navbat raqami")) continue;
 
     // 1. Qabul qiluvchi shifokorni olish
@@ -314,7 +316,6 @@ async function scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc) 
     if (colMap.acceptingDoctor !== -1 && cells[colMap.acceptingDoctor]) {
       acceptingDoctor = cells[colMap.acceptingDoctor].innerText.trim();
     } else {
-      // Shifokor nomi patterni bo'yicha qidirish
       for (const c of cells) {
         const t = c.innerText.trim();
         if (KNOWN_DOCTORS.some(doc => isDoctorNameMatch(t, doc))) {
@@ -345,8 +346,11 @@ async function scanCurrentPageRows(targetDateNorm, targetDoctorName, strictDoc) 
 
     const rowDateNorm = normalizeDate(rawConfirmDate);
 
-    // Sana mosligini tekshirish
-    if (targetDateNorm && rowDateNorm && rowDateNorm !== targetDateNorm) {
+    // Sana oralig'i mosligini tekshirish (startNorm <= rowDateNorm <= endNorm)
+    if (startNorm && rowDateNorm && rowDateNorm < startNorm) {
+      continue;
+    }
+    if (endNorm && rowDateNorm && rowDateNorm > endNorm) {
       continue;
     }
 

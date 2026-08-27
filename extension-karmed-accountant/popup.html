@@ -24,18 +24,31 @@
 
     <!-- 2. PARAMETRLAR / FILTRLAR -->
     <div class="card-box">
-      <!-- Sana tanlash -->
+      <!-- Sana Oralig'i (1 oylik yoki oraliq) -->
       <div class="form-group">
         <div class="label-row">
-          <label for="reportDateInput">
-            <i class="fa-solid fa-calendar-day" style="color: #0284c7;"></i> <strong>Hisobot Sanasi (Tasdiqlangan sana):</strong>
+          <label>
+            <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> <strong>Hisobot Davri (Tasdiqlangan sana):</strong>
           </label>
-          <div class="quick-date-btns">
-            <button type="button" class="btn-date-quick active" id="btnDateToday">Bugun</button>
-            <button type="button" class="btn-date-quick" id="btnDateYesterday">Kecha</button>
+        </div>
+        <div class="date-range-row">
+          <div class="date-input-col">
+            <span class="sub-label">Dan (Boshlanish):</span>
+            <input type="date" id="reportStartDateInput" class="form-control">
+          </div>
+          <span class="date-range-sep">—</span>
+          <div class="date-input-col">
+            <span class="sub-label">Gacha (Tugash):</span>
+            <input type="date" id="reportEndDateInput" class="form-control">
           </div>
         </div>
-        <input type="date" id="reportDateInput" class="form-control">
+        <div class="quick-date-btns">
+          <button type="button" class="btn-date-quick" id="btnDateThisMonth">📅 1 Oylik (Bu oy)</button>
+          <button type="button" class="btn-date-quick" id="btnDateLastMonth">O'tgan oy</button>
+          <button type="button" class="btn-date-quick active" id="btnDateToday">Bugun</button>
+          <button type="button" class="btn-date-quick" id="btnDateYesterday">Kecha</button>
+          <button type="button" class="btn-date-quick" id="btnDateAll">Barcha sanalar</button>
+        </div>
       </div>
 
       <!-- Shifokor tanlash -->
@@ -72,11 +85,11 @@
 
       <!-- Skanerlash Sozlamalari -->
       <div class="options-row">
-        <label class="checkbox-label">
+        <label class="checkbox-label" title="Qabul qiluvchi ustuni tanlangan vrach bilan mos kelishini tekshirish">
           <input type="checkbox" id="chkStrictDoctorMatch" checked>
-          <span>Qabul qiluvchini qat'iy tekshirish</span>
+          <span>Qabul qiluvchini tekshirish</span>
         </label>
-        <label class="checkbox-label">
+        <label class="checkbox-label" title="Barcha sahifalarni avtomatik varaqlab sanab chiqish">
           <input type="checkbox" id="chkAutoPagination" checked>
           <span>Ko'p sahifali (1-N) avto-varaqlash</span>
         </label>
@@ -145,7 +158,7 @@
 
     <!-- 4. FOOTER & LINK TO ACCOUNTANT PORTAL -->
     <footer class="popup-footer">
-      <a href="http://localhost:5000/app6-hisobchi/index.html" target="_blank" class="footer-portal-link" id="linkOpenAccountantPortal">
+      <a href="http://localhost:3000/app6-hisobchi/index.html" target="_blank" class="footer-portal-link" id="linkOpenAccountantPortal">
         <i class="fa-solid fa-chart-line"></i> <strong>Hisobchi Tahlil Portalini Ochish</strong> <i class="fa-solid fa-arrow-up-right-from-square"></i>
       </a>
     </footer>
