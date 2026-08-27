@@ -88,5 +88,14 @@
     "roomNum": "51",
     "color": "#0284c7",
     "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_11",
+    "name": "Turatov Hojiakbar Shavkat ogli",
+    "specialty": "ULTRATOVUSH",
+    "room": "UTT 1 - 53 XONA",
+    "roomNum": "53",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
   }
 ]

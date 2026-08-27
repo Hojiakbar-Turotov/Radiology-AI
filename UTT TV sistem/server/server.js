@@ -281,10 +281,17 @@ const server = http.createServer((req, res) => {
         return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
       }
 
-      // Agar vrachga xona biriktirilayotgan bo'lsa
-      if (body.doctorName && body.roomId) {
-        const roomDoc = doctorsData.find(d => d.id === body.roomId) || { room: body.roomId, roomNum: body.roomId.replace(/\D/g, '') };
-        const existingDoc = doctorsData.find(d => d.name.toLowerCase().includes(body.doctorName.toLowerCase()) || body.doctorName.toLowerCase().includes(d.name.toLowerCase()));
+      // Agar vrach nomi bo'lsa
+      if (body.doctorName) {
+        const targetRoomId = body.roomId || (doctorsData[0] ? doctorsData[0].id : "vrach_utt_1");
+        const roomDoc = doctorsData.find(d => d.id === targetRoomId) || { room: targetRoomId, roomNum: targetRoomId.replace(/\D/g, '') };
+        const cleanName = body.doctorName.toLowerCase().replace(/[^a-zа-яё]/gi, '');
+        
+        let existingDoc = doctorsData.find(d => {
+          const dClean = d.name.toLowerCase().replace(/[^a-zа-яё]/gi, '');
+          return dClean.includes(cleanName) || cleanName.includes(dClean);
+        });
+
         if (existingDoc) {
           existingDoc.room = roomDoc.room;
           existingDoc.roomNum = roomDoc.roomNum;
@@ -300,11 +307,11 @@ const server = http.createServer((req, res) => {
         }
         writeJsonFile(DOCTORS_FILE, doctorsData);
         broadcastMessage({ type: "DOCTORS_UPDATED", data: doctorsData });
-        console.log(`👨‍⚕️ YANGI VRACH ADMIN TOMONIDAN RO'YXATGA OLINDI: ${body.doctorName} -> ${roomDoc.room}`);
+        console.log(`👨‍⚕️ VRACH ADMIN TOMONIDAN TASDIQLANDI: ${body.doctorName} -> ${roomDoc.room}`);
       }
 
       for (const [ws, info] of wsClientsMap.entries()) {
-        if (info.id === body.clientId) {
+        if (info.id === body.clientId || info.deviceId === body.clientId || (body.doctorName && info.doctorName === body.doctorName)) {
           info.status = "approved";
           info.isApproved = true;
           if (body.doctorName) info.doctorName = body.doctorName;
@@ -320,7 +327,6 @@ const server = http.createServer((req, res) => {
             }));
           }
           console.log(`✅ QURILMAGA/VRACHGA RUXSAT BERILDI: ${info.name} (${info.ip})`);
-          break;
         }
       }
 
