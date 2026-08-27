@@ -43,6 +43,28 @@
       "createdAtStr": "10:55"
     },
     {
+      "id": "karmed_6685_1",
+      "patientId": "6685",
+      "patientName": "NORQUZIYEVA MAXBUBA XXX",
+      "pinfl": "41703575450012",
+      "birthDate": "17.03.1957",
+      "department": "Ginekologiya",
+      "service": "UTT (Ginekologiya)",
+      "registeredAtStr": "27.08.2026 08:22",
+      "registeredAtTimestamp": 1787800920000,
+      "doctorId": "vrach_utt_1",
+      "doctorName": "Juravlev Igor Ivanovich",
+      "room": "UTT 1 - 53 XONA",
+      "isContrast": false,
+      "status": "calling",
+      "createdAt": 1787818248603,
+      "createdAtStr": "13:10",
+      "orderNumber": 4,
+      "calledAt": 1787818288330,
+      "calledAtStr": "13:11",
+      "callCount": 2
+    },
+    {
       "id": "karmed_42520_1",
       "patientId": "42520",
       "patientName": "YARASHEV SAYFULLA TOSHBAYEVICH",
@@ -59,7 +81,7 @@
       "status": "waiting",
       "createdAt": 1787815646777,
       "createdAtStr": "12:27",
-      "orderNumber": 4
+      "orderNumber": 5
     },
     {
       "id": "karmed_54978_1",
@@ -78,18 +100,57 @@
       "status": "waiting",
       "createdAt": 1787816054679,
       "createdAtStr": "12:34",
-      "orderNumber": 5
+      "orderNumber": 6
+    },
+    {
+      "id": "karmed_53551_1",
+      "patientId": "53551",
+      "patientName": "XUDAYBERDIYEVA SAYARA FEYRUSOVNA",
+      "pinfl": "42309620240011",
+      "birthDate": "23.09.1962",
+      "department": "Proktologiya",
+      "service": "UTT (Proktologiya)",
+      "registeredAtStr": "📢\nDr. Niyozaliyev Umid Sharafitdinovich",
+      "registeredAtTimestamp": 1787818375034,
+      "doctorId": "vrach_utt_1",
+      "doctorName": "Juravlev Igor Ivanovich",
+      "room": "UTT 1 - 53 XONA",
+      "isContrast": false,
+      "status": "waiting",
+      "createdAt": 1787818315672,
+      "createdAtStr": "13:11",
+      "orderNumber": 7
+    },
+    {
+      "id": "karmed_📢\nDr. Niyozaliyev Umid Sharafitdinovich_1",
+      "patientId": "📢\nDr. Niyozaliyev Umid Sharafitdinovich",
+      "patientName": "53551 XUDAYBERDIYEVA SAYARA",
+      "pinfl": "23.09.1962",
+      "birthDate": "2737559",
+      "department": "Statsionar",
+      "service": "UTT (Statsionar)",
+      "registeredAtStr": "Sugurta Toskent Shahri",
+      "registeredAtTimestamp": 1787818380005,
+      "doctorId": "vrach_utt_1",
+      "doctorName": "Juravlev Igor Ivanovich",
+      "room": "UTT 1 - 53 XONA",
+      "isContrast": false,
+      "status": "waiting",
+      "createdAt": 1787818372527,
+      "createdAtStr": "13:12",
+      "orderNumber": 8
     }
   ],
   "current_announcement": {
-    "patientId": "pat_1",
-    "patientName": "KOBILOVA DILNOZA BAXTIYOROVNA",
-    "doctorId": "vrach_utt_48",
-    "doctorName": "Xoshimova Lola Kabulova",
-    "room": "UTT8-48 XONA",
-    "service": "Qorin bo'shlig'i UTT",
-    "callCount": 1,
-    "timestamp": 1787817338196
+    "patientId": "karmed_6685_1",
+    "patientName": "NORQUZIYEVA MAXBUBA XXX",
+    "doctorId": "vrach_utt_1",
+    "doctorName": "Juravlev Igor Ivanovich",
+    "room": "UTT 1 - 53 XONA",
+    "service": "UTT (Ginekologiya)",
+    "isContrast": false,
+    "callCount": 2,
+    "timestamp": 1787818288331
   },
   "history": []
 }

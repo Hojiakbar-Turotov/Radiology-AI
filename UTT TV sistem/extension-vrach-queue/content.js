@@ -1,38 +1,41 @@
 /**
  * UTT VRACH QABULI — KARMED / RADIOLOGIYA AVTOMATIK NAVBATNI O'QISH CONTENT SCRIPTI
- * Karmed jadvalidan bemorlarni "Ro'yxatga olingan vaqti" (Registration Time) bo'yicha
- * avtomatik o'qiydi, xronologik saralaydi va lokal serverga (TV ga) yuboradi.
+ * Karmed jadvalidan:
+ * 1. Xona va Vrach ma'lumotlarini "Ulangan bo'lim" ustunidan (masalan: Ultratovush-10(Xudayberdiyeva Nigora)) oladi.
+ * 2. Jadvaldagi barcha bemorlar ro'yxatini vaqtinchalik xotiraga (Memory Cache) tuzib oladi.
+ * 3. Ro'yxatga olingan vaqti bo'yicha xronologik saralab, TV monitoriga uzatadi.
  */
 
 let serverUrl = "http://localhost:3000";
-let selectedDoctorId = "vrach_utt_1"; // Default
+let selectedDoctorId = "vrach_utt_10"; // Default fallback
 let activeQueue = [];
 let isScanning = false;
 let widgetEl = null;
 let lastSentSignature = "";
 let scanDebounceTimer = null;
 
-// Shifokorlar lug'ati (Karmed matnidan aniqlash uchun)
+// 10 ta rasmiy UTT shifokorlari va xonalari mappingi
 const DOCTOR_MAPPINGS = [
-  { id: "vrach_utt_1", key: "juravlev", name: "Juravlev Igor Ivanovich", room: "UTT 1 - 53 XONA", roomNum: "53" },
-  { id: "vrach_utt_2", key: "kurbanova", name: "Kurbanova Sevinch Musayevna", room: "UTT 2 - 54 XONA", roomNum: "54" },
-  { id: "vrach_utt_3", key: "abidjanov", name: "Abidjanov Alisher Maxamataliyevich", room: "UTT 3 - 46 XONA", roomNum: "46" },
-  { id: "vrach_utt_4", key: "ziyayeva", name: "Ziyayeva Zarina Abduganiyevna", room: "UTT 4 - 47 XONA", roomNum: "47" },
-  { id: "vrach_utt_5", key: "xoshimova", name: "Xoshimova Lola Kabulovna", room: "UTT 5 - 48 XONA", roomNum: "48" },
-  { id: "vrach_utt_6", key: "toirova", name: "Toirova Shaxlo Oybek qizi", room: "UTT 6 - 52 XONA", roomNum: "52" },
-  { id: "vrach_utt_7", key: "asadova", name: "Asadova Dildoraxon Asatullayevna", room: "UTT 7 - 45 XONA", roomNum: "45" },
-  { id: "vrach_utt_8", key: "saidbayeva", name: "Saidbayeva Zulfiya Yergeshovna", room: "UTT 8 - 49 XONA", roomNum: "49" },
-  { id: "vrach_utt_9", key: "xusanova", name: "Xusanova Feruza Ikromjonovna", room: "UTT 9 - 50 XONA", roomNum: "50" },
-  { id: "vrach_utt_10", key: "xudayberdiyeva", name: "Xudayberdiyeva Nigora Nizamovna", room: "UTT 10 - 51 XONA", roomNum: "51" }
+  { id: "vrach_utt_1", key: "juravlev", uttNum: 1, name: "Juravlev Igor Ivanovich", room: "UTT 1 - 53 XONA", roomNum: "53" },
+  { id: "vrach_utt_2", key: "kurbanova", uttNum: 2, name: "Kurbanova Sevinch Musayevna", room: "UTT 2 - 54 XONA", roomNum: "54" },
+  { id: "vrach_utt_3", key: "abidjanov", uttNum: 3, name: "Abidjanov Alisher Maxamataliyevich", room: "UTT 3 - 46 XONA", roomNum: "46" },
+  { id: "vrach_utt_4", key: "ziyayeva", uttNum: 4, name: "Ziyayeva Zarina Abduganiyevna", room: "UTT 4 - 47 XONA", roomNum: "47" },
+  { id: "vrach_utt_5", key: "xoshimova", uttNum: 5, name: "Xoshimova Lola Kabulovna", room: "UTT 5 - 48 XONA", roomNum: "48" },
+  { id: "vrach_utt_6", key: "toirova", uttNum: 6, name: "Toirova Shaxlo Oybek qizi", room: "UTT 6 - 52 XONA", roomNum: "52" },
+  { id: "vrach_utt_7", key: "asadova", uttNum: 7, name: "Asadova Dildoraxon Asatullayevna", room: "UTT 7 - 45 XONA", roomNum: "45" },
+  { id: "vrach_utt_8", key: "saidbayeva", uttNum: 8, name: "Saidbayeva Zulfiya Yergeshovna", room: "UTT 8 - 49 XONA", roomNum: "49" },
+  { id: "vrach_utt_9", key: "xusanova", uttNum: 9, name: "Xusanova Feruza Ikromjonovna", room: "UTT 9 - 50 XONA", roomNum: "50" },
+  { id: "vrach_utt_10", key: "xudayberdiyeva", uttNum: 10, name: "Xudayberdiyeva Nigora Nizamovna", room: "UTT 10 - 51 XONA", roomNum: "51" }
 ];
 
 // 1. ISHGA TUSHIRISH
 (async function init() {
   await loadSettings();
+  loadCachedQueueFromMemory();
   createFloatingWidget();
   startObservingTable();
   scheduleScan();
-  setInterval(scheduleScan, 20000);
+  setInterval(scheduleScan, 15000);
 })();
 
 async function loadSettings() {
@@ -49,15 +52,77 @@ async function loadSettings() {
   });
 }
 
-function scheduleScan() {
-  if (scanDebounceTimer) clearTimeout(scanDebounceTimer);
-  scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 1200);
+function loadCachedQueueFromMemory() {
+  try {
+    const raw = localStorage.getItem("karmed_patients_memory_cache");
+    if (raw) {
+      activeQueue = JSON.parse(raw);
+    }
+  } catch (e) {}
 }
 
-// 2. SANANI UNIX TIMESTAMP GA AYLANTIRISH
+function scheduleScan() {
+  if (scanDebounceTimer) clearTimeout(scanDebounceTimer);
+  scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 800);
+}
+
+// 2. "ULANGAN BO'LIM" USTUNIDAN XONA VA VRACHNI ANIQLASH (MASALAN: "Ultratovush-10(Xudayberdiyeva Nigora)")
+function parseUlanganBolimInfo(ulanganBolimStr, fallbackDoctorStr = "") {
+  const combined = `${ulanganBolimStr || ''} ${fallbackDoctorStr || ''}`.trim();
+  if (!combined) {
+    const def = DOCTOR_MAPPINGS.find(d => d.id === selectedDoctorId) || DOCTOR_MAPPINGS[0];
+    return {
+      doctorId: def.id,
+      doctorName: def.name,
+      room: def.room,
+      roomNum: def.roomNum,
+      rawBolim: ulanganBolimStr || ""
+    };
+  }
+
+  // 1. Ultratovush raqamini qidirish (masalan: "Ultratovush-10", "Ultratovush 5", "UTT-2")
+  const numMatch = combined.match(/ultratovush\s*[-–—:]*\s*(\d+)/i) || combined.match(/utt\s*[-–—:]*\s*(\d+)/i);
+  let uttNumber = numMatch ? parseInt(numMatch[1], 10) : null;
+
+  // 2. Qavs ichidagi ismni olish (masalan: "(Xudayberdiyeva Nigora Nizamovna)")
+  const nameInParenMatch = combined.match(/\(([^)]+)\)/);
+  let parsedName = nameInParenMatch ? nameInParenMatch[1].trim() : "";
+
+  // 3. Mapping bilan solishtirish
+  let matchedDoc = null;
+  if (uttNumber !== null) {
+    matchedDoc = DOCTOR_MAPPINGS.find(d => d.uttNum === uttNumber || d.id === `vrach_utt_${uttNumber}`);
+  }
+
+  if (!matchedDoc && (parsedName || combined)) {
+    const searchTarget = (parsedName || combined).toLowerCase();
+    matchedDoc = DOCTOR_MAPPINGS.find(d => searchTarget.includes(d.key) || d.name.toLowerCase().includes(searchTarget));
+  }
+
+  if (matchedDoc) {
+    return {
+      doctorId: matchedDoc.id,
+      doctorName: matchedDoc.name,
+      room: matchedDoc.room,
+      roomNum: matchedDoc.roomNum,
+      rawBolim: ulanganBolimStr || ""
+    };
+  }
+
+  // Lug'atda bo'lmasa, o'qilgan matndan to'g'ridan-to'g'ri shakllantirish
+  return {
+    doctorId: uttNumber ? `vrach_utt_${uttNumber}` : (selectedDoctorId || "vrach_utt_1"),
+    doctorName: parsedName || fallbackDoctorStr || "UTT Shifokori",
+    room: uttNumber ? `UTT ${uttNumber} XONA` : "UTT XONASI",
+    roomNum: uttNumber ? String(uttNumber) : "",
+    rawBolim: ulanganBolimStr || ""
+  };
+}
+
+// 3. SANANI UNIX TIMESTAMP GA AYLANTIRISH
 function parseDateTimeToTimestamp(str) {
   if (!str) return Date.now();
-  // Format: "27.08.2026 10:33" yoki "27.08.2026 08:22:15"
+  // Format: "27.08.2026 10:54:06" yoki "27.08.2026 10:33"
   const match = str.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
   if (match) {
     const day = parseInt(match[1], 10);
@@ -71,7 +136,7 @@ function parseDateTimeToTimestamp(str) {
   return Date.now();
 }
 
-// 3. KARMED JADVALINI O'QISH VA VAQTI BO'YICHA SARALASH
+// 4. KARMED JADVALINI TO'LIQ O'QISH, VAQTINCHALIK XOTIRAGA SAQLASH VA TARTIBLASH
 function scanKarmedTableAndSync() {
   if (isScanning) return;
   isScanning = true;
@@ -84,46 +149,50 @@ function scanKarmedTableAndSync() {
       const rows = table.querySelectorAll("tr");
       if (rows.length < 2) return;
 
-      // Ustun nomlarini aniqlash
+      // Ustun indekslarini aniqlash
       let colIdx = {
+        doctor: -1,
+        ulanganBolim: -1,
         patientId: -1,
         lastName: -1,
         firstName: -1,
         middleName: -1,
-        pinfl: -1,
-        birthDate: -1,
+        priority: -1,
         department: -1,
-        regTime: -1,
-        doctor: -1
+        sampleNum: -1,
+        birthDate: -1,
+        pinfl: -1,
+        org: -1,
+        regTime: -1
       };
 
       const headerCells = rows[0].querySelectorAll("th, td");
       headerCells.forEach((cell, idx) => {
         const txt = cell.innerText.toLowerCase().trim();
-        if (txt.includes("familiya")) colIdx.lastName = idx;
+        if (txt.includes("ulangan") && (txt.includes("bo'lim") || txt.includes("bolim"))) colIdx.ulanganBolim = idx;
+        else if (txt.includes("shifokor")) colIdx.doctor = idx;
+        else if (txt.includes("familiya")) colIdx.lastName = idx;
         else if (txt.includes("ismi") && !txt.includes("ota") && !txt.includes("familiya")) colIdx.firstName = idx;
-        else if (txt.includes("ota") || txt.includes("otasining")) colIdx.middleName = idx;
-        else if (txt.includes("ro'yxatga") || txt.includes("royxatga") || txt.includes("sana") || txt.includes("vaqt")) colIdx.regTime = idx;
+        else if (txt.includes("ota")) colIdx.middleName = idx;
+        else if (txt.includes("bemor id") || (txt.includes("id") && !txt.includes("shifokor"))) colIdx.patientId = idx;
         else if (txt.includes("pinfl") || txt.includes("pnfl")) colIdx.pinfl = idx;
         else if (txt.includes("tug'ilgan") || txt.includes("tugilgan")) colIdx.birthDate = idx;
         else if (txt.includes("bo'lim") || txt.includes("bolim")) colIdx.department = idx;
-        else if (txt.includes("be") || txt.includes("id") || txt.includes("bemor")) {
-          if (colIdx.patientId === -1) colIdx.patientId = idx;
-        }
-        else if (txt.includes("ulangan") || txt.includes("xona") || txt.includes("shifokor")) colIdx.doctor = idx;
+        else if (txt.includes("ro'yxatga") || txt.includes("royxatga") || txt.includes("vaqt") || txt.includes("sana")) colIdx.regTime = idx;
       });
 
-      // Agar sarlavhadan topilmasa, standart Karmed ustun tartibi bo'yicha tekshirish
+      // Standart Karmed tartibi bo'yicha zaxira indekslar (Screenshot asosida: 1=Shifokor, 2=Ulangan bo'lim, 3=Bemor ID, 4=Familiya, 5=Ism, 6=Ota ismi, 8=Bo'lim, 10=Tug'ilgan kuni, 11=PINFL, 13=Vaqt)
       if (colIdx.lastName === -1 && rows.length > 1) {
-        colIdx.patientId = 1;
-        colIdx.lastName = 2;
-        colIdx.firstName = 3;
-        colIdx.middleName = 4;
-        colIdx.department = 6;
-        colIdx.birthDate = 8;
-        colIdx.pinfl = 9;
-        colIdx.regTime = 11;
-        colIdx.doctor = 13;
+        colIdx.doctor = 1;
+        colIdx.ulanganBolim = 2;
+        colIdx.patientId = 3;
+        colIdx.lastName = 4;
+        colIdx.firstName = 5;
+        colIdx.middleName = 6;
+        colIdx.department = 8;
+        colIdx.birthDate = 10;
+        colIdx.pinfl = 11;
+        colIdx.regTime = 13;
       }
 
       // Qatorlarni o'qish
@@ -132,25 +201,24 @@ function scanKarmedTableAndSync() {
         const cells = r.querySelectorAll("td");
         if (cells.length < 5) continue;
 
+        const doctorCellText = cells[colIdx.doctor] ? cells[colIdx.doctor].innerText.trim() : "";
+        const ulanganBolimText = cells[colIdx.ulanganBolim] ? cells[colIdx.ulanganBolim].innerText.trim() : "";
+        const patId = cells[colIdx.patientId] ? cells[colIdx.patientId].innerText.trim() : "";
         const lastName = cells[colIdx.lastName] ? cells[colIdx.lastName].innerText.trim() : "";
         const firstName = cells[colIdx.firstName] ? cells[colIdx.firstName].innerText.trim() : "";
         const middleName = cells[colIdx.middleName] ? cells[colIdx.middleName].innerText.trim() : "";
-        const patId = cells[colIdx.patientId] ? cells[colIdx.patientId].innerText.trim() : "";
-        const pinfl = cells[colIdx.pinfl] ? cells[colIdx.pinfl].innerText.trim() : "";
+        const department = cells[colIdx.department] ? cells[colIdx.department].innerText.trim() : "UTT";
         const birthDate = cells[colIdx.birthDate] ? cells[colIdx.birthDate].innerText.trim() : "";
-        const department = cells[colIdx.department] ? cells[colIdx.department].innerText.trim() : "Ultratovush (UTT)";
+        const pinfl = cells[colIdx.pinfl] ? cells[colIdx.pinfl].innerText.trim() : "";
         const regTimeStr = cells[colIdx.regTime] ? cells[colIdx.regTime].innerText.trim() : "";
-        const doctorStr = cells[colIdx.doctor] ? cells[colIdx.doctor].innerText.trim() : "";
 
         if (!lastName && !firstName) continue;
 
         const fullName = `${lastName} ${firstName} ${middleName}`.replace(/\s+/g, ' ').trim();
         const timestamp = parseDateTimeToTimestamp(regTimeStr);
 
-        // Vrachni aniqlash
-        let docObj = DOCTOR_MAPPINGS.find(d => doctorStr.toLowerCase().includes(d.key)) ||
-                     DOCTOR_MAPPINGS.find(d => d.id === selectedDoctorId) ||
-                     DOCTOR_MAPPINGS[0];
+        // XONA VA VRACH MA'LUMOTINI "ULANGAN BO'LIM" USTUNIDAN OLISH
+        const roomInfo = parseUlanganBolimInfo(ulanganBolimText, doctorCellText);
 
         const patientObj = {
           id: `karmed_${patId || Date.now()}_${i}`,
@@ -160,11 +228,13 @@ function scanKarmedTableAndSync() {
           birthDate: birthDate,
           department: department,
           service: `UTT (${department})`,
+          ulanganBolim: ulanganBolimText,
           registeredAtStr: regTimeStr || new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
           registeredAtTimestamp: timestamp,
-          doctorId: docObj.id,
-          doctorName: docObj.name,
-          room: docObj.room,
+          doctorId: roomInfo.doctorId,
+          doctorName: roomInfo.doctorName,
+          room: roomInfo.room,
+          roomNum: roomInfo.roomNum,
           status: "waiting"
         };
 
@@ -174,9 +244,20 @@ function scanKarmedTableAndSync() {
     });
 
     if (patients.length > 0) {
-      // Ro'yxatga olingan vaqti (registration time) bo'yicha xronologik saralash
+      // 1. RO'YXATGA OLINGAN VAQTI BO'YICHA XRONOLOGIK SARALASH
       patients.sort((a, b) => a.registeredAtTimestamp - b.registeredAtTimestamp);
       activeQueue = patients;
+
+      // 2. VAQTINCHALIK XOTIRAGA (MEMORY CACHE) TUZIB OLISH
+      window.__karmedPatientsCache = patients;
+      try {
+        localStorage.setItem("karmed_patients_memory_cache", JSON.stringify(patients));
+        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set({ karmed_patients_memory_cache: patients });
+        }
+      } catch (e) {}
+
+      // 3. WIDGET VA SERVERNI YANGILASH
       updateWidgetUI(activeQueue);
       sendQueueToServer(patients);
     }
@@ -187,30 +268,33 @@ function scanKarmedTableAndSync() {
   }
 }
 
-// 4. LOKAL SERVERGA SINXRONLASH (FAQAT O'ZGARISH BO'LGANDA)
+// 5. LOKAL SERVERGA SINXRONLASH (FAQAT O'ZGARISH BO'LGANDA)
 async function sendQueueToServer(patients) {
-  const currentSig = JSON.stringify(patients.map(p => `${p.patientId}_${p.patientName}_${p.registeredAtStr}`));
+  const currentSig = JSON.stringify(patients.map(p => `${p.patientId}_${p.patientName}_${p.registeredAtStr}_${p.room}`));
   if (currentSig === lastSentSignature) {
-    return; // O'zgarish yo'q, serverni bezovta qilmaymiz
+    return; // Ma'lumot o'zgarmagan
   }
+
+  // Birinchi bemorning xonasidan vrach ID sini olish
+  const primaryDocId = patients[0] ? patients[0].doctorId : selectedDoctorId;
 
   try {
     const res = await fetch(`${serverUrl}/api/queue/sync`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patients: patients, doctorId: selectedDoctorId })
+      body: JSON.stringify({ patients: patients, doctorId: primaryDocId })
     });
     const data = await res.json();
     if (data.ok) {
       lastSentSignature = currentSig;
-      console.log(`✅ ${patients.length} ta bemor Karmed'dan serverga uzatildi`);
+      console.log(`✅ ${patients.length} ta bemor "Ulangan bo'lim" xonasi bilan serverga uzatildi`);
     }
   } catch (e) {
     console.warn("Lokal serverga ulanishda xatolik (Host IP tekshiring):", e.message);
   }
 }
 
-// 5. BEMORNI CHAQIRISH (TV MONITORIDA OVOZLI CHIQADI)
+// 6. BEMORNI CHAQIRISH (TV MONITORIDA OVOZLI CHIQADI)
 async function callPatientDirect(patient) {
   try {
     const res = await fetch(`${serverUrl}/api/queue/call`, {
@@ -219,7 +303,7 @@ async function callPatientDirect(patient) {
       body: JSON.stringify({
         patientName: patient.patientName,
         patientId: patient.patientId,
-        doctorId: patient.doctorId || selectedDoctorId,
+        doctorId: patient.doctorId,
         doctorName: patient.doctorName,
         room: patient.room,
         service: patient.service
@@ -234,11 +318,13 @@ async function callPatientDirect(patient) {
   }
 }
 
-// 6. SUZUVCHI BOSHQARUV WIDGETI (KARMED EKRANIDA)
+// 7. SUZUVCHI BOSHQARUV WIDGETI (KARMED EKRANIDA)
 function createFloatingWidget() {
   if (document.getElementById("uttVrachFloatingWidget")) return;
 
-  const doc = DOCTOR_MAPPINGS.find(d => d.id === selectedDoctorId) || DOCTOR_MAPPINGS[0];
+  const firstP = activeQueue[0];
+  const currentRoomName = firstP ? firstP.room : "UTT 10 - 51 XONA";
+  const currentDocName = firstP ? firstP.doctorName : "Xudayberdiyeva Nigora Nizamovna";
 
   widgetEl = document.createElement("div");
   widgetEl.id = "uttVrachFloatingWidget";
@@ -254,17 +340,17 @@ function createFloatingWidget() {
 
     <div class="utt-widget-body" id="uttWidgetBody">
       <div class="utt-doc-info">
-        <div class="utt-doc-room" id="uttWidgetRoom">${doc.room}</div>
-        <div class="utt-doc-name" id="uttWidgetDoc">${doc.name}</div>
+        <div class="utt-doc-room" id="uttWidgetRoom">${currentRoomName}</div>
+        <div class="utt-doc-name" id="uttWidgetDoc">${currentDocName}</div>
       </div>
 
       <div class="utt-queue-stat">
-        <span>Vaqt bo'yicha navbat: <b id="uttQueueCount">0</b> ta</span>
+        <span>Xotiradagi bemorlar: <b id="uttQueueCount">${activeQueue.length}</b> ta</span>
       </div>
 
       <div class="utt-next-box">
         <div class="utt-next-label">KEYINGI BEMOR (VAQTI BO'YICHA):</div>
-        <div class="utt-next-name" id="uttNextPatientName">Yuklanmoqda...</div>
+        <div class="utt-next-name" id="uttNextPatientName">${firstP ? `${firstP.patientName} (${firstP.registeredAtStr})` : 'Yuklanmoqda...'}</div>
       </div>
 
       <button class="utt-btn-call-main" id="uttBtnCallMain">
@@ -305,13 +391,17 @@ function createFloatingWidget() {
 function updateWidgetUI(patients) {
   const countEl = document.getElementById("uttQueueCount");
   const nextEl = document.getElementById("uttNextPatientName");
+  const roomEl = document.getElementById("uttWidgetRoom");
+  const docEl = document.getElementById("uttWidgetDoc");
   const btnCall = document.getElementById("uttBtnCallMain");
 
   if (countEl) countEl.innerText = patients.length;
 
   const nextP = patients.find(p => p.status === "waiting") || patients[0];
-  if (nextP && nextEl) {
-    nextEl.innerText = `${nextP.patientName} (${nextP.registeredAtStr})`;
+  if (nextP) {
+    if (nextEl) nextEl.innerText = `${nextP.patientName} (${nextP.registeredAtStr})`;
+    if (roomEl) roomEl.innerText = nextP.room;
+    if (docEl) docEl.innerText = nextP.doctorName;
     if (btnCall) btnCall.disabled = false;
   } else if (nextEl) {
     nextEl.innerText = "Kutayotgan bemorlar yo'q";
@@ -319,7 +409,7 @@ function updateWidgetUI(patients) {
   }
 }
 
-// 7. KARMED QATORIGA CHAQIRUV TUGMASINI QO'SHISH
+// 8. KARMED QATORIGA CHAQIRUV TUGMASINI QO'SHISH
 function attachRowCallButton(row, patient) {
   if (row.querySelector(".utt-row-call-btn")) return;
 
@@ -328,7 +418,7 @@ function attachRowCallButton(row, patient) {
 
   const btn = document.createElement("button");
   btn.className = "utt-row-call-btn";
-  btn.title = "TV da ovozli chaqirish";
+  btn.title = `TV da chaqirish (${patient.room})`;
   btn.innerText = "📢";
   btn.onclick = (e) => {
     e.stopPropagation();
@@ -347,7 +437,7 @@ function showCallNotification(name, room) {
   setTimeout(() => toast.remove(), 4000);
 }
 
-// 8. SUDRAB YURISH (DRAGGABLE)
+// 9. SUDRAB YURISH (DRAGGABLE)
 function makeDraggable(el, handle) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   handle.onmousedown = dragMouseDown;
@@ -378,7 +468,7 @@ function makeDraggable(el, handle) {
   }
 }
 
-// 9. DOM O'ZGARISHLARINI KUZATISH (DEBOUNCED)
+// 10. DOM O'ZGARISHLARINI KUZATISH (DEBOUNCED)
 function startObservingTable() {
   const observer = new MutationObserver(() => {
     scheduleScan();
