@@ -286,7 +286,6 @@ function handleWebSocketMessage(msg) {
     hideApprovalOverlay();
   } else if (msg.type === "DEVICE_REJECTED") {
     showRejectedOverlay(msg.message);
-  }
   } else if (msg.type === "TV_CONFIG_CHANGED") {
     if (msg.data.activeLang && msg.data.activeLang !== currentLang) {
       applyLanguage(msg.data.activeLang);

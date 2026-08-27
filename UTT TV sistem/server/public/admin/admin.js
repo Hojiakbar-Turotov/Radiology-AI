@@ -260,10 +260,7 @@ function handleWebSocketMessage(msg) {
     renderGuidelinesList();
   } else if (msg.type === "CLIENTS_UPDATED") {
     allClients = msg.data || [];
-    if (clientsRenderDebounceTimer) clearTimeout(clientsRenderDebounceTimer);
-    clientsRenderDebounceTimer = setTimeout(() => {
-      renderClientsListSmart(allClients);
-    }, 1500);
+    renderClientsListSmart(allClients, true);
   } else if (msg.type === "PENDING_DEVICES_UPDATED") {
     renderPendingDevicesList(msg.data || []);
   } else if (msg.type === "QUEUE_UPDATED") {
