@@ -1,5 +1,45 @@
 {
-  "patients": [],
+  "patients": [
+    {
+      "id": "pat_1",
+      "patientName": "KOBILOVA DILNOZA BAXTIYOROVNA",
+      "patientId": "58491",
+      "doctorId": "vrach_utt_48",
+      "doctorName": "Xoshimova Lola Kabulova",
+      "room": "UTT8-48 XONA",
+      "service": "Qorin bo'shlig'i UTT",
+      "status": "in_progress",
+      "orderNumber": 1,
+      "createdAt": 1756274400000,
+      "createdAtStr": "10:45"
+    },
+    {
+      "id": "pat_2",
+      "patientName": "RAHIMOV SHAVKAT ANVAROVICH",
+      "patientId": "58492",
+      "doctorId": "vrach_utt_48",
+      "doctorName": "Xoshimova Lola Kabulova",
+      "room": "UTT8-48 XONA",
+      "service": "Qalqonsimon bez UTT",
+      "status": "waiting",
+      "orderNumber": 2,
+      "createdAt": 1756274700000,
+      "createdAtStr": "10:50"
+    },
+    {
+      "id": "pat_3",
+      "patientName": "TOSHMATOV JASUR ALISHEROVICH",
+      "patientId": "58493",
+      "doctorId": "vrach_utt_48",
+      "doctorName": "Xoshimova Lola Kabulova",
+      "room": "UTT8-48 XONA",
+      "service": "Jigar va o't pufagi UTT",
+      "status": "waiting",
+      "orderNumber": 3,
+      "createdAt": 1756275000000,
+      "createdAtStr": "10:55"
+    }
+  ],
   "current_announcement": null,
   "history": []
 }

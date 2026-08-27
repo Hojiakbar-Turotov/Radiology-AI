@@ -1,5 +1,13 @@
 [
   {
+    "id": "vrach_utt_48",
+    "name": "Xoshimova Lola Kabulova",
+    "specialty": "ULTRATOVUSH --5",
+    "room": "UTT8-48 XONA",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
     "id": "vrach_utt_1",
     "name": "Dr. Turotov H.B.",
     "specialty": "Ultratovush Diagnostikasi (UTT)",
@@ -30,13 +38,5 @@
     "room": "1-MSKT Xonasi",
     "color": "#ea580c",
     "icon": "fa-circle-nodes"
-  },
-  {
-    "id": "vrach_rentgen_1",
-    "name": "Rentgen 1-Qurilma",
-    "specialty": "Rentgenodiagnostika",
-    "room": "Rentgen Xonasi",
-    "color": "#d97706",
-    "icon": "fa-x-ray"
   }
 ]

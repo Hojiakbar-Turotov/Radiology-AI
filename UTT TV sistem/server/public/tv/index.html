@@ -9,81 +9,88 @@
 </head>
 <body>
 
-  <div class="tv-container">
+  <div class="tv-layout">
     
-    <!-- TOP HEADER BAR -->
-    <header class="tv-header">
-      <div class="header-left">
-        <div class="hospital-logo">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 6v12M6 12h12"/>
+    <!-- TOP HEADER -->
+    <header class="tv-top-bar">
+      <div class="top-left">
+        <div class="hospital-icon-wrap" title="Respublika Onkologiya Markazi">
+          <svg class="med-cross-icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </div>
-        <div class="header-titles">
-          <h1>Respublika Onkologiya va Radiologiya Markazi</h1>
-          <p>Tibbiy Diagnostika va Qabul Navbat Tizimi (Lokal Tarmoq)</p>
+        <div class="room-selector-wrap">
+          <select id="roomFilterSelect" class="room-select-dropdown" onchange="handleRoomChange(this.value)">
+            <option value="ALL">🏢 Barcha Xonalar Monitori</option>
+          </select>
         </div>
       </div>
 
-      <div class="header-right">
-        <div class="network-badge" id="netBadge">
-          <span class="net-dot"></span>
-          <span id="netStatusText">Lokal Tarmoq: Ulangan</span>
-        </div>
-        <div class="clock-display" id="liveClock">00:00:00</div>
-        <div class="date-display" id="liveDate">--.--.----</div>
+      <div class="top-center">
+        <h1 class="main-room-title" id="mainHeaderRoomTitle">UTT8-48 XONA</h1>
+        <div class="doctor-sub-title" id="mainHeaderDoctorSub">ULTRATOVUSH --5 Xoshimova Lola Kabulova</div>
+      </div>
+
+      <div class="top-right">
+        <div class="tv-date-str" id="tvDateStr">Payshanba 27 Avgust 2026</div>
+        <div class="tv-digital-clock" id="tvClockStr">11:01:16</div>
       </div>
     </header>
 
-    <!-- CALLING HERO ANNOUNCEMENT (Chaqiruv paytida ochiladi) -->
-    <section class="calling-hero-banner" id="callingHeroBanner" style="display: none;">
-      <div class="calling-hero-card" id="callingHeroCard">
-        <div class="hero-alert-tag">
-          <span class="pulse-icon">📢</span> DIQQAT! QABULGA CHAQIRUV
+    <!-- ACTIVE SERVING / CALLING HERO BANNER -->
+    <section class="serving-hero-section" id="servingHeroSection" style="display: none;">
+      <div class="serving-hero-card" id="servingHeroCard">
+        <div class="hero-call-badge">
+          <span class="bell-ring">📢</span> QABULGA CHAQIRILMOQDA
         </div>
-
-        <div class="hero-patient-name" id="heroPatientName">BEMOR F.I.SH</div>
-        
-        <div class="hero-destination-box">
-          <div class="dest-item">
-            <span class="dest-label">QABUL XONASI:</span>
-            <span class="dest-val dest-room" id="heroRoomNum">101-xona</span>
-          </div>
-          <div class="dest-divider"></div>
-          <div class="dest-item">
-            <span class="dest-label">SHIFOKOR / QURILMA:</span>
-            <span class="dest-val dest-doctor" id="heroDoctorName">Dr. Turotov H.B.</span>
-          </div>
+        <div class="hero-patient-name" id="heroPatientName">XOSHIMOVA LOLA KABULOVA</div>
+        <div class="hero-dest-details">
+          <span class="dest-room-badge" id="heroRoomText">UTT8-48 XONA</span>
+          <span class="dest-doc-badge" id="heroDoctorText">Dr. Xoshimova L.K.</span>
         </div>
-
-        <div class="hero-service-tag" id="heroServiceTag">Ultratovush Diagnostikasi (UTT)</div>
       </div>
     </section>
 
-    <!-- DOCTORS & ROOMS GRID -->
-    <main class="rooms-grid" id="roomsGrid">
-      <!-- Dinamik ravishda tv.js orqali chiziladi -->
+    <!-- PATIENT QUEUE TABLE -->
+    <main class="tv-main-table-wrap">
+      <table class="queue-table">
+        <thead>
+          <tr>
+            <th style="width: 10%; text-align: center;">№</th>
+            <th style="width: 45%;">BEMOR FAMILIYA VA ISMI</th>
+            <th style="width: 25%;">XONA / QURILMA</th>
+            <th style="width: 20%; text-align: center;">HOLATI</th>
+          </tr>
+        </thead>
+        <tbody id="queueTableBody">
+          <!-- Dinamik chiziladi -->
+        </tbody>
+      </table>
     </main>
 
-    <!-- FOOTER TICKER (Yuguruvchi satr) -->
-    <footer class="tv-footer">
-      <div class="ticker-badge">ESLATMA</div>
-      <div class="ticker-content">
-        <div class="ticker-text" id="tickerText">
-          Hurmatli bemorlar! Iltimos, xona raqami va F.I.Sh e'lon qilinganda tegishli qabul xonasi oldiga keling. Barcha tekshiruvlar navbat asosida amalga oshiriladi.
+    <!-- BLUE BOTTOM RUNNING FOOTER -->
+    <footer class="tv-bottom-bar">
+      <div class="bottom-marquee-wrap">
+        <div class="bottom-marquee-text" id="bottomMarqueeText">
+          Hurmatli bemorlar! Navbatingiz yetganda chaqirilgan xonaga kiring. • Elektron navbat tizimi asosida xizmat ko'rsatiladi. • Favqulodda holatlarda navbatsiz qabul qilinadi.
         </div>
+      </div>
+      <div class="bottom-right-logo">
+        <span class="logo-text">KARMED</span>
+        <div class="logo-red-slash"></div>
       </div>
     </footer>
 
   </div>
 
-  <!-- AUDIO UNLOCK OVERLAY (Android TV va Brauzerlarda avtomatik ovoz bloklanishini ochish uchun) -->
+  <!-- AUDIO UNLOCK OVERLAY (Pultdagi OK tugmasi) -->
   <div class="audio-overlay" id="audioOverlay" onclick="unlockAudio()">
-    <div class="audio-overlay-box">
-      <div class="audio-icon-big">🔊</div>
-      <h2>Ovozli E'lonlarni Faollashtirish</h2>
-      <p>Android TV pulti orqali <b>[ OK ]</b> tugmasini yoki ekranga bir marta bosing</p>
-      <button class="btn-unlock-audio">OVOZNI YOQISH</button>
+    <div class="audio-box">
+      <div class="audio-icon">🔊</div>
+      <h2>Ovozli E'lonlarni Yoqish</h2>
+      <p>Android TV pultidagi <b>[ OK ]</b> tugmasini yoki sichqonchani bosing</p>
+      <button class="btn-activate-audio">OVOZNI YOQISH</button>
     </div>
   </div>
 
