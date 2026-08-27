@@ -1,6 +1,6 @@
 /**
- * UTT TV SISTEM — TV DISPLAY LOGIC (6 Ta Tilda: UZ, RU, EN, TR, KZ, TG)
- * 100% Offline (WebSocket + Multi-language Audio Chime + Voice Synthesis)
+ * UTT TV SISTEM — TV DISPLAY LOGIC (100% Toza Monitor, Masofadan Admin Paneldan Boshqariladi)
+ * 100% Offline (WebSocket + Audio Chime + Multi-language Voice Synthesis)
  */
 
 let currentLang = "uz";
@@ -11,7 +11,6 @@ let lastAnnouncementTimestamp = 0;
 let isAudioUnlocked = false;
 let audioContext = null;
 let activeCallTimer = null;
-let langRotationTimer = null;
 let ws = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -23,24 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLanguage(currentLang);
 });
 
-// 1. TILNI O'ZGARTIRISH (6 TA TIL)
-function setLanguage(lang) {
-  if (!I18N[lang]) return;
-  currentLang = lang;
-  applyLanguage(lang);
-}
-
+// 1. TILNI QO'LLASH (ADMIN PANEL TARAFIIDAN YUBORILGANDA AVTOMATIK O'ZGARADI)
 function applyLanguage(lang) {
+  if (!I18N[lang]) lang = "uz";
+  currentLang = lang;
   const dict = I18N[lang] || I18N.uz;
-
-  // Tugmalarni aktivlashtirish
-  document.querySelectorAll(".lang-btn").forEach(btn => {
-    if (btn.dataset.lang === lang) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
-  });
 
   // Jadval sarlavhalari
   const thNum = document.getElementById("thNum");
@@ -70,13 +56,11 @@ function applyLanguage(lang) {
   const heroBadge = document.getElementById("heroCallBadgeText");
   if (heroBadge) heroBadge.innerText = dict.nowCalling;
 
-  // Jadval va sarlavhalarni qayta chizish
-  populateRoomFilterDropdown();
   renderHeaderAndQueueTable();
   updateClockAndDate();
 }
 
-// 2. VAQT VA SANA (Tanlangan tilda)
+// 2. VAQT VA SANA
 function initClockAndDate() {
   updateClockAndDate();
   setInterval(updateClockAndDate, 1000);
@@ -109,15 +93,21 @@ function updateClockAndDate() {
 // 3. BOSHLANG'ICH MA'LUMOTLARNI YUKLASH
 async function fetchInitialState() {
   try {
+    const infoRes = await fetch("/api/info");
+    const infoData = await infoRes.json();
+    if (infoData.settings) {
+      if (infoData.settings.activeLang) currentLang = infoData.settings.activeLang;
+      if (infoData.settings.activeRoomId) selectedRoomFilter = infoData.settings.activeRoomId;
+    }
+
     const docRes = await fetch("/api/doctors");
     allDoctors = await docRes.json();
-    populateRoomFilterDropdown();
 
     const qRes = await fetch("/api/queue");
     const qData = await qRes.json();
 
     allPatients = qData.patients || [];
-    renderHeaderAndQueueTable();
+    applyLanguage(currentLang);
 
     if (qData.current_announcement && qData.current_announcement.timestamp > lastAnnouncementTimestamp) {
       lastAnnouncementTimestamp = qData.current_announcement.timestamp;
@@ -128,7 +118,7 @@ async function fetchInitialState() {
   }
 }
 
-// 4. WEBSOCKET SYNC
+// 4. WEBSOCKET SYNC VA CLIENT IDENTIFY
 function initWebSocket() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${location.host}`;
@@ -138,6 +128,14 @@ function initWebSocket() {
 
     ws.onopen = () => {
       console.log("✅ TV WebSocket serverga ulandi");
+      // O'zini TV qurilmasi sifatida tanishtirish
+      ws.send(JSON.stringify({
+        type: "CLIENT_IDENTIFY",
+        data: {
+          clientType: "tv",
+          name: `📺 TV Monitor (${location.hostname})`
+        }
+      }));
     };
 
     ws.onmessage = (event) => {
@@ -167,45 +165,36 @@ function handleWebSocketMessage(msg) {
   if (msg.type === "INITIAL_STATE") {
     allDoctors = msg.data.doctors || [];
     allPatients = msg.data.queue.patients || [];
-    populateRoomFilterDropdown();
-    renderHeaderAndQueueTable();
+    if (msg.data.settings) {
+      if (msg.data.settings.activeLang) currentLang = msg.data.settings.activeLang;
+      if (msg.data.settings.activeRoomId) selectedRoomFilter = msg.data.settings.activeRoomId;
+    }
+    applyLanguage(currentLang);
+  } else if (msg.type === "TV_CONFIG_CHANGED") {
+    // Admin paneldan kelgan masofaviy boshqaruv buyrug'i
+    if (msg.data.activeLang && msg.data.activeLang !== currentLang) {
+      applyLanguage(msg.data.activeLang);
+    }
+    if (msg.data.activeRoomId !== undefined) {
+      selectedRoomFilter = msg.data.activeRoomId;
+      renderHeaderAndQueueTable();
+    }
+    if (msg.data.tickerText) {
+      const ticker = document.getElementById("bottomMarqueeText");
+      if (ticker) ticker.innerText = msg.data.tickerText;
+    }
   } else if (msg.type === "QUEUE_UPDATED") {
     allPatients = msg.data.patients || [];
     renderHeaderAndQueueTable();
   } else if (msg.type === "DOCTORS_UPDATED") {
     allDoctors = msg.data || [];
-    populateRoomFilterDropdown();
     renderHeaderAndQueueTable();
   } else if (msg.type === "CALL_ANNOUNCEMENT") {
     handleCallingAnnouncement(msg.data);
   }
 }
 
-// 5. ROOM FILTER DROPDOWN
-function populateRoomFilterDropdown() {
-  const select = document.getElementById("roomFilterSelect");
-  if (!select) return;
-
-  const dict = I18N[currentLang] || I18N.uz;
-  const currentVal = select.value;
-  select.innerHTML = `<option value="ALL">${dict.allRoomsOption}</option>`;
-
-  allDoctors.forEach(doc => {
-    const opt = document.createElement("option");
-    opt.value = doc.id;
-    opt.innerText = `${doc.room} (${doc.name})`;
-    select.appendChild(opt);
-  });
-
-  select.value = currentVal || "ALL";
-}
-
-function handleRoomChange(val) {
-  selectedRoomFilter = val;
-  renderHeaderAndQueueTable();
-}
-
-// 6. SARLAVHA VA JADVALNI CHIZISH
+// 5. SARLAVHA VA JADVALNI CHIZISH
 function renderHeaderAndQueueTable() {
   const dict = I18N[currentLang] || I18N.uz;
   const headerTitle = document.getElementById("mainHeaderRoomTitle");
@@ -283,7 +272,7 @@ function renderHeaderAndQueueTable() {
   }).join("");
 }
 
-// 7. CHAQIRUV E'LONI VA OVOZLI O'QISH
+// 6. CHAQIRUV E'LONI VA OVOZLI O'QISH
 function handleCallingAnnouncement(data) {
   if (!data || !data.patientName) return;
 
@@ -310,7 +299,7 @@ function handleCallingAnnouncement(data) {
   // 1. Audio Gong (Ding-Dong)
   playChime();
 
-  // 2. Tanlangan tildagi ovozli e'lon (Uzbek, Rus, Ingliz, Turk, Qozoq, Tojik)
+  // 2. Tanlangan tildagi ovozli e'lon
   speakMultilingualAnnouncement(data, currentLang);
 
   renderHeaderAndQueueTable();
@@ -321,7 +310,7 @@ function handleCallingAnnouncement(data) {
   }, 35000);
 }
 
-// 8. AUDIO CHIME (100% OFFLINE)
+// 7. AUDIO CHIME (100% OFFLINE)
 function initAudio() {
   document.addEventListener("click", unlockAudio, { once: true });
 }
@@ -375,7 +364,7 @@ function playTone(ctx, freq, startTime, duration) {
   osc.stop(startTime + duration);
 }
 
-// 9. 6 TA TILDA OVOZLI E'LON (TTS)
+// 8. 6 TA TILDA OVOZLI E'LON (TTS)
 function speakMultilingualAnnouncement(data, lang) {
   if (!('speechSynthesis' in window)) return;
 
@@ -396,11 +385,8 @@ function speakMultilingualAnnouncement(data, lang) {
       utterance.volume = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
-      
-      // Mos til ovozini qidirish
       let targetVoice = voices.find(v => v.lang === dict.langVoice || v.lang.startsWith(dict.code));
       if (!targetVoice && (lang === "kz" || lang === "tg" || lang === "uz")) {
-        // Fallback qardosh tillar
         targetVoice = voices.find(v => v.lang === "tr-TR" || v.lang === "ru-RU" || v.lang.startsWith("tr") || v.lang.startsWith("ru"));
       }
 
@@ -415,16 +401,11 @@ function speakMultilingualAnnouncement(data, lang) {
   }, 1100);
 }
 
-// 10. TV REMOTE PULT
+// 9. TV REMOTE PULT
 function initRemoteKeys() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.keyCode === 13) {
       if (!isAudioUnlocked) unlockAudio();
-    }
-    // Raqamlar orqali tilni tez o'zgartirish (1: UZ, 2: RU, 3: EN, 4: TR, 5: KZ, 6: TG)
-    const keyMap = { "1": "uz", "2": "ru", "3": "en", "4": "tr", "5": "kz", "6": "tg" };
-    if (keyMap[e.key]) {
-      setLanguage(keyMap[e.key]);
     }
   });
 }
@@ -434,6 +415,4 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-window.setLanguage = setLanguage;
-window.handleRoomChange = handleRoomChange;
 window.unlockAudio = unlockAudio;

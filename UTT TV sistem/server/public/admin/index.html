@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UTT TV Sistem — Boshqaruv Admin Paneli</title>
+  <link rel="stylesheet" href="/admin/style.css">
+</head>
+<body>
+
+  <div class="admin-container">
+    
+    <!-- TOP HEADER -->
+    <header class="admin-header">
+      <div class="header-brand">
+        <div class="brand-logo">⚙️</div>
+        <div>
+          <h1>UTT TV Sistem — Markaziy Admin Paneli</h1>
+          <p>Lokal Tarmoq (LAN / Wi-Fi) TV Monitorlari va Navbat Boshqaruvi</p>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill online-pill">
+          <span class="pulse-dot"></span>
+          <span>Ulangan Qurilmalar: <b id="activeClientsCount">0</b> ta</span>
+        </div>
+        <div class="stat-pill ip-pill" id="hostIpBadge">
+          <span>📡 Server IP: <b id="primaryIpText">192.168.137.1:3000</b></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- NETWORK INFO BANNER -->
+    <section class="network-info-card">
+      <div class="net-title">📡 TV VA KENGAYTMALARNI ULANISH MANZILLARI:</div>
+      <div class="net-links-grid" id="netLinksGrid">
+        <!-- Dinamik chiziladi -->
+      </div>
+    </section>
+
+    <!-- 2 COLUMN GRID -->
+    <div class="admin-main-grid">
+      
+      <!-- LEFT COLUMN: TV MASOFADAN BOSHQARISH & PREVIEW -->
+      <div class="col-left">
+        
+        <!-- TV MASOFADAN BOSHQARISH -->
+        <div class="admin-card">
+          <div class="card-header">
+            <h3>📺 TV Monitorini Masofadan Boshqarish</h3>
+            <span class="badge-live">REALTIME</span>
+          </div>
+
+          <!-- 1. TILNI O'ZGARTIRISH (6 TA TIL) -->
+          <div class="control-group">
+            <label class="group-label">1. TV Monitori Tilini Tanlang (Barcha TV larda o'zgaradi):</label>
+            <div class="lang-grid" id="adminLangGrid">
+              <button class="btn-lang active" data-lang="uz" onclick="changeTvLanguage('uz')">🇺🇿 O'zbekcha</button>
+              <button class="btn-lang" data-lang="ru" onclick="changeTvLanguage('ru')">🇷🇺 Русский</button>
+              <button class="btn-lang" data-lang="en" onclick="changeTvLanguage('en')">🇬🇧 English</button>
+              <button class="btn-lang" data-lang="tr" onclick="changeTvLanguage('tr')">🇹🇷 Türkçe</button>
+              <button class="btn-lang" data-lang="kz" onclick="changeTvLanguage('kz')">🇰🇿 Қазақша</button>
+              <button class="btn-lang" data-lang="tg" onclick="changeTvLanguage('tg')">🇹🇯 Тоҷикӣ</button>
+            </div>
+          </div>
+
+          <!-- 2. XONANI TANLASH -->
+          <div class="control-group">
+            <label class="group-label">2. TV Ekranida Qaysi Xona Ko'rinsin?</label>
+            <select id="adminRoomSelect" class="form-select" onchange="changeTvRoom(this.value)">
+              <option value="ALL">🏢 Barcha Xonalar Monitori</option>
+            </select>
+          </div>
+
+          <!-- 3. YUGURUVCHI SATR MATNI -->
+          <div class="control-group">
+            <label class="group-label">3. Pastki Yuguruvchi Satr E'loni (Ticker):</label>
+            <div class="input-action-row">
+              <input type="text" id="adminTickerInput" class="form-input" placeholder="E'lon matni...">
+              <button class="btn-primary" onclick="saveTickerText()">Yangilash</button>
+            </div>
+          </div>
+
+          <!-- 4. TEST OVOZLI CHAQIRUV -->
+          <div class="control-group">
+            <label class="group-label">4. Test Ovozli Chaqiruv Yuborish:</label>
+            <div class="input-action-row">
+              <input type="text" id="testPatientName" class="form-input" placeholder="Bemor F.I.Sh (Masalan: Aliyev Vali)" value="KOBILOVA DILNOZA BAXTIYOROVNA">
+              <button class="btn-warning" onclick="sendTestCall()">📢 TV da Chaqirish</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- JONLI TV EKRANI PREVIEW -->
+        <div class="admin-card">
+          <div class="card-header">
+            <h3>👁️ TV Ekranining Jonli Ko'rinishi (Preview)</h3>
+            <a href="/tv" target="_blank" class="btn-link">Alohida oynada ochish ↗</a>
+          </div>
+          <div class="tv-preview-frame-wrap">
+            <iframe src="/tv" class="tv-preview-iframe" id="tvPreviewIframe"></iframe>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: ULANGAN QURILMALAR VA NAVBAT -->
+      <div class="col-right">
+        
+        <!-- ULANGAN QURILMALAR RO'YXATI -->
+        <div class="admin-card">
+          <div class="card-header">
+            <h3>📱 Ulangan Qurilmalar va Oynalar (<span id="devicesCount">0</span> ta)</h3>
+            <button class="btn-sm" onclick="fetchClients()">🔄</button>
+          </div>
+          <div class="devices-list" id="devicesList">
+            <!-- Dinamik chiziladi -->
+          </div>
+        </div>
+
+        <!-- NAVBATDAGI BEMORLAR BOSHQARUVI -->
+        <div class="admin-card">
+          <div class="card-header">
+            <h3>👥 Navbatdagi Bemorlar (<span id="queuePatientsCount">0</span> ta)</h3>
+            <button class="btn-danger-sm" onclick="clearQueue()">Tozalash</button>
+          </div>
+
+          <!-- Tezkor Bemor Qo'shish Formasi -->
+          <form id="adminAddPatientForm" onsubmit="handleAddPatient(event)" class="quick-add-form">
+            <input type="text" id="addName" class="form-input" placeholder="Bemor F.I.Sh" required>
+            <select id="addDoctor" class="form-select" required>
+              <option value="">Vrachni tanlang...</option>
+            </select>
+            <input type="text" id="addService" class="form-input" placeholder="Tekshiruv turi">
+            <button type="submit" class="btn-success">+ Qo'shish</button>
+          </form>
+
+          <div class="admin-patients-list" id="adminPatientsList">
+            <!-- Dinamik chiziladi -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

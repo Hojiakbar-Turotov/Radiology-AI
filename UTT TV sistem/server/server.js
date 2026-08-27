@@ -12,8 +12,10 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, "data");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const TV_DIR = path.join(PUBLIC_DIR, "tv");
+const ADMIN_DIR = path.join(PUBLIC_DIR, "admin");
 const QUEUE_FILE = path.join(DATA_DIR, "queue.json");
 const DOCTORS_FILE = path.join(DATA_DIR, "doctors.json");
+const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 
 // 1. MA'LUMOTLARNI YUKLASH VA SAQLASH FUNKSIYALARI
 function readJsonFile(filePath, defaultVal) {
@@ -43,40 +45,64 @@ function writeJsonFile(filePath, data) {
 
 let queueData = readJsonFile(QUEUE_FILE, { patients: [], current_announcement: null, history: [] });
 let doctorsData = readJsonFile(DOCTORS_FILE, []);
+let settingsData = readJsonFile(SETTINGS_FILE, {
+  activeLang: "uz",
+  activeRoomId: "ALL",
+  autoRotate: false,
+  rotateIntervalSec: 25,
+  tickerText: "Hurmatli bemorlar! Navbatingiz yetganda chaqirilgan xonaga kiring. • Elektron navbat tizimi asosida xizmat ko'rsatiladi. • Favqulodda holatlarda navbatsiz qabul qilinadi."
+});
 
-// 2. LOKAL IP MANZILLARNI ANIQLASH (LAN IPv4)
+// 2. LOKAL IP MANZILLARNI ANIQLASH (LAN / Wi-Fi / Ethernet)
 function getLocalIpAddresses() {
   const interfaces = os.networkInterfaces();
   const addresses = [];
   for (const name of Object.keys(interfaces)) {
     for (const net of interfaces[name]) {
       if (net.family === "IPv4" && !net.internal) {
-        addresses.push({ interface: name, ip: net.address });
+        // Turi: Wi-Fi yoki Ethernet
+        let typeName = "Ethernet";
+        const lowName = name.toLowerCase();
+        if (lowName.includes("wi-fi") || lowName.includes("wireless") || lowName.includes("беспроводная") || net.address.startsWith("192.168.137.")) {
+          typeName = "Wi-Fi / Hotspot";
+        } else if (lowName.includes("bluetooth")) {
+          typeName = "Bluetooth";
+        }
+        addresses.push({ interface: name, type: typeName, ip: net.address });
       }
     }
   }
   return addresses;
 }
 
-// 3. WEBSOCKET KLIENTLARI (REALTIME BROADCAST)
-const wsClients = new Set();
+// 3. ULANGAN QURILMALAR VA WEBSOCKET KLIENTLARI (ACTIVE DEVICES TRACKER)
+const wsClientsMap = new Map(); // ws -> clientInfo
+
+function getActiveClientsList() {
+  const list = [];
+  for (const [ws, info] of wsClientsMap.entries()) {
+    if (ws.readyState === 1) {
+      list.push(info);
+    }
+  }
+  return list;
+}
 
 function broadcastMessage(payload) {
   const msgStr = JSON.stringify(payload);
-  for (const client of wsClients) {
+  for (const [ws] of wsClientsMap.entries()) {
     try {
-      if (client.readyState === 1) { // OPEN
-        client.send(msgStr);
+      if (ws.readyState === 1) { // OPEN
+        ws.send(msgStr);
       }
     } catch (e) {
-      wsClients.delete(client);
+      wsClientsMap.delete(ws);
     }
   }
 }
 
 // 4. HTTP SERVERNI YARATISH
 const server = http.createServer((req, res) => {
-  // CORS sarlavhalari
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -106,7 +132,7 @@ const server = http.createServer((req, res) => {
   // REST API ENDPOINTS
   // ==========================================
 
-  // A) Server Info & Host IP
+  // A) Server Info, Host IPs & Active Clients
   if (pathname === "/api/info" && req.method === "GET") {
     const ips = getLocalIpAddresses();
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -116,17 +142,52 @@ const server = http.createServer((req, res) => {
       hostIps: ips,
       primaryIp: ips.length > 0 ? ips[0].ip : "127.0.0.1",
       serverTime: new Date().toISOString(),
-      activeWsClients: wsClients.size
+      activeClientsCount: wsClientsMap.size,
+      settings: settingsData
     }));
   }
 
-  // B) Vrachlar Ro'yxati (GET /api/doctors)
+  // B) Ulangan Qurilmalar Ro'yxati (GET /api/clients)
+  if (pathname === "/api/clients" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      count: wsClientsMap.size,
+      clients: getActiveClientsList()
+    }));
+  }
+
+  // C) Admin Sozlamalari (GET & POST /api/settings)
+  if (pathname === "/api/settings" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(settingsData));
+  }
+
+  if (pathname === "/api/settings" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Noto'g'ri ma'lumot" }));
+      }
+      settingsData = { ...settingsData, ...body };
+      writeJsonFile(SETTINGS_FILE, settingsData);
+
+      // Barcha TV monitorlariga sozlamalarni real-time yuborish
+      broadcastMessage({ type: "TV_CONFIG_CHANGED", data: settingsData });
+      console.log(`⚙️ ADMIN SOZLAMALAR O'ZGARTIRILDI: Til=${settingsData.activeLang}, Xona=${settingsData.activeRoomId}`);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, settings: settingsData }));
+    });
+    return;
+  }
+
+  // D) Vrachlar Ro'yxati (GET /api/doctors)
   if (pathname === "/api/doctors" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify(doctorsData));
   }
 
-  // C) Vrach Qo'shish / Yangilash (POST /api/doctors)
+  // E) Vrach Qo'shish / Yangilash (POST /api/doctors)
   if (pathname === "/api/doctors" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || !body.name) {
@@ -155,11 +216,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // D) Navbat Holati (GET /api/queue)
+  // F) Navbat Holati (GET /api/queue)
   if (pathname === "/api/queue" && req.method === "GET") {
     const doctorFilter = parsedUrl.searchParams.get("doctorId");
     let resultPatients = queueData.patients || [];
-    if (doctorFilter) {
+    if (doctorFilter && doctorFilter !== "ALL") {
       resultPatients = resultPatients.filter(p => p.doctorId === doctorFilter);
     }
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -170,7 +231,7 @@ const server = http.createServer((req, res) => {
     }));
   }
 
-  // E) Bemor Qo'shish (POST /api/queue/add)
+  // G) Bemor Qo'shish (POST /api/queue/add)
   if (pathname === "/api/queue/add" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || !body.patientName) {
@@ -213,7 +274,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // F) Bemorni Chaqirish (POST /api/queue/call)
+  // H) Bemorni Chaqirish (POST /api/queue/call)
   if (pathname === "/api/queue/call" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || (!body.patientId && !body.id && !body.patientName)) {
@@ -278,7 +339,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // G) Bemor Holatini O'zgartirish (POST /api/queue/status)
+  // I) Bemor Holatini O'zgartirish (POST /api/queue/status)
   if (pathname === "/api/queue/status" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || (!body.id && !body.patientId) || !body.status) {
@@ -311,7 +372,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // H) 2-KENGAYTMA: Bemor Vrachini O'zgartirish (POST /api/queue/reassign)
+  // J) 2-KENGAYTMA: Bemor Vrachini O'zgartirish (POST /api/queue/reassign)
   if (pathname === "/api/queue/reassign" && req.method === "POST") {
     parseRequestBody((err, body) => {
       if (err || (!body.id && !body.patientId && !body.patientName) || !body.targetDoctorId) {
@@ -366,7 +427,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // I) Navbatni Tozalash (POST /api/queue/clear)
+  // K) Navbatni Tozalash (POST /api/queue/clear)
   if (pathname === "/api/queue/clear" && req.method === "POST") {
     if (queueData.patients.length > 0) {
       queueData.history.push({
@@ -384,21 +445,23 @@ const server = http.createServer((req, res) => {
   }
 
   // ==========================================
-  // STATIK FAYLLARNI SERVE QILISH (TV & ASSETS)
+  // STATIK FAYLLARNI SERVE QILISH (TV, ADMIN & ASSETS)
   // ==========================================
 
   let resolvedFile = null;
 
-  // 1. Agar /tv yoki / bo'lsa -> index.html
   if (pathname === "/" || pathname === "/tv" || pathname === "/tv/") {
     resolvedFile = path.join(TV_DIR, "index.html");
+  } else if (pathname === "/admin" || pathname === "/admin/") {
+    resolvedFile = path.join(ADMIN_DIR, "index.html");
+  } else if (pathname.startsWith("/admin/")) {
+    const p = path.join(ADMIN_DIR, pathname.replace(/^\/admin\//, ""));
+    if (fs.existsSync(p) && fs.statSync(p).isFile()) resolvedFile = p;
   } else {
-    // 2. Avval public/tv/ ichidan qidirish (style.css, tv.js, va h.k.)
     const checkTvPath = path.join(TV_DIR, pathname.replace(/^\/tv\//, "").replace(/^\//, ""));
     if (fs.existsSync(checkTvPath) && fs.statSync(checkTvPath).isFile()) {
       resolvedFile = checkTvPath;
     } else {
-      // 3. Keyin public/ ichidan qidirish
       const checkPublicPath = path.join(PUBLIC_DIR, pathname.replace(/^\//, ""));
       if (fs.existsSync(checkPublicPath) && fs.statSync(checkPublicPath).isFile()) {
         resolvedFile = checkPublicPath;
@@ -430,7 +493,7 @@ const server = http.createServer((req, res) => {
 });
 
 // ==========================================
-// 5. WEBSOCKET SERVER (Built-in Native WS)
+// 5. WEBSOCKET SERVER (Built-in Native WS + Tracker)
 // ==========================================
 let WebSocketServer = null;
 try {
@@ -444,19 +507,59 @@ if (WebSocketServer) {
   const wss = new WebSocketServer({ server });
 
   wss.on("connection", (ws, req) => {
-    wsClients.add(ws);
-    const clientIp = req.socket.remoteAddress;
+    const clientIp = req.socket.remoteAddress ? req.socket.remoteAddress.replace(/^.*:/, '') : "Local";
+    const clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
+    const clientInfo = {
+      id: clientId,
+      ip: clientIp,
+      type: "tv", // default 'tv', 'admin', 'extension'
+      name: `Qurilma (${clientIp})`,
+      connectedAt: Date.now(),
+      connectedAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
+      lastSeen: Date.now()
+    };
+
+    wsClientsMap.set(ws, clientInfo);
+
+    // Initial state yuborish
     ws.send(JSON.stringify({
       type: "INITIAL_STATE",
       data: {
         queue: queueData,
-        doctors: doctorsData
+        doctors: doctorsData,
+        settings: settingsData,
+        clientId: clientId
       }
     }));
 
-    ws.on("close", () => { wsClients.delete(ws); });
-    ws.on("error", () => { wsClients.delete(ws); });
+    // Barcha adminlarga ulangan qurilmalar sonini yangilab yuborish
+    broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+
+    ws.on("message", (rawMsg) => {
+      try {
+        const msg = JSON.parse(rawMsg);
+        if (msg.type === "CLIENT_IDENTIFY") {
+          clientInfo.type = msg.data.clientType || clientInfo.type;
+          clientInfo.name = msg.data.name || clientInfo.name;
+          broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+        } else if (msg.type === "SET_TV_CONFIG") {
+          settingsData = { ...settingsData, ...msg.data };
+          writeJsonFile(SETTINGS_FILE, settingsData);
+          broadcastMessage({ type: "TV_CONFIG_CHANGED", data: settingsData });
+        }
+      } catch (e) {}
+    });
+
+    ws.on("close", () => {
+      wsClientsMap.delete(ws);
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+    });
+
+    ws.on("error", () => {
+      wsClientsMap.delete(ws);
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+    });
   });
 }
 
@@ -466,18 +569,19 @@ server.listen(PORT, "0.0.0.0", () => {
   const primaryIp = ipList.length > 0 ? ipList[0].ip : "127.0.0.1";
 
   console.log("\n==================================================================");
-  console.log("  🏥 UTT TV SISTEM — 100% LOKAL TARMOQ (LAN) REALTIME SERVERI");
+  console.log("  🏥 UTT TV SISTEM — 100% LOKAL TARMOQ (LAN / WI-FI) SERVERI");
   console.log("==================================================================");
   console.log(`  🚀 Server holati: ISHLAMOQDA (Port: ${PORT})`);
-  console.log(`  🌐 Ushbu kompyuterda ochish:  http://localhost:${PORT}/tv`);
+  console.log(`  ⚙️ ADMIN BOSHQARUV PANELI:  http://localhost:${PORT}/admin`);
+  console.log(`  📺 TV MONITOR EKRANI:       http://localhost:${PORT}/tv`);
   console.log("------------------------------------------------------------------");
-  console.log("  📡 LOKAL TARMOQ (LAN / KABEL) UCHUN HAQIQIY IP MANZILLAR:");
+  console.log("  📡 SHIFOXONA ICHKI TARMOG'IDAGI ULANISH MANZILLARI:");
   ipList.forEach(item => {
-    console.log(`  📺 [${item.interface}] Android TV uchun:  http://${item.ip}:${PORT}/tv`);
-    console.log(`  🔌 [${item.interface}] Kengaytmalar uchun: http://${item.ip}:${PORT}/api`);
+    console.log(`  📺 [${item.type}] Android TV:  http://${item.ip}:${PORT}/tv`);
+    console.log(`  ⚙️ [${item.type}] Admin Panel: http://${item.ip}:${PORT}/admin`);
+    console.log(`  🔌 [${item.type}] Kengaytma API: http://${item.ip}:${PORT}/api`);
   });
   console.log("------------------------------------------------------------------");
-  console.log(`  💡 SIZNING ASOSIY HOST MANZILINGIZ: http://${primaryIp}:${PORT}`);
-  console.log(`     (Android TV brauzeriga aynan shu manzilni yozing: http://${primaryIp}:${PORT}/tv)`);
+  console.log(`  💡 ASOSIY HOST MANZILI: http://${primaryIp}:${PORT}`);
   console.log("==================================================================\n");
 });
