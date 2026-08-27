@@ -310,18 +310,25 @@ const server = http.createServer((req, res) => {
         patientName: body.patientName.trim(),
         pinfl: body.pinfl || "",
         birthDate: body.birthDate || "",
+        department: body.department || "",
         service: body.service || "Ko'rik / Tekshiruv",
+        registeredAtStr: body.registeredAtStr || "",
+        registeredAtTimestamp: body.registeredAtTimestamp || Date.now(),
         doctorId: doctor.id,
         doctorName: doctor.name,
         room: doctor.room,
         isContrast: !!body.isContrast,
         status: body.status || "waiting",
-        orderNumber: queueData.patients.length + 1,
         createdAt: Date.now(),
         createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
       };
 
       queueData.patients.push(newPatient);
+
+      // Ro'yxatga olingan vaqti bo'yicha tartiblash
+      queueData.patients.sort((a, b) => (a.registeredAtTimestamp || a.createdAt || 0) - (b.registeredAtTimestamp || b.createdAt || 0));
+      queueData.patients.forEach((p, idx) => { p.orderNumber = idx + 1; });
+
       writeJsonFile(QUEUE_FILE, queueData);
 
       broadcastMessage({ type: "QUEUE_UPDATED", data: queueData });
@@ -329,6 +336,75 @@ const server = http.createServer((req, res) => {
 
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ ok: true, patient: newPatient, total: queueData.patients.length }));
+    });
+    return;
+  }
+
+  // G2) BEMORLARNI RO'YXATGA OLINGAN VAQTI BO'YICHA AVTOMATIK SINXRONIZATSIYA (POST /api/queue/sync)
+  if (pathname === "/api/queue/sync" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !Array.isArray(body.patients)) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Bemorlar ro'yxati (array) talab etiladi" }));
+      }
+
+      const scannedPatients = body.patients;
+      const targetDoctorId = body.doctorId;
+
+      scannedPatients.forEach(sp => {
+        let existing = queueData.patients.find(p => (sp.patientId && p.patientId === sp.patientId) || (sp.patientName && p.patientName.toLowerCase() === sp.patientName.toLowerCase()));
+
+        if (existing) {
+          existing.patientName = sp.patientName || existing.patientName;
+          existing.registeredAtStr = sp.registeredAtStr || existing.registeredAtStr;
+          if (sp.registeredAtTimestamp) existing.registeredAtTimestamp = sp.registeredAtTimestamp;
+          if (sp.service) existing.service = sp.service;
+          if (sp.pinfl) existing.pinfl = sp.pinfl;
+          if (sp.birthDate) existing.birthDate = sp.birthDate;
+          if (sp.department) existing.department = sp.department;
+          if (sp.doctorId) existing.doctorId = sp.doctorId;
+          if (sp.doctorName) existing.doctorName = sp.doctorName;
+          if (sp.room) existing.room = sp.room;
+        } else {
+          const doc = doctorsData.find(d => d.id === sp.doctorId) || (targetDoctorId ? doctorsData.find(d => d.id === targetDoctorId) : null) || {
+            id: sp.doctorId || "vrach_utt_1",
+            name: sp.doctorName || "Juravlev Igor Ivanovich",
+            room: sp.room || "UTT 1 - 53 XONA"
+          };
+
+          const newPatient = {
+            id: sp.id || `pat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            patientId: sp.patientId || "",
+            patientName: (sp.patientName || "").trim(),
+            pinfl: sp.pinfl || "",
+            birthDate: sp.birthDate || "",
+            department: sp.department || "",
+            service: sp.service || "Ultratovush (UTT)",
+            registeredAtStr: sp.registeredAtStr || "",
+            registeredAtTimestamp: sp.registeredAtTimestamp || Date.now(),
+            doctorId: doc.id,
+            doctorName: doc.name,
+            room: doc.room,
+            isContrast: !!sp.isContrast,
+            status: sp.status || "waiting",
+            createdAt: Date.now(),
+            createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
+          };
+          queueData.patients.push(newPatient);
+        }
+      });
+
+      // RO'YXATGA OLINGAN VAQTI (REGISTRATION TIME) BO'YICHA XRONOLOGIK TARTIBLASH
+      queueData.patients.sort((a, b) => (a.registeredAtTimestamp || a.createdAt || 0) - (b.registeredAtTimestamp || b.createdAt || 0));
+      queueData.patients.forEach((p, idx) => { p.orderNumber = idx + 1; });
+
+      writeJsonFile(QUEUE_FILE, queueData);
+      broadcastMessage({ type: "QUEUE_UPDATED", data: queueData });
+
+      console.log(`🔄 Karmed'dan ${scannedPatients.length} ta bemor vaqti bo'yicha navbatga sinxronlandi`);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, total: queueData.patients.length, patients: queueData.patients }));
     });
     return;
   }
