@@ -18,6 +18,7 @@ const DOCTORS_FILE = path.join(DATA_DIR, "doctors.json");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 const GUIDELINES_FILE = path.join(DATA_DIR, "guidelines.json");
 const APPROVED_DEVICES_FILE = path.join(DATA_DIR, "approved_devices.json");
+const AUTH_FILE = path.join(DATA_DIR, "auth.json");
 
 // 1. MA'LUMOTLARNI YUKLASH VA SAQLASH FUNKSIYALARI
 function readJsonFile(filePath, defaultVal) {
@@ -49,6 +50,12 @@ let queueData = readJsonFile(QUEUE_FILE, { patients: [], current_announcement: n
 let doctorsData = readJsonFile(DOCTORS_FILE, []);
 let guidelinesData = readJsonFile(GUIDELINES_FILE, []);
 let approvedDevices = readJsonFile(APPROVED_DEVICES_FILE, []);
+let authData = readJsonFile(AUTH_FILE, {
+  username: "R5",
+  password: "16520",
+  updatedAt: new Date().toISOString()
+});
+const activeSessions = new Set();
 let settingsData = readJsonFile(SETTINGS_FILE, {
   activeLang: "uz",
   activeRoomId: "ALL",
@@ -145,6 +152,90 @@ const server = http.createServer((req, res) => {
   // ==========================================
   // REST API ENDPOINTS
   // ==========================================
+
+  // AUTH) Login, Parol va Sessiya Boshqaruvi
+  if (pathname === "/api/auth/login" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.username || !body.password) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ ok: false, error: "Login va parol kiritilishi shart" }));
+      }
+
+      if (body.username.trim() === authData.username && body.password.trim() === authData.password) {
+        const token = `adm_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+        activeSessions.add(token);
+        console.log(`🔓 ADMIN TIZIMGA KINDI: ${authData.username}`);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({
+          ok: true,
+          token: token,
+          username: authData.username,
+          message: "Muvaffaqiyatli kirildi"
+        }));
+      } else {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ ok: false, error: "Login yoki parol noto'g'ri!" }));
+      }
+    });
+    return;
+  }
+
+  if (pathname === "/api/auth/check" && req.method === "GET") {
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "") || parsedUrl.searchParams.get("token") || "";
+    const isValid = activeSessions.has(token);
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      ok: true,
+      authenticated: isValid,
+      username: authData.username
+    }));
+  }
+
+  if (pathname === "/api/auth/change" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.currentPassword) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ ok: false, error: "Joriy parol talab etiladi" }));
+      }
+
+      if (body.currentPassword.trim() !== authData.password) {
+        res.writeHead(403, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ ok: false, error: "Joriy parol noto'g'ri kiritildi!" }));
+      }
+
+      if (body.newUsername && body.newUsername.trim()) {
+        authData.username = body.newUsername.trim();
+      }
+      if (body.newPassword && body.newPassword.trim()) {
+        authData.password = body.newPassword.trim();
+      }
+      authData.updatedAt = new Date().toISOString();
+      writeJsonFile(AUTH_FILE, authData);
+
+      console.log(`🔐 ADMIN LOGIN/PAROL O'ZGARTIRILDI: Yangi login=${authData.username}`);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        ok: true,
+        username: authData.username,
+        message: "Login va parol muvaffaqiyatli saqlandi!"
+      }));
+    });
+    return;
+  }
+
+  if (pathname === "/api/auth/logout" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      const authHeader = req.headers["authorization"] || "";
+      const token = (body && body.token) || authHeader.replace(/^Bearer\s+/i, "") || "";
+      activeSessions.delete(token);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, message: "Tizimdan chiqildi" }));
+    });
+    return;
+  }
 
   // A) Server Holati (GET /api/info)
   if (pathname === "/api/info" && req.method === "GET") {

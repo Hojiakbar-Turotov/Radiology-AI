@@ -13,14 +13,173 @@ const openPreviews = new Set(); // Ochiq qoldirilgan jonli previewlar
 
 let clientsRenderDebounceTimer = null;
 
+let authToken = localStorage.getItem("admin_auth_token") || "";
+
 document.addEventListener("DOMContentLoaded", async () => {
+  const isAuth = await checkAuthSession();
+  if (isAuth) {
+    initAdminApp();
+  }
+});
+
+function getAuthHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  return headers;
+}
+
+// 0. AUTHENTICATION & LOGIN BOSHQARUVI
+async function checkAuthSession() {
+  const overlay = document.getElementById("adminLoginOverlay");
+  const userBadge = document.getElementById("currentAdminUser");
+
+  if (!authToken) {
+    if (overlay) overlay.style.display = "flex";
+    return false;
+  }
+
+  try {
+    const res = await fetch("/api/auth/check", {
+      headers: getAuthHeaders()
+    });
+    const data = await res.json();
+    if (data.authenticated) {
+      if (overlay) overlay.style.display = "none";
+      if (userBadge && data.username) userBadge.innerText = data.username;
+      return true;
+    } else {
+      localStorage.removeItem("admin_auth_token");
+      authToken = "";
+      if (overlay) overlay.style.display = "flex";
+      return false;
+    }
+  } catch (e) {
+    return true; // Offline fallback
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const uInput = document.getElementById("loginUsername");
+  const pInput = document.getElementById("loginPassword");
+  const errEl = document.getElementById("loginErrorMsg");
+
+  const username = uInput.value.trim();
+  const password = pInput.value.trim();
+
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      authToken = data.token;
+      localStorage.setItem("admin_auth_token", authToken);
+      const overlay = document.getElementById("adminLoginOverlay");
+      if (overlay) overlay.style.display = "none";
+      const userBadge = document.getElementById("currentAdminUser");
+      if (userBadge && data.username) userBadge.innerText = data.username;
+
+      initAdminApp();
+    } else {
+      if (errEl) {
+        errEl.innerText = data.error || "Login yoki parol noto'g'ri!";
+        errEl.style.display = "block";
+      }
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.innerText = "Serverga ulanishda xatolik: " + err.message;
+      errEl.style.display = "block";
+    }
+  }
+}
+
+async function handleLogout() {
+  if (confirm("Admin paneldan chiqishni tasdiqlaysizmi?")) {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ token: authToken })
+      });
+    } catch (e) {}
+
+    localStorage.removeItem("admin_auth_token");
+    authToken = "";
+    const overlay = document.getElementById("adminLoginOverlay");
+    if (overlay) overlay.style.display = "flex";
+  }
+}
+
+function openChangeAuthModal() {
+  const modal = document.getElementById("changeAuthModal");
+  const errEl = document.getElementById("changeAuthErrorMsg");
+  const userBadge = document.getElementById("currentAdminUser");
+  if (errEl) errEl.style.display = "none";
+  if (document.getElementById("authNewUser") && userBadge) {
+    document.getElementById("authNewUser").value = userBadge.innerText || "R5";
+  }
+  if (document.getElementById("authCurrentPass")) document.getElementById("authCurrentPass").value = "";
+  if (document.getElementById("authNewPass")) document.getElementById("authNewPass").value = "";
+  if (modal) modal.style.display = "flex";
+}
+
+function closeChangeAuthModal() {
+  const modal = document.getElementById("changeAuthModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleChangeAuthSubmit(e) {
+  e.preventDefault();
+  const currentPassword = document.getElementById("authCurrentPass").value.trim();
+  const newUsername = document.getElementById("authNewUser").value.trim();
+  const newPassword = document.getElementById("authNewPass").value.trim();
+  const errEl = document.getElementById("changeAuthErrorMsg");
+
+  try {
+    const res = await fetch("/api/auth/change", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ currentPassword, newUsername, newPassword })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      alert("✅ " + (data.message || "Login va parol muvaffaqiyatli saqlandi!"));
+      closeChangeAuthModal();
+      const userBadge = document.getElementById("currentAdminUser");
+      if (userBadge && data.username) userBadge.innerText = data.username;
+    } else {
+      if (errEl) {
+        errEl.innerText = data.error || "Xatolik yuz berdi!";
+        errEl.style.display = "block";
+      }
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.innerText = "Xatolik: " + err.message;
+      errEl.style.display = "block";
+    }
+  }
+}
+
+let isAppInitialized = false;
+async function initAdminApp() {
+  if (isAppInitialized) return;
+  isAppInitialized = true;
   await fetchServerInfo();
   await fetchDoctors();
   await fetchQueue();
   await fetchClients();
   await fetchGuidelines();
   initWebSocket();
-});
+}
 
 // 1. SERVER MA'LUMOTLARI VA HOST IP LAR
 async function fetchServerInfo() {
@@ -828,3 +987,8 @@ window.saveDeviceCustomNames = saveDeviceCustomNames;
 window.disconnectDevice = disconnectDevice;
 window.approveDevice = approveDevice;
 window.rejectDevice = rejectDevice;
+window.handleLoginSubmit = handleLoginSubmit;
+window.handleLogout = handleLogout;
+window.openChangeAuthModal = openChangeAuthModal;
+window.closeChangeAuthModal = closeChangeAuthModal;
+window.handleChangeAuthSubmit = handleChangeAuthSubmit;

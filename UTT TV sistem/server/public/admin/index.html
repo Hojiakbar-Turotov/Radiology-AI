@@ -28,6 +28,11 @@
         <div class="stat-pill ip-pill" id="hostIpBadge">
           <span>📡 Server IP: <b id="primaryIpText">192.168.137.1:3000</b></span>
         </div>
+        <div class="stat-pill auth-pill" style="display:flex; align-items:center; gap:8px; background:#1e293b; border:1px solid #334155; padding:6px 12px; border-radius:20px;">
+          <span>👤 <b id="currentAdminUser" style="color:#38bdf8;">R5</b></span>
+          <button class="btn-sm" onclick="openChangeAuthModal()" style="font-size:11px; padding:4px 8px; background:#334155; border:none; color:#f8fafc; border-radius:6px; cursor:pointer;" title="Login va parolni o'zgartirish">🔐 Parolni O'zgartirish</button>
+          <button class="btn-danger-sm" onclick="handleLogout()" style="font-size:11px; padding:4px 8px; border-radius:6px; cursor:pointer;" title="Tizimdan chiqish">🚪 Chiqish</button>
+        </div>
       </div>
     </header>
 
@@ -218,6 +223,70 @@
 
     </div>
 
+  </div>
+
+  <!-- LOGIN EKRANI (AUTH OVERLAY) -->
+  <div id="adminLoginOverlay" class="admin-auth-overlay" style="display:flex;">
+    <div class="auth-modal-card">
+      <div style="font-size:54px; margin-bottom:12px;">🏥</div>
+      <h2 style="font-size:24px; font-weight:800; color:#38bdf8; margin:0 0 6px 0;">GUSTAVE ROUSSY UZBEKISTAN</h2>
+      <h3 style="font-size:18px; font-weight:700; color:#f8fafc; margin:0 0 20px 0;">UTT TV Tizimi — Markaziy Admin Kirish</h3>
+      
+      <form id="adminLoginForm" onsubmit="handleLoginSubmit(event)" style="display:flex; flex-direction:column; gap:14px; text-align:left;">
+        <div id="loginErrorMsg" style="display:none; background:#7f1d1d; border:1px solid #ef4444; color:#fecaca; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600;"></div>
+        
+        <div>
+          <label style="font-size:12.5px; color:#cbd5e1; font-weight:600; margin-bottom:6px; display:block;">👤 Foydalanuvchi nomi (Login):</label>
+          <input type="text" id="loginUsername" class="form-input" style="width:100%; box-sizing:border-box; padding:10px 12px; font-size:15px;" placeholder="R5" value="R5" required>
+        </div>
+
+        <div>
+          <label style="font-size:12.5px; color:#cbd5e1; font-weight:600; margin-bottom:6px; display:block;">🔑 Parol:</label>
+          <input type="password" id="loginPassword" class="form-input" style="width:100%; box-sizing:border-box; padding:10px 12px; font-size:15px;" placeholder="Parolni kiriting..." value="16520" required autofocus>
+        </div>
+
+        <button type="submit" class="btn-success" style="padding:12px; font-size:16px; font-weight:800; border-radius:10px; margin-top:8px; width:100%; cursor:pointer;">
+          🔓 Tizimga Kirish
+        </button>
+      </form>
+      <div style="font-size:12px; color:#64748b; margin-top:18px;">Standart kirish: Login: <b>R5</b> • Parol: <b>16520</b></div>
+    </div>
+  </div>
+
+  <!-- LOGIN VA PAROLNI O'ZGARTIRISH MODALI -->
+  <div id="changeAuthModal" class="admin-auth-overlay" style="display:none;">
+    <div class="auth-modal-card" style="max-width:440px;">
+      <h2 style="font-size:20px; font-weight:800; color:#38bdf8; margin:0 0 6px 0;">🔐 Login va Parolni Boshqarish</h2>
+      <p style="font-size:13px; color:#94a3b8; margin:0 0 16px 0;">Administrator hisob ma'lumotlarini o'zgartirish</p>
+      
+      <form id="changeAuthForm" onsubmit="handleChangeAuthSubmit(event)" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+        <div id="changeAuthErrorMsg" style="display:none; background:#7f1d1d; border:1px solid #ef4444; color:#fecaca; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600;"></div>
+        
+        <div>
+          <label style="font-size:12px; color:#cbd5e1; font-weight:600; margin-bottom:4px; display:block;">🔑 Joriy Parol (Tasdiqlash uchun):</label>
+          <input type="password" id="authCurrentPass" class="form-input" style="width:100%; box-sizing:border-box; padding:8px 12px; font-size:14px;" placeholder="Joriy parolingiz..." required>
+        </div>
+
+        <div>
+          <label style="font-size:12px; color:#cbd5e1; font-weight:600; margin-bottom:4px; display:block;">👤 Yangi Login (Foydalanuvchi nomi):</label>
+          <input type="text" id="authNewUser" class="form-input" style="width:100%; box-sizing:border-box; padding:8px 12px; font-size:14px;" placeholder="Yangi login (masalan: R5)" required>
+        </div>
+
+        <div>
+          <label style="font-size:12px; color:#cbd5e1; font-weight:600; margin-bottom:4px; display:block;">🔒 Yangi Parol:</label>
+          <input type="password" id="authNewPass" class="form-input" style="width:100%; box-sizing:border-box; padding:8px 12px; font-size:14px;" placeholder="Yangi parol..." required>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button type="submit" class="btn-success" style="flex:1; padding:10px; font-size:14px; font-weight:800; border-radius:8px; cursor:pointer;">
+            💾 Saqlash
+          </button>
+          <button type="button" class="btn-sm" onclick="closeChangeAuthModal()" style="padding:10px 16px; font-size:13px; border-radius:8px; cursor:pointer;">
+            Bekor qilish
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="/admin/admin.js"></script>
