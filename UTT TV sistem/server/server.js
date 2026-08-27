@@ -11,6 +11,7 @@ const os = require("os");
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, "data");
 const PUBLIC_DIR = path.join(__dirname, "public");
+const TV_DIR = path.join(PUBLIC_DIR, "tv");
 const QUEUE_FILE = path.join(DATA_DIR, "queue.json");
 const DOCTORS_FILE = path.join(DATA_DIR, "doctors.json");
 
@@ -49,7 +50,6 @@ function getLocalIpAddresses() {
   const addresses = [];
   for (const name of Object.keys(interfaces)) {
     for (const net of interfaces[name]) {
-      // IPv4 va ichki bo'lmagan (127.0.0.1 emas) manzillar
       if (net.family === "IPv4" && !net.internal) {
         addresses.push({ interface: name, ip: net.address });
       }
@@ -58,7 +58,7 @@ function getLocalIpAddresses() {
   return addresses;
 }
 
-// 3. WEBSOCKET KLIENTLARI RO'YXATI (REALTIME SYNC)
+// 3. WEBSOCKET KLIENTLARI (REALTIME BROADCAST)
 const wsClients = new Set();
 
 function broadcastMessage(payload) {
@@ -76,7 +76,7 @@ function broadcastMessage(payload) {
 
 // 4. HTTP SERVERNI YARATISH
 const server = http.createServer((req, res) => {
-  // CORS sarlavhalari (barcha lokal mijozlar va Chrome kengaytmalari uchun)
+  // CORS sarlavhalari
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -89,7 +89,6 @@ const server = http.createServer((req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = parsedUrl.pathname;
 
-  // JSON Body o'quvchi yordamchi funksiya
   function parseRequestBody(callback) {
     let body = "";
     req.on("data", chunk => { body += chunk; });
@@ -185,7 +184,6 @@ const server = http.createServer((req, res) => {
         room: body.room || "Qabul xonasi"
       };
 
-      // Yangi bemor obyekti
       const newPatient = {
         id: body.id || `pat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         patientId: body.patientId || "",
@@ -197,7 +195,7 @@ const server = http.createServer((req, res) => {
         doctorName: doctor.name,
         room: doctor.room,
         isContrast: !!body.isContrast,
-        status: body.status || "waiting", // "waiting", "calling", "in_progress", "completed", "cancelled"
+        status: body.status || "waiting",
         orderNumber: queueData.patients.length + 1,
         createdAt: Date.now(),
         createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
@@ -215,23 +213,34 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // F) Bemorni Chaqirish (POST /api/queue/call) -> TV ga Ovozli E'lon Yuboradi!
+  // F) Bemorni Chaqirish (POST /api/queue/call)
   if (pathname === "/api/queue/call" && req.method === "POST") {
     parseRequestBody((err, body) => {
-      if (err || !body.patientId && !body.id) {
+      if (err || (!body.patientId && !body.id && !body.patientName)) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ error: "Bemor ID ko'rsatilmagan" }));
+        return res.end(JSON.stringify({ error: "Bemor ID yoki F.I.Sh ko'rsatilmagan" }));
       }
 
       const targetId = body.id || body.patientId;
-      const patient = queueData.patients.find(p => p.id === targetId || p.patientId === targetId);
+      let patient = queueData.patients.find(p => (targetId && (p.id === targetId || p.patientId === targetId)) || (body.patientName && p.patientName.toLowerCase() === body.patientName.toLowerCase()));
 
       if (!patient) {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ error: "Bemor navbatda topilmadi" }));
+        patient = {
+          id: `pat_${Date.now()}`,
+          patientId: body.patientId || "",
+          patientName: (body.patientName || "Bemor").trim(),
+          service: body.service || "Ko'rik",
+          doctorId: body.doctorId || (doctorsData[0] ? doctorsData[0].id : "vrach_utt_1"),
+          doctorName: body.doctorName || (doctorsData[0] ? doctorsData[0].name : "Shifokor"),
+          room: body.room || (doctorsData[0] ? doctorsData[0].room : "101-xona"),
+          status: "waiting",
+          orderNumber: queueData.patients.length + 1,
+          createdAt: Date.now(),
+          createdAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })
+        };
+        queueData.patients.push(patient);
       }
 
-      // Vrachning oldingi chaqirilayotgan bemorini "in_progress" yoki yakunlangan qilish
       queueData.patients.forEach(p => {
         if (p.doctorId === patient.doctorId && p.id !== patient.id && p.status === "calling") {
           p.status = "in_progress";
@@ -243,7 +252,6 @@ const server = http.createServer((req, res) => {
       patient.calledAtStr = new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
       patient.callCount = (patient.callCount || 0) + 1;
 
-      // E'lon obyekti (TV ushbu signalni olib ovozli o'qiydi)
       const announcement = {
         patientId: patient.id,
         patientName: patient.patientName,
@@ -259,7 +267,6 @@ const server = http.createServer((req, res) => {
       queueData.current_announcement = announcement;
       writeJsonFile(QUEUE_FILE, queueData);
 
-      // Barcha ulangan TV va kompyuterlarga signal tarqatish
       broadcastMessage({ type: "CALL_ANNOUNCEMENT", data: announcement });
       broadcastMessage({ type: "QUEUE_UPDATED", data: queueData });
 
@@ -290,7 +297,6 @@ const server = http.createServer((req, res) => {
       patient.status = body.status;
       if (body.status === "completed" || body.status === "cancelled") {
         patient.completedAt = Date.now();
-        // Agar joriy e'londagi bemor bo'lsa, e'lonni tozalash
         if (queueData.current_announcement && queueData.current_announcement.patientId === patient.id) {
           queueData.current_announcement = null;
         }
@@ -322,17 +328,14 @@ const server = http.createServer((req, res) => {
       let patient = queueData.patients.find(p => (body.id && p.id === body.id) || (body.patientId && p.patientId === body.patientId) || (body.patientName && p.patientName.toLowerCase() === body.patientName.toLowerCase()));
 
       if (patient) {
-        // Mavjud bemorning vrachini almashtirish
         const oldDoctorName = patient.doctorName;
         patient.doctorId = targetDoctor.id;
         patient.doctorName = targetDoctor.name;
         patient.room = targetDoctor.room;
-        patient.status = "waiting"; // Yangi vrach navbatiga kutish holatida o'tadi
+        patient.status = "waiting";
         patient.reassignedAt = Date.now();
-
         console.log(`🔄 VRACH O'ZGARTIRILDI: ${patient.patientName} (${oldDoctorName} -> ${targetDoctor.name})`);
       } else {
-        // Agar bemor hali navbatda bo'lmasa, uni yangi vrachga yangitdan qo'shish
         patient = {
           id: body.id || `pat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           patientId: body.patientId || "",
@@ -381,44 +384,49 @@ const server = http.createServer((req, res) => {
   }
 
   // ==========================================
-  // STATIK FAYLLARNI SERVE QILISH (TV & DASHBOARD)
+  // STATIK FAYLLARNI SERVE QILISH (TV & ASSETS)
   // ==========================================
 
-  let filePath = "";
+  let resolvedFile = null;
 
+  // 1. Agar /tv yoki / bo'lsa -> index.html
   if (pathname === "/" || pathname === "/tv" || pathname === "/tv/") {
-    filePath = path.join(PUBLIC_DIR, "tv", "index.html");
-  } else if (pathname.startsWith("/tv/")) {
-    filePath = path.join(PUBLIC_DIR, "tv", pathname.replace("/tv/", ""));
+    resolvedFile = path.join(TV_DIR, "index.html");
   } else {
-    filePath = path.join(PUBLIC_DIR, pathname);
+    // 2. Avval public/tv/ ichidan qidirish (style.css, tv.js, va h.k.)
+    const checkTvPath = path.join(TV_DIR, pathname.replace(/^\/tv\//, "").replace(/^\//, ""));
+    if (fs.existsSync(checkTvPath) && fs.statSync(checkTvPath).isFile()) {
+      resolvedFile = checkTvPath;
+    } else {
+      // 3. Keyin public/ ichidan qidirish
+      const checkPublicPath = path.join(PUBLIC_DIR, pathname.replace(/^\//, ""));
+      if (fs.existsSync(checkPublicPath) && fs.statSync(checkPublicPath).isFile()) {
+        resolvedFile = checkPublicPath;
+      }
+    }
   }
 
-  // Fayl mavjudligini tekshirish
-  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    const ext = path.extname(filePath).toLowerCase();
+  if (resolvedFile && fs.existsSync(resolvedFile) && fs.statSync(resolvedFile).isFile()) {
+    const ext = path.extname(resolvedFile).toLowerCase();
     const mimeTypes = {
-      ".html": "text/html",
-      ".js": "text/javascript",
-      ".css": "text/css",
-      ".json": "application/json",
+      ".html": "text/html; charset=utf-8",
+      ".js": "application/javascript; charset=utf-8",
+      ".css": "text/css; charset=utf-8",
+      ".json": "application/json; charset=utf-8",
       ".png": "image/png",
       ".jpg": "image/jpeg",
       ".svg": "image/svg+xml",
       ".mp3": "audio/mpeg",
-      ".wav": "audio/wav",
-      ".woff2": "font/woff2",
-      ".woff": "font/woff",
-      ".ttf": "font/ttf"
+      ".wav": "audio/wav"
     };
     const contentType = mimeTypes[ext] || "application/octet-stream";
     res.writeHead(200, { "Content-Type": contentType });
-    return fs.createReadStream(filePath).pipe(res);
+    return fs.createReadStream(resolvedFile).pipe(res);
   }
 
   // 404
   res.writeHead(404, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ error: "Sahifa yoki API topilmadi", path: pathname }));
+  res.end(JSON.stringify({ error: "Sahifa topilmadi", path: pathname }));
 });
 
 // ==========================================
@@ -429,8 +437,7 @@ try {
   const wsPkg = require("ws");
   WebSocketServer = wsPkg.Server;
 } catch (e) {
-  // Agar 'ws' o'rnatilmagan bo'lsa, xabar berish
-  console.log("ℹ️ 'ws' paketi yuklanmadi, oddiy HTTP rejimda ishlaydi.");
+  console.log("ℹ️ 'ws' paketi yuklanmadi, HTTP rejimda ishlaydi.");
 }
 
 if (WebSocketServer) {
@@ -439,9 +446,7 @@ if (WebSocketServer) {
   wss.on("connection", (ws, req) => {
     wsClients.add(ws);
     const clientIp = req.socket.remoteAddress;
-    console.log(`🔌 Yangi mijoz ulandi (${clientIp}). Jami ulanganlar: ${wsClients.size}`);
 
-    // Boshlang'ich ma'lumotlarni yuborish
     ws.send(JSON.stringify({
       type: "INITIAL_STATE",
       data: {
@@ -450,14 +455,8 @@ if (WebSocketServer) {
       }
     }));
 
-    ws.on("close", () => {
-      wsClients.delete(ws);
-      console.log(`🔌 Mijoz uzildi. Qolganlar: ${wsClients.size}`);
-    });
-
-    ws.on("error", () => {
-      wsClients.delete(ws);
-    });
+    ws.on("close", () => { wsClients.delete(ws); });
+    ws.on("error", () => { wsClients.delete(ws); });
   });
 }
 
@@ -470,14 +469,15 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("  🏥 UTT TV SISTEM — 100% LOKAL TARMOQ (LAN) REALTIME SERVERI");
   console.log("==================================================================");
   console.log(`  🚀 Server holati: ISHLAMOQDA (Port: ${PORT})`);
-  console.log(`  🌐 Lokal Kompyuterda:   http://localhost:${PORT}/tv`);
+  console.log(`  🌐 Ushbu kompyuterda ochish:  http://localhost:${PORT}/tv`);
   console.log("------------------------------------------------------------------");
-  console.log("  📡 LOKAL TARMOQDAGI (LAN) ULANISH MANZILLARI:");
+  console.log("  📡 LOKAL TARMOQ (LAN / KABEL) UCHUN HAQIQIY IP MANZILLAR:");
   ipList.forEach(item => {
-    console.log(`  📺 [${item.interface}] Android TV:  http://${item.ip}:${PORT}/tv`);
-    console.log(`  🔌 [${item.interface}] Kengaytmalar: http://${item.ip}:${PORT}/api`);
+    console.log(`  📺 [${item.interface}] Android TV uchun:  http://${item.ip}:${PORT}/tv`);
+    console.log(`  🔌 [${item.interface}] Kengaytmalar uchun: http://${item.ip}:${PORT}/api`);
   });
   console.log("------------------------------------------------------------------");
-  console.log(`  💡 ASOSIY HOST MANZILI: http://${primaryIp}:${PORT}`);
+  console.log(`  💡 SIZNING ASOSIY HOST MANZILINGIZ: http://${primaryIp}:${PORT}`);
+  console.log(`     (Android TV brauzeriga aynan shu manzilni yozing: http://${primaryIp}:${PORT}/tv)`);
   console.log("==================================================================\n");
 });
