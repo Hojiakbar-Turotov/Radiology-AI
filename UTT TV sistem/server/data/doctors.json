@@ -1,42 +1,92 @@
 [
   {
-    "id": "vrach_utt_48",
-    "name": "Xoshimova Lola Kabulova",
-    "specialty": "ULTRATOVUSH --5",
-    "room": "UTT8-48 XONA",
-    "color": "#0284c7",
-    "icon": "fa-wave-square"
-  },
-  {
     "id": "vrach_utt_1",
-    "name": "Dr. Turotov H.B.",
-    "specialty": "Ultratovush Diagnostikasi (UTT)",
-    "room": "101-xona (UTT 1)",
+    "name": "Juravlev Igor Ivanovich",
+    "specialty": "ULTRATOVUSH -- 1",
+    "room": "UTT 1 - 53 XONA",
+    "roomNum": "53",
     "color": "#0284c7",
     "icon": "fa-wave-square"
   },
   {
     "id": "vrach_utt_2",
-    "name": "Dr. Dadaboyev A.A.",
-    "specialty": "Ultratovush Diagnostikasi (UTT)",
-    "room": "102-xona (UTT 2)",
-    "color": "#16a34a",
+    "name": "Kurbanova Sevinch Musayevna",
+    "specialty": "ULTRATOVUSH -- 2",
+    "room": "UTT 2 - 54 XONA",
+    "roomNum": "54",
+    "color": "#0284c7",
     "icon": "fa-wave-square"
   },
   {
-    "id": "vrach_mrt_1",
-    "name": "MRT 1-Qurilma",
-    "specialty": "Magnit-Rezonans Tomografiya (MRT)",
-    "room": "1-MRT Xonasi",
-    "color": "#7e22ce",
-    "icon": "fa-brain"
+    "id": "vrach_utt_3",
+    "name": "Abidjanov Alisher Maxamataliyevich",
+    "specialty": "ULTRATOVUSH -- 3",
+    "room": "UTT 3 - 46 XONA",
+    "roomNum": "46",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
   },
   {
-    "id": "vrach_mskt_1",
-    "name": "MSKT 1-Qurilma",
-    "specialty": "Multispiral Kompyuter Tomografiyasi (MSKT)",
-    "room": "1-MSKT Xonasi",
-    "color": "#ea580c",
-    "icon": "fa-circle-nodes"
+    "id": "vrach_utt_4",
+    "name": "Ziyayeva Zarina Abduganiyevna",
+    "specialty": "ULTRATOVUSH -- 4",
+    "room": "UTT 4 - 47 XONA",
+    "roomNum": "47",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_5",
+    "name": "Xoshimova Lola Kabulovna",
+    "specialty": "ULTRATOVUSH -- 5",
+    "room": "UTT 5 - 48 XONA",
+    "roomNum": "48",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_6",
+    "name": "Toirova Shaxlo Oybek qizi",
+    "specialty": "ULTRATOVUSH -- 6",
+    "room": "UTT 6 - 52 XONA",
+    "roomNum": "52",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_7",
+    "name": "Asadova Dildoraxon Asatullayevna",
+    "specialty": "ULTRATOVUSH -- 7",
+    "room": "UTT 7 - 45 XONA",
+    "roomNum": "45",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_8",
+    "name": "Saidbayeva Zulfiya Yergeshovna",
+    "specialty": "ULTRATOVUSH -- 8",
+    "room": "UTT 8 - 49 XONA",
+    "roomNum": "49",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_9",
+    "name": "Xusanova Feruza Ikromjonovna",
+    "specialty": "ULTRATOVUSH -- 9",
+    "room": "UTT 9 - 50 XONA",
+    "roomNum": "50",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
+  },
+  {
+    "id": "vrach_utt_10",
+    "name": "Xudayberdiyeva Nigora Nizamovna",
+    "specialty": "ULTRATOVUSH -- 10",
+    "room": "UTT 10 - 51 XONA",
+    "roomNum": "51",
+    "color": "#0284c7",
+    "icon": "fa-wave-square"
   }
 ]

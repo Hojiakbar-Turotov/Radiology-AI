@@ -77,12 +77,18 @@ const I18N = {
     formatSpeech: (name, room) => `Diqqat! Bemor ${name}, ${room} qabuliga kiring.`,
     formatRoomSpeech: (r) => {
       if (!r) return "qabul xonasi";
-      return r.replace(/UTT8-?48\s*XONA/i, "qirq sakkizinchi xona")
-              .replace(/48-?xona/i, "qirq sakkizinchi xona")
+      return r.replace(/.*53\s*XONA.*/i, "ellik uchinchi xona")
+              .replace(/.*54\s*XONA.*/i, "ellik to'rtinchi xona")
+              .replace(/.*46\s*XONA.*/i, "qirq oltinchi xona")
+              .replace(/.*47\s*XONA.*/i, "qirq yettinchi xona")
+              .replace(/.*48\s*XONA.*/i, "qirq sakkizinchi xona")
+              .replace(/.*52\s*XONA.*/i, "ellik ikkinchi xona")
+              .replace(/.*45\s*XONA.*/i, "qirq beshinchi xona")
+              .replace(/.*49\s*XONA.*/i, "qirq to'qqizinchi xona")
+              .replace(/.*50\s*XONA.*/i, "ellikinchi xona")
+              .replace(/.*51\s*XONA.*/i, "ellik birinchi xona")
               .replace(/101-?xona/i, "bir yuz birinchi xona")
-              .replace(/102-?xona/i, "bir yuz ikkinchi xona")
-              .replace(/1-?MRT\s*Xonasi/i, "birinchi MRT xonasi")
-              .replace(/1-?MSKT\s*Xonasi/i, "birinchi MSKT xonasi");
+              .replace(/102-?xona/i, "bir yuz ikkinchi xona");
     }
   },
 
