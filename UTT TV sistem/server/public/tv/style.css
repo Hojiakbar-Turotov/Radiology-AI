@@ -569,3 +569,32 @@ body {
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
+
+/* TV APPROVAL OVERLAY */
+.tv-approval-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999999;
+}
+
+.approval-card {
+  background: #0f172a;
+  border: 2px solid #0284c7;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.approval-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}

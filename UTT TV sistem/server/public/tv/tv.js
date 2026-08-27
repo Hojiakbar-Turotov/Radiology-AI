@@ -229,6 +229,13 @@ async function fetchInitialState() {
   }
 }
 
+let myDeviceId = localStorage.getItem("utt_tv_device_id");
+if (!myDeviceId) {
+  myDeviceId = `TV_${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+  localStorage.setItem("utt_tv_device_id", myDeviceId);
+}
+const isInsideIframe = window.self !== window.top || window.location.search.includes("preview=1");
+
 // 5. WEBSOCKET SYNC
 function initWebSocket() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
@@ -243,7 +250,9 @@ function initWebSocket() {
         type: "CLIENT_IDENTIFY",
         data: {
           clientType: "tv",
-          name: `📺 TV Monitor (${location.hostname})`
+          deviceId: myDeviceId,
+          isPreview: isInsideIframe,
+          name: `📺 TV Monitor [${myDeviceId}] (${location.hostname})`
         }
       }));
     };
@@ -256,30 +265,36 @@ function initWebSocket() {
     };
 
     ws.onclose = () => {
-      setTimeout(initWebSocket, 3000);
+      setTimeout(initWebSocket, 4000);
     };
 
     ws.onerror = () => {};
   } catch (err) {
-    setTimeout(initWebSocket, 4000);
+    setTimeout(initWebSocket, 5000);
   }
-
-  setInterval(() => {
-    if (!ws || ws.readyState !== 1) {
-      fetchInitialState();
-    }
-  }, 5000);
 }
 
 function handleWebSocketMessage(msg) {
   if (msg.type === "INITIAL_STATE") {
     allDoctors = msg.data.doctors || [];
     allPatients = msg.data.queue.patients || [];
+    if (msg.data.isApproved === false && !isInsideIframe) {
+      showApprovalOverlay(myDeviceId);
+    } else {
+      hideApprovalOverlay();
+    }
     if (msg.data.settings) {
       if (msg.data.settings.activeLang) currentLang = msg.data.settings.activeLang;
       if (msg.data.settings.activeRoomId) selectedRoomFilter = msg.data.settings.activeRoomId;
     }
     applyLanguage(currentLang);
+  } else if (msg.type === "DEVICE_PENDING_APPROVAL") {
+    if (!isInsideIframe) showApprovalOverlay(msg.data.deviceId || myDeviceId);
+  } else if (msg.type === "DEVICE_APPROVED") {
+    hideApprovalOverlay();
+  } else if (msg.type === "DEVICE_REJECTED") {
+    showRejectedOverlay(msg.message);
+  }
   } else if (msg.type === "TV_CONFIG_CHANGED") {
     if (msg.data.activeLang && msg.data.activeLang !== currentLang) {
       applyLanguage(msg.data.activeLang);
@@ -542,6 +557,62 @@ function initRemoteKeys() {
       if (!isAudioUnlocked) unlockAudio();
     }
   });
+}
+
+// 11. TASDIQLASH VA RUXSAT OVERLAYLARI
+function showApprovalOverlay(deviceId) {
+  let el = document.getElementById("tvApprovalOverlay");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "tvApprovalOverlay";
+    el.className = "tv-approval-overlay";
+    document.body.appendChild(el);
+  }
+  el.style.display = "flex";
+  el.innerHTML = `
+    <div class="approval-card">
+      <div class="approval-icon">⏳</div>
+      <h2 style="font-size:32px; font-weight:900; color:#38bdf8; margin:0 0 10px 0; letter-spacing:0.5px;">
+        ADMINISTRATOR TASDIQLASHI KUTILMOQDA
+      </h2>
+      <p style="font-size:18px; color:#cbd5e1; margin:0 0 20px 0; line-height:1.5;">
+        Ushbu TV monitori ulanishi xavfsizlik maqsadida administrator tasdiqlashini kutmoqda.
+      </p>
+      <div style="background:#0f172a; border:2px solid #0284c7; padding:12px 24px; border-radius:12px; font-size:22px; color:#facc15; font-weight:900; margin-bottom:20px;">
+        Qurilma ID: <span style="color:#ffffff;">${escapeHtml(deviceId)}</span>
+      </div>
+      <div style="font-size:15px; color:#94a3b8;">
+        ⚙️ Admin paneldan [ <b>✅ Ruxsat Berish</b> ] tugmasini bosing
+      </div>
+    </div>
+  `;
+}
+
+function hideApprovalOverlay() {
+  const el = document.getElementById("tvApprovalOverlay");
+  if (el) el.style.display = "none";
+}
+
+function showRejectedOverlay(msg) {
+  let el = document.getElementById("tvApprovalOverlay");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "tvApprovalOverlay";
+    el.className = "tv-approval-overlay";
+    document.body.appendChild(el);
+  }
+  el.style.display = "flex";
+  el.innerHTML = `
+    <div class="approval-card" style="border-color:#ef4444;">
+      <div class="approval-icon" style="color:#ef4444;">🚫</div>
+      <h2 style="font-size:32px; font-weight:900; color:#ef4444; margin:0 0 10px 0;">
+        ULANISH RAD ETILDI
+      </h2>
+      <p style="font-size:18px; color:#cbd5e1; margin:0 0 20px 0;">
+        ${escapeHtml(msg || "Ushbu qurilma administrator tomonidan rad etildi.")}
+      </p>
+    </div>
+  `;
 }
 
 function escapeHtml(str) {

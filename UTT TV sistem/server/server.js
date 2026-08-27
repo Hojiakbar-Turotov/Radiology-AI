@@ -17,12 +17,13 @@ const QUEUE_FILE = path.join(DATA_DIR, "queue.json");
 const DOCTORS_FILE = path.join(DATA_DIR, "doctors.json");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 const GUIDELINES_FILE = path.join(DATA_DIR, "guidelines.json");
+const APPROVED_DEVICES_FILE = path.join(DATA_DIR, "approved_devices.json");
 
 // 1. MA'LUMOTLARNI YUKLASH VA SAQLASH FUNKSIYALARI
 function readJsonFile(filePath, defaultVal) {
   try {
     if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(defaultVal, null, 2), "utf8");
+      writeJsonFile(filePath, defaultVal);
       return defaultVal;
     }
     const raw = fs.readFileSync(filePath, "utf8");
@@ -47,6 +48,7 @@ function writeJsonFile(filePath, data) {
 let queueData = readJsonFile(QUEUE_FILE, { patients: [], current_announcement: null, history: [] });
 let doctorsData = readJsonFile(DOCTORS_FILE, []);
 let guidelinesData = readJsonFile(GUIDELINES_FILE, []);
+let approvedDevices = readJsonFile(APPROVED_DEVICES_FILE, []);
 let settingsData = readJsonFile(SETTINGS_FILE, {
   activeLang: "uz",
   activeRoomId: "ALL",
@@ -83,7 +85,17 @@ const wsClientsMap = new Map(); // ws -> clientInfo
 function getActiveClientsList() {
   const list = [];
   for (const [ws, info] of wsClientsMap.entries()) {
-    if (ws.readyState === 1) {
+    if (ws.readyState === 1 && !info.isPreview && info.status === "approved") {
+      list.push(info);
+    }
+  }
+  return list;
+}
+
+function getPendingClientsList() {
+  const list = [];
+  for (const [ws, info] of wsClientsMap.entries()) {
+    if (ws.readyState === 1 && !info.isPreview && info.status === "pending") {
       list.push(info);
     }
   }
@@ -134,7 +146,7 @@ const server = http.createServer((req, res) => {
   // REST API ENDPOINTS
   // ==========================================
 
-  // A) Server Info, Host IPs & Active Clients
+  // A) Server Holati (GET /api/info)
   if (pathname === "/api/info" && req.method === "GET") {
     const ips = getLocalIpAddresses();
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -144,7 +156,8 @@ const server = http.createServer((req, res) => {
       hostIps: ips,
       primaryIp: ips.length > 0 ? ips[0].ip : "127.0.0.1",
       serverTime: new Date().toISOString(),
-      activeClientsCount: wsClientsMap.size,
+      activeClientsCount: getActiveClientsList().length,
+      pendingClientsCount: getPendingClientsList().length,
       settings: settingsData
     }));
   }
@@ -153,9 +166,88 @@ const server = http.createServer((req, res) => {
   if (pathname === "/api/clients" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
-      count: wsClientsMap.size,
-      clients: getActiveClientsList()
+      count: getActiveClientsList().length,
+      clients: getActiveClientsList(),
+      pendingCount: getPendingClientsList().length,
+      pending: getPendingClientsList()
     }));
+  }
+
+  // B1.5) Kutilayotgan Qurilmalar Ro'yxati (GET /api/devices/pending)
+  if (pathname === "/api/devices/pending" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      count: getPendingClientsList().length,
+      pending: getPendingClientsList()
+    }));
+  }
+
+  // B1.6) Qurilmaga Ruxsat Berish (POST /api/devices/approve)
+  if (pathname === "/api/devices/approve" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.clientId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
+      }
+
+      for (const [ws, info] of wsClientsMap.entries()) {
+        if (info.id === body.clientId) {
+          info.status = "approved";
+          info.isApproved = true;
+          if (info.deviceId && !approvedDevices.includes(info.deviceId)) {
+            approvedDevices.push(info.deviceId);
+            writeJsonFile(APPROVED_DEVICES_FILE, approvedDevices);
+          }
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({
+              type: "DEVICE_APPROVED",
+              data: { isApproved: true }
+            }));
+          }
+          console.log(`✅ QURILMAGA RUXSAT BERILDI: ${info.name} (${info.ip})`);
+          break;
+        }
+      }
+
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, clients: getActiveClientsList(), pending: getPendingClientsList() }));
+    });
+    return;
+  }
+
+  // B1.7) Qurilmani Rad Etish (POST /api/devices/reject)
+  if (pathname === "/api/devices/reject" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.clientId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
+      }
+
+      for (const [ws, info] of wsClientsMap.entries()) {
+        if (info.id === body.clientId) {
+          try {
+            ws.send(JSON.stringify({
+              type: "DEVICE_REJECTED",
+              message: "Administrator ulanish so'rovini rad etdi."
+            }));
+            ws.close(1000, "Device rejected");
+          } catch (e) {}
+          wsClientsMap.delete(ws);
+          console.log(`🚫 QURILMA RAD ETILDI: ${info.name} (${info.ip})`);
+          break;
+        }
+      }
+
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, clients: getActiveClientsList(), pending: getPendingClientsList() }));
+    });
+    return;
   }
 
   // B2) Har bir TV Monitorini Alohida Sozlash (POST /api/devices/config)
@@ -714,12 +806,17 @@ if (WebSocketServer) {
   wss.on("connection", (ws, req) => {
     const clientIp = req.socket.remoteAddress ? req.socket.remoteAddress.replace(/^.*:/, '') : "Local";
     const clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const isPreviewReq = req.url && req.url.includes("preview=1");
 
     const clientInfo = {
       id: clientId,
+      deviceId: "",
       ip: clientIp,
       type: "tv", // default 'tv', 'admin', 'extension'
       name: `Qurilma (${clientIp})`,
+      status: isPreviewReq ? "approved" : "pending",
+      isApproved: isPreviewReq ? true : false,
+      isPreview: isPreviewReq,
       connectedAt: Date.now(),
       connectedAtStr: new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
       lastSeen: Date.now()
@@ -735,12 +832,16 @@ if (WebSocketServer) {
         doctors: doctorsData,
         guidelines: guidelinesData,
         settings: settingsData,
-        clientId: clientId
+        clientId: clientId,
+        isApproved: clientInfo.isApproved,
+        status: clientInfo.status
       }
     }));
 
-    // Barcha adminlarga ulangan qurilmalar sonini yangilab yuborish
-    broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+    if (!clientInfo.isPreview) {
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
+    }
 
     ws.on("message", (rawMsg) => {
       try {
@@ -748,7 +849,34 @@ if (WebSocketServer) {
         if (msg.type === "CLIENT_IDENTIFY") {
           clientInfo.type = msg.data.clientType || clientInfo.type;
           clientInfo.name = msg.data.name || clientInfo.name;
+          clientInfo.deviceId = msg.data.deviceId || clientInfo.deviceId || clientId;
+          if (msg.data.isPreview) clientInfo.isPreview = true;
+
+          // Admin panel yoki preview avtomatik tasdiqlangan
+          if (clientInfo.type === "admin" || clientInfo.isPreview) {
+            clientInfo.status = "approved";
+            clientInfo.isApproved = true;
+          } else {
+            // Tasdiqlangan qurilmalar ro'yxatida bormi?
+            if (approvedDevices.includes(clientInfo.deviceId) || approvedDevices.includes(clientIp)) {
+              clientInfo.status = "approved";
+              clientInfo.isApproved = true;
+              ws.send(JSON.stringify({
+                type: "DEVICE_APPROVED",
+                data: { isApproved: true }
+              }));
+            } else {
+              clientInfo.status = "pending";
+              clientInfo.isApproved = false;
+              ws.send(JSON.stringify({
+                type: "DEVICE_PENDING_APPROVAL",
+                data: { isApproved: false, deviceId: clientInfo.deviceId }
+              }));
+            }
+          }
+
           broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+          broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
         } else if (msg.type === "SET_TV_CONFIG") {
           settingsData = { ...settingsData, ...msg.data };
           writeJsonFile(SETTINGS_FILE, settingsData);
@@ -760,11 +888,13 @@ if (WebSocketServer) {
     ws.on("close", () => {
       wsClientsMap.delete(ws);
       broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
     });
 
     ws.on("error", () => {
       wsClientsMap.delete(ws);
       broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      broadcastMessage({ type: "PENDING_DEVICES_UPDATED", data: getPendingClientsList() });
     });
   });
 }

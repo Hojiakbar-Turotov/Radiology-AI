@@ -101,11 +101,12 @@ function handleWebSocketMessage(msg) {
     renderGuidelinesList();
   } else if (msg.type === "CLIENTS_UPDATED") {
     allClients = msg.data || [];
-    // Kamida 3 soniya sokin debounce bilan yangilash (foydalanuvchiga xalal bermaslik uchun)
     if (clientsRenderDebounceTimer) clearTimeout(clientsRenderDebounceTimer);
     clientsRenderDebounceTimer = setTimeout(() => {
       renderClientsListSmart(allClients);
-    }, 2500);
+    }, 1500);
+  } else if (msg.type === "PENDING_DEVICES_UPDATED") {
+    renderPendingDevicesList(msg.data || []);
   } else if (msg.type === "QUEUE_UPDATED") {
     allPatients = msg.data.patients || [];
     renderPatientsList();
@@ -128,7 +129,83 @@ async function fetchClients() {
     const data = await res.json();
     allClients = data.clients || [];
     renderClientsListSmart(allClients, true);
+    if (data.pending) {
+      renderPendingDevicesList(data.pending);
+    }
   } catch (e) {}
+}
+
+function renderPendingDevicesList(pendingList) {
+  const card = document.getElementById("pendingDevicesCard");
+  const listEl = document.getElementById("pendingDevicesList");
+  const countEl = document.getElementById("pendingCount");
+
+  if (countEl) countEl.innerText = pendingList.length;
+
+  if (!card || !listEl) return;
+
+  if (pendingList.length === 0) {
+    card.style.display = "none";
+    listEl.innerHTML = "";
+    return;
+  }
+
+  card.style.display = "block";
+  listEl.innerHTML = pendingList.map(dev => `
+    <div class="device-item" style="border-color:#eab308; background:#292524;">
+      <div class="dev-header-row">
+        <div class="dev-info">
+          <div class="dev-icon">📺</div>
+          <div>
+            <div class="dev-name" style="color:#facc15;">${escapeHtml(dev.name)}</div>
+            <div class="dev-meta">IP: <code>${escapeHtml(dev.ip)}</code> • So'rov vaqti: ${dev.connectedAtStr || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn-success" style="padding:6px 12px; font-size:12px;" onclick="approveDevice('${dev.id}')">✅ Ruxsat Berish</button>
+          <button class="btn-danger-sm" style="padding:6px 10px; font-size:12px;" onclick="rejectDevice('${dev.id}')">🚫 Rad Etish</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function approveDevice(clientId) {
+  try {
+    const res = await fetch("/api/devices/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId: clientId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      allClients = data.clients || [];
+      renderClientsListSmart(allClients, true);
+      renderPendingDevicesList(data.pending || []);
+    }
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
+}
+
+async function rejectDevice(clientId) {
+  if (confirm("Ushbu qurilmaning ulanish so'rovini rad etasizmi?")) {
+    try {
+      const res = await fetch("/api/devices/reject", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: clientId })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        allClients = data.clients || [];
+        renderClientsListSmart(allClients, true);
+        renderPendingDevicesList(data.pending || []);
+      }
+    } catch (err) {
+      alert("Xatolik: " + err.message);
+    }
+  }
 }
 
 function renderClientsListSmart(clients, forceInitial = false) {
@@ -749,3 +826,5 @@ window.setDeviceConfig = setDeviceConfig;
 window.handleDeviceDoctorChange = handleDeviceDoctorChange;
 window.saveDeviceCustomNames = saveDeviceCustomNames;
 window.disconnectDevice = disconnectDevice;
+window.approveDevice = approveDevice;
+window.rejectDevice = rejectDevice;

@@ -99,7 +99,7 @@
             <a href="/tv" target="_blank" class="btn-link">Alohida oynada ochish ↗</a>
           </div>
           <div class="tv-preview-frame-wrap">
-            <iframe src="/tv" class="tv-preview-iframe" id="tvPreviewIframe"></iframe>
+            <iframe src="/tv?preview=1" class="tv-preview-iframe" id="tvPreviewIframe"></iframe>
           </div>
         </div>
 
@@ -108,10 +108,21 @@
       <!-- RIGHT COLUMN: ULANGAN QURILMALAR VA NAVBAT -->
       <div class="col-right">
         
-        <!-- ULANGAN QURILMALAR RO'YXATI -->
+        <!-- KUTILAYOTGAN RUXSAT SO'ROVLARI (DEVICE APPROVALS) -->
+        <div class="admin-card pending-devices-card" id="pendingDevicesCard" style="display:none; border:2px solid #eab308; background:#1c1917;">
+          <div class="card-header">
+            <h3 style="color:#facc15;">🔔 Ulanish uchun Ruxsat So'rayotganlar (<span id="pendingCount">0</span> ta)</h3>
+            <button class="btn-sm" onclick="fetchClients()">🔄</button>
+          </div>
+          <div class="devices-list" id="pendingDevicesList">
+            <!-- Dinamik chiziladi -->
+          </div>
+        </div>
+
+        <!-- ULANGAN VA TASDIQLANGAN QURILMALAR RO'YXATI -->
         <div class="admin-card">
           <div class="card-header">
-            <h3>📱 Ulangan Qurilmalar va Oynalar (<span id="devicesCount">0</span> ta)</h3>
+            <h3>📱 Tasdiqlangan Qurilmalar va Oynalar (<span id="devicesCount">0</span> ta)</h3>
             <button class="btn-sm" onclick="fetchClients()">🔄</button>
           </div>
           <div class="devices-list" id="devicesList">
