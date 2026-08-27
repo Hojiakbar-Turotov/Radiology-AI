@@ -83,11 +83,13 @@ function initWebSocket() {
     setTimeout(initWebSocket, 4000);
   }
 
+  // Barqaror fon yangilanishi (Faqat WebSocket uzilganda va foydalanuvchi yozmayotganda)
   setInterval(() => {
-    fetchClients();
-    fetchQueue();
-    fetchGuidelines();
-  }, 5000);
+    if (!ws || ws.readyState !== 1) {
+      fetchClients();
+      fetchQueue();
+    }
+  }, 20000);
 }
 
 function handleWebSocketMessage(msg) {
@@ -120,7 +122,9 @@ function handleWebSocketMessage(msg) {
   }
 }
 
-// 3. ULANGAN QURILMALARNI YUKLASH VA CHIZISH
+// 3. ULANGAN QURILMALARNI YUKLASH VA BARQAROR CHIZISH
+const openPreviews = new Set(); // Ochiq qoldirilgan jonli previewlar
+
 async function fetchClients() {
   try {
     const res = await fetch("/api/clients");
@@ -139,6 +143,11 @@ function renderClientsList(clients) {
   if (activeTopCount) activeTopCount.innerText = clients.length;
 
   if (!listEl) return;
+
+  // Agar foydalanuvchi ayni damda ro'yxat ichidagi select yoki input bilan ishlayotgan bo'lsa, o'chirib yubormaslik!
+  if (document.activeElement && listEl.contains(document.activeElement)) {
+    return;
+  }
 
   if (clients.length === 0) {
     listEl.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Hozircha ulangan qurilmalar yo'q</div>`;
@@ -163,6 +172,7 @@ function renderClientsList(clients) {
 
     const curLang = client.lang || currentSettings.activeLang || "uz";
     const curRoomId = client.roomId || currentSettings.activeRoomId || "ALL";
+    const isPreviewOpen = openPreviews.has(client.id);
 
     // Vrachlar select opsiyalari
     const docOptions = `
@@ -185,7 +195,7 @@ function renderClientsList(clients) {
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            ${isTv ? `<button class="btn-sm" onclick="toggleDevicePreview('${client.id}')">👁️ Ko'rish</button>` : ''}
+            ${isTv ? `<button class="btn-sm" id="btnPrev_${client.id}" onclick="toggleDevicePreview('${client.id}')">${isPreviewOpen ? '🙈 Yopish' : '👁️ Ko\'rish'}</button>` : ''}
             <span class="dev-status-badge">🟢 Online</span>
           </div>
         </div>
@@ -209,7 +219,7 @@ function renderClientsList(clients) {
             <!-- 2. Vrach va Xona tanlash -->
             <div class="tv-dev-ctrl-row">
               <span class="tv-dev-ctrl-label">🚪 Xona/Vrach:</span>
-              <select class="form-select" style="flex:1; font-size:12px; padding:6px 8px;" onchange="handleDeviceDoctorChange('${client.id}', this.value)">
+              <select class="form-select" id="devSelect_${client.id}" style="flex:1; font-size:12px; padding:6px 8px;" onchange="handleDeviceDoctorChange('${client.id}', this.value)">
                 ${docOptions}
               </select>
             </div>
@@ -222,7 +232,7 @@ function renderClientsList(clients) {
             </div>
 
             <!-- Mini Live Preview (Yashirin/Ochiq) -->
-            <div class="dev-mini-preview-wrap" id="devPreview_${client.id}" style="display:none;">
+            <div class="dev-mini-preview-wrap" id="devPreview_${client.id}" style="display:${isPreviewOpen ? 'block' : 'none'};">
               <iframe src="/tv" class="dev-mini-iframe"></iframe>
             </div>
           </div>
@@ -234,8 +244,17 @@ function renderClientsList(clients) {
 
 function toggleDevicePreview(clientId) {
   const el = document.getElementById(`devPreview_${clientId}`);
+  const btn = document.getElementById(`btnPrev_${clientId}`);
   if (el) {
-    el.style.display = el.style.display === "none" ? "block" : "none";
+    if (el.style.display === "none") {
+      el.style.display = "block";
+      openPreviews.add(clientId);
+      if (btn) btn.innerText = "🙈 Yopish";
+    } else {
+      el.style.display = "none";
+      openPreviews.delete(clientId);
+      if (btn) btn.innerText = "👁️ Ko'rish";
+    }
   }
 }
 
@@ -249,10 +268,47 @@ async function setDeviceConfig(clientId, config) {
     const data = await res.json();
     if (data.ok) {
       allClients = data.clients || [];
-      renderClientsList(allClients);
+      // Interaktiv elementlar buzilmasligi uchun tugma holatini joyida yangilash
+      updateDeviceUIInPlace(clientId, config);
     }
   } catch (err) {
     alert("Xatolik: " + err.message);
+  }
+}
+
+function updateDeviceUIInPlace(clientId, config) {
+  const card = document.getElementById(`devCard_${clientId}`);
+  if (!card) return;
+
+  if (config.lang) {
+    card.querySelectorAll(".btn-dev-lang").forEach(btn => {
+      if (btn.innerText.toLowerCase().includes(config.lang)) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+  }
+
+  if (config.roomId !== undefined) {
+    const sel = document.getElementById(`devSelect_${clientId}`);
+    if (sel && document.activeElement !== sel) {
+      sel.value = config.roomId;
+    }
+  }
+
+  if (config.roomName !== undefined) {
+    const rInput = document.getElementById(`devRoom_${clientId}`);
+    if (rInput && document.activeElement !== rInput) {
+      rInput.value = config.roomName;
+    }
+  }
+
+  if (config.doctorName !== undefined) {
+    const dInput = document.getElementById(`devDoc_${clientId}`);
+    if (dInput && document.activeElement !== dInput) {
+      dInput.value = config.doctorName;
+    }
   }
 }
 

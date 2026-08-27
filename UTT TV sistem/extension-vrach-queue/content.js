@@ -29,8 +29,8 @@ const DOCTOR_MAPPINGS = [
   await loadSettings();
   createFloatingWidget();
   startObservingTable();
-  scanKarmedTableAndSync();
-  setInterval(scanKarmedTableAndSync, 10000); // Har 10 soniyada yangilab turadi
+  scheduleScan();
+  setInterval(scheduleScan, 30000); // Har 30 soniyada tekshiradi
 })();
 
 async function loadSettings() {
@@ -144,46 +144,21 @@ function scanKarmedTableAndSync() {
           status: "waiting"
         };
 
-        patients.push(patientObj);
+let lastSentJson = "";
+let scanDebounceTimer = null;
 
-        // Qatorga tezkor chaqiruv tugmasini ulash
-        attachRowCallButton(r, patientObj);
-      }
-    });
-
-    if (patients.length > 0) {
-      // RO'YXATGA OLINGAN VAQTI (REGISTRATION TIME) BO'YICHA XRONOLOGIK SARALASH
-      patients.sort((a, b) => a.registeredAtTimestamp - b.registeredAtTimestamp);
-      activeQueue = patients;
-      updateWidgetUI(activeQueue);
-      sendQueueToServer(patients);
-    }
-  } catch (err) {
-    console.warn("Karmed scan error:", err);
-  } finally {
-    isScanning = false;
-  }
+function scheduleScan() {
+  if (scanDebounceTimer) clearTimeout(scanDebounceTimer);
+  scanDebounceTimer = setTimeout(scanKarmedTableAndSync, 1500);
 }
 
-// 3. SANANI UNIX TIMESTAMP GA AYLANTIRISH
-function parseDateTimeToTimestamp(str) {
-  if (!str) return Date.now();
-  // Format: "27.08.2026 10:33" yoki "27.08.2026 08:22:15"
-  const match = str.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (match) {
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const year = parseInt(match[3], 10);
-    const hour = parseInt(match[4], 10);
-    const min = parseInt(match[5], 10);
-    const sec = match[6] ? parseInt(match[6], 10) : 0;
-    return new Date(year, month, day, hour, min, sec).getTime();
-  }
-  return Date.now();
-}
-
-// 4. LOKAL SERVERGA SINXRONLASH
+// 4. LOKAL SERVERGA SINXRONLASH (FAQAT O'ZGARISH BO'LGANDA)
 async function sendQueueToServer(patients) {
+  const currentSignature = JSON.stringify(patients.map(p => `${p.patientId}_${p.patientName}_${p.registeredAtStr}`));
+  if (currentSignature === lastSentJson) {
+    return; // Ma'lumot o'zgarmagan, ortiqcha so'rov yubormaymiz
+  }
+
   try {
     const res = await fetch(`${serverUrl}/api/queue/sync`, {
       method: "POST",
@@ -192,6 +167,7 @@ async function sendQueueToServer(patients) {
     });
     const data = await res.json();
     if (data.ok) {
+      lastSentJson = currentSignature;
       console.log(`✅ ${patients.length} ta bemor Karmed'dan serverga uzatildi`);
     }
   } catch (e) {
@@ -367,10 +343,10 @@ function makeDraggable(el, handle) {
   }
 }
 
-// 9. DOM O'ZGARISHLARINI KUZATISH
+// 9. DOM O'ZGARISHLARINI KUZATISH (DEBOUNCED)
 function startObservingTable() {
   const observer = new MutationObserver(() => {
-    scanKarmedTableAndSync();
+    scheduleScan();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 }
