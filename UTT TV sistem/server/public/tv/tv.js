@@ -400,6 +400,9 @@ function renderHeaderAndQueueTable() {
     } else if (isInProgress) {
       statusText = dict.statusInProgress;
       statusClass = "inprogress";
+    } else if (p.status === "missed") {
+      statusText = "⚠️ Kelmadi";
+      statusClass = "missed";
     }
 
     return `

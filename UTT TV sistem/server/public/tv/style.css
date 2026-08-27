@@ -319,6 +319,13 @@ body {
   border: 1px solid #cbd5e1;
 }
 
+.status-badge.missed {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #f87171;
+  font-weight: 800;
+}
+
 /* O'NG: TEKSHIRUVLAR HAQIDA MA'LUMOT (INFO CARD) */
 .tv-info-col {
   display: flex;

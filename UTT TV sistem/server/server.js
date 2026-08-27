@@ -744,7 +744,7 @@ const server = http.createServer((req, res) => {
       }
 
       patient.status = body.status;
-      if (body.status === "completed" || body.status === "cancelled") {
+      if (body.status === "completed" || body.status === "cancelled" || body.status === "missed") {
         patient.completedAt = Date.now();
         if (queueData.current_announcement && queueData.current_announcement.patientId === patient.id) {
           queueData.current_announcement = null;
@@ -756,6 +756,41 @@ const server = http.createServer((req, res) => {
 
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ ok: true, patient }));
+    });
+    return;
+  }
+
+  // I2) Bemor Kelmadi Xabari (POST /api/queue/missed)
+  if (pathname === "/api/queue/missed" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      const targetId = body.id || body.patientId;
+      let patient = queueData.patients.find(p => (targetId && (p.id === targetId || p.patientId === targetId)) || (body.patientName && p.patientName.toLowerCase() === body.patientName.toLowerCase()));
+
+      if (patient) {
+        patient.status = "missed";
+        patient.missedAt = Date.now();
+        patient.missedAtStr = new Date().toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      if (queueData.current_announcement && patient && queueData.current_announcement.patientId === patient.id) {
+        queueData.current_announcement = null;
+      }
+
+      writeJsonFile(QUEUE_FILE, queueData);
+      broadcastMessage({ type: "QUEUE_UPDATED", data: queueData });
+      broadcastMessage({
+        type: "PATIENT_MISSED",
+        data: {
+          patientName: body.patientName || (patient ? patient.patientName : "Bemor"),
+          room: body.room || (patient ? patient.room : "Xona"),
+          doctorName: body.doctorName || (patient ? patient.doctorName : "")
+        }
+      });
+
+      console.log(`⚠️ BEMOR KELMADI: ${body.patientName || (patient ? patient.patientName : '')} (1 daqiqa vaqt o'tdi)`);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, message: "Bemor kelmadi deb belgilandi", patient }));
     });
     return;
   }
