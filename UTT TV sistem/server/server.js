@@ -196,6 +196,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // B3) Ortiqcha yoki Ruxsatsiz TV Oynasini Masofadan Yopish (POST /api/devices/disconnect)
+  if (pathname === "/api/devices/disconnect" && req.method === "POST") {
+    parseRequestBody((err, body) => {
+      if (err || !body.clientId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "clientId talab etiladi" }));
+      }
+
+      let disconnected = false;
+      for (const [ws, info] of wsClientsMap.entries()) {
+        if (info.id === body.clientId) {
+          try {
+            ws.send(JSON.stringify({
+              type: "FORCE_CLOSE_WINDOW",
+              message: "Ushbu TV monitori yoki oyna Admin tomonidan masofadan yopildi."
+            }));
+            ws.close(1000, "Admin force closed");
+          } catch (e) {}
+          wsClientsMap.delete(ws);
+          disconnected = true;
+          console.log(`🚫 ADMIN TOMONIDAN OYNA YOPILDI: ${info.name} (${info.ip})`);
+          break;
+        }
+      }
+
+      broadcastMessage({ type: "CLIENTS_UPDATED", data: getActiveClientsList() });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, disconnected, clients: getActiveClientsList() }));
+    });
+    return;
+  }
+
   // C) Admin Sozlamalari (GET & POST /api/settings)
   if (pathname === "/api/settings" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });

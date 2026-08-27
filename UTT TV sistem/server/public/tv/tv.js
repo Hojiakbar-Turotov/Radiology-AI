@@ -309,6 +309,24 @@ function handleWebSocketMessage(msg) {
     renderCurrentSlide();
   } else if (msg.type === "CALL_ANNOUNCEMENT") {
     handleCallingAnnouncement(msg.data);
+  } else if (msg.type === "FORCE_CLOSE_WINDOW") {
+    document.body.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#020617; color:#ffffff; font-family:sans-serif; text-align:center; padding:30px; box-sizing:border-box;">
+        <div style="font-size:80px; margin-bottom:20px;">🔒</div>
+        <h1 style="font-size:36px; font-weight:900; color:#ef4444; margin-bottom:14px; text-transform:uppercase; letter-spacing:1px;">
+          OYNA ADMIN TOMONIDAN YOPILDI
+        </h1>
+        <p style="font-size:20px; color:#94a3b8; max-width:600px; line-height:1.5; margin-bottom:24px;">
+          ${escapeHtml(msg.message || "Ushbu TV monitoriga ruxsat to'xtatildi yoki admin tomonidan masofadan yopildi.")}
+        </p>
+        <div style="font-size:14px; color:#64748b; background:#0f172a; padding:10px 20px; border-radius:10px; border:1px solid #1e293b;">
+          Agar bu xatolik bo'lsa, markaziy administratorga murojaat qiling.
+        </div>
+      </div>
+    `;
+    setTimeout(() => {
+      try { window.close(); } catch(e) {}
+    }, 2000);
   }
 }
 

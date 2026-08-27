@@ -204,6 +204,7 @@ function renderClientsListSmart(clients, forceInitial = false) {
           <div style="display:flex; align-items:center; gap:8px;">
             ${isTv ? `<button class="btn-sm" id="btnPrev_${client.id}" onclick="toggleDevicePreview('${client.id}')">${isPreviewOpen ? '🙈 Yopish' : '👁️ Ko\'rish'}</button>` : ''}
             <span class="dev-status-badge">🟢 Online</span>
+            <button class="btn-danger-sm" onclick="disconnectDevice('${client.id}')" title="Ushbu oynani masofadan yopish">❌ Oynani Yopish</button>
           </div>
         </div>
 
@@ -701,6 +702,30 @@ async function deleteGuideline(id) {
   }
 }
 
+async function disconnectDevice(clientId) {
+  if (confirm("Ushbu TV monitori yoki oynani masofadan butunlay yopishni (uzishni) tasdiqlaysizmi?")) {
+    try {
+      const res = await fetch("/api/devices/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: clientId })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const card = document.getElementById(`devCard_${clientId}`);
+        if (card) card.remove();
+        allClients = data.clients || [];
+        const countEl = document.getElementById("devicesCount");
+        const activeTopCount = document.getElementById("activeClientsCount");
+        if (countEl) countEl.innerText = allClients.length;
+        if (activeTopCount) activeTopCount.innerText = allClients.length;
+      }
+    } catch (err) {
+      alert("Xatolik: " + err.message);
+    }
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -723,3 +748,4 @@ window.toggleDevicePreview = toggleDevicePreview;
 window.setDeviceConfig = setDeviceConfig;
 window.handleDeviceDoctorChange = handleDeviceDoctorChange;
 window.saveDeviceCustomNames = saveDeviceCustomNames;
+window.disconnectDevice = disconnectDevice;
