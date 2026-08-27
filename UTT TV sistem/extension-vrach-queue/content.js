@@ -129,26 +129,26 @@ function initWebSocket() {
   }
 }
 
-// 3. KARMED YUQORI PANELIDAN TIZIMGA KIRGAN VRACH FISH NI ANIQLASH
+// 3. KARMED YUQORI PANELIDAN TIZIMGA KIRGAN VRACH FISH NI ANIQLASH (MASALAN: Turatov Hojiakbar Shavkat ogli)
 function extractLoggedInDoctorName() {
-  const topEls = Array.from(document.querySelectorAll("div, span, td, a, b, p, label"))
-    .filter(el => {
-      const rect = el.getBoundingClientRect();
-      return rect.top >= 0 && rect.top < 80 && rect.height > 0 && el.children.length === 0;
-    });
+  // 1. Haqida va Chiqish o'rtasidagi matnni topish (Karmed yuqori paneli)
+  const allLeafEls = Array.from(document.querySelectorAll("div, span, td, a, b, p, label, li, font"))
+    .filter(el => el.children.length === 0 && el.innerText && el.innerText.trim().length > 0);
 
-  for (let i = 0; i < topEls.length; i++) {
-    const txt = topEls[i].innerText.trim();
+  for (let i = 0; i < allLeafEls.length; i++) {
+    const txt = allLeafEls[i].innerText.trim();
     if (txt.includes("Haqida")) {
-      for (let j = i + 1; j < Math.min(i + 6, topEls.length); j++) {
-        const nextTxt = topEls[j].innerText.trim();
-        if (nextTxt && !nextTxt.includes("Chiqish") && !nextTxt.includes("v:") && !nextTxt.includes("1.0.") && nextTxt.split(" ").length >= 2) {
+      for (let j = i + 1; j < Math.min(i + 8, allLeafEls.length); j++) {
+        const nextTxt = allLeafEls[j].innerText.trim();
+        if (nextTxt.includes("Chiqish")) break;
+        if (nextTxt && !nextTxt.includes("v:") && !nextTxt.includes("1.0.") && nextTxt.split(" ").length >= 2) {
           return cleanDoctorName(nextTxt);
         }
       }
     }
   }
 
+  // 2. Foydalanuvchi profili / user classlari
   const userNodes = document.querySelectorAll("[class*='user'], [class*='account'], [class*='profile'], [id*='user'], [id*='doctor']");
   for (const node of userNodes) {
     const txt = node.innerText.trim();
@@ -157,8 +157,12 @@ function extractLoggedInDoctorName() {
     }
   }
 
+  // 3. Sahifa boshidagi matndan regex orqali qidirish
   const bodyText = document.body ? document.body.innerText.substring(0, 3000) : "";
-  const nameMatch = bodyText.match(/(?:Haqida|Standart printer|👤)\s*[:\-–—]?\s*([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)/i);
+  const nameMatch = bodyText.match(/(?:Haqida[^\n]*?)\s*(?:👤|[^\w\s])?\s*([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)\s*(?:❌|Chiqish)/i)
+                 || bodyText.match(/(?:👤|Standart printer[^\n]*?)\s*([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)/i)
+                 || bodyText.match(/([A-ZА-ЯЁ][a-zа-яё'\`ʻ]+(?:\s+[A-ZА-ЯЁ][a-zа-яё'\`ʻ]+){1,3}(?:\s+o['`ʻ]g['`ʻ]li|\s+qizi)?)\s*(?:❌|Chiqish)/i);
+
   if (nameMatch && nameMatch[1]) {
     return cleanDoctorName(nameMatch[1]);
   }
