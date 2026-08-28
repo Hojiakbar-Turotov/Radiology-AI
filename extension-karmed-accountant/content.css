@@ -36,7 +36,7 @@
   border-radius: 14px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  width: 320px;
+  width: 330px;
   overflow: hidden;
   animation: hudSlideIn 0.3s ease-out;
 }
@@ -58,6 +58,27 @@
   align-items: center;
   gap: 6px;
   color: #ecfdf5;
+}
+
+.karmed-farq-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.karmed-farq-icon-btn {
+  background: none;
+  border: none;
+  color: #ecfdf5;
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  padding: 2px;
+}
+
+.karmed-farq-icon-btn:hover {
+  opacity: 1;
 }
 
 .karmed-farq-body {
@@ -141,6 +162,49 @@
   align-items: center;
   gap: 5px;
   cursor: pointer;
+}
+
+/* ON-SCREEN SETTINGS MODAL */
+.karmed-farq-settings-panel {
+  background: #1e293b;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.karmed-farq-settings-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  box-sizing: border-box;
+}
+
+.karmed-farq-settings-input:focus {
+  border-color: #10b981;
+  outline: none;
+}
+
+.btn-farq-settings-save {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-farq-settings-save:hover {
+  background: #059669;
 }
 
 /* SUCCESS TOAST NOTIFICATION */

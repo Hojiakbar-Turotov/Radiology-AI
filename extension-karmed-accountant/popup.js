@@ -4,7 +4,7 @@
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
-const DEFAULT_SHEETS_SCRIPT_URL = ""; // Foydalanuvchi Apps Script URL ini kiritadi
+const DEFAULT_SHEETS_SCRIPT_URL = "";
 
 // DOM Elementlari
 let elReportStartDate, elReportEndDate;
@@ -17,7 +17,7 @@ let elBtnTogglePreview, elPreviewBody, elPreviewChevron, elResListCount, elResPa
 let elBtnSaveToFirebase, elBtnSaveToSheetsDirect, elConnectionBadge, elLinkOpenPortal;
 
 // Google Sheets DOM Elementlari
-let elBtnToggleSheetsConfig, elSheetsConfigPanel, elInputSheetsScriptUrl;
+let elBtnToggleSheetsConfig, elSheetsConfigPanel, elInputSheetsScriptUrl, elInputSpreadsheetId;
 let elInputSourceSheetName, elInputTargetSheetName, elBtnFetchSheetsIds;
 let elBtnExportToSheets, elBtnAutoSyncAll, elSheetsStatusText, elSheetsLoadedStatusPill;
 
@@ -76,6 +76,7 @@ function initDOMElements() {
   elBtnToggleSheetsConfig = document.getElementById("btnToggleSheetsConfig");
   elSheetsConfigPanel = document.getElementById("sheetsConfigPanel");
   elInputSheetsScriptUrl = document.getElementById("inputSheetsScriptUrl");
+  elInputSpreadsheetId = document.getElementById("inputSpreadsheetId");
   elInputSourceSheetName = document.getElementById("inputSourceSheetName");
   elInputTargetSheetName = document.getElementById("inputTargetSheetName");
   elBtnFetchSheetsIds = document.getElementById("btnFetchSheetsIds");
@@ -86,47 +87,34 @@ function initDOMElements() {
 }
 
 function setupEventListeners() {
-  // Sana tezkor tugmalari
   elBtnDateToday.addEventListener("click", () => applyDatePreset("today"));
   elBtnDateYesterday.addEventListener("click", () => applyDatePreset("yesterday"));
   elBtnDateThisMonth.addEventListener("click", () => applyDatePreset("thisMonth"));
   elBtnDateLastMonth.addEventListener("click", () => applyDatePreset("lastMonth"));
   elBtnDateAll.addEventListener("click", () => applyDatePreset("all"));
 
-  elReportStartDate.addEventListener("change", () => {
-    clearActiveDatePreset();
-    savePreferences();
-  });
-  elReportEndDate.addEventListener("change", () => {
-    clearActiveDatePreset();
-    savePreferences();
-  });
+  elReportStartDate.addEventListener("change", () => { clearActiveDatePreset(); savePreferences(); });
+  elReportEndDate.addEventListener("change", () => { clearActiveDatePreset(); savePreferences(); });
 
   elDoctorSelect.addEventListener("change", savePreferences);
   elChkOnlySheetsIds.addEventListener("change", savePreferences);
   elChkStrictDoctor.addEventListener("change", savePreferences);
   elChkAutoPagination.addEventListener("change", savePreferences);
 
-  // Sahifadagi shifokorlarni aniqlash
   elBtnAutoDetectDoctor.addEventListener("click", handleAutoDetectDoctors);
-
-  // Skanerlash
   elBtnStartScan.addEventListener("click", () => handleStartScan(false));
-
-  // Bemorlar reyestrini ochish/yopish
   elBtnTogglePreview.addEventListener("click", togglePreviewAccordion);
 
-  // Firebase va Sheets-ga saqlash
   elBtnSaveToFirebase.addEventListener("click", handleSaveToFirebase);
   elBtnSaveToSheetsDirect.addEventListener("click", handleExportToSheets);
 
-  // Google Sheets Integratsiyasi Hodisalari
   elBtnToggleSheetsConfig.addEventListener("click", () => {
     const isHidden = elSheetsConfigPanel.style.display === "none";
     elSheetsConfigPanel.style.display = isHidden ? "block" : "none";
   });
 
   elInputSheetsScriptUrl.addEventListener("change", savePreferences);
+  if (elInputSpreadsheetId) elInputSpreadsheetId.addEventListener("change", savePreferences);
   elInputSourceSheetName.addEventListener("change", savePreferences);
   elInputTargetSheetName.addEventListener("change", savePreferences);
 
@@ -141,7 +129,7 @@ function initDefaults() {
   if (chrome.storage && chrome.storage.local) {
     chrome.storage.local.get([
       "lastTargetDoctor", "lastStrictDoctor", "lastAutoPage", "lastOnlySheetsIds",
-      "lastStartDate", "lastEndDate", "sheetsScriptUrl", "sourceSheetName", "targetSheetName",
+      "lastStartDate", "lastEndDate", "sheetsScriptUrl", "spreadsheetId", "sourceSheetName", "targetSheetName",
       "cachedSheetsIds", "cachedSheetsPatients"
     ], (res) => {
       if (res.lastTargetDoctor && elDoctorSelect) elDoctorSelect.value = res.lastTargetDoctor;
@@ -150,6 +138,7 @@ function initDefaults() {
       if (res.lastOnlySheetsIds !== undefined && elChkOnlySheetsIds) elChkOnlySheetsIds.checked = Boolean(res.lastOnlySheetsIds);
 
       if (res.sheetsScriptUrl && elInputSheetsScriptUrl) elInputSheetsScriptUrl.value = res.sheetsScriptUrl;
+      if (res.spreadsheetId && elInputSpreadsheetId) elInputSpreadsheetId.value = res.spreadsheetId;
       if (res.sourceSheetName && elInputSourceSheetName) elInputSourceSheetName.value = res.sourceSheetName;
       if (res.targetSheetName && elInputTargetSheetName) elInputTargetSheetName.value = res.targetSheetName;
 
@@ -168,7 +157,20 @@ function initDefaults() {
   }
 }
 
+function extractSheetId(inputStr) {
+  if (!inputStr) return "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const str = inputStr.trim();
+  const match = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) return match[1];
+  return str;
+}
+
 function savePreferences() {
+  const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const sourceSheet = elInputSourceSheetName.value.trim() || "Sevinch";
+  const targetSheet = elInputTargetSheetName.value.trim() || "Farq";
+
   if (chrome.storage && chrome.storage.local) {
     chrome.storage.local.set({
       lastTargetDoctor: elDoctorSelect.value,
@@ -177,16 +179,32 @@ function savePreferences() {
       lastOnlySheetsIds: elChkOnlySheetsIds.checked,
       lastStartDate: elReportStartDate.value,
       lastEndDate: elReportEndDate.value,
-      sheetsScriptUrl: elInputSheetsScriptUrl.value.trim(),
-      sourceSheetName: elInputSourceSheetName.value.trim(),
-      targetSheetName: elInputTargetSheetName.value.trim()
+      sheetsScriptUrl: scriptUrl,
+      spreadsheetId: sheetId,
+      sourceSheetName: sourceSheet,
+      targetSheetName: targetSheet
     });
   }
+
+  // Active tabga yangilanishlarni yuborish
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: "UPDATE_SETTINGS",
+        payload: {
+          sheetsScriptUrl: scriptUrl,
+          spreadsheetId: sheetId,
+          targetSheetName: targetSheet
+        }
+      });
+    }
+  });
 }
 
 // 1. GOOGLE SHEETS-DAN BEMOR ID LARINI YUKLASH (GET)
 async function handleFetchSheetsIds() {
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
   const sourceSheet = elInputSourceSheetName.value.trim() || "Sevinch";
 
   if (!scriptUrl) {
@@ -200,7 +218,7 @@ async function handleFetchSheetsIds() {
   elBtnFetchSheetsIds.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Yuklanmoqda...`;
 
   try {
-    const fetchUrl = `${scriptUrl}?action=get_patient_ids&sheetName=${encodeURIComponent(sourceSheet)}`;
+    const fetchUrl = `${scriptUrl}?action=get_patient_ids&spreadsheetId=${encodeURIComponent(sheetId)}&sheetName=${encodeURIComponent(sourceSheet)}`;
     const response = await fetch(fetchUrl);
     const data = await response.json();
 
@@ -306,6 +324,7 @@ async function handleExportToSheets() {
   }
 
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
   const targetSheet = elInputTargetSheetName.value.trim() || "Farq";
 
   if (!scriptUrl) {
@@ -322,6 +341,7 @@ async function handleExportToSheets() {
   try {
     const postBody = {
       action: "save_karmed_records",
+      spreadsheetId: sheetId,
       sheetName: targetSheet,
       records: currentScannedReport.detailedRecords
     };
@@ -356,10 +376,8 @@ async function handleAutoSyncAll() {
     return;
   }
 
-  // 1-qadam: ID larni yuklash
   await handleFetchSheetsIds();
 
-  // 2 va 3-qadam: Skanerlash va avtomatik Sheets-ga yozish
   if (loadedSheetsPatientIds.length > 0) {
     elChkOnlySheetsIds.checked = true;
     await handleStartScan(true);
@@ -373,7 +391,6 @@ function renderScanResults(report) {
   elResTotalSummaValue.innerText = report.totalSumFormatted || "0 so'm";
   elResListCount.innerText = report.totalPatientsCount || 0;
 
-  // Kodlar kartochkalari
   elResCodesBadgesWrap.innerHTML = "";
   const codes = Object.values(report.servicesBreakdown || {});
   if (codes.length === 0) {
@@ -387,7 +404,6 @@ function renderScanResults(report) {
     });
   }
 
-  // Bemorlar ro'yxati
   elResPatientsList.innerHTML = "";
   const patients = report.patientsList || [];
   patients.forEach((p, idx) => {
@@ -396,7 +412,7 @@ function renderScanResults(report) {
 
     const srvTags = (p.services || []).map(s => `
       <span class="tag-service-mini" title="${s.price ? s.price.toLocaleString('ru-RU') + ' so\'m' : ''}">
-        ${s.code}: ${s.name} ${s.price ? `(${s.price.toLocaleString('ru-RU')} so'm)` : ''}
+        ${s.code}: ${s.name} (${s.price ? s.price.toLocaleString('ru-RU') : 0} so'm)
       </span>
     `).join("");
 
@@ -406,7 +422,7 @@ function renderScanResults(report) {
         <span style="color:#0284c7;">${p.totalPriceFormatted || ''}</span>
       </div>
       <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
-        📅 ${p.confirmDate || ''} • 👨‍⚕️ ${p.doctorName || ''} • 🏥 ${p.department || 'UTT'}
+        📅 ${p.confirmDate || ''} • 🏛️ ${p.muassasa || 'Rezident'} • 👨‍⚕️ ${p.doctorName || ''}
       </div>
       <div class="patient-mini-services">${srvTags || '<span style="color:#94a3b8; font-size:10px;">Standart ko\'rik</span>'}</div>
     `;

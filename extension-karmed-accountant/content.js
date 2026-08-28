@@ -5,10 +5,12 @@
  * 1. Rezident -> 1-ustun narxlari
  * 2. No Rezident -> 2-ustun narxlari
  * 3. Boshqa barchasi (Sug'urta, Order, Vaqf, Imtiyoz...) -> 3-ustun narxlari
+ * 4. Google Sheets (19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0 - Iyun) va "Farq" jurnali
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 let currentGoogleScriptUrl = "";
+let currentSpreadsheetId = "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0"; // Yangi Iyun jadvali
 let currentTargetSheetName = "Farq";
 let autoSaveOnOpen = false;
 let lastSavedPatientKey = "";
@@ -339,8 +341,9 @@ const OFFICIAL_TARIFF_RATES = [
 async function loadSavedSettings() {
   return new Promise(resolve => {
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(["sheetsScriptUrl", "targetSheetName", "autoSaveFarq"], res => {
+      chrome.storage.local.get(["sheetsScriptUrl", "spreadsheetId", "targetSheetName", "autoSaveFarq"], res => {
         if (res.sheetsScriptUrl) currentGoogleScriptUrl = res.sheetsScriptUrl.trim();
+        if (res.spreadsheetId) currentSpreadsheetId = extractSheetId(res.spreadsheetId);
         if (res.targetSheetName) currentTargetSheetName = res.targetSheetName.trim() || "Farq";
         if (res.autoSaveFarq !== undefined) autoSaveOnOpen = Boolean(res.autoSaveFarq);
         resolve();
@@ -349,6 +352,14 @@ async function loadSavedSettings() {
       resolve();
     }
   });
+}
+
+function extractSheetId(inputStr) {
+  if (!inputStr) return "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const str = inputStr.trim();
+  const match = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) return match[1];
+  return str;
 }
 
 // 2. BEMOR STATUSINI ANIQLASH (rezident / norezident / sugurta)
@@ -364,7 +375,6 @@ function getPatientStatusType(muassasaText) {
     return 'rezident';
   }
 
-  // Boshqa barcha holatlar: Sug'urta, Order, Vaqf, Imtiyoz va h.k.
   return 'sugurta';
 }
 
@@ -478,7 +488,6 @@ function parsePatientFromRow(tr) {
     middleName = "";
   }
 
-  // Shifokorni topish
   for (let i = 0; i <= dateIdx; i++) {
     const t = cellTexts[i];
     if (t.includes("Dr.") || (t.split(" ").length >= 2 && /[A-ZА-ЯЁ]/.test(t) && !t.includes("Ultratovush") && !t.includes("Mammografiya") && !t.includes("Rentgen"))) {
@@ -487,7 +496,6 @@ function parsePatientFromRow(tr) {
     }
   }
 
-  // Muassasa (Sugurta Toshkent Shahri, Rezident, Order, Vaqf, No Rezident)
   for (const t of cellTexts) {
     const low = t.toLowerCase();
     if (low.includes("sug'urta") || low.includes("sugurta") || low.includes("order") || low.includes("vaqf") || low.includes("rezident") || low.includes("imtiyoz")) {
@@ -499,7 +507,6 @@ function parsePatientFromRow(tr) {
 
   const statusType = getPatientStatusType(muassasa);
 
-  // Bo'lim (Abdominal, Ximyoterapiya, Mamologiya, Ginekologiya...)
   const knownDepts = ["abdominal", "ximyoterapiya", "mamologiya", "ginekologiya", "urologiya", "onkourologiya", "bolalar", "bosh", "torakal"];
   for (const t of cellTexts) {
     if (knownDepts.some(d => t.toLowerCase().includes(d))) {
@@ -653,7 +660,10 @@ async function saveCurrentPatientToGoogleSheets() {
   }
 
   if (!currentGoogleScriptUrl) {
-    alert("⚠️ Google Apps Script Web App URL manzili sozlanmagan!\nKengaytma darchasini ochib, 'Sozlash' bo'limiga URL ni kiriting.");
+    // Agar sozlanmagan bo'lsa sozlash oynasini ochish
+    const panel = document.getElementById("karmedFarqSettingsPanel");
+    if (panel) panel.style.display = "flex";
+    alert("⚠️ Google Apps Script Web App URL manzili sozlanmagan!\nPanelning ⚙️ tugmasi orqali URL ni kiriting.");
     return;
   }
 
@@ -713,6 +723,7 @@ async function saveCurrentPatientToGoogleSheets() {
   try {
     const postBody = {
       action: "save_karmed_records",
+      spreadsheetId: currentSpreadsheetId || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0",
       sheetName: currentTargetSheetName || "Farq",
       records: records
     };
@@ -753,8 +764,34 @@ function createQuickFarqFloatingWidget() {
       <div class="karmed-farq-header-title">
         <span>📊</span> <b>KARMED ➡️ "FARQ" JURNALI</b>
       </div>
-      <button type="button" id="btnMinFarqWidget" style="background:none; border:none; color:#fff; cursor:pointer; font-weight:bold;">—</button>
+      <div class="karmed-farq-header-btns">
+        <button type="button" class="karmed-farq-icon-btn" id="btnToggleFarqSettings" title="Jadvalni sozlash">⚙️</button>
+        <button type="button" class="karmed-farq-icon-btn" id="btnMinFarqWidget" title="Kichraytirish">—</button>
+      </div>
     </div>
+    
+    <!-- On-screen Settings Panel -->
+    <div class="karmed-farq-settings-panel" id="karmedFarqSettingsPanel" style="display:none;">
+      <div style="font-weight:bold; color:#10b981; font-size:12px;">⚙️ Google Sheets Sozlamalari:</div>
+      <div>
+        <label style="font-size:10.5px; color:#94a3b8;">Apps Script Web App URL:</label>
+        <input type="text" id="widgetInputScriptUrl" class="karmed-farq-settings-input" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div>
+        <label style="font-size:10.5px; color:#94a3b8;">Google Sheets Havolasi / ID:</label>
+        <input type="text" id="widgetInputSpreadsheetId" class="karmed-farq-settings-input" placeholder="19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0">
+      </div>
+      <div style="display:flex; gap:6px;">
+        <div style="flex:1;">
+          <label style="font-size:10.5px; color:#94a3b8;">Varaq (Jurnal):</label>
+          <input type="text" id="widgetInputSheetName" class="karmed-farq-settings-input" value="Farq" placeholder="Farq">
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button type="button" class="btn-farq-settings-save" id="btnWidgetSaveSettings">💾 Saqlash</button>
+        </div>
+      </div>
+    </div>
+
     <div class="karmed-farq-body" id="karmedFarqBody">
       <div class="karmed-farq-patient-card">
         <div class="karmed-farq-pat-name" id="farqPatName">Bemor qatorini bosing...</div>
@@ -784,6 +821,40 @@ function createQuickFarqFloatingWidget() {
     if (chrome.storage && chrome.storage.local) {
       chrome.storage.local.set({ autoSaveFarq: autoSaveOnOpen });
     }
+  });
+
+  // Settings panel toggle
+  const btnSettings = document.getElementById("btnToggleFarqSettings");
+  const panelSettings = document.getElementById("karmedFarqSettingsPanel");
+  const inpUrl = document.getElementById("widgetInputScriptUrl");
+  const inpSheetId = document.getElementById("widgetInputSpreadsheetId");
+  const inpSheetName = document.getElementById("widgetInputSheetName");
+
+  btnSettings.addEventListener("click", () => {
+    const isHidden = panelSettings.style.display === "none";
+    panelSettings.style.display = isHidden ? "flex" : "none";
+    if (isHidden) {
+      inpUrl.value = currentGoogleScriptUrl || "";
+      inpSheetId.value = currentSpreadsheetId || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+      inpSheetName.value = currentTargetSheetName || "Farq";
+    }
+  });
+
+  document.getElementById("btnWidgetSaveSettings").addEventListener("click", () => {
+    currentGoogleScriptUrl = inpUrl.value.trim();
+    currentSpreadsheetId = extractSheetId(inpSheetId.value.trim()) || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+    currentTargetSheetName = inpSheetName.value.trim() || "Farq";
+
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({
+        sheetsScriptUrl: currentGoogleScriptUrl,
+        spreadsheetId: currentSpreadsheetId,
+        targetSheetName: currentTargetSheetName
+      });
+    }
+
+    panelSettings.style.display = "none";
+    showFarqToast(`✅ Sozlamalar saqlandi: ${currentSpreadsheetId} (${currentTargetSheetName})`);
   });
 
   document.getElementById("btnMinFarqWidget").addEventListener("click", () => {
@@ -816,6 +887,7 @@ function updateWidgetPatientPreview() {
   const srvCodes = (p.services || []).map(s => `${s.code} (${s.priceStr})`).join(", ");
   elSum.innerText = `📋 ${p.services.length} ta tekshiruv: ${p.totalSumFormatted}`;
 
+  const currentKey = `${p.patientId}_${p.fullName}_${p.services.length}_${p.muassasa}`;
   if (autoSaveOnOpen && p.patientId && p.patientId !== "ID_NOMALUM" && p.services.length > 0 && currentKey !== lastSavedPatientKey) {
     lastSavedPatientKey = currentKey;
     saveCurrentPatientToGoogleSheets();
@@ -883,6 +955,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.action === "UPDATE_SETTINGS") {
     if (request.payload?.sheetsScriptUrl) currentGoogleScriptUrl = request.payload.sheetsScriptUrl;
+    if (request.payload?.spreadsheetId) currentSpreadsheetId = extractSheetId(request.payload.spreadsheetId);
     if (request.payload?.targetSheetName) currentTargetSheetName = request.payload.targetSheetName;
     sendResponse({ success: true });
     return true;

@@ -2,14 +2,19 @@
  * ==============================================================================
  *  🏥 KARMED & GOOGLE SHEETS "FARQ" JURNALI INTEGRATSIYA APPS SCRIPT KODI
  * ==============================================================================
- *  Spreadsheet ID: 1n5T8nqmV6cPWoSw-ex8GNmMzWWzxk8ziLRP6148hIy8
+ *  Yangi Spreadsheet ID: 19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0 (Iyun)
  *  Target Sheet: "Farq" (18 ta ustunli Karmed tekshiruvlar jurnali)
  * ==============================================================================
  */
 
 function doGet(e) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetId = e && e.parameter && e.parameter.spreadsheetId;
+    if (sheetId) {
+      try { ss = SpreadsheetApp.openById(sheetId); } catch(err) {}
+    }
+
     const action = (e && e.parameter && e.parameter.action) || 'get_patient_ids';
     const sheetName = (e && e.parameter && e.parameter.sheetName) || 'Sevinch';
 
@@ -73,17 +78,20 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
     let body = {};
-
     if (e && e.postData && e.postData.contents) {
       body = JSON.parse(e.postData.contents);
+    }
+
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetId = body.spreadsheetId || '19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0';
+    if (sheetId) {
+      try { ss = SpreadsheetApp.openById(sheetId); } catch(err) {}
     }
 
     const action = body.action || 'save_karmed_records';
     const targetSheetName = body.sheetName || 'Farq';
 
-    // 1. KARMED TEKSHIRUVLARI VA NARXLARINI "FARQ" VARAG'IGA SAQLASH
     if (action === 'save_karmed_records') {
       const records = body.records || body.data || [];
       if (!Array.isArray(records) || records.length === 0) {
@@ -154,11 +162,11 @@ function doPost(e) {
             r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich',
             r.performingDoctor || r.doctorName || r.dr_uygulayan || 'Kurbanova Sevinch Musayevna',
             dateStr,
-            privilegeCategory, // Muassasa (Sug'urta Toshkent Shahri, Rezident, Order, No Rezident va h.k.)
-            orderliStr,        // Orderli_Ucret
-            pulliStr,          // Pulli_Ucret
-            tolanganStr,       // Tolangan_ucret
-            jamiStr            // Jami_ucret_toplam
+            privilegeCategory,
+            orderliStr,
+            pulliStr,
+            tolanganStr,
+            jamiStr
           ]);
           addedCount++;
         }
@@ -172,6 +180,7 @@ function doPost(e) {
         status: 'success',
         message: `✅ "${targetSheetName}" jurnaliga ${addedCount} ta tekshiruv muvaffaqiyatli saqlandi!`,
         sheetName: targetSheetName,
+        spreadsheetTitle: ss.getName(),
         addedCount: addedCount
       });
     }
