@@ -306,7 +306,7 @@ async function handleExportToSheets() {
   }
 
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
-  const targetSheet = elInputTargetSheetName.value.trim() || "Karmed";
+  const targetSheet = elInputTargetSheetName.value.trim() || "Farq";
 
   if (!scriptUrl) {
     elSheetsConfigPanel.style.display = "block";
