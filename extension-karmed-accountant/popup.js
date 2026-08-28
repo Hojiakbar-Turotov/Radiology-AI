@@ -80,6 +80,7 @@ function initDOMElements() {
   elInputSourceSheetName = document.getElementById("inputSourceSheetName");
   elInputTargetSheetName = document.getElementById("inputTargetSheetName");
   elBtnSaveSheetsConfig = document.getElementById("btnSaveSheetsConfig");
+  elBtnClearSheetsCache = document.getElementById("btnClearSheetsCache");
   elSheetsConfigSaveStatus = document.getElementById("sheetsConfigSaveStatus");
   elBtnFetchSheetsIds = document.getElementById("btnFetchSheetsIds");
   elBtnExportToSheets = document.getElementById("btnExportToSheets");
@@ -124,8 +125,12 @@ function setupEventListeners() {
   if (elBtnSaveSheetsConfig) {
     elBtnSaveSheetsConfig.addEventListener("click", () => {
       savePreferences();
-      showConfigSaveFeedback();
+      showConfigSaveFeedback("✅ Sozlamalar saqlandi!");
     });
+  }
+
+  if (elBtnClearSheetsCache) {
+    elBtnClearSheetsCache.addEventListener("click", handleClearSheetsCache);
   }
 
   elBtnFetchSheetsIds.addEventListener("click", handleFetchSheetsIds);
@@ -133,10 +138,44 @@ function setupEventListeners() {
   elBtnAutoSyncAll.addEventListener("click", handleAutoSyncAll);
 }
 
-function showConfigSaveFeedback() {
+function handleClearSheetsCache() {
+  if (confirm("🧹 Barcha eski saqlangan sozlamalar, kesh va bemor ID lari tozalansinmi?")) {
+    loadedSheetsPatientIds = [];
+    loadedSheetsPatients = [];
+    if (elInputSheetsScriptUrl) elInputSheetsScriptUrl.value = "";
+    if (elInputSpreadsheetId) elInputSpreadsheetId.value = "";
+    if (elInputSourceSheetName) elInputSourceSheetName.value = "";
+    if (elInputTargetSheetName) elInputTargetSheetName.value = "";
+
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.remove([
+        "sheetsScriptUrl", "spreadsheetId", "sourceSheetName", "targetSheetName",
+        "cachedSheetsIds", "cachedSheetsPatients"
+      ], () => {
+        updateSheetsStatusPill(0, "");
+        showConfigSaveFeedback("🧹 Kesh va eski sozlamalar tozalandi!");
+      });
+    }
+
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "UPDATE_SETTINGS",
+          payload: {
+            sheetsScriptUrl: "",
+            spreadsheetId: "",
+            targetSheetName: "Farq"
+          }
+        });
+      }
+    });
+  }
+}
+
+function showConfigSaveFeedback(msg = "✅ Sozlamalar saqlandi!") {
   if (elSheetsConfigSaveStatus) {
     elSheetsConfigSaveStatus.style.display = "block";
-    elSheetsConfigSaveStatus.innerText = "✅ Sozlamalar saqlandi!";
+    elSheetsConfigSaveStatus.innerText = msg;
     setTimeout(() => {
       if (elSheetsConfigSaveStatus) elSheetsConfigSaveStatus.style.display = "none";
     }, 3000);
@@ -157,15 +196,17 @@ function initDefaults() {
       if (res.lastAutoPage !== undefined && elChkAutoPagination) elChkAutoPagination.checked = Boolean(res.lastAutoPage);
       if (res.lastOnlySheetsIds !== undefined && elChkOnlySheetsIds) elChkOnlySheetsIds.checked = Boolean(res.lastOnlySheetsIds);
 
-      if (res.sheetsScriptUrl && elInputSheetsScriptUrl) elInputSheetsScriptUrl.value = res.sheetsScriptUrl;
-      if (res.spreadsheetId && elInputSpreadsheetId) elInputSpreadsheetId.value = res.spreadsheetId;
-      if (res.sourceSheetName && elInputSourceSheetName) elInputSourceSheetName.value = res.sourceSheetName;
-      if (res.targetSheetName && elInputTargetSheetName) elInputTargetSheetName.value = res.targetSheetName;
+      if (elInputSheetsScriptUrl) elInputSheetsScriptUrl.value = res.sheetsScriptUrl || "";
+      if (elInputSpreadsheetId) elInputSpreadsheetId.value = res.spreadsheetId || "";
+      if (elInputSourceSheetName) elInputSourceSheetName.value = res.sourceSheetName || "Sevinch";
+      if (elInputTargetSheetName) elInputTargetSheetName.value = res.targetSheetName || "Farq";
 
       if (res.cachedSheetsIds && Array.isArray(res.cachedSheetsIds) && res.cachedSheetsIds.length > 0) {
         loadedSheetsPatientIds = res.cachedSheetsIds;
         loadedSheetsPatients = res.cachedSheetsPatients || [];
         updateSheetsStatusPill(loadedSheetsPatientIds.length, res.sourceSheetName || "Sevinch");
+      } else {
+        updateSheetsStatusPill(0, "");
       }
 
       if (res.lastStartDate && res.lastEndDate) {

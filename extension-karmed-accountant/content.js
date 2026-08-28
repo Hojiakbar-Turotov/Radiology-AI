@@ -10,7 +10,7 @@
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 let currentGoogleScriptUrl = "";
-let currentSpreadsheetId = "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0"; // Yangi Iyun jadvali
+let currentSpreadsheetId = "";
 let currentTargetSheetName = "Farq";
 let autoSaveOnOpen = false;
 let lastSavedPatientKey = "";
@@ -355,7 +355,7 @@ async function loadSavedSettings() {
 }
 
 function extractSheetId(inputStr) {
-  if (!inputStr) return "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  if (!inputStr) return "";
   const str = inputStr.trim();
   const match = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (match) return match[1];
@@ -778,13 +778,13 @@ function createQuickFarqFloatingWidget() {
         <input type="text" id="widgetInputScriptUrl" class="karmed-farq-settings-input" placeholder="https://script.google.com/macros/s/.../exec">
       </div>
       <div>
-        <label style="font-size:10.5px; color:#94a3b8;">Google Sheets Havolasi / ID:</label>
-        <input type="text" id="widgetInputSpreadsheetId" class="karmed-farq-settings-input" placeholder="19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0">
+        <label style="font-size:10.5px; color:#94a3b8;">Google Sheets Havolasi yoki ID:</label>
+        <input type="text" id="widgetInputSpreadsheetId" class="karmed-farq-settings-input" placeholder="Havola yoki ID">
       </div>
       <div style="display:flex; gap:6px;">
         <div style="flex:1;">
           <label style="font-size:10.5px; color:#94a3b8;">Varaq (Jurnal):</label>
-          <input type="text" id="widgetInputSheetName" class="karmed-farq-settings-input" value="Farq" placeholder="Farq">
+          <input type="text" id="widgetInputSheetName" class="karmed-farq-settings-input" placeholder="Farq">
         </div>
         <div style="display:flex; align-items:flex-end;">
           <button type="button" class="btn-farq-settings-save" id="btnWidgetSaveSettings">💾 Saqlash</button>
@@ -835,14 +835,14 @@ function createQuickFarqFloatingWidget() {
     panelSettings.style.display = isHidden ? "flex" : "none";
     if (isHidden) {
       inpUrl.value = currentGoogleScriptUrl || "";
-      inpSheetId.value = currentSpreadsheetId || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+      inpSheetId.value = currentSpreadsheetId || "";
       inpSheetName.value = currentTargetSheetName || "Farq";
     }
   });
 
   document.getElementById("btnWidgetSaveSettings").addEventListener("click", () => {
     currentGoogleScriptUrl = inpUrl.value.trim();
-    currentSpreadsheetId = extractSheetId(inpSheetId.value.trim()) || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+    currentSpreadsheetId = extractSheetId(inpSheetId.value.trim());
     currentTargetSheetName = inpSheetName.value.trim() || "Farq";
 
     if (chrome.storage && chrome.storage.local) {
@@ -854,7 +854,7 @@ function createQuickFarqFloatingWidget() {
     }
 
     panelSettings.style.display = "none";
-    showFarqToast(`✅ Sozlamalar saqlandi: ${currentSpreadsheetId} (${currentTargetSheetName})`);
+    showFarqToast(`✅ Sozlamalar saqlandi: ${currentSpreadsheetId || 'Standart'} (${currentTargetSheetName})`);
   });
 
   document.getElementById("btnMinFarqWidget").addEventListener("click", () => {
