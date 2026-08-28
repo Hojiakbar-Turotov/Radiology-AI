@@ -166,6 +166,8 @@ function handleClearSheetsCache() {
             spreadsheetId: "",
             targetSheetName: "Farq"
           }
+        }, () => {
+          const _ = chrome.runtime.lastError;
         });
       }
     });
@@ -219,7 +221,7 @@ function initDefaults() {
 }
 
 function extractSheetId(inputStr) {
-  if (!inputStr) return "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  if (!inputStr) return "";
   const str = inputStr.trim();
   const match = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (match) return match[1];
@@ -228,7 +230,7 @@ function extractSheetId(inputStr) {
 
 function savePreferences() {
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
-  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "";
   const sourceSheet = elInputSourceSheetName.value.trim() || "Sevinch";
   const targetSheet = elInputTargetSheetName.value.trim() || "Farq";
 
@@ -257,6 +259,8 @@ function savePreferences() {
           spreadsheetId: sheetId,
           targetSheetName: targetSheet
         }
+      }, () => {
+        const _ = chrome.runtime.lastError;
       });
     }
   });
@@ -265,7 +269,7 @@ function savePreferences() {
 // 1. GOOGLE SHEETS-DAN BEMOR ID LARINI YUKLASH (GET)
 async function handleFetchSheetsIds() {
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
-  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "";
   const sourceSheet = elInputSourceSheetName.value.trim() || "Sevinch";
 
   if (!scriptUrl) {
@@ -660,7 +664,8 @@ async function checkActiveTabConnection() {
     }
 
     chrome.tabs.sendMessage(tab.id, { action: "DETECT_PAGE_DOCTORS" }, (res) => {
-      if (chrome.runtime.lastError || !res) {
+      const err = chrome.runtime.lastError;
+      if (err || !res) {
         setConnectionStatus(false, "Sahifani yangilang (F5)");
       } else {
         setConnectionStatus(true, "Karmed Tayyor");
