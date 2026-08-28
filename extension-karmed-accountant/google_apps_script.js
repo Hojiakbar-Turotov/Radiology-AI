@@ -13,7 +13,6 @@ function doGet(e) {
     const action = (e && e.parameter && e.parameter.action) || 'get_patient_ids';
     const sheetName = (e && e.parameter && e.parameter.sheetName) || 'Sevinch';
 
-    // 1. MANBA VARAG'IDAN ("Sevinch") BEMOR ID LARINI OLISH
     if (action === 'get_patient_ids' || action === 'get_patients') {
       const sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
       if (!sheet) {
@@ -131,7 +130,7 @@ function doPost(e) {
 
           const privilegeCategory = r.privilegeCategory || r.muassasa || 'Rezident';
           const isOrder = privilegeCategory.toLowerCase().includes('order');
-          const isSugurta = privilegeCategory.toLowerCase().includes("sug'urta") || privilegeCategory.toLowerCase().includes('sugurta');
+          const isSugurta = !privilegeCategory.toLowerCase().includes('rezident') || privilegeCategory.toLowerCase().includes("sug'urta") || privilegeCategory.toLowerCase().includes('sugurta') || privilegeCategory.toLowerCase().includes('vaqf');
 
           const priceVal = r.price || r.pulliUcret || 0;
           const priceStr = formatMoney(priceVal);
@@ -155,7 +154,7 @@ function doPost(e) {
             r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich',
             r.performingDoctor || r.doctorName || r.dr_uygulayan || 'Kurbanova Sevinch Musayevna',
             dateStr,
-            privilegeCategory, // Muassasa / Категория лыгот (Sug'urta Toshkent Shahri, Rezident, Order va h.k.)
+            privilegeCategory, // Muassasa (Sug'urta Toshkent Shahri, Rezident, Order, No Rezident va h.k.)
             orderliStr,        // Orderli_Ucret
             pulliStr,          // Pulli_Ucret
             tolanganStr,       // Tolangan_ucret

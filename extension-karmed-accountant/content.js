@@ -1,15 +1,10 @@
 /**
  * Karmed Vrach Bemorlarini Sanash & Hisobchi Portali - Content Script
  * 
- * Bemor ochilganda yoki ustiga bosilganda quyidagi barcha ma'lumotlarni 100% aniqlikda yig'ish va "Farq" ga yozish:
- * 1. Bemor FISH (Familiya Ism Sharif)
- * 2. Bemor ID (Karta raqami va PINFL)
- * 3. Tekshiruvga yuborgan vrach FISH (So'rov yuboradigan shifokor / Fayl shifokori)
- * 4. Tanlangan tekshiruv sanasi (Tranzaksiya sanasi va vaqti)
- * 5. Tekshiruv kodi (R67, R63, R64, R78, R79, R62, R25, R52...)
- * 6. Tekshiruv nomi (Xizmatlar Nomi)
- * 7. Muassasa (Sugurta Toshkent Shahri, Rezident, Order, No Rezident...)
- * 8. Narxi, Orderli_Ucret, Pulli_Ucret, Tolangan_ucret va Jami_ucret_toplam
+ * 33 ta Rasmiy Tarif Narxlari (Rezident, No Rezident, Sug'urta/Order/Vaqf/boshqalar)
+ * 1. Rezident -> 1-ustun narxlari
+ * 2. No Rezident -> 2-ustun narxlari
+ * 3. Boshqa barchasi (Sug'urta, Order, Vaqf, Imtiyoz...) -> 3-ustun narxlari
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
@@ -20,22 +15,317 @@ let lastSavedPatientKey = "";
 let lastClickedRow = null;
 let lastActivePatient = null;
 
-// Standart UTT xizmatlari tariflari
-const DEFAULT_PRICE_MAP = {
-  "R25": 137000,
-  "R52": 173000,
-  "R62": 173000,
-  "R63": 210000,
-  "R64": 137000,
-  "R66": 173000,
-  "R67": 173000,
-  "R78": 137000,
-  "R79": 137000,
-  "R85": 177000,
-  "R87": 137000,
-  "R134": 210000,
-  "R135": 210000
-};
+// 33 TA RASMIY TEKSHIRUV TARIFLAR JADVALI
+const OFFICIAL_TARIFF_RATES = [
+  {
+    id: 1,
+    name: "JIGAR, O'T QOPI, OSHQOZON OSTI BEZI, TALOQ",
+    keywords: ["jigar", "qopi"],
+    altKeywords: ["jigar", "taloq"],
+    excludeKeywords: ["doppler", "rtd"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 2,
+    name: "DOPPLER ( RTD+energetik) JIGAR, O'T QOPI, OSHQOZON OSTI BEZI, TALOQ",
+    keywords: ["doppler", "jigar"],
+    altKeywords: ["rtd", "jigar"],
+    rezident: 192000,
+    norezident: 307200,
+    sugurta: 188160
+  },
+  {
+    id: 3,
+    name: "U T T BUYRAKLAR",
+    keywords: ["buyrak"],
+    excludeKeywords: ["doppler", "rtd"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 4,
+    name: "DOPPLER (RTD + energetik) BUYRAKLAR",
+    keywords: ["doppler", "buyrak"],
+    altKeywords: ["rtd", "buyrak"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 5,
+    name: "SIYDIK PUFAGI",
+    keywords: ["siydikpufagi"],
+    excludeKeywords: ["bachadon", "tuxumdon", "prostata"],
+    rezident: 93000,
+    norezident: 148800,
+    sugurta: 91140
+  },
+  {
+    id: 6,
+    name: "SIYDIK PUFAGI, BACHADON VA TUXUMDONLAR",
+    keywords: ["siydik", "bachadon"],
+    altKeywords: ["bachadon", "tuxumdon"],
+    excludeKeywords: ["doppler", "rtd", "transvaginal", "tvutt", "tvu"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 7,
+    name: "DOPPLER (RTD + energetik) BACHADON VA TUXUMDONLAR",
+    keywords: ["doppler", "bachadon"],
+    altKeywords: ["rtd", "bachadon"],
+    excludeKeywords: ["transvaginal", "tvutt"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 8,
+    name: "SIYDIK QOPI PROSTATA BEZI, URUG' PUFAKCHALARI",
+    keywords: ["prostata", "urug"],
+    altKeywords: ["prostata", "pufakcha"],
+    excludeKeywords: ["doppler", "rtd", "transrektal"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 9,
+    name: "DOPPLER (RTD + energetik) SIYDIK QOPI, PROSTATA BEZI, URUG' PUFAKCHALARI",
+    keywords: ["doppler", "prostata"],
+    altKeywords: ["rtd", "prostata"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 10,
+    name: "YORG'OQ A'ZOLARI",
+    keywords: ["yorgoq"],
+    altKeywords: ["moshonka"],
+    excludeKeywords: ["doppler", "rtd"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 11,
+    name: "DOPPLER (RTD + energetik) YORG'OQ A'ZOLARI",
+    keywords: ["doppler", "yorgoq"],
+    altKeywords: ["rtd", "yorgoq"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 12,
+    name: "SUT BEZLARI",
+    keywords: ["sutbez"],
+    excludeKeywords: ["doppler", "rtd", "sonoelastograf", "qoltiq"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 13,
+    name: "DOPPLER (RTD + energetik) SUT BEZLARI",
+    keywords: ["doppler", "sutbez"],
+    altKeywords: ["rtd", "sutbez"],
+    excludeKeywords: ["sonoelastograf"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 14,
+    name: "QALQONSIMON BEZI",
+    keywords: ["qalqonsimon"],
+    excludeKeywords: ["doppler", "rtd", "sonoelastograf"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 15,
+    name: "DOPPLER (RTD + energetik) QALQONSIMON BEZI",
+    keywords: ["doppler", "qalqonsimon"],
+    altKeywords: ["rtd", "qalqonsimon"],
+    excludeKeywords: ["sonoelastograf"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 16,
+    name: "DOPPLER (RTD + energetik) YUMSHOQ TO'QIMA",
+    keywords: ["doppler", "yumshoq"],
+    altKeywords: ["rtd", "yumshoq"],
+    excludeKeywords: ["sonoelastograf"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 17,
+    name: "PERIFERIK LIMFA TUGUNLAR",
+    keywords: ["periferik"],
+    altKeywords: ["limfa"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 18,
+    name: "QORIN PARDA ORTI LIMFA TUGUNLARI",
+    keywords: ["qorinpardaorti"],
+    altKeywords: ["pardaorti"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 19,
+    name: "ORBITA VA KO'Z OLMALARI",
+    keywords: ["orbita"],
+    altKeywords: ["kozolma"],
+    excludeKeywords: ["doppler", "rtd"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 20,
+    name: "DOPPLER ( RTD+energetik) ORBITA VA KO'Z OLMALARI",
+    keywords: ["doppler", "orbita"],
+    altKeywords: ["rtd", "orbita"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 21,
+    name: "PLEVRA BO'SHLIQLARI",
+    keywords: ["plevra"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 22,
+    name: "QORIN BO'SHLIG'I VA KICHIK CHANOQ BO'SHLIG'IDA ERKIN SUYUQLIK MIQDORI",
+    keywords: ["erkin", "suyuqlik"],
+    altKeywords: ["suyuqlikmiqdori"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 23,
+    name: "DOPPLER (CDK + energetik) TRANSVAGINAL TEKSHIRUVI (TV UZI)",
+    keywords: ["doppler", "transvaginal"],
+    altKeywords: ["cdk", "transvaginal"],
+    rezident: 196000,
+    norezident: 313600,
+    sugurta: 192080
+  },
+  {
+    id: 24,
+    name: "TRANSVAGINAL TEKSHIRUVI (TV UTT) Bachadon va tuxumdonlar",
+    keywords: ["transvaginal"],
+    altKeywords: ["tvutt", "tvuzi"],
+    excludeKeywords: ["doppler", "cdk", "rtd"],
+    rezident: 163000,
+    norezident: 260800,
+    sugurta: 159740
+  },
+  {
+    id: 25,
+    name: "TRANSREKTAL TEKSHIRUVI (TR UTT) prostata bezi",
+    keywords: ["transrektal"],
+    altKeywords: ["trutt"],
+    rezident: 163000,
+    norezident: 260800,
+    sugurta: 159740
+  },
+  {
+    id: 26,
+    name: "OYOQ QON TOMIRLARDAGI TROMBNI ANIQLASH",
+    keywords: ["tromb"],
+    altKeywords: ["oyoqqontomir", "venank"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 27,
+    name: "KOMPRESSION SONOELASTOGRAFIYA SUT BEZLARI",
+    keywords: ["sonoelastograf", "sutbez"],
+    altKeywords: ["elastograf", "sutbez"],
+    rezident: 192000,
+    norezident: 307200,
+    sugurta: 188160
+  },
+  {
+    id: 28,
+    name: "KOMPRESSION SONOELASTOGRAFIYA QALQONSIMON BEZI",
+    keywords: ["sonoelastograf", "qalqonsimon"],
+    altKeywords: ["elastograf", "qalqonsimon"],
+    rezident: 192000,
+    norezident: 307200,
+    sugurta: 188160
+  },
+  {
+    id: 29,
+    name: "KOMPRESSION SONOELASTOGRAFIYA YUMSHOQ TO'QIMA",
+    keywords: ["sonoelastograf", "yumshoq"],
+    altKeywords: ["elastograf", "yumshoq"],
+    rezident: 192000,
+    norezident: 307200,
+    sugurta: 188160
+  },
+  {
+    id: 30,
+    name: "YUMSHOQ TO'QIMA",
+    keywords: ["yumshoq"],
+    altKeywords: ["toqima"],
+    excludeKeywords: ["doppler", "rtd", "sonoelastograf"],
+    rezident: 126000,
+    norezident: 201600,
+    sugurta: 123480
+  },
+  {
+    id: 31,
+    name: "SUT BEZLAR VA QO'LTIQ OSTI LIMFA TUGUNLAR",
+    keywords: ["sutbez", "qoltiq"],
+    altKeywords: ["qoltiqosti"],
+    excludeKeywords: ["sonoelastograf"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  },
+  {
+    id: 32,
+    name: "PUNKTSION BIOPSIYA U T T NAZORATI OSTIDA",
+    keywords: ["biopsiya"],
+    altKeywords: ["punktsion"],
+    rezident: 460000,
+    norezident: 736000,
+    sugurta: 450800
+  },
+  {
+    id: 33,
+    name: "BO'YIN QON TOMIRLARI DOPPLEROGRAFIYASI",
+    keywords: ["boyin", "tomir"],
+    altKeywords: ["boyindoppler"],
+    rezident: 159000,
+    norezident: 254400,
+    sugurta: 155820
+  }
+];
 
 // 1. ISHGA TUSHIRISH
 (async function init() {
@@ -61,13 +351,70 @@ async function loadSavedSettings() {
   });
 }
 
-// 2. FOYDALANUVCHI QATORGA BOSGANDA DARHOL USHLAB OLISH (CLICK INTERCEPTOR)
+// 2. BEMOR STATUSINI ANIQLASH (rezident / norezident / sugurta)
+function getPatientStatusType(muassasaText) {
+  if (!muassasaText) return 'rezident';
+  const clean = muassasaText.toLowerCase().trim();
+
+  if (clean.includes('no rezident') || clean.includes('norezident') || clean.includes('no-rezident')) {
+    return 'norezident';
+  }
+
+  if (clean === 'rezident' || (clean.includes('rezident') && !clean.includes('no'))) {
+    return 'rezident';
+  }
+
+  // Boshqa barcha holatlar: Sug'urta, Order, Vaqf, Imtiyoz va h.k.
+  return 'sugurta';
+}
+
+// 3. XIZMATNING ANIQ TARIFINI HISOBLASH
+function calculateServiceTariffPrice(serviceName, serviceCode, statusType = 'rezident') {
+  const norm = (serviceName || '').toLowerCase().replace(/['`ʻ\s,._\-\(\)]/g, '');
+  
+  for (const item of OFFICIAL_TARIFF_RATES) {
+    const hasKey = item.keywords.every(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
+    const hasAlt = item.altKeywords && item.altKeywords.every(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
+    const hasEx = item.excludeKeywords && item.excludeKeywords.some(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
+
+    if ((hasKey || hasAlt) && !hasEx) {
+      if (statusType === 'norezident') return item.norezident;
+      if (statusType === 'sugurta') return item.sugurta;
+      return item.rezident;
+    }
+  }
+
+  const code = (serviceCode || '').toUpperCase().trim();
+  const codeDefaults = {
+    'R25': { rezident: 126000, norezident: 201600, sugurta: 123480 },
+    'R52': { rezident: 159000, norezident: 254400, sugurta: 155820 },
+    'R62': { rezident: 159000, norezident: 254400, sugurta: 155820 },
+    'R63': { rezident: 192000, norezident: 307200, sugurta: 188160 },
+    'R64': { rezident: 126000, norezident: 201600, sugurta: 123480 },
+    'R67': { rezident: 159000, norezident: 254400, sugurta: 155820 },
+    'R78': { rezident: 126000, norezident: 201600, sugurta: 123480 },
+    'R79': { rezident: 126000, norezident: 201600, sugurta: 123480 },
+    'R85': { rezident: 163000, norezident: 260800, sugurta: 159740 },
+    'R87': { rezident: 126000, norezident: 201600, sugurta: 123480 },
+    'R134': { rezident: 192000, norezident: 307200, sugurta: 188160 },
+    'R135': { rezident: 192000, norezident: 307200, sugurta: 188160 }
+  };
+
+  if (codeDefaults[code]) {
+    return codeDefaults[code][statusType] || codeDefaults[code].rezident;
+  }
+
+  if (statusType === 'norezident') return 254400;
+  if (statusType === 'sugurta') return 155820;
+  return 159000;
+}
+
+// 4. FOYDALANUVCHI QATORGA BOSGANDA DARHOL USHLAB OLISH (CLICK INTERCEPTOR)
 function initClickInterceptor() {
   document.addEventListener("click", (e) => {
     const tr = e.target.closest("tr");
     if (!tr) return;
 
-    // Agar pastki tekshiruvlar jadvali qatori bo'lmasa
     if (!tr.innerText.includes("Siydik Pufagi") && !tr.innerText.includes("Doppler") && !tr.innerText.includes("Buyraklar") && !tr.innerText.startsWith("R")) {
       const p = parsePatientFromRow(tr);
       if (p) {
@@ -79,36 +426,7 @@ function initClickInterceptor() {
   }, true);
 }
 
-// 3. XIZMATLARNING ANIQ TARIF NARXINI HISOBLASH
-function getServiceTariffPrice(serviceName, serviceCode, isNoRezident = false) {
-  const normName = (serviceName || '').toLowerCase().replace(/['`ʻ\s,._\-]/g, '');
-  const code = (serviceCode || '').toUpperCase().trim();
-
-  // No Rezident tariflari
-  if (isNoRezident) {
-    if (normName.includes('transvaginal') || normName.includes('tvutt') || normName.includes('tvu')) return 283200;
-    if (normName.includes('jigar') || normName.includes('qorin') || normName.includes('oshqozon')) return 276800;
-    if (normName.includes('sutbez') || normName.includes('qoltiq')) return 276800;
-  }
-
-  // Standart Rezident narxlari
-  if (normName.includes('doppler') || normName.includes('rtd')) return 210000;
-  if (normName.includes('qalqonsimon')) return 137000;
-  if (normName.includes('sutbez') || normName.includes('qoltiq')) return 173000;
-  if (normName.includes('periferik') || normName.includes('limfa')) return 137000;
-  if (normName.includes('siydik') || normName.includes('bachadon') || normName.includes('prostata') || normName.includes('tuxumdon')) return 173000;
-  if (normName.includes('jigar') || normName.includes('oshqozon') || normName.includes('taloq') || normName.includes('otqopi')) return 173000;
-  if (normName.includes('buyrak')) return 137000;
-  if (normName.includes('yumshoq') || normName.includes('toqima')) return 137000;
-  if (normName.includes('erkin') || normName.includes('suyuqlik')) return 137000;
-  if (normName.includes('qorinpardaorti') || normName.includes('pardaorti')) return 137000;
-  if (normName.includes('tashxis') || normName.includes('plevra')) return 137000;
-  if (normName.includes('transvaginal') || normName.includes('tvutt') || normName.includes('tvu')) return 177000;
-
-  return DEFAULT_PRICE_MAP[code] || 173000;
-}
-
-// 4. QATORNI (TR) TAHLIL QILIB BEMOR MA'LUMOTLARINI AJRATISH
+// 5. QATORNI (TR) TAHLIL QILIB BEMOR MA'LUMOTLARINI AJRATISH
 function parsePatientFromRow(tr) {
   if (!tr) return null;
   const cells = Array.from(tr.querySelectorAll("td"));
@@ -116,7 +434,6 @@ function parsePatientFromRow(tr) {
 
   const cellTexts = cells.map(c => c.innerText.trim());
 
-  // 1. Sanani topish (DD.MM.YYYY)
   let dateIdx = -1;
   let rawDate = "";
   cellTexts.forEach((t, idx) => {
@@ -137,7 +454,6 @@ function parsePatientFromRow(tr) {
   let pinfl = "";
   let referringDoctor = "";
 
-  // Odatda Karmed tartibi: [dateIdx + 1] -> ID (37065), [dateIdx + 2] -> Familiya, [dateIdx + 3] -> Ism, [dateIdx + 4] -> Sharif
   if (cells[dateIdx + 1] && /^\d{3,8}$/.test(cellTexts[dateIdx + 1])) {
     patientId = cellTexts[dateIdx + 1];
     surname = cellTexts[dateIdx + 2] || "";
@@ -171,15 +487,17 @@ function parsePatientFromRow(tr) {
     }
   }
 
-  // Muassasa (Sugurta Toshkent Shahri, Rezident, Order, No Rezident)
+  // Muassasa (Sugurta Toshkent Shahri, Rezident, Order, Vaqf, No Rezident)
   for (const t of cellTexts) {
     const low = t.toLowerCase();
-    if (low.includes("sug'urta") || low.includes("sugurta") || low.includes("order") || low.includes("rezident") || low.includes("imtiyoz")) {
+    if (low.includes("sug'urta") || low.includes("sugurta") || low.includes("order") || low.includes("vaqf") || low.includes("rezident") || low.includes("imtiyoz")) {
       muassasa = t;
       break;
     }
   }
   if (!muassasa) muassasa = "Rezident";
+
+  const statusType = getPatientStatusType(muassasa);
 
   // Bo'lim (Abdominal, Ximyoterapiya, Mamologiya, Ginekologiya...)
   const knownDepts = ["abdominal", "ximyoterapiya", "mamologiya", "ginekologiya", "urologiya", "onkourologiya", "bolalar", "bosh", "torakal"];
@@ -191,7 +509,6 @@ function parsePatientFromRow(tr) {
   }
   if (!department) department = "Abdominal";
 
-  // PINFL
   const pinflVal = cellTexts.find(t => /^\d{14}$/.test(t)) || (patientId ? `2600${patientId.padStart(5, '0')}` : "260051000");
   const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim();
 
@@ -211,29 +528,24 @@ function parsePatientFromRow(tr) {
     confirmDate: rawDate || new Date().toLocaleDateString("ru-RU"),
     muassasa: muassasa,
     privilege: muassasa,
-    isNoRezident: muassasa.toLowerCase().includes("no rezident") || muassasa.toLowerCase().includes("norezident")
+    statusType: statusType
   };
 }
 
-// 5. JORIY EKRANDAGI BEMOR VA XIZMATLARNI TO'LIQ ANIQLASH
+// 6. JORIY EKRANDAGI BEMOR VA XIZMATLARNI TO'LIQ ANIQLASH
 function getCurrentlyActivePatientFromScreen() {
-  // 1. Agar foydalanuvchi qator ustiga bosgan bo'lsa
   let p = null;
   if (lastClickedRow) {
     p = parsePatientFromRow(lastClickedRow);
   }
 
-  // 2. Agar bosilmagan bo'lsa, ekrandagi yashil/tanlangan yoki ma'lumotli qatorlarni tekshirish
   if (!p) {
     const allRows = Array.from(document.querySelectorAll("tr"));
-    
-    // Yashil / tanlangan qatorlar
     const candidateRows = allRows.filter(r => {
       const text = r.innerText;
       return /\d{2}\.\d{2}\.\d{4}/.test(text) && /\d{4,8}/.test(text) && !text.includes("Siydik Pufagi") && !text.includes("Doppler") && !text.includes("Kod");
     });
 
-    // Eng mos qator (yashil/rangli qator yoki oxirgi qator)
     const coloredRow = candidateRows.find(r => r.getAttribute("style")?.includes("rgb") || r.className?.includes("Focused") || r.className?.includes("Selected") || r.className?.includes("selected"));
     const bestRow = coloredRow || candidateRows[0];
 
@@ -244,8 +556,7 @@ function getCurrentlyActivePatientFromScreen() {
 
   if (!p) return null;
 
-  // Pastki jadvaldan barcha tekshiruvlarni yig'ish
-  const services = extractSubTableServicesFromPage(p.referringDoctor, p.isNoRezident);
+  const services = extractSubTableServicesFromPage(p.referringDoctor, p.statusType);
   const totalSum = services.reduce((acc, s) => acc + (s.price || 0), 0);
 
   p.services = services;
@@ -255,8 +566,8 @@ function getCurrentlyActivePatientFromScreen() {
   return p;
 }
 
-// 6. PASTKI JADVALDAN TEKSHIRUV KODLARI, NOMLARI, TRANZAKSIYA SANASI VA NARXLARINI AJRATIB OLISH
-function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = false) {
+// 7. PASTKI JADVALDAN TEKSHIRUV KODLARI, NOMLARI, TRANZAKSIYA SANASI VA NARXLARINI AJRATIB OLISH
+function extractSubTableServicesFromPage(referringDocFromTop, statusType = 'rezident') {
   const servicesList = [];
   const allRows = Array.from(document.querySelectorAll("tr"));
 
@@ -267,7 +578,6 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
     const cellTexts = cells.map(c => c.innerText.trim());
     const firstCell = cellTexts[0] || "";
 
-    // Kod ustuni (R67, R63, R64, R78, R79, R62, R25, R52, R85...)
     const codeMatch = firstCell.match(/^R\s*(\d{1,5})/i) || cellTexts.find(t => /^R\s*\d{1,5}$/i.test(t));
     if (codeMatch) {
       const code = typeof codeMatch === 'string' ? codeMatch.toUpperCase().replace(/\s+/g, '') : `R${codeMatch[1]}`;
@@ -279,7 +589,6 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
       let reportAuthor = "Kurbanova Sevinch Musayevna";
       let debtStatus = "To'langan";
 
-      // Tranzaksiya sanasi (cell 2: 01.05.2026 08:25:50)
       if (cells[2] && /\d{2}\.\d{2}\.\d{4}/.test(cells[2].innerText)) {
         date = cells[2].innerText.trim();
       } else {
@@ -287,7 +596,6 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
         if (dCell) date = dCell;
       }
 
-      // Navbat raqami (cell 3: 2280097)
       if (cells[3] && /^\d{6,9}$/.test(cells[3].innerText.trim())) {
         orderNo = cells[3].innerText.trim();
       } else {
@@ -295,12 +603,10 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
         if (numCell) orderNo = numCell;
       }
 
-      // So'rov yuboradigan shifokor (cell 4)
       if (cells[4] && cells[4].innerText.trim().length >= 5) {
         orderingDoctor = cells[4].innerText.trim().replace(/^Dr\.\s*/i, '');
       }
 
-      // Hisobot muallifi / Shifokori (cell 5 yoki cell 10)
       if (cells[5] && cells[5].innerText.trim().length >= 5) {
         reportAuthor = cells[5].innerText.trim();
       } else if (cells[10] && cells[10].innerText.trim().length >= 5) {
@@ -311,7 +617,7 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
         debtStatus = "To'lanmagan";
       }
 
-      const price = getServiceTariffPrice(name, code, isNoRezident);
+      const price = calculateServiceTariffPrice(name, code, statusType);
       const priceStr = price.toLocaleString('ru-RU') + ',00';
 
       if (!servicesList.some(s => s.code === code && s.name === name && s.orderNo === orderNo)) {
@@ -334,7 +640,7 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
   return servicesList;
 }
 
-// 7. JORIY BEMORNI TO'G'RIDAN-TO'G'RI GOOGLE SHEETS "FARQ" VARAG'IGA SAQLASH
+// 8. JORIY BEMORNI TO'G'RIDAN-TO'G'RI GOOGLE SHEETS "FARQ" VARAG'IGA SAQLASH
 async function saveCurrentPatientToGoogleSheets() {
   const patient = getCurrentlyActivePatientFromScreen();
   if (!patient || !patient.patientId || patient.patientId === "ID_NOMALUM") {
@@ -358,7 +664,7 @@ async function saveCurrentPatientToGoogleSheets() {
   }
 
   const isOrder = patient.muassasa.toLowerCase().includes('order');
-  const isSugurta = patient.muassasa.toLowerCase().includes("sug'urta") || patient.muassasa.toLowerCase().includes('sugurta');
+  const isSugurta = patient.statusType === 'sugurta';
 
   const records = (patient.services || []).map((srv, idx) => {
     const priceVal = srv.price;
@@ -435,7 +741,7 @@ async function saveCurrentPatientToGoogleSheets() {
   }
 }
 
-// 8. EKRANDA SUZUVCHI TEZKOR BOSHQARUV PANELI (WIDGET)
+// 9. EKRANDA SUZUVCHI TEZKOR BOSHQARUV PANELI (WIDGET)
 function createQuickFarqFloatingWidget() {
   if (document.getElementById("karmedFarqFloatingWidget")) return;
 
@@ -451,7 +757,7 @@ function createQuickFarqFloatingWidget() {
     </div>
     <div class="karmed-farq-body" id="karmedFarqBody">
       <div class="karmed-farq-patient-card">
-        <div class="karmed-farq-pat-name" id="farqPatName">Bemor kutilmoqda...</div>
+        <div class="karmed-farq-pat-name" id="farqPatName">Bemor qatorini bosing...</div>
         <div class="karmed-farq-pat-meta" id="farqPatMeta">ID: — • Muassasa: —</div>
         <div class="karmed-farq-pat-sum" id="farqPatSum">Tekshiruvlar: 0 ta • 0 so'm</div>
       </div>
@@ -503,21 +809,20 @@ function updateWidgetPatientPreview() {
     return;
   }
 
+  const statusLabel = p.statusType === 'rezident' ? 'Rezident' : (p.statusType === 'norezident' ? 'No Rezident' : `Sug'urta/Order (${p.muassasa})`);
   elName.innerText = `👤 ${p.fullName}`;
-  elMeta.innerText = `ID: ${p.patientId} • 🏛️ ${p.muassasa} • 👨‍⚕️ ${p.referringDoctor}`;
+  elMeta.innerText = `ID: ${p.patientId} • 🏛️ ${statusLabel} • 👨‍⚕️ ${p.referringDoctor}`;
   
-  const srvCodes = (p.services || []).map(s => s.code).join(", ");
-  elSum.innerText = `📋 ${p.services.length} ta tekshiruv (${srvCodes}): ${p.totalSumFormatted}`;
+  const srvCodes = (p.services || []).map(s => `${s.code} (${s.priceStr})`).join(", ");
+  elSum.innerText = `📋 ${p.services.length} ta tekshiruv: ${p.totalSumFormatted}`;
 
-  // Agar Avto-Saqlash yoqilgan bo'lsa
-  const currentKey = `${p.patientId}_${p.fullName}_${p.services.length}_${p.muassasa}`;
   if (autoSaveOnOpen && p.patientId && p.patientId !== "ID_NOMALUM" && p.services.length > 0 && currentKey !== lastSavedPatientKey) {
     lastSavedPatientKey = currentKey;
     saveCurrentPatientToGoogleSheets();
   }
 }
 
-// 9. KLAVIATURA TUGMALARI (F4 yoki Alt+S orqali saqlash)
+// 10. KLAVIATURA TUGMALARI (F4 yoki Alt+S orqali saqlash)
 function initKeyboardShortcuts() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "F4" || (e.altKey && e.key.toLowerCase() === "s")) {
@@ -539,7 +844,7 @@ function showFarqToast(text) {
   setTimeout(() => toast.remove(), 4500);
 }
 
-// 10. SUDRAB YURISH (DRAGGABLE)
+// 11. SUDRAB YURISH (DRAGGABLE)
 function makeDraggable(el, handle) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   handle.onmousedown = dragMouseDown;
@@ -570,7 +875,7 @@ function makeDraggable(el, handle) {
   }
 }
 
-// 11. POPUPDAN XABARLARNI QABUL QILISH
+// 12. POPUPDAN XABARLARNI QABUL QILISH
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "DETECT_PAGE_DOCTORS") {
     sendResponse({ success: true, doctors: ["Kurbanova Sevinch Musayevna", "Muminov Sobit", "Mannopova Nargiza Mannapovna", "Kasimov Doniyor Abrorovich"] });
