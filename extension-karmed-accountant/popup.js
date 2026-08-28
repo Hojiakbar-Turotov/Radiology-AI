@@ -79,6 +79,8 @@ function initDOMElements() {
   elInputSpreadsheetId = document.getElementById("inputSpreadsheetId");
   elInputSourceSheetName = document.getElementById("inputSourceSheetName");
   elInputTargetSheetName = document.getElementById("inputTargetSheetName");
+  elBtnSaveSheetsConfig = document.getElementById("btnSaveSheetsConfig");
+  elSheetsConfigSaveStatus = document.getElementById("sheetsConfigSaveStatus");
   elBtnFetchSheetsIds = document.getElementById("btnFetchSheetsIds");
   elBtnExportToSheets = document.getElementById("btnExportToSheets");
   elBtnAutoSyncAll = document.getElementById("btnAutoSyncAll");
@@ -113,14 +115,32 @@ function setupEventListeners() {
     elSheetsConfigPanel.style.display = isHidden ? "block" : "none";
   });
 
-  elInputSheetsScriptUrl.addEventListener("change", savePreferences);
-  if (elInputSpreadsheetId) elInputSpreadsheetId.addEventListener("change", savePreferences);
-  elInputSourceSheetName.addEventListener("change", savePreferences);
-  elInputTargetSheetName.addEventListener("change", savePreferences);
+  // Real-time va button orqali saqlash
+  elInputSheetsScriptUrl.addEventListener("input", savePreferences);
+  if (elInputSpreadsheetId) elInputSpreadsheetId.addEventListener("input", savePreferences);
+  elInputSourceSheetName.addEventListener("input", savePreferences);
+  elInputTargetSheetName.addEventListener("input", savePreferences);
+
+  if (elBtnSaveSheetsConfig) {
+    elBtnSaveSheetsConfig.addEventListener("click", () => {
+      savePreferences();
+      showConfigSaveFeedback();
+    });
+  }
 
   elBtnFetchSheetsIds.addEventListener("click", handleFetchSheetsIds);
   elBtnExportToSheets.addEventListener("click", handleExportToSheets);
   elBtnAutoSyncAll.addEventListener("click", handleAutoSyncAll);
+}
+
+function showConfigSaveFeedback() {
+  if (elSheetsConfigSaveStatus) {
+    elSheetsConfigSaveStatus.style.display = "block";
+    elSheetsConfigSaveStatus.innerText = "✅ Sozlamalar saqlandi!";
+    setTimeout(() => {
+      if (elSheetsConfigSaveStatus) elSheetsConfigSaveStatus.style.display = "none";
+    }, 3000);
+  }
 }
 
 function initDefaults() {
