@@ -24,66 +24,144 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.hud-content {
+/* ON-SCREEN FLOATING ACTION WIDGET */
+.karmed-farq-floating-widget {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 9999999;
+  background: #0f172a;
+  color: #ffffff;
+  border: 2px solid #10b981;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  width: 320px;
+  overflow: hidden;
+  animation: hudSlideIn 0.3s ease-out;
+}
+
+.karmed-farq-header {
+  background: linear-gradient(135deg, #065f46, #047857);
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: move;
+  user-select: none;
+}
+
+.karmed-farq-header-title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  color: #ecfdf5;
 }
 
-.hud-content.error {
-  border-color: #ef4444;
+.karmed-farq-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #0f172a;
 }
 
-.hud-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  animation: spinSlow 8s linear infinite;
-}
-
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.hud-body {
-  flex: 1;
-}
-
-.hud-title {
-  font-size: 11px;
-  font-weight: 800;
-  color: #0284c7;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.hud-status {
+.karmed-farq-patient-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 10px;
   font-size: 12px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 3px 0;
 }
 
-.hud-content.error .hud-status {
-  color: #dc2626;
-}
-
-.hud-progress-bg {
-  width: 100%;
-  height: 5px;
-  background: #e0f2fe;
-  border-radius: 3px;
+.karmed-farq-pat-name {
+  font-weight: 800;
+  color: #38bdf8;
+  font-size: 12.5px;
+  white-space: nowrap;
   overflow: hidden;
-  margin-top: 4px;
+  text-overflow: ellipsis;
 }
 
-.hud-progress-fill {
-  height: 100%;
-  background: #0284c7;
-  transition: width 0.3s ease;
+.karmed-farq-pat-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 3px;
 }
 
-.hud-content.error .hud-progress-fill {
-  background: #ef4444;
+.karmed-farq-pat-sum {
+  font-size: 12px;
+  font-weight: 800;
+  color: #34d399;
+  margin-top: 3px;
+}
+
+.btn-farq-save-main {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s;
+}
+
+.btn-farq-save-main:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+}
+
+.btn-farq-save-main:disabled {
+  background: #475569;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.karmed-farq-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #94a3b8;
+  padding-top: 2px;
+}
+
+.karmed-farq-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+/* SUCCESS TOAST NOTIFICATION */
+.karmed-farq-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #065f46;
+  color: #ecfdf5;
+  border: 1.5px solid #34d399;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13.5px;
+  z-index: 99999999;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  animation: toastFade 0.3s ease-out;
+}
+
+@keyframes toastFade {
+  from { opacity: 0; transform: translate(-50%, -15px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
