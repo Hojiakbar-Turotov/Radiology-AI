@@ -720,20 +720,39 @@ async function saveCurrentPatientToGoogleSheets() {
     return;
   }
 
+  if (!currentGoogleScriptUrl.includes("script.google.com/macros/s/")) {
+    alert("⚠️ Apps Script Web App URL noto'g'ri!\nURL manzili https://script.google.com/macros/s/.../exec ko'rinishida bo'lishi shart (Google Sheets fayl havolasi emas).");
+    return;
+  }
+
   try {
     const postBody = {
       action: "save_karmed_records",
-      spreadsheetId: currentSpreadsheetId || "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0",
+      spreadsheetId: currentSpreadsheetId || "",
       sheetName: currentTargetSheetName || "Farq",
       records: records
     };
 
     const res = await fetch(currentGoogleScriptUrl, {
       method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
       body: JSON.stringify(postBody)
     });
 
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = null;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      if (rawText.includes("<!DOCTYPE") || rawText.includes("<html")) {
+        throw new Error("Google Apps Script ruxsati noto'g'ri!\nApps Script-da 'Развернуть (Deploy)' qilayotganda 'Кто имеет доступ (Who has access)' ni 'Все (Anyone)' qilib belgilang.");
+      } else {
+        throw new Error(rawText || "Kutilmagan server javobi");
+      }
+    }
 
     if (data.status === "success") {
       lastSavedPatientKey = `${patient.patientId}_${patient.fullName}_${patient.services.length}`;
@@ -743,7 +762,7 @@ async function saveCurrentPatientToGoogleSheets() {
     }
 
   } catch (err) {
-    alert("❌ Google Sheets-ga saqlashda xatolik: " + err.message);
+    alert("❌ Google Sheets-ga saqlashda xatolik:\n" + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;

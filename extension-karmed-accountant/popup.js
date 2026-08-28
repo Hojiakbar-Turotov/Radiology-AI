@@ -275,13 +275,30 @@ async function handleFetchSheetsIds() {
     return;
   }
 
+  if (!scriptUrl.includes("script.google.com/macros/s/")) {
+    elSheetsConfigPanel.style.display = "block";
+    elInputSheetsScriptUrl.focus();
+    alert("⚠️ Apps Script Web App URL noto'g'ri!\nURL manzili https://script.google.com/macros/s/.../exec ko'rinishida bo'lishi shart (Google Sheets fayl havolasi emas).");
+    return;
+  }
+
   elBtnFetchSheetsIds.disabled = true;
   elBtnFetchSheetsIds.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Yuklanmoqda...`;
 
   try {
     const fetchUrl = `${scriptUrl}?action=get_patient_ids&spreadsheetId=${encodeURIComponent(sheetId)}&sheetName=${encodeURIComponent(sourceSheet)}`;
-    const response = await fetch(fetchUrl);
-    const data = await response.json();
+    const response = await fetch(fetchUrl, { redirect: "follow" });
+    const rawText = await response.text();
+    let data = null;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      if (rawText.includes("<!DOCTYPE") || rawText.includes("<html")) {
+        throw new Error("Google Apps Script ruxsati noto'g'ri!\nApps Script-da 'Развернуть (Deploy)' qilayotganda 'Кто имеет доступ (Who has access)' ni 'Все (Anyone)' qilib belgilang.");
+      } else {
+        throw new Error(rawText || "Kutilmagan server javobi");
+      }
+    }
 
     if (data.status === "success" && Array.isArray(data.patientIds)) {
       loadedSheetsPatientIds = data.patientIds;
@@ -301,7 +318,7 @@ async function handleFetchSheetsIds() {
       throw new Error(data.message || "Bemor ID lari topilmadi");
     }
   } catch (err) {
-    alert("❌ Sheets-dan yuklashda xatolik: " + err.message);
+    alert("❌ Sheets-dan yuklashda xatolik:\n" + err.message);
   } finally {
     elBtnFetchSheetsIds.disabled = false;
     elBtnFetchSheetsIds.innerHTML = `<i class="fa-solid fa-file-import"></i> 1. ID larni Yuklash`;
@@ -385,13 +402,20 @@ async function handleExportToSheets() {
   }
 
   const scriptUrl = elInputSheetsScriptUrl.value.trim();
-  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0";
+  const sheetId = elInputSpreadsheetId ? extractSheetId(elInputSpreadsheetId.value.trim()) : "";
   const targetSheet = elInputTargetSheetName.value.trim() || "Farq";
 
   if (!scriptUrl) {
     elSheetsConfigPanel.style.display = "block";
     elInputSheetsScriptUrl.focus();
     alert("⚠️ Google Apps Script Web App URL manzilini kiriting!");
+    return;
+  }
+
+  if (!scriptUrl.includes("script.google.com/macros/s/")) {
+    elSheetsConfigPanel.style.display = "block";
+    elInputSheetsScriptUrl.focus();
+    alert("⚠️ Apps Script Web App URL noto'g'ri!\nURL manzili https://script.google.com/macros/s/.../exec ko'rinishida bo'lishi shart (Google Sheets fayl havolasi emas).");
     return;
   }
 
@@ -409,10 +433,24 @@ async function handleExportToSheets() {
 
     const res = await fetch(scriptUrl, {
       method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
       body: JSON.stringify(postBody)
     });
 
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = null;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      if (rawText.includes("<!DOCTYPE") || rawText.includes("<html")) {
+        throw new Error("Google Apps Script ruxsati noto'g'ri!\nApps Script-da 'Развернуть (Deploy)' qilayotganda 'Кто имеет доступ (Who has access)' ni 'Все (Anyone)' qilib belgilang.");
+      } else {
+        throw new Error(rawText || "Kutilmagan server javobi");
+      }
+    }
 
     if (data.status === "success") {
       alert(`🎉 Muvaffaqiyatli saqlandi!\n\n📄 Varag'i: ${targetSheet}\n📊 Saqlangan tekshiruvlar soni: ${data.addedCount || currentScannedReport.detailedRecords.length} ta\n💰 Jami summa: ${currentScannedReport.totalSumFormatted}`);
@@ -420,7 +458,7 @@ async function handleExportToSheets() {
       throw new Error(data.message || "Saqlashda xatolik");
     }
   } catch (err) {
-    alert("❌ Google Sheets-ga saqlash xatosi: " + err.message);
+    alert("❌ Google Sheets-ga saqlash xatosi:\n" + err.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<i class="fa-solid fa-file-excel"></i> Natijalarni Google Sheets-ga Saqlash`;
