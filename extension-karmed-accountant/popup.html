@@ -14,7 +14,7 @@
         <img src="icons/logo-onko.png" alt="RONS Logo" class="brand-logo">
         <div>
           <h2>KARMED HISOBCHI</h2>
-          <p>Shifokor Bemorlari & Xizmatlar Sanagichi</p>
+          <p>Shifokor Bemorlari & Google Sheets Integratsiyasi</p>
         </div>
       </div>
       <span class="status-badge live" id="connectionBadge">
@@ -22,7 +22,53 @@
       </span>
     </header>
 
-    <!-- 2. PARAMETRLAR / FILTRLAR -->
+    <!-- 2. GOOGLE SHEETS BOSHQARUV BLOKI -->
+    <div class="card-box sheets-box">
+      <div class="sheets-header">
+        <span><i class="fa-solid fa-table" style="color: #10b981;"></i> <strong>Google Sheets Integratsiyasi</strong></span>
+        <button type="button" class="btn-text-action" id="btnToggleSheetsConfig" title="Sozlamalarni ko'rsatish/yashirish">
+          <i class="fa-solid fa-gear"></i> Sozlash
+        </button>
+      </div>
+
+      <!-- Sheets Sozlamalari (Akkordeon) -->
+      <div class="sheets-config-panel" id="sheetsConfigPanel" style="display: none;">
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label style="font-size: 11.5px;"><strong>Apps Script Web App URL:</strong></label>
+          <input type="text" id="inputSheetsScriptUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="sheets-tabs-row">
+          <div class="form-group" style="flex: 1;">
+            <label style="font-size: 11px;">Manba (Bemor ID):</label>
+            <input type="text" id="inputSourceSheetName" class="form-control" value="Sevinch" placeholder="Sevinch">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label style="font-size: 11px;">Maqsad (Yozish):</label>
+            <input type="text" id="inputTargetSheetName" class="form-control" value="Karmed" placeholder="Karmed">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sheets Boshqaruv Tugmalari -->
+      <div class="sheets-actions-wrap">
+        <div class="sheets-status-pill" id="sheetsLoadedStatusPill">
+          <i class="fa-solid fa-cloud-arrow-down"></i> <span id="sheetsStatusText">Sheets-dan ID lar yuklanmagan</span>
+        </div>
+        <div class="sheets-btns-grid">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnFetchSheetsIds">
+            <i class="fa-solid fa-file-import"></i> 1. ID larni Yuklash
+          </button>
+          <button type="button" class="btn btn-success btn-sm" id="btnExportToSheets" disabled>
+            <i class="fa-solid fa-file-export"></i> 3. Sheets-ga Yozish
+          </button>
+        </div>
+        <button type="button" class="btn btn-gradient btn-block" id="btnAutoSyncAll">
+          <i class="fa-solid fa-bolt"></i> ⚡ Avtomatik Hammasini Bajarish (1 ➡️ 2 ➡️ 3)
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. PARAMETRLAR / FILTRLAR -->
     <div class="card-box">
       <!-- Sana Oralig'i (1 oylik yoki oraliq) -->
       <div class="form-group">
@@ -63,12 +109,11 @@
         </div>
         <select id="doctorSelect" class="form-control">
           <option value="">-- Barcha Shifokorlar (Umumiy sanash) --</option>
-          <!-- Standart UTT Shifokorlari -->
           <optgroup label="🏥 UTT Shifokorlari">
+            <option value="Kurbanova Sevinch Musayevna">Kurbanova Sevinch Musayevna (UTT 2 - 54 XONA)</option>
             <option value="Xusanova Feruza Ikromjonovna">Xusanova Feruza Ikromjonovna (UTT 9 - 50 XONA)</option>
             <option value="Yulchiyeva Nodira Siddikovna">Yulchiyeva Nodira Siddikovna (UTT)</option>
             <option value="Juravlev Igor Ivanovich">Juravlev Igor Ivanovich (UTT 1 - 53 XONA)</option>
-            <option value="Kurbanova Sevinch Musayevna">Kurbanova Sevinch Musayevna (UTT 2 - 54 XONA)</option>
             <option value="Abidjanov Alisher Maxamataliyevich">Abidjanov Alisher Maxamataliyevich (UTT 3 - 46 XONA)</option>
             <option value="Ziyayeva Zarina Abduganiyevna">Ziyayeva Zarina Abduganiyevna (UTT 4 - 47 XONA)</option>
             <option value="Xoshimova Lola Kabulovna">Xoshimova Lola Kabulovna (UTT 5 - 48 XONA)</option>
@@ -78,30 +123,33 @@
             <option value="Xudayberdiyeva Nigora Nizamovna">Xudayberdiyeva Nigora Nizamovna (UTT 10 - 51 XONA)</option>
             <option value="Turatov Hojiakbar Shavkat ogli">Turatov Hojiakbar Shavkat ogli (UTT)</option>
           </optgroup>
-          <!-- Boshqa aniqlangan shifokorlar dinamik qo'shiladi -->
           <optgroup label="📋 Sahifadagi Boshqa Shifokorlar" id="detectedDoctorsGroup" style="display:none;"></optgroup>
         </select>
       </div>
 
       <!-- Skanerlash Sozlamalari -->
       <div class="options-row">
+        <label class="checkbox-label" title="Faqat Sheets-dan yuklangan Bemor ID lar bo'yicha qidirish">
+          <input type="checkbox" id="chkOnlySheetsIds" checked>
+          <span>Sheets ID bo'yicha filter</span>
+        </label>
         <label class="checkbox-label" title="Qabul qiluvchi ustuni tanlangan vrach bilan mos kelishini tekshirish">
           <input type="checkbox" id="chkStrictDoctorMatch" checked>
           <span>Qabul qiluvchini tekshirish</span>
         </label>
         <label class="checkbox-label" title="Barcha sahifalarni avtomatik varaqlab sanab chiqish">
           <input type="checkbox" id="chkAutoPagination" checked>
-          <span>Ko'p sahifali (1-N) avto-varaqlash</span>
+          <span>Ko'p sahifali avto-varaqlash</span>
         </label>
       </div>
 
-      <!-- Asosiy tugma -->
+      <!-- Asosiy skanerlash tugmasi -->
       <button type="button" class="btn btn-primary btn-block" id="btnStartScan">
-        <i class="fa-solid fa-magnifying-glass-chart"></i> Karmed Jadvalini Skanerlash & Sanash
+        <i class="fa-solid fa-magnifying-glass-chart"></i> 2. Karmed Jadvalini Skanerlash & Yig'ish
       </button>
     </div>
 
-    <!-- 3. SKANERLASH PROGRESSI & NATIJALARI -->
+    <!-- 4. SKANERLASH PROGRESSI & NATIJALARI -->
     <div id="scanResultsSection" style="display: none;">
       <!-- Progress indikator -->
       <div class="progress-box" id="scanProgressBox">
@@ -120,9 +168,15 @@
           <strong class="kpi-value" id="resPatientCount">0</strong>
         </div>
         <div class="kpi-card highlight">
-          <span class="kpi-label"><i class="fa-solid fa-microscope"></i> Sohalar:</span>
+          <span class="kpi-label"><i class="fa-solid fa-microscope"></i> Sohalar / Tekshiruvlar:</span>
           <strong class="kpi-value" id="resServiceCount">0</strong>
         </div>
+      </div>
+
+      <!-- Jami Summa Kartochkasi -->
+      <div class="summa-banner" id="resTotalSummaBanner">
+        <span><i class="fa-solid fa-money-bill-wave"></i> Jami Hisoblangan Summa:</span>
+        <strong id="resTotalSummaValue">0 so'm</strong>
       </div>
 
       <!-- Kodlar bo'yicha taqsimot -->
@@ -130,33 +184,32 @@
         <div class="breakdown-header">
           <span><i class="fa-solid fa-tags"></i> Tekshiruv Kodlari Taqsimoti:</span>
         </div>
-        <div class="badges-wrap" id="resCodesBadgesWrap">
-          <!-- Dinamik chiqadi -->
-        </div>
+        <div class="badges-wrap" id="resCodesBadgesWrap"></div>
       </div>
 
       <!-- Bemorlar ro'yxati (Accordion / Preview) -->
       <div class="preview-card">
         <div class="preview-header" id="btnTogglePreview">
-          <span><i class="fa-solid fa-list-ol"></i> Bemorlar Reyestri (<span id="resListCount">0</span> ta)</span>
+          <span><i class="fa-solid fa-list-ol"></i> Bemorlar & Xizmatlar Reyestri (<span id="resListCount">0</span> ta)</span>
           <i class="fa-solid fa-chevron-down" id="previewChevron"></i>
         </div>
         <div class="preview-body" id="previewBody">
-          <div class="patients-scroll-list" id="resPatientsList">
-            <!-- Dinamik chiqadi -->
-          </div>
+          <div class="patients-scroll-list" id="resPatientsList"></div>
         </div>
       </div>
 
-      <!-- Bazasiga Saqlash Tugmasi -->
+      <!-- Saqlash Tugmalari -->
       <div class="action-footer">
-        <button type="button" class="btn btn-success btn-block" id="btnSaveToFirebase">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Hisobchi Bazasiga Saqlash (Firebase)
+        <button type="button" class="btn btn-success btn-block" id="btnSaveToSheetsDirect">
+          <i class="fa-solid fa-file-excel"></i> Natijalarni Google Sheets-ga Saqlash
+        </button>
+        <button type="button" class="btn btn-outline btn-block" id="btnSaveToFirebase" style="margin-top:6px; font-size:12px;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Firebase Bazasiga ham Saqlash
         </button>
       </div>
     </div>
 
-    <!-- 4. FOOTER & LINK TO ACCOUNTANT PORTAL -->
+    <!-- 5. FOOTER & LINK TO ACCOUNTANT PORTAL -->
     <footer class="popup-footer">
       <a href="http://localhost:3000/app6-hisobchi/index.html" target="_blank" class="footer-portal-link" id="linkOpenAccountantPortal">
         <i class="fa-solid fa-chart-line"></i> <strong>Hisobchi Tahlil Portalini Ochish</strong> <i class="fa-solid fa-arrow-up-right-from-square"></i>

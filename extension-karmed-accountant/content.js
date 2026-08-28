@@ -4,19 +4,32 @@
  * 1. Karmed DevExpress jadvallarini avtomatik tahlil qilish
  * 2. "Qabul qiluvchi" ustunidan shifokor F.I.SH ni 100% aniq tekshirish
  * 3. "Tasdiqlangan sana" ustunidan sanani solishtirish
- * 4. Pastki sub-jadvaldan barcha tekshiruv soha kodlari (R62, R87, R66...) va nomlarini yig'ish
- * 5. Ko'p sahifali (pagination) jadvallarni avtomatik varaqlash
- * 6. Ma'lumotlarni Firebase Realtime Database'ga hisobchi uchun saqlash
+ * 4. Google Sheets-dagi Bemor ID lari bo'yicha maxsus qidiruv va filtrlash
+ * 5. Pastki sub-jadvaldan barcha tekshiruv sohalari (kodlari, nomlari, narxlari va to'langan summasi)ni yig'ish
+ * 6. Ko'p sahifali (pagination) jadvallarni avtomatik varaqlash
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
 
+// Standart UTT xizmatlari tariflari (Agar Karmed jadvalida aniq narx ko'rinmasa zaxira)
+const DEFAULT_PRICE_MAP = {
+  "R52": 137000,
+  "R78": 173000,
+  "R62": 137000,
+  "R64": 173000,
+  "R66": 173000,
+  "R85": 283200,
+  "R87": 137000,
+  "R134": 210000,
+  "R135": 210000
+};
+
 // Standart Shifokorlar Ro'yxati
 const KNOWN_DOCTORS = [
+  "Kurbanova Sevinch Musayevna",
   "Xusanova Feruza Ikromjonovna",
   "Yulchiyeva Nodira Siddikovna",
   "Juravlev Igor Ivanovich",
-  "Kurbanova Sevinch Musayevna",
   "Abidjanov Alisher Maxamataliyevich",
   "Ziyayeva Zarina Abduganiyevna",
   "Xoshimova Lola Kabulovna",
@@ -62,10 +75,8 @@ function detectDoctorsFromCurrentPage() {
       const cells = Array.from(row.querySelectorAll("td"));
       if (cells.length < 5) continue;
 
-      // Qabul qiluvchi ustunini topish
       for (const cell of cells) {
         const text = cell.innerText.trim();
-        // O'zbekcha / Ruscha shifokor ism-familiyalari patterni
         if (text.length >= 8 && /^[A-ZА-ЯЁ][a-zа-яё'\-]+\s+[A-ZА-ЯЁ][a-zа-яё'\-]+\s+[A-ZА-ЯЁ][a-zа-яё'\-]+/i.test(text)) {
           if (!text.includes("Dr.") && !text.includes("Statsionar") && !text.includes("Urologiya") && !text.includes("Markaz") && !text.includes("Bemor")) {
             doctorSet.add(text);
@@ -166,7 +177,7 @@ function formatDateToDDMMYYYY(dateStr) {
 
 // 5. SHIFOKOR NOMINI SOLISHTIRISH
 function isDoctorNameMatch(actualDoctor, targetDoctor) {
-  if (!targetDoctor || targetDoctor.trim() === "") return true; // Barcha shifokorlar tanlangan bo'lsa
+  if (!targetDoctor || targetDoctor.trim() === "") return true;
   if (!actualDoctor) return false;
 
   const actClean = actualDoctor.toLowerCase().replace(/dr\.|doktor|shifokor|[\s_\-'.]/g, "");
@@ -177,7 +188,7 @@ function isDoctorNameMatch(actualDoctor, targetDoctor) {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// 6. ASOSIY SKANERLASH VA SANASH FUNKSIYASI (SANA ORALIG'I VA 1 OYLIK TAHLIL BILAN)
+// 6. ASOSIY SKANERLASH VA SANASH FUNKSIYASI
 async function startKarmedScan(payload) {
   if (isScanningInProgress) {
     throw new Error("Skanerlash jarayoni allaqachon bajarilmoqda!");
@@ -186,45 +197,79 @@ async function startKarmedScan(payload) {
   isScanningInProgress = true;
   showScanHUD("🔍 Skanerlash boshlanmoqda...", 5);
 
-  const { targetStartDate, targetEndDate, targetDate, targetDoctorName, options } = payload;
+  const { targetStartDate, targetEndDate, targetDate, targetDoctorName, targetPatientIds, options } = payload;
   const startNorm = normalizeDate(targetStartDate || targetDate);
   const endNorm = normalizeDate(targetEndDate || targetDate);
   const strictDoc = options?.strictDoctorMatch !== false;
   const autoPage = options?.autoPagination !== false;
+  const onlySheetsIds = options?.onlySheetsIds && Array.isArray(targetPatientIds) && targetPatientIds.length > 0;
+  const targetIdSet = onlySheetsIds ? new Set(targetPatientIds.map(id => String(id).trim())) : null;
 
   const collectedPatients = [];
+  const allDetailedRecords = []; // Google Sheets "Karmed" varag'i uchun to'liq yozuvlar
   const servicesBreakdown = {};
   const seenPatientKeys = new Set();
+  let grandTotalSum = 0;
 
   try {
     let currentPage = 1;
     let hasNextPage = true;
-    let maxPages = autoPage ? 30 : 1;
+    let maxPages = autoPage ? 40 : 1;
 
     while (hasNextPage && currentPage <= maxPages) {
-      showScanHUD(`📄 ${currentPage}-sahifa skanerlanmoqda... (Bemorlar: ${collectedPatients.length})`, 15 + Math.min(currentPage * 8, 80));
+      showScanHUD(`📄 ${currentPage}-sahifa skanerlanmoqda... (Topilgan: ${collectedPatients.length} ta)`, 15 + Math.min(currentPage * 5, 80));
 
-      // Sahifadagi asosiy jadval qatorlarini yig'ish
-      const pageResults = await scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc);
+      const pageResults = await scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc, targetIdSet);
 
       for (const p of pageResults) {
         const uniqueKey = `${p.patientId}_${p.fullName}_${p.confirmDate}`;
         if (!seenPatientKeys.has(uniqueKey)) {
           seenPatientKeys.add(uniqueKey);
           collectedPatients.push(p);
+          grandTotalSum += (p.totalPrice || 0);
 
-          // Xizmatlar statistikasi
+          // Xizmatlar statistikasi va Sheets formatidagi qatorlarni tayyorlash
           if (p.services && p.services.length > 0) {
             p.services.forEach(srv => {
               const code = srv.code || "OTHER";
               if (!servicesBreakdown[code]) {
                 servicesBreakdown[code] = {
                   code: code,
-                  name: srv.name || "Noma'lum tekshiruv",
+                  name: srv.name || "Tekshiruv",
                   count: 0
                 };
               }
               servicesBreakdown[code].count++;
+
+              // Google Sheets "Karmed" jadvali formati uchun yozuv
+              allDetailedRecords.push({
+                orderNo: allDetailedRecords.length + 1,
+                id: p.patientId,
+                patientId: p.patientId,
+                fullName: p.fullName,
+                patientName: p.fullName,
+                patientType: p.department || 'Mamologiya',
+                serviceCategory: 'Radiologiya',
+                functionalDept: 'Ultratovush',
+                serviceName: srv.name || 'Ultratovush tekshiruvi',
+                serviceCode: srv.code || '',
+                cardNo: p.patientId,
+                cardType: p.priority || 'Ambulator',
+                priority: p.priority || 'Ambulator',
+                orderingDoctor: p.fileDoctor || p.doctorName || '',
+                fileDoctor: p.fileDoctor || '',
+                doctorName: p.doctorName || targetDoctorName || 'Kurbanova Sevinch Musayevna',
+                dr_uygulayan: p.doctorName || targetDoctorName || 'Kurbanova Sevinch Musayevna',
+                date: srv.date || p.confirmDate || '',
+                confirmDate: p.confirmDate || '',
+                privilegeCategory: 'Rezident',
+                orderliUcret: 0,
+                price: srv.price || 0,
+                pulliUcret: srv.price || 0,
+                paidAmount: srv.paidAmount || srv.price || 0,
+                tolanganUcret: srv.paidAmount || srv.price || 0,
+                debtStatus: srv.debtStatus || "To'langan"
+              });
             });
           }
         }
@@ -236,7 +281,7 @@ async function startKarmedScan(payload) {
         if (nextBtn && isElementClickable(nextBtn)) {
           nextBtn.click();
           currentPage++;
-          await sleep(750); // Karmed DevExpress AJAX jadval yuklanishini kutish
+          await sleep(800);
         } else {
           hasNextPage = false;
         }
@@ -245,11 +290,7 @@ async function startKarmedScan(payload) {
       }
     }
 
-    // Jami tekshiruv sohalari soni
-    let totalServicesCount = 0;
-    collectedPatients.forEach(p => {
-      totalServicesCount += (p.services ? p.services.length : 1);
-    });
+    let totalServicesCount = allDetailedRecords.length;
 
     const reportData = {
       reportId: `rep_${startNorm || 'all'}_${endNorm || 'all'}_${(targetDoctorName || 'all').toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
@@ -260,13 +301,16 @@ async function startKarmedScan(payload) {
       doctorName: targetDoctorName || "Barcha Shifokorlar",
       totalPatientsCount: collectedPatients.length,
       totalServicesCount: totalServicesCount,
+      totalSum: grandTotalSum,
+      totalSumFormatted: grandTotalSum.toLocaleString('ru-RU') + " so'm",
       servicesBreakdown: servicesBreakdown,
       patientsList: collectedPatients,
+      detailedRecords: allDetailedRecords,
       createdAt: new Date().toISOString(),
       createdTimestamp: Date.now()
     };
 
-    showScanHUD(`✅ Yakunlandi! ${collectedPatients.length} ta bemor, ${totalServicesCount} ta soha topildi.`, 100);
+    showScanHUD(`✅ Yakunlandi! ${collectedPatients.length} ta bemor, ${totalServicesCount} ta tekshiruv, jami: ${reportData.totalSumFormatted}`, 100);
     setTimeout(hideScanHUD, 3500);
 
     return reportData;
@@ -280,12 +324,11 @@ async function startKarmedScan(payload) {
   }
 }
 
-// 7. BITTA SAHIFADAGI QATORLARNI SKANERLASH (SANA ORALIG'I BILAN)
-async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc) {
+// 7. BITTA SAHIFADAGI QATORLARNI SKANERLASH
+async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictDoc, targetIdSet) {
   const matchedPatients = [];
   const allTables = Array.from(document.querySelectorAll("table"));
 
-  // Asosiy bemorlar jadvalini topish
   let mainTable = null;
   for (const table of allTables) {
     const text = table.innerText.toLowerCase();
@@ -325,7 +368,6 @@ async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictD
       }
     }
 
-    // Shifokor mosligini tekshirish
     if (strictDoc && targetDoctorName && !isDoctorNameMatch(acceptingDoctor, targetDoctorName)) {
       continue;
     }
@@ -346,19 +388,19 @@ async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictD
 
     const rowDateNorm = normalizeDate(rawConfirmDate);
 
-    // Sana oralig'i mosligini tekshirish (startNorm <= rowDateNorm <= endNorm)
-    if (startNorm && rowDateNorm && rowDateNorm < startNorm) {
-      continue;
-    }
-    if (endNorm && rowDateNorm && rowDateNorm > endNorm) {
-      continue;
-    }
+    if (startNorm && rowDateNorm && rowDateNorm < startNorm) continue;
+    if (endNorm && rowDateNorm && rowDateNorm > endNorm) continue;
 
-    // 3. Bemor ma'lumotlarini ajratish
+    // 3. Bemor ID sini olish va Sheets ID filteri bilan tekshirish
     let patientId = colMap.patientId !== -1 && cells[colMap.patientId] ? cells[colMap.patientId].innerText.trim() : "";
     if (!patientId || !/^\d+$/.test(patientId)) {
       const idCell = cells.find(c => /^\d{4,8}$/.test(c.innerText.trim()));
       if (idCell) patientId = idCell.innerText.trim();
+    }
+
+    // Agar faqat Sheets-dagi Bemor ID lari tanlangan bo'lsa
+    if (targetIdSet && patientId && !targetIdSet.has(patientId)) {
+      continue;
     }
 
     let surname = colMap.surname !== -1 && cells[colMap.surname] ? cells[colMap.surname].innerText.trim() : "";
@@ -371,7 +413,6 @@ async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictD
     }
 
     if (!surname && !firstName) {
-      // Ism va familiyani kataklar orasidan qidirish
       const candidateNames = cells.map(c => c.innerText.trim()).filter(t => /^[A-ZА-ЯЁ\s'\-]+$/i.test(t) && t.length >= 3);
       if (candidateNames.length >= 2) {
         surname = candidateNames[0];
@@ -381,29 +422,33 @@ async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictD
 
     const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim() || "Bemor";
     const fileDoctor = colMap.fileDoctor !== -1 && cells[colMap.fileDoctor] ? cells[colMap.fileDoctor].innerText.trim() : "";
-    const priority = colMap.priority !== -1 && cells[colMap.priority] ? cells[colMap.priority].innerText.trim() : "Statsionar";
+    const priority = colMap.priority !== -1 && cells[colMap.priority] ? cells[colMap.priority].innerText.trim() : "Ambulator";
     const department = colMap.department !== -1 && cells[colMap.department] ? cells[colMap.department].innerText.trim() : "";
     const regDate = colMap.regDate !== -1 && cells[colMap.regDate] ? cells[colMap.regDate].innerText.trim() : "";
 
-    // 4. Pastki sub-jadvaldan tekshiruv sohalari (Kodlar va nomlar)ni olish
-    // Har bir qatorga bosish orqali pastki jadvaldagi aniq xizmatlarni chaqirish
+    // 4. Pastki sub-jadvaldan tekshiruv sohalari va narxlarini olish
     let services = [];
     try {
-      // Qatorga klik qilish (Karmed DevExpress pastki jadvalni ochadi)
       row.click();
-      await sleep(80);
+      await sleep(100);
       services = extractSubTableServicesFromPage();
     } catch (e) {}
 
     if (services.length === 0) {
-      // Agar pastki jadval ochilmagan bo'lsa, umumiy nom beramiz
+      const defPrice = 173000;
       services.push({
-        code: "R_GEN",
+        code: "R78",
         name: department ? `UTT (${department})` : "Ultratovush tekshiruvi",
+        price: defPrice,
+        paidAmount: defPrice,
+        priceStr: "173 000,00",
+        debtStatus: "To'langan",
         queueNo: "",
         date: rawConfirmDate
       });
     }
+
+    const totalPatPrice = services.reduce((sum, s) => sum + (s.price || 0), 0);
 
     matchedPatients.push({
       patientId: patientId || "ID_NOMALUM",
@@ -411,22 +456,25 @@ async function scanCurrentPageRows(startNorm, endNorm, targetDoctorName, strictD
       surname: surname,
       firstName: firstName,
       middleName: middleName,
-      doctorName: acceptingDoctor || targetDoctorName || "Shifokor",
-      confirmDate: rawConfirmDate || targetDateNorm,
-      confirmDateNorm: rowDateNorm || targetDateNorm,
+      doctorName: acceptingDoctor || targetDoctorName || "Kurbanova Sevinch Musayevna",
+      confirmDate: rawConfirmDate || formatDateToDDMMYYYY(rowDateNorm),
+      confirmDateNorm: rowDateNorm,
       fileDoctor: fileDoctor,
       priority: priority,
       department: department,
       registeredDate: regDate,
       services: services,
-      servicesCount: services.length
+      servicesCount: services.length,
+      totalPrice: totalPatPrice,
+      totalPriceFormatted: totalPatPrice.toLocaleString('ru-RU') + " so'm",
+      servicesSummaryStr: services.map(s => s.name).join(", ")
     });
   }
 
   return matchedPatients;
 }
 
-// 8. PASTKI JADVALDAN TEKSHIRUV KODLARI VA NOMLARINI AJRATIB OLISH
+// 8. PASTKI JADVALDAN TEKSHIRUV KODLARI, NOMLARI VA NARXLARINI AJRATIB OLISH
 function extractSubTableServicesFromPage() {
   const servicesList = [];
   const allRows = Array.from(document.querySelectorAll("tr"));
@@ -438,7 +486,7 @@ function extractSubTableServicesFromPage() {
     const cellTexts = cells.map(c => c.innerText.trim());
     const firstCell = cellTexts[0] || "";
 
-    // Kod ustuni (R62, R87, R66, R64, R134 va h.k.)
+    // Kod ustuni (R52, R78, R62, R87, R66, R64, R85, R134 va h.k.)
     const codeMatch = firstCell.match(/^R\s*(\d{1,5})/i) || cellTexts.find(t => /^R\s*\d{1,5}$/i.test(t));
     if (codeMatch) {
       const code = typeof codeMatch === 'string' ? codeMatch.toUpperCase().replace(/\s+/g, '') : `R${codeMatch[1]}`;
@@ -446,16 +494,40 @@ function extractSubTableServicesFromPage() {
       
       let date = "";
       let queueNo = "";
+      let price = 0;
+      let priceStr = "";
+      let debtStatus = "To'langan";
 
       for (const txt of cellTexts) {
         if (/\d{2}\.\d{2}\.\d{4}/.test(txt)) date = txt;
         if (/^\d{6,9}$/.test(txt)) queueNo = txt;
+
+        const cleanMoney = txt.replace(/\s+/g, '').replace(',', '.');
+        if (/^\d{5,8}(\.\d{2})?$/.test(cleanMoney)) {
+          const val = parseFloat(cleanMoney);
+          if (val >= 10000 && val <= 50000000) {
+            price = val;
+            priceStr = txt;
+          }
+        }
+        if (txt.toLowerCase().includes("to'langan") || txt.toLowerCase().includes("tolangan")) {
+          debtStatus = "To'langan";
+        }
+      }
+
+      if (price === 0 && DEFAULT_PRICE_MAP[code]) {
+        price = DEFAULT_PRICE_MAP[code];
+        priceStr = price.toLocaleString('ru-RU') + ',00';
       }
 
       if (!servicesList.some(s => s.code === code && s.name === name)) {
         servicesList.push({
           code: code,
           name: name,
+          price: price,
+          paidAmount: price,
+          priceStr: priceStr || (price.toLocaleString('ru-RU') + ',00'),
+          debtStatus: debtStatus,
           queueNo: queueNo,
           date: date
         });
@@ -499,14 +571,11 @@ async function saveReportToFirebase(reportData) {
     throw new Error("Saqlash uchun hisobot ma'lumotlari topilmadi!");
   }
 
-  const dateKey = reportData.date;
-  const docSlug = (reportData.doctorName || 'all_doctors')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
-    .replace(/_+/g, '_');
+  const dateKey = reportData.date.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const docKey = (reportData.doctorName || "all").toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "_");
+  const reportKey = `${dateKey}__${docKey}`;
 
-  const reportPath = `/accountant_reports/${dateKey}/${docSlug}.json`;
-  const url = `${FIREBASE_DB_URL}${reportPath}`;
+  const url = `${FIREBASE_DB_URL}/karmed_doctor_reports/${reportKey}.json`;
 
   const res = await fetch(url, {
     method: "PUT",
@@ -515,48 +584,54 @@ async function saveReportToFirebase(reportData) {
   });
 
   if (!res.ok) {
-    throw new Error(`Firebase saqlash xatosi: ${res.statusText}`);
+    throw new Error(`Firebase xatosi (${res.status}): ${res.statusText}`);
   }
 
-  return { success: true, path: reportPath, reportId: reportData.reportId };
+  return { success: true, key: reportKey };
 }
 
-// 11. SUZUVCHI EKRAN INDIKATORI (HUD)
-function showScanHUD(text, percent = 0, isError = false) {
-  let hud = document.getElementById("karmedAccountantHUD");
+// 11. HUD PROGRESS INDICATOR (EKRANDA CHIQUVCHI BANNER)
+function showScanHUD(text, percent = 50, isError = false) {
+  let hud = document.getElementById("karmedScanHUD");
   if (!hud) {
     hud = document.createElement("div");
-    hud.id = "karmedAccountantHUD";
-    hud.className = "karmed-accountant-hud";
+    hud.id = "karmedScanHUD";
+    hud.style.cssText = `
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      z-index: 9999999;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      font-family: sans-serif;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 280px;
+      max-width: 400px;
+      border: 1px solid #334155;
+    `;
     document.body.appendChild(hud);
   }
 
+  hud.style.borderColor = isError ? "#ef4444" : "#0284c7";
   hud.innerHTML = `
-    <div class="hud-content ${isError ? 'error' : ''}">
-      <img src="${chrome.runtime.getURL('icons/logo-onko.png')}" class="hud-logo">
-      <div class="hud-body">
-        <div class="hud-title">KARMED HISOBCHI SANAGICH</div>
-        <div class="hud-status">${escapeHtml(text)}</div>
-        <div class="hud-progress-bg">
-          <div class="hud-progress-fill" style="width: ${percent}%;"></div>
-        </div>
-      </div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <b style="color:${isError ? '#f87171' : '#38bdf8'}; font-size:12px;">📊 KARMED HISOBCHI PORTALI</b>
+      <span style="font-size:11px; color:#94a3b8;">${percent}%</span>
+    </div>
+    <div style="font-size:12.5px; color:#f1f5f9;">${text}</div>
+    <div style="background:#1e293b; height:5px; border-radius:4px; overflow:hidden;">
+      <div style="background:${isError ? '#ef4444' : 'linear-gradient(90deg, #0284c7, #10b981)'}; width:${percent}%; height:100%; transition:width 0.3s;"></div>
     </div>
   `;
-  hud.style.display = "block";
 }
 
 function hideScanHUD() {
-  const hud = document.getElementById("karmedAccountantHUD");
-  if (hud) hud.style.display = "none";
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  const hud = document.getElementById("karmedScanHUD");
+  if (hud) hud.remove();
 }

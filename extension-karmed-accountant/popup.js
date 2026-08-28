@@ -1,20 +1,29 @@
 /**
  * Karmed Vrach Bemorlarini Sanash & Hisobchi Portali - Popup Script
+ * Google Sheets (Farq / Sevinch / Karmed) Integratsiyasi bilan
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
+const DEFAULT_SHEETS_SCRIPT_URL = ""; // Foydalanuvchi Apps Script URL ini kiritadi
 
 // DOM Elementlari
 let elReportStartDate, elReportEndDate;
 let elBtnDateToday, elBtnDateYesterday, elBtnDateThisMonth, elBtnDateLastMonth, elBtnDateAll;
 let elDoctorSelect, elBtnAutoDetectDoctor, elDetectedGroup;
-let elChkStrictDoctor, elChkAutoPagination;
+let elChkStrictDoctor, elChkAutoPagination, elChkOnlySheetsIds;
 let elBtnStartScan, elScanResultsSection, elScanProgressBox, elScanProgressText, elScanProgressFill;
-let elResPatientCount, elResServiceCount, elResCodesBadgesWrap;
+let elResPatientCount, elResServiceCount, elResTotalSummaValue, elResCodesBadgesWrap;
 let elBtnTogglePreview, elPreviewBody, elPreviewChevron, elResListCount, elResPatientsList;
-let elBtnSaveToFirebase, elConnectionBadge, elLinkOpenPortal;
+let elBtnSaveToFirebase, elBtnSaveToSheetsDirect, elConnectionBadge, elLinkOpenPortal;
+
+// Google Sheets DOM Elementlari
+let elBtnToggleSheetsConfig, elSheetsConfigPanel, elInputSheetsScriptUrl;
+let elInputSourceSheetName, elInputTargetSheetName, elBtnFetchSheetsIds;
+let elBtnExportToSheets, elBtnAutoSyncAll, elSheetsStatusText, elSheetsLoadedStatusPill;
 
 let currentScannedReport = null;
+let loadedSheetsPatientIds = [];
+let loadedSheetsPatients = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   initDOMElements();
@@ -37,6 +46,7 @@ function initDOMElements() {
   elBtnAutoDetectDoctor = document.getElementById("btnAutoDetectDoctor");
   elDetectedGroup = document.getElementById("detectedDoctorsGroup");
 
+  elChkOnlySheetsIds = document.getElementById("chkOnlySheetsIds");
   elChkStrictDoctor = document.getElementById("chkStrictDoctorMatch");
   elChkAutoPagination = document.getElementById("chkAutoPagination");
 
@@ -48,6 +58,7 @@ function initDOMElements() {
 
   elResPatientCount = document.getElementById("resPatientCount");
   elResServiceCount = document.getElementById("resServiceCount");
+  elResTotalSummaValue = document.getElementById("resTotalSummaValue");
   elResCodesBadgesWrap = document.getElementById("resCodesBadgesWrap");
 
   elBtnTogglePreview = document.getElementById("btnTogglePreview");
@@ -56,9 +67,22 @@ function initDOMElements() {
   elResListCount = document.getElementById("resListCount");
   elResPatientsList = document.getElementById("resPatientsList");
 
+  elBtnSaveToSheetsDirect = document.getElementById("btnSaveToSheetsDirect");
   elBtnSaveToFirebase = document.getElementById("btnSaveToFirebase");
   elConnectionBadge = document.getElementById("connectionBadge");
   elLinkOpenPortal = document.getElementById("linkOpenAccountantPortal");
+
+  // Sheets Elementlari
+  elBtnToggleSheetsConfig = document.getElementById("btnToggleSheetsConfig");
+  elSheetsConfigPanel = document.getElementById("sheetsConfigPanel");
+  elInputSheetsScriptUrl = document.getElementById("inputSheetsScriptUrl");
+  elInputSourceSheetName = document.getElementById("inputSourceSheetName");
+  elInputTargetSheetName = document.getElementById("inputTargetSheetName");
+  elBtnFetchSheetsIds = document.getElementById("btnFetchSheetsIds");
+  elBtnExportToSheets = document.getElementById("btnExportToSheets");
+  elBtnAutoSyncAll = document.getElementById("btnAutoSyncAll");
+  elSheetsStatusText = document.getElementById("sheetsStatusText");
+  elSheetsLoadedStatusPill = document.getElementById("sheetsLoadedStatusPill");
 }
 
 function setupEventListeners() {
@@ -79,6 +103,7 @@ function setupEventListeners() {
   });
 
   elDoctorSelect.addEventListener("change", savePreferences);
+  elChkOnlySheetsIds.addEventListener("change", savePreferences);
   elChkStrictDoctor.addEventListener("change", savePreferences);
   elChkAutoPagination.addEventListener("change", savePreferences);
 
@@ -86,31 +111,54 @@ function setupEventListeners() {
   elBtnAutoDetectDoctor.addEventListener("click", handleAutoDetectDoctors);
 
   // Skanerlash
-  elBtnStartScan.addEventListener("click", handleStartScan);
+  elBtnStartScan.addEventListener("click", () => handleStartScan(false));
 
   // Bemorlar reyestrini ochish/yopish
   elBtnTogglePreview.addEventListener("click", togglePreviewAccordion);
 
-  // Firebase-ga saqlash
+  // Firebase va Sheets-ga saqlash
   elBtnSaveToFirebase.addEventListener("click", handleSaveToFirebase);
+  elBtnSaveToSheetsDirect.addEventListener("click", handleExportToSheets);
+
+  // Google Sheets Integratsiyasi Hodisalari
+  elBtnToggleSheetsConfig.addEventListener("click", () => {
+    const isHidden = elSheetsConfigPanel.style.display === "none";
+    elSheetsConfigPanel.style.display = isHidden ? "block" : "none";
+  });
+
+  elInputSheetsScriptUrl.addEventListener("change", savePreferences);
+  elInputSourceSheetName.addEventListener("change", savePreferences);
+  elInputTargetSheetName.addEventListener("change", savePreferences);
+
+  elBtnFetchSheetsIds.addEventListener("click", handleFetchSheetsIds);
+  elBtnExportToSheets.addEventListener("click", handleExportToSheets);
+  elBtnAutoSyncAll.addEventListener("click", handleAutoSyncAll);
 }
 
 function initDefaults() {
-  // Standart 1 oylik yoki bugun
   applyDatePreset("today");
 
-  // Xotiradan oldingi tanlovlarni yuklash
   if (chrome.storage && chrome.storage.local) {
-    chrome.storage.local.get(["lastTargetDoctor", "lastStrictDoctor", "lastAutoPage", "lastStartDate", "lastEndDate"], (res) => {
-      if (res.lastTargetDoctor && elDoctorSelect) {
-        elDoctorSelect.value = res.lastTargetDoctor;
+    chrome.storage.local.get([
+      "lastTargetDoctor", "lastStrictDoctor", "lastAutoPage", "lastOnlySheetsIds",
+      "lastStartDate", "lastEndDate", "sheetsScriptUrl", "sourceSheetName", "targetSheetName",
+      "cachedSheetsIds", "cachedSheetsPatients"
+    ], (res) => {
+      if (res.lastTargetDoctor && elDoctorSelect) elDoctorSelect.value = res.lastTargetDoctor;
+      if (res.lastStrictDoctor !== undefined && elChkStrictDoctor) elChkStrictDoctor.checked = Boolean(res.lastStrictDoctor);
+      if (res.lastAutoPage !== undefined && elChkAutoPagination) elChkAutoPagination.checked = Boolean(res.lastAutoPage);
+      if (res.lastOnlySheetsIds !== undefined && elChkOnlySheetsIds) elChkOnlySheetsIds.checked = Boolean(res.lastOnlySheetsIds);
+
+      if (res.sheetsScriptUrl && elInputSheetsScriptUrl) elInputSheetsScriptUrl.value = res.sheetsScriptUrl;
+      if (res.sourceSheetName && elInputSourceSheetName) elInputSourceSheetName.value = res.sourceSheetName;
+      if (res.targetSheetName && elInputTargetSheetName) elInputTargetSheetName.value = res.targetSheetName;
+
+      if (res.cachedSheetsIds && Array.isArray(res.cachedSheetsIds) && res.cachedSheetsIds.length > 0) {
+        loadedSheetsPatientIds = res.cachedSheetsIds;
+        loadedSheetsPatients = res.cachedSheetsPatients || [];
+        updateSheetsStatusPill(loadedSheetsPatientIds.length, res.sourceSheetName || "Sevinch");
       }
-      if (res.lastStrictDoctor !== undefined && elChkStrictDoctor) {
-        elChkStrictDoctor.checked = Boolean(res.lastStrictDoctor);
-      }
-      if (res.lastAutoPage !== undefined && elChkAutoPagination) {
-        elChkAutoPagination.checked = Boolean(res.lastAutoPage);
-      }
+
       if (res.lastStartDate && res.lastEndDate) {
         elReportStartDate.value = res.lastStartDate;
         elReportEndDate.value = res.lastEndDate;
@@ -118,6 +166,321 @@ function initDefaults() {
       }
     });
   }
+}
+
+function savePreferences() {
+  if (chrome.storage && chrome.storage.local) {
+    chrome.storage.local.set({
+      lastTargetDoctor: elDoctorSelect.value,
+      lastStrictDoctor: elChkStrictDoctor.checked,
+      lastAutoPage: elChkAutoPagination.checked,
+      lastOnlySheetsIds: elChkOnlySheetsIds.checked,
+      lastStartDate: elReportStartDate.value,
+      lastEndDate: elReportEndDate.value,
+      sheetsScriptUrl: elInputSheetsScriptUrl.value.trim(),
+      sourceSheetName: elInputSourceSheetName.value.trim(),
+      targetSheetName: elInputTargetSheetName.value.trim()
+    });
+  }
+}
+
+// 1. GOOGLE SHEETS-DAN BEMOR ID LARINI YUKLASH (GET)
+async function handleFetchSheetsIds() {
+  const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  const sourceSheet = elInputSourceSheetName.value.trim() || "Sevinch";
+
+  if (!scriptUrl) {
+    elSheetsConfigPanel.style.display = "block";
+    elInputSheetsScriptUrl.focus();
+    alert("⚠️ Google Apps Script Web App URL manzilini kiriting!\n(Ko'rsatma google_apps_script.js faylida keltirilgan)");
+    return;
+  }
+
+  elBtnFetchSheetsIds.disabled = true;
+  elBtnFetchSheetsIds.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Yuklanmoqda...`;
+
+  try {
+    const fetchUrl = `${scriptUrl}?action=get_patient_ids&sheetName=${encodeURIComponent(sourceSheet)}`;
+    const response = await fetch(fetchUrl);
+    const data = await response.json();
+
+    if (data.status === "success" && Array.isArray(data.patientIds)) {
+      loadedSheetsPatientIds = data.patientIds;
+      loadedSheetsPatients = data.patients || [];
+
+      if (chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({
+          cachedSheetsIds: loadedSheetsPatientIds,
+          cachedSheetsPatients: loadedSheetsPatients
+        });
+      }
+
+      updateSheetsStatusPill(loadedSheetsPatientIds.length, sourceSheet);
+      savePreferences();
+      alert(`✅ Google Sheets "${sourceSheet}" varag'idan ${loadedSheetsPatientIds.length} ta Bemor ID muvaffaqiyatli yuklandi!`);
+    } else {
+      throw new Error(data.message || "Bemor ID lari topilmadi");
+    }
+  } catch (err) {
+    alert("❌ Sheets-dan yuklashda xatolik: " + err.message);
+  } finally {
+    elBtnFetchSheetsIds.disabled = false;
+    elBtnFetchSheetsIds.innerHTML = `<i class="fa-solid fa-file-import"></i> 1. ID larni Yuklash`;
+  }
+}
+
+function updateSheetsStatusPill(count, sheetName) {
+  if (count > 0) {
+    elSheetsStatusText.innerHTML = `<b>${count} ta Bemor ID</b> yuklangan (${sheetName})`;
+    elSheetsLoadedStatusPill.style.color = "#065f46";
+    elSheetsLoadedStatusPill.style.background = "#d1fae5";
+    if (elBtnExportToSheets) elBtnExportToSheets.disabled = false;
+  } else {
+    elSheetsStatusText.innerText = "Sheets-dan ID lar yuklanmagan";
+  }
+}
+
+// 2. KARMED JADVALINI SKANERLASH (2-QADAM)
+async function handleStartScan(autoExportAfter = false) {
+  const startDate = elReportStartDate.value;
+  const endDate = elReportEndDate.value;
+  const selectedDoctor = elDoctorSelect.value;
+  const strictDoc = elChkStrictDoctor.checked;
+  const autoPage = elChkAutoPagination.checked;
+  const useSheetsIds = elChkOnlySheetsIds.checked && loadedSheetsPatientIds.length > 0;
+
+  elBtnStartScan.disabled = true;
+  elBtnStartScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Skanerlanmoqda...`;
+
+  elScanResultsSection.style.display = "block";
+  elScanProgressBox.style.display = "block";
+  elScanProgressText.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Karmed tahlil qilinmoqda...`;
+  elScanProgressFill.style.width = "10%";
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) throw new Error("Aktiv brauzer oynasi topilmadi");
+
+    const payload = {
+      targetStartDate: startDate,
+      targetEndDate: endDate,
+      targetDoctorName: selectedDoctor,
+      targetPatientIds: useSheetsIds ? loadedSheetsPatientIds : null,
+      options: {
+        strictDoctorMatch: strictDoc,
+        autoPagination: autoPage,
+        onlySheetsIds: useSheetsIds
+      }
+    };
+
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: "START_SCAN",
+      payload: payload
+    });
+
+    if (!response || !response.success) {
+      throw new Error(response?.error || "Karmed sahifasidan javob olinmadi");
+    }
+
+    currentScannedReport = response.data;
+    renderScanResults(currentScannedReport);
+
+    if (autoExportAfter) {
+      await handleExportToSheets();
+    }
+
+  } catch (err) {
+    elScanProgressText.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Xatolik: ${err.message}</span>`;
+    alert("Skanerlashda xatolik yuz berdi: " + err.message);
+  } finally {
+    elBtnStartScan.disabled = false;
+    elBtnStartScan.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart"></i> 2. Karmed Jadvalini Skanerlash & Yig'ish`;
+  }
+}
+
+// 3. NATIJALARNI GOOGLE SHEETS-GA YOZISH (POST)
+async function handleExportToSheets() {
+  if (!currentScannedReport || !currentScannedReport.detailedRecords || currentScannedReport.detailedRecords.length === 0) {
+    alert("⚠️ Avval 2-bosqichda Karmed jadvalini skanerlab, tekshiruvlarni yig'ing!");
+    return;
+  }
+
+  const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  const targetSheet = elInputTargetSheetName.value.trim() || "Karmed";
+
+  if (!scriptUrl) {
+    elSheetsConfigPanel.style.display = "block";
+    elInputSheetsScriptUrl.focus();
+    alert("⚠️ Google Apps Script Web App URL manzilini kiriting!");
+    return;
+  }
+
+  const btn = elBtnSaveToSheetsDirect;
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Google Sheets-ga saqlanmoqda...`;
+
+  try {
+    const postBody = {
+      action: "save_karmed_records",
+      sheetName: targetSheet,
+      records: currentScannedReport.detailedRecords
+    };
+
+    const res = await fetch(scriptUrl, {
+      method: "POST",
+      body: JSON.stringify(postBody)
+    });
+
+    const data = await res.json();
+
+    if (data.status === "success") {
+      alert(`🎉 Muvaffaqiyatli saqlandi!\n\n📄 Varag'i: ${targetSheet}\n📊 Saqlangan tekshiruvlar soni: ${data.addedCount || currentScannedReport.detailedRecords.length} ta\n💰 Jami summa: ${currentScannedReport.totalSumFormatted}`);
+    } else {
+      throw new Error(data.message || "Saqlashda xatolik");
+    }
+  } catch (err) {
+    alert("❌ Google Sheets-ga saqlash xatosi: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-file-excel"></i> Natijalarni Google Sheets-ga Saqlash`;
+  }
+}
+
+// 4. AVTOMATIK HAMMASINI BAJARISH (1 ➡️ 2 ➡️ 3)
+async function handleAutoSyncAll() {
+  const scriptUrl = elInputSheetsScriptUrl.value.trim();
+  if (!scriptUrl) {
+    elSheetsConfigPanel.style.display = "block";
+    elInputSheetsScriptUrl.focus();
+    alert("⚠️ Avval Google Apps Script URL manzilini kiriting!");
+    return;
+  }
+
+  // 1-qadam: ID larni yuklash
+  await handleFetchSheetsIds();
+
+  // 2 va 3-qadam: Skanerlash va avtomatik Sheets-ga yozish
+  if (loadedSheetsPatientIds.length > 0) {
+    elChkOnlySheetsIds.checked = true;
+    await handleStartScan(true);
+  }
+}
+
+function renderScanResults(report) {
+  elScanProgressBox.style.display = "none";
+  elResPatientCount.innerText = report.totalPatientsCount || 0;
+  elResServiceCount.innerText = report.totalServicesCount || 0;
+  elResTotalSummaValue.innerText = report.totalSumFormatted || "0 so'm";
+  elResListCount.innerText = report.totalPatientsCount || 0;
+
+  // Kodlar kartochkalari
+  elResCodesBadgesWrap.innerHTML = "";
+  const codes = Object.values(report.servicesBreakdown || {});
+  if (codes.length === 0) {
+    elResCodesBadgesWrap.innerHTML = `<span style="font-size:11px; color:#94a3b8;">Xizmat kodlari topilmadi</span>`;
+  } else {
+    codes.sort((a, b) => b.count - a.count).forEach(c => {
+      const badge = document.createElement("div");
+      badge.className = "badge-code-item";
+      badge.innerHTML = `<b>${c.code}</b> <span>${c.name}</span> <span class="badge-count">${c.count}</span>`;
+      elResCodesBadgesWrap.appendChild(badge);
+    });
+  }
+
+  // Bemorlar ro'yxati
+  elResPatientsList.innerHTML = "";
+  const patients = report.patientsList || [];
+  patients.forEach((p, idx) => {
+    const item = document.createElement("div");
+    item.className = "patient-mini-item";
+
+    const srvTags = (p.services || []).map(s => `
+      <span class="tag-service-mini" title="${s.price ? s.price.toLocaleString('ru-RU') + ' so\'m' : ''}">
+        ${s.code}: ${s.name} ${s.price ? `(${s.price.toLocaleString('ru-RU')} so'm)` : ''}
+      </span>
+    `).join("");
+
+    item.innerHTML = `
+      <div class="patient-mini-top">
+        <span>${idx + 1}. ${escapeHtml(p.fullName)} (ID: ${p.patientId})</span>
+        <span style="color:#0284c7;">${p.totalPriceFormatted || ''}</span>
+      </div>
+      <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
+        📅 ${p.confirmDate || ''} • 👨‍⚕️ ${p.doctorName || ''} • 🏥 ${p.department || 'UTT'}
+      </div>
+      <div class="patient-mini-services">${srvTags || '<span style="color:#94a3b8; font-size:10px;">Standart ko\'rik</span>'}</div>
+    `;
+    elResPatientsList.appendChild(item);
+  });
+
+  if (elBtnExportToSheets) elBtnExportToSheets.disabled = false;
+}
+
+// 5. FIREBASE-GA SAQLASH
+async function handleSaveToFirebase() {
+  if (!currentScannedReport) return;
+  const btn = elBtnSaveToFirebase;
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Firebase-ga saqlanmoqda...`;
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: "SAVE_REPORT_FIREBASE",
+      payload: currentScannedReport
+    });
+
+    if (response && response.success) {
+      alert("✅ Hisobot Firebase hisobchi bazasiga muvaffaqiyatli saqlandi!");
+    } else {
+      throw new Error(response?.error || "Saqlashda xatolik");
+    }
+  } catch (err) {
+    alert("❌ Firebase-ga saqlashda xatolik: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Firebase Bazasiga ham Saqlash`;
+  }
+}
+
+// 6. SHIFOKORLARNI ANIQLASH
+async function handleAutoDetectDoctors() {
+  elBtnAutoDetectDoctor.disabled = true;
+  elBtnAutoDetectDoctor.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>...`;
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const res = await chrome.tabs.sendMessage(tab.id, { action: "DETECT_PAGE_DOCTORS" });
+
+    if (res && res.success && res.doctors.length > 0) {
+      elDetectedGroup.innerHTML = "";
+      elDetectedGroup.style.display = "block";
+
+      res.doctors.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc;
+        opt.innerText = `🔍 ${doc}`;
+        elDetectedGroup.appendChild(opt);
+      });
+
+      elDoctorSelect.value = res.doctors[0];
+      savePreferences();
+      alert(`✅ Sahifadan ${res.doctors.length} ta shifokor aniqlandi!`);
+    } else {
+      alert("ℹ️ Sahifadagi shifokorlar topilmadi yoki jadval ochilmagan");
+    }
+  } catch (e) {
+    alert("Ulanish xatosi: Karmed sahifasi ochilganligini tekshiring");
+  } finally {
+    elBtnAutoDetectDoctor.disabled = false;
+    elBtnAutoDetectDoctor.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Sahifadan olish`;
+  }
+}
+
+function togglePreviewAccordion() {
+  const isShown = elPreviewBody.style.display !== "none";
+  elPreviewBody.style.display = isShown ? "none" : "block";
+  elPreviewChevron.className = isShown ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-up";
 }
 
 function applyDatePreset(preset) {
@@ -141,7 +504,6 @@ function applyDatePreset(preset) {
     elReportEndDate.value = yStr;
     elBtnDateYesterday.classList.add("active");
   } else if (preset === "thisMonth") {
-    // 1 Oylik: oyning 1-kunidan oxirgi kunigacha
     const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
     elReportStartDate.value = `${yyyy}-${mm}-01`;
     elReportEndDate.value = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
@@ -169,289 +531,39 @@ function clearActiveDatePreset() {
   });
 }
 
-function savePreferences() {
-  if (chrome.storage && chrome.storage.local) {
-    chrome.storage.local.set({
-      lastTargetDoctor: elDoctorSelect.value,
-      lastStrictDoctor: elChkStrictDoctor.checked,
-      lastAutoPage: elChkAutoPagination.checked,
-      lastStartDate: elReportStartDate.value,
-      lastEndDate: elReportEndDate.value
-    });
-  }
-}
-
-// Karmed tabiga ulanish holatini tekshirish
 async function checkActiveTabConnection() {
   try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0) return;
-    
-    const activeTab = tabs[0];
-    const url = (activeTab.url || '').toLowerCase();
-
-    if (url.includes("karmed") || url.includes("kardelen") || url.includes("192.168.") || url.includes("213.230.")) {
-      elConnectionBadge.className = "status-badge live";
-      elConnectionBadge.innerHTML = `<i class="fa-solid fa-circle"></i> Karmed Bog'langan`;
-    } else {
-      elConnectionBadge.className = "status-badge";
-      elConnectionBadge.style.background = "#fef3c7";
-      elConnectionBadge.style.color = "#b45309";
-      elConnectionBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Karmed Oynasi Emas`;
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url) {
+      setConnectionStatus(false, "Tab topilmadi");
+      return;
     }
-  } catch (e) {}
-}
 
-// 1. SAHIFADAGI SHIFOKORLARNI AVTO-ANIQLASH
-async function handleAutoDetectDoctors() {
-  elBtnAutoDetectDoctor.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Olinmoqda...`;
-  try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0) return;
+    if (!tab.url.includes("192.168.150.111") && !tab.url.includes("213.230.91.59") && !tab.url.includes("karmed")) {
+      setConnectionStatus(false, "Karmed emas");
+      return;
+    }
 
-    chrome.tabs.sendMessage(tabs[0].id, { action: "DETECT_PAGE_DOCTORS" }, (res) => {
-      elBtnAutoDetectDoctor.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Sahifadan olish`;
-      
-      if (res && res.success && Array.isArray(res.doctors) && res.doctors.length > 0) {
-        elDetectedGroup.innerHTML = "";
-        elDetectedGroup.style.display = "block";
-
-        res.doctors.forEach(doc => {
-          const opt = document.createElement("option");
-          opt.value = doc;
-          opt.textContent = `⭐ ${doc} (Karmed sahifasida)`;
-          elDetectedGroup.appendChild(opt);
-        });
-
-        // 1-shifokorni tanlash
-        elDoctorSelect.value = res.doctors[0];
-        savePreferences();
+    chrome.tabs.sendMessage(tab.id, { action: "DETECT_PAGE_DOCTORS" }, (res) => {
+      if (chrome.runtime.lastError || !res) {
+        setConnectionStatus(false, "Sahifani yangilang (F5)");
       } else {
-        alert("Karmed sahifasidan shifokorlar topilmadi. Avval bemorlar jadvalini oching.");
+        setConnectionStatus(true, "Karmed Tayyor");
       }
     });
   } catch (e) {
-    elBtnAutoDetectDoctor.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Sahifadan olish`;
+    setConnectionStatus(false, "Ulanmagan");
   }
 }
 
-// 2. SKANERLASH VA SANASH
-async function handleStartScan() {
-  const startDate = elReportStartDate.value;
-  const endDate = elReportEndDate.value;
-  const targetDoctor = elDoctorSelect.value;
-
-  elBtnStartScan.disabled = true;
-  elBtnStartScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Skanerlanmoqda...`;
-
-  elScanResultsSection.style.display = "block";
-  elScanProgressBox.style.display = "flex";
-  elScanProgressText.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Karmed jadvali skanerlanmoqda...`;
-  elScanProgressFill.style.width = "25%";
-
-  try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0) {
-      throw new Error("Faol brauzer oynasi topilmadi!");
-    }
-
-    const payload = {
-      targetStartDate: startDate,
-      targetEndDate: endDate,
-      targetDoctorName: targetDoctor,
-      options: {
-        strictDoctorMatch: elChkStrictDoctor.checked,
-        autoPagination: elChkAutoPagination.checked
-      }
-    };
-
-    chrome.tabs.sendMessage(tabs[0].id, { action: "START_SCAN", payload }, (res) => {
-      elBtnStartScan.disabled = false;
-      elBtnStartScan.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart"></i> Karmed Jadvalini Skanerlash & Sanash`;
-
-      if (chrome.runtime.lastError) {
-        elScanProgressText.innerHTML = `❌ Karmed sahifasini yangilang (F5) va qayta urinib ko'ring!`;
-        elScanProgressFill.style.width = "100%";
-        elScanProgressFill.style.background = "#ef4444";
-        return;
-      }
-
-      if (res && res.success && res.data) {
-        currentScannedReport = res.data;
-        renderScanResults(res.data);
-      } else {
-        elScanProgressText.innerHTML = `❌ Xatolik: ${res ? res.error : "Noma'lum xatolik"}`;
-        elScanProgressFill.style.width = "100%";
-        elScanProgressFill.style.background = "#ef4444";
-      }
-    });
-
-  } catch (err) {
-    elBtnStartScan.disabled = false;
-    elBtnStartScan.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart"></i> Karmed Jadvalini Skanerlash & Sanash`;
-    elScanProgressText.innerHTML = `❌ Xatolik: ${err.message}`;
-  }
-}
-
-// 3. NATIJALARNI RENDER QILISH
-function renderScanResults(report) {
-  elScanProgressFill.style.width = "100%";
-  elScanProgressFill.style.background = "#10b981";
-  elScanProgressText.innerHTML = `✅ Skanerlash yakunlandi! Jami: ${report.totalPatientsCount} ta bemor, ${report.totalServicesCount} ta soha topildi.`;
-
-  elResPatientCount.textContent = report.totalPatientsCount || 0;
-  elResServiceCount.textContent = report.totalServicesCount || 0;
-
-  // Kodlar taqsimoti
-  elResCodesBadgesWrap.innerHTML = "";
-  const breakdown = report.servicesBreakdown || {};
-  const codes = Object.keys(breakdown);
-
-  if (codes.length > 0) {
-    codes.sort((a, b) => breakdown[b].count - breakdown[a].count).forEach(c => {
-      const item = breakdown[c];
-      const pill = document.createElement("div");
-      pill.className = "code-pill";
-      pill.title = item.name || c;
-      pill.innerHTML = `<strong>${c}</strong> <span class="pill-count">${item.count}</span>`;
-      elResCodesBadgesWrap.appendChild(pill);
-    });
-  } else {
-    elResCodesBadgesWrap.innerHTML = `<span style="font-size:11px; color:#94a3b8;">Tekshiruv kodlari topilmadi</span>`;
-  }
-
-  // Bemorlar reyestri
-  elResListCount.textContent = report.patientsList ? report.patientsList.length : 0;
-  elResPatientsList.innerHTML = "";
-
-  if (report.patientsList && report.patientsList.length > 0) {
-    report.patientsList.forEach((pat, idx) => {
-      const item = document.createElement("div");
-      item.className = "patient-mini-item";
-
-      const srvBadges = (pat.services || []).map(s => 
-        `<span class="tag-service-mini" title="${escapeHtml(s.name)}">${escapeHtml(s.code)}</span>`
-      ).join(" ");
-
-      item.innerHTML = `
-        <div class="patient-mini-top">
-          <span>${idx + 1}. ${escapeHtml(pat.fullName)}</span>
-          <span style="color:#0284c7;">ID: ${escapeHtml(pat.patientId)}</span>
-        </div>
-        <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
-          📅 ${escapeHtml(pat.confirmDate)} | 👨‍⚕️ ${escapeHtml(pat.doctorName || '')} | 🏢 ${escapeHtml(pat.department || pat.priority || '')}
-        </div>
-        <div class="patient-mini-services">
-          ${srvBadges || '<span style="color:#94a3b8; font-size:10px;">Xizmat ko\'rsatilgan</span>'}
-        </div>
-      `;
-      elResPatientsList.appendChild(item);
-    });
-  }
-
-  // Hisobchiga yuborish tugmasini faollashtirish
-  elBtnSaveToFirebase.disabled = false;
-  elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Hisobchi Bazasiga Saqlash (Firebase)`;
-}
-
-// 4. ACCORDION TOGGLE
-function togglePreviewAccordion() {
-  const isVisible = elPreviewBody.style.display === "block";
-  elPreviewBody.style.display = isVisible ? "none" : "block";
-  elPreviewChevron.className = isVisible ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-up";
-}
-
-// 5. FIREBASE GA SAQLASH (KUNBAY VA ORALIQ GURUHLASH)
-async function handleSaveToFirebase() {
-  if (!currentScannedReport) {
-    alert("Saqlash uchun skanerlangan hisobot mavjud emas!");
-    return;
-  }
-
-  elBtnSaveToFirebase.disabled = true;
-  elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Firebase-ga yozilmoqda...`;
-
-  try {
-    const patients = currentScannedReport.patientsList || [];
-    
-    // 1. Bemorlarni kunbay guruhlash (har bir bemor o'zining tasdiqlangan sanasi bo'yicha)
-    const dayGroups = {};
-    patients.forEach(p => {
-      const d = p.confirmDateNorm || currentScannedReport.startDate || new Date().toISOString().split('T')[0];
-      if (!dayGroups[d]) dayGroups[d] = [];
-      dayGroups[d].push(p);
-    });
-
-    const docSlug = (currentScannedReport.doctorName || 'all_doctors')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '_')
-      .replace(/_+/g, '_');
-
-    // Har bir kun uchun hisobotni Firebase-ga PUT qilish
-    for (const dKey of Object.keys(dayGroups)) {
-      const dayPatients = dayGroups[dKey];
-      const dayBreakdown = {};
-      let dayServicesCount = 0;
-
-      dayPatients.forEach(p => {
-        (p.services || []).forEach(s => {
-          dayServicesCount++;
-          const c = s.code || "OTHER";
-          if (!dayBreakdown[c]) dayBreakdown[c] = { code: c, name: s.name, count: 0 };
-          dayBreakdown[c].count++;
-        });
-      });
-
-      const dayReportData = {
-        reportId: `rep_${dKey}_${docSlug}`,
-        date: dKey,
-        doctorName: currentScannedReport.doctorName,
-        totalPatientsCount: dayPatients.length,
-        totalServicesCount: dayServicesCount,
-        servicesBreakdown: dayBreakdown,
-        patientsList: dayPatients,
-        updatedAt: Date.now()
-      };
-
-      await fetch(`${FIREBASE_DB_URL}/accountant_reports/${dKey}/${docSlug}.json`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dayReportData)
-      });
-    }
-
-    // 2. Oraliq hisobotini ham alohida saqlash (Range / Monthly)
-    const rangeKey = `${currentScannedReport.startDate || 'all'}_to_${currentScannedReport.endDate || 'all'}`;
-    await fetch(`${FIREBASE_DB_URL}/accountant_reports_range/${rangeKey}/${docSlug}.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(currentScannedReport)
-    });
-
-    elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-circle-check"></i> Muvaffaqiyatli Saqlandi!`;
-    elBtnSaveToFirebase.classList.remove("btn-success");
-    elBtnSaveToFirebase.classList.add("btn-primary");
-
-    setTimeout(() => {
-      elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Qayta Saqlash (Firebase)`;
-      elBtnSaveToFirebase.disabled = false;
-      elBtnSaveToFirebase.classList.remove("btn-primary");
-      elBtnSaveToFirebase.classList.add("btn-success");
-    }, 2500);
-
-  } catch (err) {
-    alert(`Firebase-ga saqlashda xatolik: ${err.message}`);
-    elBtnSaveToFirebase.disabled = false;
-    elBtnSaveToFirebase.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Hisobchi Bazasiga Saqlash (Firebase)`;
+function setConnectionStatus(isReady, text) {
+  if (elConnectionBadge) {
+    elConnectionBadge.className = `status-badge ${isReady ? 'live' : 'offline'}`;
+    elConnectionBadge.innerHTML = `<i class="fa-solid fa-circle"></i> ${text}`;
   }
 }
 
 function escapeHtml(str) {
   if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
