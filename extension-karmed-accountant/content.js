@@ -6,9 +6,10 @@
  * 2. Bemor ID (Karta raqami va PINFL)
  * 3. Tekshiruvga yuborgan vrach FISH (So'rov yuboradigan shifokor / Fayl shifokori)
  * 4. Tanlangan tekshiruv sanasi (Tranzaksiya sanasi va vaqti)
- * 5. Tekshiruv kodi (R25, R67, R78, R52, R62, R85...)
+ * 5. Tekshiruv kodi (R25, R67, R78, R52, R62, R85, R79...)
  * 6. Tekshiruv nomi (Xizmatlar Nomi)
- * 7. Narxi va To'langan summa (Tarif bo'yicha hisoblangan summa)
+ * 7. Muassasa / Imtiyoz (Sug'urta Toshkent Shahri, Rezident, Order, No Rezident...)
+ * 8. Narxi, Orderli_Ucret, Pulli_Ucret, Tolangan_ucret va Jami_ucret_toplam
  */
 
 const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
@@ -61,6 +62,7 @@ function getServiceTariffPrice(serviceName, serviceCode, isNoRezident = false) {
   if (normName.includes('buyrak')) return 137000;
   if (normName.includes('yumshoq') || normName.includes('toqima')) return 137000;
   if (normName.includes('erkin') || normName.includes('suyuqlik')) return 137000;
+  if (normName.includes('qorinpardaorti') || normName.includes('pardaorti')) return 137000;
   if (normName.includes('doppler') || normName.includes('rtd')) return 210000;
   if (normName.includes('tashxis') || normName.includes('plevra')) return 137000;
   if (normName.includes('transvaginal') || normName.includes('tvutt') || normName.includes('tvu')) return 177000;
@@ -72,6 +74,7 @@ function getServiceTariffPrice(serviceName, serviceCode, isNoRezident = false) {
     'R62': 173000,
     'R67': 173000,
     'R78': 137000,
+    'R79': 137000,
     'R85': 177000,
     'R87': 137000,
     'R134': 210000,
@@ -88,7 +91,7 @@ function getCurrentlyActivePatientFromScreen() {
 
   for (const table of allTables) {
     const text = table.innerText.toLowerCase();
-    if (text.includes("familiya") && (text.includes("faylning") || text.includes("qabul qiluvchi") || text.includes("ulangan"))) {
+    if (text.includes("familiya") && (text.includes("faylning") || text.includes("qabul qiluvchi") || text.includes("ulangan") || text.includes("muassasa"))) {
       mainTable = table;
       break;
     }
@@ -100,7 +103,7 @@ function getCurrentlyActivePatientFromScreen() {
 
   if (!mainTable) return null;
 
-  // 1. Qidiruv maydonidan Bemor ID sini ham tekshirish (Qiymat 979)
+  // 1. Qidiruv maydonidan Bemor ID sini olish
   let searchInputId = "";
   const allInputs = Array.from(document.querySelectorAll("input[type='text'], input:not([type])"));
   for (const inp of allInputs) {
@@ -111,15 +114,14 @@ function getCurrentlyActivePatientFromScreen() {
     }
   }
 
-  // 2. Asosiy jadvaldagi tanlangan (pink/purple yoki focused) qatorni topish
+  // 2. Asosiy jadvaldagi tanlangan qatorni topish
   let targetRow = document.querySelector(".dxgvFocusedRow_DevEx, .dxgvSelectedRow_DevEx, tr[style*='rgb(255,'], tr.selected, .x-grid3-row-selected");
   
   if (!targetRow) {
     const validRows = Array.from(mainTable.querySelectorAll("tr")).filter(r => {
       const c = r.querySelectorAll("td");
-      return c.length >= 6 && !r.innerText.includes("Familiya") && !r.innerText.includes("Bemor ID") && !r.innerText.includes("Mammografiya (") && !r.innerText.includes("Ultratovush (");
+      return c.length >= 6 && !r.innerText.includes("Familiya") && !r.innerText.includes("Bemor ID") && !r.innerText.includes("Mammografiya (") && !r.innerText.includes("Ultratovush (") && !r.innerText.includes("Rentgen (");
     });
-    // Agar Ultratovush qatori bo'lsa uni olamiz
     targetRow = validRows.find(r => r.innerText.toLowerCase().includes("ultratovush")) || validRows[validRows.length - 1] || validRows[0];
   }
 
@@ -128,7 +130,6 @@ function getCurrentlyActivePatientFromScreen() {
   const cells = Array.from(targetRow.querySelectorAll("td"));
   if (cells.length < 5) return null;
 
-  // Sana ustuni orqali kataklarni aniqlash
   let dateIdx = -1;
   let rawDate = "";
   cells.forEach((c, idx) => {
@@ -143,46 +144,67 @@ function getCurrentlyActivePatientFromScreen() {
   let surname = "";
   let firstName = "";
   let middleName = "";
+  let muassasa = "";
   let pinfl = "";
-  let privilege = "Rezident";
   let referringDoctor = "";
   let department = "Mamologiya";
 
   if (dateIdx !== -1) {
-    // Karmed UTT jadvali tuzilishi:
-    // [dateIdx - 2]: Fayl shifokori (Dr. Kasimov Doniyor Abrorovich)
-    // [dateIdx - 1]: Ulangan bo'lim
-    // [dateIdx]: Ro'yxatga olingan sana
-    // [dateIdx + 1]: Bemor ID (979)
-    // [dateIdx + 2]: Familiya (DUSCHANOVA)
-    // [dateIdx + 3]: Ismi (SHARAFAT)
-    // [dateIdx + 4]: Ota ismi (RUSTAMBAEVNA)
-    // [dateIdx + 5]: Ustuvorlik
-    // [dateIdx + 6]: Bo'lim (Mamologiya)
-    // [dateIdx + 7]: Namuna raqami
-    // [dateIdx + 8]: Tug'ilgan kuni
-    // [dateIdx + 9]: PINFL (41307673330010)
-    // [dateIdx + 10]: Rezident
+    // Karmed UTT jadvali ustunlari:
+    // [dateIdx - 2]: Fayl shifokori (Dr. Mannopova Nargiza Mannapovna / Dr. Kasimov Doniyor)
+    // [dateIdx - 1]: Ulangan bo'lim (Ultratovush-4 / Ultratovush)
+    // [dateIdx]: Ro'yxatga olingan sana (28.08.2026 08:22)
+    // [dateIdx + 1]: Bemor ID (35770 / 979)
+    // [dateIdx + 2]: Familiya (MUXAMEDOVA)
+    // [dateIdx + 3]: Ismi (ZULXUMOR)
+    // [dateIdx + 4]: Ota ismi (ERIKINOVNA)
+    // [dateIdx + 5]: Muassasa (Sug'urta Toshkent Shahri / Rezident / Order)
+    // [dateIdx + 6]: Ustuvorlik
+    // [dateIdx + 7]: Bo'lim (Ximyoterapiya / Mamologiya)
+    // [dateIdx + 8]: Namuna raqami
+    // [dateIdx + 9]: Tug'ilgan kuni
+    // [dateIdx + 10]: PINFL (4280181...)
 
     if (cells[dateIdx - 2]) referringDoctor = cells[dateIdx - 2].innerText.trim().replace(/^Dr\.\s*/i, '');
     if (cells[dateIdx + 1]) patientId = cells[dateIdx + 1].innerText.trim();
     if (cells[dateIdx + 2]) surname = cells[dateIdx + 2].innerText.trim();
     if (cells[dateIdx + 3]) firstName = cells[dateIdx + 3].innerText.trim();
     if (cells[dateIdx + 4]) middleName = cells[dateIdx + 4].innerText.trim();
-    if (cells[dateIdx + 6]) department = cells[dateIdx + 6].innerText.trim();
-    if (cells[dateIdx + 9]) pinfl = cells[dateIdx + 9].innerText.trim();
-    if (cells[dateIdx + 10]) privilege = cells[dateIdx + 10].innerText.trim();
+    
+    // Muassasa (Sug'urta Toshkent Shahri, Order, Rezident)
+    if (cells[dateIdx + 5] && cells[dateIdx + 5].innerText.trim()) {
+      const mText = cells[dateIdx + 5].innerText.trim();
+      if (!/^\d+$/.test(mText) && !mText.toLowerCase().includes("ambulator")) {
+        muassasa = mText;
+      }
+    }
+
+    if (cells[dateIdx + 7]) department = cells[dateIdx + 7].innerText.trim();
+    if (cells[dateIdx + 10]) pinfl = cells[dateIdx + 10].innerText.trim();
   }
 
-  // Zaxira tekshiruvlar
+  // Muassasani kataklardan aniqlash (Zaxira)
+  if (!muassasa) {
+    for (const c of cells) {
+      const t = c.innerText.trim();
+      const low = t.toLowerCase();
+      if (low.includes("sug'urta") || low.includes("sugurta") || low.includes("order") || low.includes("rezident") || low.includes("imtiyoz")) {
+        muassasa = t;
+        break;
+      }
+    }
+  }
+
+  if (!muassasa) muassasa = "Rezident";
+
   if (!patientId || !/^\d+$/.test(patientId)) {
-    patientId = searchInputId || (cells.find(c => /^\d{3,8}$/.test(c.innerText.trim()))?.innerText.trim()) || "979";
+    patientId = searchInputId || (cells.find(c => /^\d{3,8}$/.test(c.innerText.trim()))?.innerText.trim()) || "ID_NOMALUM";
   }
 
   if (!referringDoctor) {
     for (const c of cells) {
       const t = c.innerText.trim();
-      if (t.includes("Dr.") || (t.split(" ").length >= 2 && /[A-ZА-ЯЁ]/.test(t) && !t.includes("Ultratovush") && !t.includes("Mamologiya"))) {
+      if (t.includes("Dr.") || (t.split(" ").length >= 2 && /[A-ZА-ЯЁ]/.test(t) && !t.includes("Ultratovush") && !t.includes("Mamologiya") && !t.includes("Sug'urta"))) {
         referringDoctor = t.replace(/^Dr\.\s*/i, '');
         break;
       }
@@ -193,12 +215,11 @@ function getCurrentlyActivePatientFromScreen() {
     middleName = "";
   }
 
-  const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim() || "DUSCHANOVA SHARAFAT RUSTAMBAEVNA";
-  const isNoRezident = privilege.toLowerCase().includes("no rezident") || privilege.toLowerCase().includes("norezident");
+  const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim() || "BEMOR";
+  const isNoRezident = muassasa.toLowerCase().includes("no rezident") || muassasa.toLowerCase().includes("norezident");
 
   // 3. Pastki jadvaldan barcha tekshiruvlar va ularning tranzaksiya sanalarini olish
   const services = extractSubTableServicesFromPage(referringDoctor, isNoRezident);
-
   const totalSum = services.reduce((acc, s) => acc + (s.price || 0), 0);
 
   return {
@@ -210,10 +231,11 @@ function getCurrentlyActivePatientFromScreen() {
     pinfl: pinfl || (patientId ? `2600${patientId.padStart(5, '0')}` : "260051225"),
     department: department || "Mamologiya",
     priority: "Ambulator",
-    referringDoctor: referringDoctor || "Kasimov Doniyor Abrorovich",
+    referringDoctor: referringDoctor || "Mannopova Nargiza Mannapovna",
     doctorName: "Kurbanova Sevinch Musayevna",
-    confirmDate: rawDate || "01.05.2026 08:27",
-    privilege: privilege || "Rezident",
+    confirmDate: rawDate || "28.08.2026 08:22",
+    muassasa: muassasa,
+    privilege: muassasa,
     isNoRezident: isNoRezident,
     services: services,
     totalSum: totalSum,
@@ -233,7 +255,7 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
     const cellTexts = cells.map(c => c.innerText.trim());
     const firstCell = cellTexts[0] || "";
 
-    // Kod ustuni (R25, R67, R78, R52, R62, R85, R87, R134 va h.k.)
+    // Kod ustuni (R78, R79, R62, R25, R67, R52, R85...)
     const codeMatch = firstCell.match(/^R\s*(\d{1,5})/i) || cellTexts.find(t => /^R\s*\d{1,5}$/i.test(t));
     if (codeMatch) {
       const code = typeof codeMatch === 'string' ? codeMatch.toUpperCase().replace(/\s+/g, '') : `R${codeMatch[1]}`;
@@ -241,11 +263,11 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
       
       let date = "";
       let orderNo = "";
-      let orderingDoctor = referringDocFromTop || "Kasimov Doniyor Abrorovich";
+      let orderingDoctor = referringDocFromTop || "Mannopova Nargiza Mannapovna";
       let reportAuthor = "Kurbanova Sevinch Musayevna";
       let debtStatus = "To'langan";
 
-      // Tranzaksiya sanasi (cell 2: 01.05.2026 08:28:22)
+      // Tranzaksiya sanasi (cell 2: 28.08.2026 08:22:53)
       if (cells[2] && /\d{2}\.\d{2}\.\d{4}/.test(cells[2].innerText)) {
         date = cells[2].innerText.trim();
       } else {
@@ -253,7 +275,7 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
         if (dCell) date = dCell;
       }
 
-      // Navbat raqami (cell 3: 2280197)
+      // Navbat raqami (cell 3: 3949356)
       if (cells[3] && /^\d{6,9}$/.test(cells[3].innerText.trim())) {
         orderNo = cells[3].innerText.trim();
       } else {
@@ -266,13 +288,16 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
         orderingDoctor = cells[4].innerText.trim().replace(/^Dr\.\s*/i, '');
       }
 
-      // Hisobot muallifi / Shifokori (cell 5)
+      // Hisobot muallifi / Shifokori (cell 5 yoki cell 10)
       if (cells[5] && cells[5].innerText.trim().length >= 5) {
         reportAuthor = cells[5].innerText.trim();
+      } else if (cells[10] && cells[10].innerText.trim().length >= 5) {
+        reportAuthor = cells[10].innerText.trim();
       }
 
-      if (cellTexts.some(t => t.toLowerCase().includes("to'langan") || t.toLowerCase().includes("tolangan"))) {
-        debtStatus = "To'langan";
+      // Qarz holati (To'langan / To'lanmagan)
+      if (cellTexts.some(t => t.toLowerCase().includes("to'lanmagan") || t.toLowerCase().includes("tolanmagan") || t.toLowerCase().includes("qarz"))) {
+        debtStatus = "To'lanmagan";
       }
 
       const price = getServiceTariffPrice(name, code, isNoRezident);
@@ -283,33 +308,16 @@ function extractSubTableServicesFromPage(referringDocFromTop, isNoRezident = fal
           code: code,
           name: name,
           price: price,
-          paidAmount: price,
+          paidAmount: debtStatus === "To'lanmagan" ? 0 : price,
           priceStr: priceStr,
           debtStatus: debtStatus,
-          orderNo: orderNo || (2280197 + servicesList.length),
-          date: date || "01.05.2026 08:28",
+          orderNo: orderNo || (3949350 + servicesList.length),
+          date: date || "28.08.2026 08:22",
           orderingDoctor: orderingDoctor,
           reportAuthor: reportAuthor
         });
       }
     }
-  }
-
-  // Agar pastki jadvalda hali qatorlar ko'rinmagan bo'lsa, zaxira UTT tekshiruvi
-  if (servicesList.length === 0) {
-    const defPrice = 173000;
-    servicesList.push({
-      code: "R78",
-      name: "Ultratovush tekshiruvi",
-      price: defPrice,
-      paidAmount: defPrice,
-      priceStr: defPrice.toLocaleString('ru-RU') + ',00',
-      debtStatus: "To'langan",
-      orderNo: "2280197",
-      date: "01.05.2026 08:28",
-      orderingDoctor: referringDocFromTop || "Kasimov Doniyor Abrorovich",
-      reportAuthor: "Kurbanova Sevinch Musayevna"
-    });
   }
 
   return servicesList;
@@ -338,32 +346,44 @@ async function saveCurrentPatientToGoogleSheets() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> "Farq" ga saqlanmoqda...`;
   }
 
-  // "Farq" jurnali uchun 18 ta ustunli to'liq yozuvlarni tayyorlash
-  const records = patient.services.map((srv, idx) => ({
-    no: srv.orderNo || (2280197 + idx),
-    id: patient.pinfl,
-    fullId: patient.pinfl,
-    fullName: patient.fullName.toUpperCase(),
-    patientType: patient.department || 'Mamologiya',
-    serviceCategory: 'Radiologiya',
-    functionalDept: 'Ultratovush',
-    serviceName: srv.name,
-    serviceCode: srv.code,
-    cardNo: patient.patientId,
-    cardType: 'Ambulator',
-    priority: 'Ambulator',
-    orderingDoctor: srv.orderingDoctor || patient.referringDoctor,
-    fileDoctor: patient.referringDoctor,
-    doctorName: srv.reportAuthor || patient.doctorName,
-    dr_uygulayan: srv.reportAuthor || patient.doctorName,
-    date: srv.date || patient.confirmDate,
-    privilegeCategory: patient.privilege || 'Rezident',
-    orderliUcret: 0,
-    price: srv.price,
-    pulliUcret: srv.price,
-    paidAmount: srv.paidAmount,
-    tolanganUcret: srv.paidAmount
-  }));
+  // Muassasa (Sug'urta Toshkent Shahri, Order, Rezident) bo'yicha to'lov taqsimoti
+  const isOrder = patient.muassasa.toLowerCase().includes('order');
+  const isSugurta = patient.muassasa.toLowerCase().includes("sug'urta") || patient.muassasa.toLowerCase().includes('sugurta');
+
+  const records = patient.services.map((srv, idx) => {
+    const priceVal = srv.price;
+    const orderliVal = isOrder ? priceVal : 0;
+    const pulliVal = isOrder ? 0 : priceVal;
+    const tolanganVal = (isOrder || isSugurta || srv.debtStatus === "To'lanmagan") ? 0 : priceVal;
+
+    return {
+      no: srv.orderNo || (3949356 + idx),
+      id: patient.pinfl,
+      fullId: patient.pinfl,
+      fullName: patient.fullName.toUpperCase(),
+      patientType: patient.department || 'Mamologiya',
+      serviceCategory: 'Radiologiya',
+      functionalDept: 'Ultratovush',
+      serviceName: srv.name,
+      serviceCode: srv.code,
+      cardNo: patient.patientId,
+      cardType: 'Ambulator',
+      priority: 'Ambulator',
+      orderingDoctor: srv.orderingDoctor || patient.referringDoctor,
+      fileDoctor: patient.referringDoctor,
+      doctorName: srv.reportAuthor || patient.doctorName,
+      dr_uygulayan: srv.reportAuthor || patient.doctorName,
+      date: srv.date || patient.confirmDate,
+      privilegeCategory: patient.muassasa, // Muassasa (Sug'urta Toshkent Shahri, Rezident, Order)
+      muassasa: patient.muassasa,
+      orderliUcret: orderliVal,
+      price: priceVal,
+      pulliUcret: pulliVal,
+      paidAmount: tolanganVal,
+      tolanganUcret: tolanganVal,
+      debtStatus: srv.debtStatus
+    };
+  });
 
   try {
     const postBody = {
@@ -380,8 +400,8 @@ async function saveCurrentPatientToGoogleSheets() {
     const data = await res.json();
 
     if (data.status === "success") {
-      lastSavedPatientKey = `${patient.patientId}_${patient.fullName}`;
-      showFarqToast(`✅ "Farq" ga saqlandi: ${patient.fullName} (${patient.services.length} ta tekshiruv, ${patient.totalSumFormatted})`);
+      lastSavedPatientKey = `${patient.patientId}_${patient.fullName}_${patient.services.length}`;
+      showFarqToast(`✅ "Farq" ga saqlandi: ${patient.fullName} [${patient.muassasa}] (${patient.services.length} ta xizmat, ${patient.totalSumFormatted})`);
     } else {
       throw new Error(data.message || "Xatolik yuz berdi");
     }
@@ -413,7 +433,7 @@ function createQuickFarqFloatingWidget() {
     <div class="karmed-farq-body" id="karmedFarqBody">
       <div class="karmed-farq-patient-card">
         <div class="karmed-farq-pat-name" id="farqPatName">Bemor kutilmoqda...</div>
-        <div class="karmed-farq-pat-meta" id="farqPatMeta">ID: — • Yuborgan: —</div>
+        <div class="karmed-farq-pat-meta" id="farqPatMeta">ID: — • Muassasa: —</div>
         <div class="karmed-farq-pat-sum" id="farqPatSum">Tekshiruvlar: 0 ta • 0 so'm</div>
       </div>
       <button type="button" class="btn-farq-save-main" id="btnFarqSaveCurrent">
@@ -458,13 +478,13 @@ function updateWidgetPatientPreview() {
   if (!elName || !p) return;
 
   elName.innerText = `👤 ${p.fullName}`;
-  elMeta.innerText = `ID: ${p.patientId} • Yuborgan: ${p.referringDoctor}`;
+  elMeta.innerText = `ID: ${p.patientId} • 🏛️ ${p.muassasa} • 👨‍⚕️ ${p.referringDoctor}`;
   
   const srvCodes = p.services.map(s => s.code).join(", ");
   elSum.innerText = `📋 ${p.services.length} ta tekshiruv (${srvCodes}): ${p.totalSumFormatted}`;
 
-  // Agar Avto-Saqlash yoqilgan bo'lsa va bu bemor hali saqlanmagan bo'lsa
-  const currentKey = `${p.patientId}_${p.fullName}_${p.services.length}`;
+  // Agar Avto-Saqlash yoqilgan bo'lsa
+  const currentKey = `${p.patientId}_${p.fullName}_${p.services.length}_${p.muassasa}`;
   if (autoSaveOnOpen && p.patientId && p.patientId !== "ID_NOMALUM" && currentKey !== lastSavedPatientKey) {
     lastSavedPatientKey = currentKey;
     saveCurrentPatientToGoogleSheets();
@@ -527,7 +547,7 @@ function makeDraggable(el, handle) {
 // 9. POPUPDAN YOPPIQ SKANERLASH UCHUN
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "DETECT_PAGE_DOCTORS") {
-    sendResponse({ success: true, doctors: ["Kurbanova Sevinch Musayevna", "Kasimov Doniyor Abrorovich"] });
+    sendResponse({ success: true, doctors: ["Kurbanova Sevinch Musayevna", "Mannopova Nargiza Mannapovna", "Kasimov Doniyor Abrorovich"] });
     return true;
   }
   if (request.action === "UPDATE_SETTINGS") {

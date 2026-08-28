@@ -27,7 +27,7 @@ function doGet(e) {
 
       const headers = data[0].map(h => String(h).toLowerCase().trim());
       let idColIdx = headers.findIndex(h => h === 'id' || h === 'bemor id' || h.includes('id') || h.includes('карта'));
-      if (idColIdx === -1) idColIdx = 1; // Standart B ustun (ID)
+      if (idColIdx === -1) idColIdx = 1;
 
       const patientIds = [];
       const patients = [];
@@ -65,12 +65,6 @@ function doGet(e) {
       });
     }
 
-    // 2. BARCHA VARAQLAR RO'YXATINI OLISH
-    if (action === 'get_sheets_list') {
-      const sheetNames = ss.getSheets().map(s => s.getName());
-      return jsonResponse({ status: 'success', sheets: sheetNames });
-    }
-
     return jsonResponse({ status: 'error', message: 'Noma\'lum action: ' + action });
 
   } catch (err) {
@@ -88,7 +82,7 @@ function doPost(e) {
     }
 
     const action = body.action || 'save_karmed_records';
-    const targetSheetName = body.sheetName || 'Farq'; // Standart "Farq" jurnali
+    const targetSheetName = body.sheetName || 'Farq';
 
     // 1. KARMED TEKSHIRUVLARI VA NARXLARINI "FARQ" VARAG'IGA SAQLASH
     if (action === 'save_karmed_records') {
@@ -116,7 +110,6 @@ function doPost(e) {
       const existingData = sheet.getDataRange().getValues();
       const existingKeys = new Set();
 
-      // Takroriy qatorlarni tekshirish: ID + Xizmat + Sana
       for (let i = 1; i < existingData.length; i++) {
         const row = existingData[i];
         const key = `${row[7] || row[1]}_${row[6]}_${row[12]}`.toLowerCase().replace(/\s+/g, '');
@@ -131,34 +124,42 @@ function doPost(e) {
         const cardNo = r.cardNo || r.patientId || r.id || '';
         const serviceName = r.serviceName || r.service || r.usluga || 'Ultratovush tekshiruvi';
         const dateStr = r.date || r.confirmDate || r.vremya || formatDateValue(new Date());
-
         const key = `${cardNo}_${serviceName}_${dateStr}`.toLowerCase().replace(/\s+/g, '');
 
         if (!existingKeys.has(key)) {
           existingKeys.add(key);
 
-          const priceStr = formatMoney(r.price || r.pulliUcret || 0);
-          const paidStr = formatMoney(r.paidAmount || r.tolanganUcret || r.price || 0);
+          const privilegeCategory = r.privilegeCategory || r.muassasa || 'Rezident';
+          const isOrder = privilegeCategory.toLowerCase().includes('order');
+          const isSugurta = privilegeCategory.toLowerCase().includes("sug'urta") || privilegeCategory.toLowerCase().includes('sugurta');
+
+          const priceVal = r.price || r.pulliUcret || 0;
+          const priceStr = formatMoney(priceVal);
+          
+          let orderliStr = isOrder ? priceStr : '0';
+          let pulliStr = isOrder ? '0' : priceStr;
+          let tolanganStr = (isOrder || isSugurta) ? '0' : (r.debtStatus === "To'lanmagan" ? '0' : priceStr);
+          let jamiStr = priceStr;
 
           newRows.push([
-            r.no || r.orderNo || (2280000 + existingData.length + addedCount), // No (Tranzaksiya/Tartib)
-            r.fullId || r.pinfl || (cardNo ? `2600${cardNo.padStart(5, '0')}` : '260051000'), // ID (Karmed Tizim ID)
-            (r.fullName || r.patientName || r.fio || 'BEMOR').toUpperCase(), // Ism va familiya
-            r.patientType || r.department || 'Mamologiya', // Тип
-            r.serviceCategory || 'Radiologiya', // Xizmat Turi
-            r.functionalDept || 'Ultratovush', // Funktsional xizmat bolimi
-            serviceName, // Услуга
-            cardNo, // № Карта (Karta/Bemor ID: 979, 37069 va h.k.)
-            r.priority || r.cardType || 'Ambulator', // Тип Карта
-            r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich', // Отделения / Yuboruvchi
-            r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich', // Лечащий врач
-            r.performingDoctor || r.doctorName || r.dr_uygulayan || 'Kurbanova Sevinch Musayevna', // dr_uygulayan
-            dateStr, // Время_tarihi
-            r.privilegeCategory || 'Rezident', // Категория лыгот
-            r.orderliUcret || 0, // Orderli_Ucret
-            priceStr, // Pulli_Ucret
-            paidStr, // Tolangan_ucret
-            paidStr // Jami_ucret_toplam
+            r.no || r.orderNo || (2280000 + existingData.length + addedCount),
+            r.fullId || r.pinfl || (cardNo ? `2600${cardNo.padStart(5, '0')}` : '260051000'),
+            (r.fullName || r.patientName || r.fio || 'BEMOR').toUpperCase(),
+            r.patientType || r.department || 'Mamologiya',
+            r.serviceCategory || 'Radiologiya',
+            r.functionalDept || 'Ultratovush',
+            serviceName,
+            cardNo,
+            r.priority || r.cardType || 'Ambulator',
+            r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich',
+            r.orderingDoctor || r.fileDoctor || r.doctorName || 'Kasimov Doniyor Abrorovich',
+            r.performingDoctor || r.doctorName || r.dr_uygulayan || 'Kurbanova Sevinch Musayevna',
+            dateStr,
+            privilegeCategory, // Muassasa / Категория лыгот (Sug'urta Toshkent Shahri, Rezident, Order va h.k.)
+            orderliStr,        // Orderli_Ucret
+            pulliStr,          // Pulli_Ucret
+            tolanganStr,       // Tolangan_ucret
+            jamiStr            // Jami_ucret_toplam
           ]);
           addedCount++;
         }
@@ -172,8 +173,7 @@ function doPost(e) {
         status: 'success',
         message: `✅ "${targetSheetName}" jurnaliga ${addedCount} ta tekshiruv muvaffaqiyatli saqlandi!`,
         sheetName: targetSheetName,
-        addedCount: addedCount,
-        totalRowsInSheet: sheet.getLastRow() - 1
+        addedCount: addedCount
       });
     }
 
