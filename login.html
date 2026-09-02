@@ -131,41 +131,6 @@
       margin-bottom: 18px;
       display: none;
     }
-    .quick-users {
-      margin-top: 24px;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-    }
-    .quick-users span {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      display: block;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .quick-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-    }
-    .user-badge-btn {
-      background: #1f2937;
-      border: 1px solid #374151;
-      color: #93c5fd;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 11.5px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .user-badge-btn:hover {
-      background: #374151;
-      color: #fff;
-    }
   </style>
 </head>
 <body>
@@ -185,7 +150,7 @@
         <label>Foydalanuvchi Logini:</label>
         <div class="input-wrap">
           <i class="fa-solid fa-user"></i>
-          <input type="text" id="inputLogin" placeholder="Masalan: admin yoki TB1" required autofocus>
+          <input type="text" id="inputLogin" placeholder="Loginingizni kiriting" required autofocus value="">
         </div>
       </div>
 
@@ -193,7 +158,7 @@
         <label>Parol:</label>
         <div class="input-wrap">
           <i class="fa-solid fa-lock"></i>
-          <input type="password" id="inputPassword" placeholder="Parolni kiriting" required>
+          <input type="password" id="inputPassword" placeholder="Parolingizni kiriting" required value="">
         </div>
       </div>
 
@@ -201,16 +166,6 @@
         <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
       </button>
     </form>
-
-    <div class="quick-users">
-      <span>Tezkor tanlash (Standart hisoblar):</span>
-      <div class="quick-badges">
-        <button type="button" class="user-badge-btn" onclick="fillUser('admin', 'admin')">🛡️ Admin</button>
-        <button type="button" class="user-badge-btn" onclick="fillUser('TB1', '15420')">👨‍💼 TB1 (Operator)</button>
-        <button type="button" class="user-badge-btn" onclick="fillUser('TB2', '15420')">👨‍💼 TB2 (Operator)</button>
-        <button type="button" class="user-badge-btn" onclick="fillUser('laborant1', '123')">🧑‍🔬 Laborant</button>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -218,12 +173,6 @@
     const errorBox = document.getElementById("errorBox");
     const errorMsg = document.getElementById("errorMsg");
     const btnSubmit = document.getElementById("btnSubmit");
-
-    function fillUser(login, password) {
-      document.getElementById("inputLogin").value = login;
-      document.getElementById("inputPassword").value = password;
-      errorBox.style.display = "none";
-    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
