@@ -17,6 +17,7 @@ const os = require('os');
 
 // Lokal kutubxonalar
 const db = require('./lib/db');
+const auth = require('./lib/auth');
 const SmartScheduler = require('./lib/smart-scheduler');
 const wsHub = require('./lib/ws');
 const LaborantBot = require('./lib/laborant-bot');
@@ -107,6 +108,42 @@ const server = http.createServer(async (req, res) => {
   // -------------------------------------------------------------
   if (pathname.startsWith('/api/')) {
     try {
+      // 0. AUTH YO'NALISHLARI
+      if (req.method === 'POST' && pathname === '/api/auth/login') {
+        const body = await parseBody(req);
+        const result = auth.authenticate(body.login, body.password);
+        if (result.success) {
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Login muvaffaqiyatli: ${result.user.login} (${result.user.role})`);
+          return sendJSON(res, result);
+        } else {
+          logRequest(clientIp, 'POST', pathname, 401, startTime, `Login xatosi: ${body.login || 'noma\'lum'}`);
+          return sendJSON(res, result, 401);
+        }
+      }
+
+      if (req.method === 'GET' && pathname === '/api/auth/me') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        if (user) {
+          return sendJSON(res, { success: true, user });
+        } else {
+          return sendJSON(res, { success: false, error: "Sessiya yaroqsiz" }, 401);
+        }
+      }
+
+      if (req.method === 'POST' && pathname === '/api/auth/logout') {
+        const body = await parseBody(req);
+        const token = body.token || (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
+        auth.logout(token);
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Chiqish (Logout)`);
+        return sendJSON(res, { success: true });
+      }
+
+      if (req.method === 'GET' && pathname === '/api/users') {
+        return sendJSON(res, { success: true, users: auth.getUsers() });
+      }
+
       // 1. GET /api/queue - Bugungi navbat
       if (req.method === 'GET' && pathname === '/api/queue') {
         const dateFilter = parsedUrl.searchParams.get('date');
@@ -319,7 +356,7 @@ const server = http.createServer(async (req, res) => {
   // -------------------------------------------------------------
   let reqUrl = decodeURI(pathname);
   if (reqUrl === '/' || reqUrl === '') {
-    reqUrl = '/server-dashboard/index.html';
+    reqUrl = '/navbat-yozish/index.html';
   }
 
   let filePath = path.join(ROOT_DIR, reqUrl);
@@ -390,15 +427,16 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('====================================================');
   console.log('  🏥 TIBBIYOT / MRT & UTT LOKAL SERVERI ISHLAMOQDA');
   console.log('====================================================');
-  console.log(`\n[1] Server Boshqaruv & Audit Paneli:`);
-  console.log(`   - Server Dashboard:  http://localhost:${PORT}/server-dashboard/`);
-  console.log(`   - Tarmoq orqali:     http://${ip}:${PORT}/server-dashboard/`);
+  console.log(`\n[1] Boshqaruv & Ro'yxatga Olish:`);
+  console.log(`   - Navbatga Yozish:   http://${ip}:${PORT}/navbat-yozish/`);
+  console.log(`   - Server Dashboard:  http://${ip}:${PORT}/server-dashboard/`);
+  console.log(`   - Tizimga Kirish:    http://${ip}:${PORT}/login.html`);
   console.log(`\n[2] MRT & UTT Xizmatlari:`);
   console.log(`   - MRT TV Tablo:      http://${ip}:${PORT}/mrt-tv/`);
+  console.log(`   - Laborant Portali:  http://${ip}:${PORT}/laborant/`);
   console.log(`   - UTT TV Tablo:      http://${ip}:${PORT}/app3-android-tv/`);
   console.log(`   - Registratura:      http://${ip}:${PORT}/app1-registratura/`);
   console.log(`   - Vrach Xonasi:      http://${ip}:${PORT}/app2-vrach/`);
-  console.log(`   - Laborant Portali:  http://${ip}:${PORT}/laborant/`);
   console.log(`   - Admin Paneli:      http://${ip}:${PORT}/app4-admin/`);
   console.log(`\n[3] Telegram Bot:`);
   console.log(`   - Holati: 🟢 Faol (Long-polling)`);

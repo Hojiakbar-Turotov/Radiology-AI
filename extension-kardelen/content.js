@@ -4454,9 +4454,9 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
 
-  // 1. Lokal MRT Serveriga sinxronlash (http://localhost:3000/api/queue/add)
+  // 100% LOKAL MRT SERVERGA SAQLASH (Firebase-ga umuman ma'lumot ketmaydi)
   try {
-    fetch("http://localhost:3000/api/queue/add", {
+    const localRes = await fetch("http://localhost:3000/api/queue/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -4473,24 +4473,10 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
         operatorName: currentUser ? currentUser.name : "Operator",
         referringDoctor: patientData.referringDoctor || ""
       })
-    }).then(r => r.json()).then(res => {
-      if (res && res.success) {
-        console.log("✅ Lokal MRT Serverga saqlandi (#" + res.patient?.ticketNumber + ")");
-      }
-    }).catch(e => {
-      // Lokal server ulanmagan bo'lsa xato chiqarmaydi
     });
-  } catch (localErr) {}
+    const localData = await localRes.json();
 
-  try {
-    const url = `${FIREBASE_DB_URL}/patients/${saveDate}.json`;
-    const response = await safeFetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }, 4000);
-
-    if (response && response.ok) {
+    if (localData && localData.success) {
       const extDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[chosenLang]) 
         ? I18N_TRANSLATIONS.ext[chosenLang] 
         : ((typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext) ? I18N_TRANSLATIONS.ext['uz'] : {});
@@ -4499,11 +4485,9 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
         .replace('{device}', device.name)
         .replace('{slot}', slot.slotString)
         .replace('{date}', saveDate);
-      showToast(toastMsg, "success");
-      fetchDeviceQueueCounts().catch(() => {});
-      calculateTodayOperatorStats().catch(() => {});
+      showToast(toastMsg + ` (#${localData.patient?.ticketNumber})`, "success");
       if (autoTicket) {
-        printThermalTicketDirect(payload, chosenLang);
+        printThermalTicketDirect({ ...payload, ticketNumber: localData.patient?.ticketNumber }, chosenLang);
       }
       if (autoConsent) {
         setTimeout(() => {
@@ -4511,11 +4495,11 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
         }, autoTicket ? 900 : 100);
       }
     } else {
-      showToast("⚠️ Bemor navbatga olindi.");
+      showToast("⚠️ Bemor lokal navbatga olindi.");
       if (autoTicket) printThermalTicketDirect(payload, chosenLang);
     }
   } catch (err) {
-    showToast("⚠️ Xatolik yuz berdi: " + err.message);
+    showToast("⚠️ Lokal serverga saqlash xatosi: " + err.message);
   }
 }
 

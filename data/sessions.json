@@ -1,0 +1,22 @@
+{
+  "tok_1788343228275_5303e6b892f68790dbb1f8d159778271": {
+    "token": "tok_1788343228275_5303e6b892f68790dbb1f8d159778271",
+    "user": {
+      "login": "admin",
+      "name": "Tizim Administratori",
+      "role": "admin"
+    },
+    "createdAt": "2026-09-02T10:00:28.275Z",
+    "expiresAt": "2026-10-02T10:00:28.275Z"
+  },
+  "tok_1788343228281_559a36282ddf4ea44a7cb7b08eff4458": {
+    "token": "tok_1788343228281_559a36282ddf4ea44a7cb7b08eff4458",
+    "user": {
+      "login": "TB1",
+      "name": "Turatov Hojiakbar",
+      "role": "operator"
+    },
+    "createdAt": "2026-09-02T10:00:28.281Z",
+    "expiresAt": "2026-10-02T10:00:28.281Z"
+  }
+}

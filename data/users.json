@@ -1,0 +1,58 @@
+[
+  {
+    "login": "admin",
+    "name": "Tizim Administratori",
+    "password": "admin",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "TB1",
+    "name": "Turatov Hojiakbar",
+    "password": "15420",
+    "role": "operator",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "TB2",
+    "name": "Saida'loxon Saidaxmadxonov",
+    "password": "15420",
+    "role": "operator",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "TB3",
+    "name": "Isfandiyor Xaydaraliyev",
+    "password": "15420",
+    "role": "operator",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "vrach1",
+    "name": "Navbatchi Vrach MRT",
+    "password": "123",
+    "role": "doctor",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "laborant1",
+    "name": "MRT 1 Laboranti",
+    "password": "123",
+    "role": "laborant",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  },
+  {
+    "login": "laborant2",
+    "name": "MRT 2 Laboranti",
+    "password": "123",
+    "role": "laborant",
+    "status": "active",
+    "createdAt": "2026-09-02"
+  }
+]

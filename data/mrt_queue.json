@@ -19,7 +19,7 @@
     "totalPrice": 0,
     "deviceId": "mrt1",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "in_progress",
     "estimatedDurationMinutes": 25,
     "estimatedStartTime": "2026-09-02T09:41:37.747Z",
     "estimatedFinishTime": "2026-09-02T10:06:37.747Z",
@@ -29,7 +29,9 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-02T09:41:37.747Z",
-    "updatedAt": "2026-09-02T09:41:37.747Z"
+    "updatedAt": "2026-09-02T09:54:05.413Z",
+    "calledAt": "2026-09-02T09:54:05.395Z",
+    "startedAt": "2026-09-02T09:54:05.413Z"
   },
   {
     "id": "p_1788342097771_j4nsh",
@@ -62,5 +64,38 @@
     "comment": "",
     "createdAt": "2026-09-02T09:41:37.771Z",
     "updatedAt": "2026-09-02T09:41:37.771Z"
+  },
+  {
+    "id": "p_1788343228290_27mij",
+    "ticketNumber": "M-003",
+    "patientName": "ERGASHEV BOTIR RUSTAMOVICH",
+    "patientId": "",
+    "pinfl": "",
+    "phone": "+998901112233",
+    "birthDate": "",
+    "date": "2026-09-02",
+    "services": [
+      {
+        "code": "R166",
+        "name": "Bo'yin Umurtqalari MRT",
+        "duration": 25
+      }
+    ],
+    "primaryService": "Bo'yin Umurtqalari MRT",
+    "isContrast": false,
+    "totalPrice": 0,
+    "deviceId": "mrt2",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 25,
+    "estimatedStartTime": "2026-09-02T10:00:28.290Z",
+    "estimatedFinishTime": "2026-09-02T10:25:28.290Z",
+    "prepCallTime": "2026-09-02T09:45:28.290Z",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-02T10:00:28.290Z",
+    "updatedAt": "2026-09-02T10:00:28.290Z"
   }
 ]

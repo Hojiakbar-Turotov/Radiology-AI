@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bemorlarni Navbatga Qo'yish Portali | MRT & MSKT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Auth Guard -->
+  <script src="/shared/auth-guard.js"></script>
+</head>
+<body>
+  <div class="portal-wrapper">
+    <!-- Header -->
+    <header class="portal-header">
+      <div class="header-brand">
+        <div class="brand-icon"><i class="fa-solid fa-notes-medical"></i></div>
+        <div>
+          <h1>MRT & MSKT Navbatga Yozish Portali</h1>
+          <p>Mustaqil Ro'yxatga Olish Darchasi • Aqlli Taqsimlash & Chek Chop Etish</p>
+        </div>
+      </div>
+
+      <div class="header-nav-links">
+        <a href="/server-dashboard/" class="nav-btn"><i class="fa-solid fa-server"></i> Server Dashboard</a>
+        <a href="/mrt-tv/" target="_blank" class="nav-btn btn-highlight"><i class="fa-solid fa-tv"></i> TV Tablo</a>
+        <a href="/laborant/" target="_blank" class="nav-btn"><i class="fa-solid fa-mobile-screen"></i> Laborant Portali</a>
+      </div>
+    </header>
+
+    <!-- Main Content: Left Form, Right Today's Queue -->
+    <div class="portal-main-grid">
+      <!-- Left: Registration Form -->
+      <div class="form-container-card">
+        <div class="card-head">
+          <h2><i class="fa-solid fa-user-plus" style="color:#38bdf8;"></i> Yangi Bemorni Navbatga Qo'yish</h2>
+          <span class="badge-smart"><i class="fa-solid fa-wand-magic-sparkles"></i> Aqlli Algoritm</span>
+        </div>
+
+        <form id="patientQueueForm">
+          <!-- Personal Info -->
+          <div class="form-section">
+            <h3 class="section-title">1. Bemor Shaxsiy Ma'lumotlari</h3>
+            <div class="input-grid-2">
+              <div class="field-group">
+                <label>Bemor F.I.Sh: <span class="required">*</span></label>
+                <input type="text" id="inpPatientName" placeholder="Familiya Ism Sharif" required autofocus>
+              </div>
+              <div class="field-group">
+                <label>Karta No / Bemor ID:</label>
+                <input type="text" id="inpPatientId" placeholder="Masalan: 104523">
+              </div>
+            </div>
+
+            <div class="input-grid-3">
+              <div class="field-group">
+                <label>Telefon Raqam:</label>
+                <input type="text" id="inpPhone" placeholder="+998 90 123 45 67">
+              </div>
+              <div class="field-group">
+                <label>Tug'ilgan Yil / Sana:</label>
+                <input type="date" id="inpBirthDate">
+              </div>
+              <div class="field-group">
+                <label>Yo'naltirgan Vrach:</label>
+                <input type="text" id="inpDoctor" placeholder="Vrach F.I.Sh">
+              </div>
+            </div>
+          </div>
+
+          <!-- Services Selection -->
+          <div class="form-section">
+            <div class="section-title-between">
+              <h3 class="section-title">2. Tekshiruv Xizmatini Tanlash</h3>
+              <div class="service-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="inpSearchService" placeholder="Xizmatni qidirish (bosh, umurtqa...)" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Services Quick List -->
+            <div class="services-selection-wrap" id="servicesCatalogContainer">
+              <!-- Dynamic Services Checkboxes -->
+            </div>
+
+            <div class="selected-services-summary" id="selectedServicesSummary">
+              Tanlangan xizmatlar: <span id="txtSelectedCount">0 ta</span>
+            </div>
+          </div>
+
+          <!-- Scheduling Options & Calculations -->
+          <div class="form-section">
+            <h3 class="section-title">3. Apparat va Tayyorgarlik</h3>
+            <div class="input-grid-2">
+              <div class="field-group">
+                <label>Apparatni Tanlash:</label>
+                <select id="selectTargetDevice">
+                  <option value="auto">🤖 Aqlli Avto-Taqsimlash (Tavsiya etiladi)</option>
+                  <option value="mrt1">🧲 1-MRT Xonasi (1.5 Tesla, Injektor bor)</option>
+                  <option value="mrt2">🧲 2-MRT Xonasi (3.0 Tesla)</option>
+                  <option value="mskt1">⚡ 1-MSKT Xonasi</option>
+                </select>
+              </div>
+              <div class="field-group checkbox-field">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkIsContrast">
+                  <span>💉 Vena ichi Kontrast modda talab qilinadi</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Live Calculation Preview Card -->
+            <div class="calculation-preview-box" id="calcPreviewBox">
+              <div class="preview-item">
+                <span class="prev-label">Taxminiy Vaqt:</span>
+                <span class="prev-val" id="prevDuration">30 daqiqa</span>
+              </div>
+              <div class="preview-item">
+                <span class="prev-label">Belgilangan Apparat:</span>
+                <span class="prev-val highlight" id="prevDevice">MRT 1 (1.5 T)</span>
+              </div>
+              <div class="preview-item">
+                <span class="prev-label">Taxminiy Boshlanish:</span>
+                <span class="prev-val" id="prevStartTime">--:--</span>
+              </div>
+              <div class="preview-item">
+                <span class="prev-label">Tayyorgarlik Vaqti:</span>
+                <span class="prev-val" style="color:#fbbf24;" id="prevPrepTime">--:--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-save" id="btnSubmitPatient">
+              <i class="fa-solid fa-check-circle"></i> Navbatga Qo'shish
+            </button>
+            <button type="button" class="btn btn-print" id="btnPrintLastTicket" disabled>
+              <i class="fa-solid fa-print"></i> Chiptani Chop Etish
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: Today's Registered Queue -->
+      <div class="queue-container-card">
+        <div class="card-head">
+          <h2><i class="fa-solid fa-list-ol" style="color:#34d399;"></i> Bugungi Navbatdagi Bemorlar</h2>
+          <div class="queue-controls">
+            <select id="filterDevice" class="mini-select">
+              <option value="all">Barcha apparatlar</option>
+              <option value="mrt1">1-MRT</option>
+              <option value="mrt2">2-MRT</option>
+              <option value="mskt1">1-MSKT</option>
+            </select>
+            <button class="btn-icon" id="btnRefreshQueue" title="Yangilash"><i class="fa-solid fa-rotate"></i></button>
+          </div>
+        </div>
+
+        <div class="queue-table-wrap">
+          <table class="queue-table">
+            <thead>
+              <tr>
+                <th>Raqam</th>
+                <th>Bemor F.I.Sh</th>
+                <th>Xizmat</th>
+                <th>Apparat</th>
+                <th>Holat</th>
+                <th>Vaqt</th>
+                <th style="text-align:right;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="todayQueueTableBody">
+              <tr><td colspan="7" class="empty-state">Hozircha bemorlar ro'yxatga olinmagan</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Ticket Modal / Template -->
+  <div id="printTicketTemplate" style="display:none;">
+    <div class="thermal-ticket">
+      <div class="tt-header">
+        <h2>TOMOGRAFIYA MARKAZI</h2>
+        <p>Elektron Navbat Chiptasi</p>
+      </div>
+      <div class="tt-number" id="ttTicketNum">M-001</div>
+      <div class="tt-patient" id="ttPatientName">ALIYEV VALI</div>
+      <div class="tt-room" id="ttRoomName">1-MRT XONASI (1.5 Tesla)</div>
+      <div class="tt-service" id="ttServiceName">Bosh Miya MRT</div>
+      <div class="tt-meta">
+        <div>Sana: <span id="ttDate">--</span></div>
+        <div>Taxminiy vaqt: <span id="ttTime">--</span></div>
+      </div>
+      <div class="tt-prep-note" id="ttPrepNote" style="display:none;">
+        ⚠️ Iltimos, tekshiruvdan 15 daqiqa oldin xonaga tayyorgarlik uchun murojaat qiling!
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

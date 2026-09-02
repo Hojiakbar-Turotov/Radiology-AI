@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tizimga Kirish | MRT & Radiologiya Navbat Tizimi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f2937;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 14px;
+      box-shadow: 0 0 25px rgba(2, 132, 199, 0.35);
+    }
+    .login-header h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .login-header p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 14px;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 12px 14px 12px 40px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-wrap input:focus {
+      border-color: var(--primary);
+    }
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), #2563eb);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, var(--primary-hover), #1d4ed8);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .error-box {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .quick-users {
+      margin-top: 24px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+    .quick-users span {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .quick-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .user-badge-btn {
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #93c5fd;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .user-badge-btn:hover {
+      background: #374151;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h1>Tizimga Kirish</h1>
+      <p>MRT & Radiologiya Aqlli Navbat Tizimi</p>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      <i class="fa-solid fa-triangle-exclamation"></i> <span id="errorMsg">Login yoki parol noto'g'ri</span>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Foydalanuvchi Logini:</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="inputLogin" placeholder="Masalan: admin yoki TB1" required autofocus>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Parol:</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="inputPassword" placeholder="Parolni kiriting" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="btnSubmit">
+        <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
+      </button>
+    </form>
+
+    <div class="quick-users">
+      <span>Tezkor tanlash (Standart hisoblar):</span>
+      <div class="quick-badges">
+        <button type="button" class="user-badge-btn" onclick="fillUser('admin', 'admin')">🛡️ Admin</button>
+        <button type="button" class="user-badge-btn" onclick="fillUser('TB1', '15420')">👨‍💼 TB1 (Operator)</button>
+        <button type="button" class="user-badge-btn" onclick="fillUser('TB2', '15420')">👨‍💼 TB2 (Operator)</button>
+        <button type="button" class="user-badge-btn" onclick="fillUser('laborant1', '123')">🧑‍🔬 Laborant</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorBox = document.getElementById("errorBox");
+    const errorMsg = document.getElementById("errorMsg");
+    const btnSubmit = document.getElementById("btnSubmit");
+
+    function fillUser(login, password) {
+      document.getElementById("inputLogin").value = login;
+      document.getElementById("inputPassword").value = password;
+      errorBox.style.display = "none";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const login = document.getElementById("inputLogin").value.trim();
+      const password = document.getElementById("inputPassword").value.trim();
+
+      errorBox.style.display = "none";
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Tekshirilmoqda...`;
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, password })
+        });
+        const data = await res.json();
+
+        if (data.success && data.token) {
+          localStorage.setItem("auth_token", data.token);
+          localStorage.setItem("auth_user", JSON.stringify(data.user));
+
+          // Qayerdan kelgan bo'lsa o'sha manzilga, yoki navbatga yozish oynasiga o'tish
+          const params = new URLSearchParams(window.location.search);
+          const redirectUrl = params.get("redirect") || "/navbat-yozish/";
+          window.location.href = redirectUrl;
+        } else {
+          showError(data.error || "Login yoki parol noto'g'ri!");
+        }
+      } catch (err) {
+        showError("Server bilan bog'lanishda xatolik: " + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish`;
+      }
+    });
+
+    function showError(msg) {
+      errorBox.style.display = "block";
+      errorMsg.innerText = msg;
+    }
+  </script>
+</body>
+</html>
