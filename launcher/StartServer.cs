@@ -106,21 +106,21 @@ namespace MRTServerLauncher
                 ProcessStartInfo browserInfo = new ProcessStartInfo();
                 browserInfo.FileName = browserExe;
 
-                // Windows 10 va Windows 11 da to'liq mustaqil alohida oyna (Karmed Workspace):
+                // Windows 10 va Windows 11 da to'liq mustaqil toza alohida oyna (Karmed Workspace):
                 // --app=URL: Manzil satrisiz, tablarsiz mustaqil desktop dastur oynasi
                 // --user-data-dir: Alohida profil (mavjud shaxsiy brauzer oynalari bilan aralashmaydi)
                 // --load-extension: Karmed navbat kengaytmasini to'liq yuklash
                 // --start-maximized: Katta oyna sifatida ochish
-                // --disable-web-security: Iframe ichida Karmed to'siqsiz ishlashi uchun
+                // --disable-infobars --no-first-run: Ortiqcha ogohlantirish va panel chiziqlarini ko'rsatmaslik
                 string args;
                 if (Directory.Exists(extensionPath))
                 {
-                    args = string.Format("--app=\"{0}\" --load-extension=\"{1}\" --user-data-dir=\"{2}\" --start-maximized --no-first-run --no-default-browser-check --disable-features=Translate --disable-web-security", 
+                    args = string.Format("--app=\"{0}\" --load-extension=\"{1}\" --user-data-dir=\"{2}\" --start-maximized --no-first-run --no-default-browser-check --disable-features=Translate --disable-infobars", 
                                          workspaceUrl, extensionPath, profilePath);
                 }
                 else
                 {
-                    args = string.Format("--app=\"{0}\" --user-data-dir=\"{1}\" --start-maximized --no-first-run --no-default-browser-check --disable-web-security", 
+                    args = string.Format("--app=\"{0}\" --user-data-dir=\"{1}\" --start-maximized --no-first-run --no-default-browser-check --disable-infobars", 
                                          workspaceUrl, profilePath);
                 }
 
