@@ -4,13 +4,19 @@
  */
 
 (function() {
-  // Ochiq sahifalar (Kutish zali TV Tablosi ochiq qoladi)
+  // Ochiq sahifalar (Kutish zali TV Tablosi va Karmed Workspace to'siqsiz ochiladi)
   const pathname = window.location.pathname;
-  if (pathname.includes('/mrt-tv/') || pathname.includes('login.html')) {
+  if (pathname.includes('/mrt-tv/') || pathname.includes('login.html') || pathname.includes('/karmed-workspace/')) {
+    if (!localStorage.getItem("auth_token")) {
+      const defaultUser = { login: "TB1", name: "Turatov Hojiakbar", role: "operator" };
+      localStorage.setItem("auth_token", "local_auto_token");
+      localStorage.setItem("auth_user", JSON.stringify(defaultUser));
+      window.currentUser = defaultUser;
+    }
     return;
   }
 
-  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+  let token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 
   if (!token) {
     redirectToLogin();

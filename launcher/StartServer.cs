@@ -98,7 +98,7 @@ namespace MRTServerLauncher
 
         public static void OpenKarmedApp()
         {
-            string activeUrl = GetActiveKarmedUrl();
+            string workspaceUrl = "http://localhost:3000/karmed-workspace/index.html";
             string browserExe = FindBrowserPath();
 
             try
@@ -106,21 +106,22 @@ namespace MRTServerLauncher
                 ProcessStartInfo browserInfo = new ProcessStartInfo();
                 browserInfo.FileName = browserExe;
 
-                // Windows 10 va Windows 11 da to'liq mustaqil alohida oyna:
+                // Windows 10 va Windows 11 da to'liq mustaqil alohida oyna (Karmed Workspace):
                 // --app=URL: Manzil satrisiz, tablarsiz mustaqil desktop dastur oynasi
                 // --user-data-dir: Alohida profil (mavjud shaxsiy brauzer oynalari bilan aralashmaydi)
                 // --load-extension: Karmed navbat kengaytmasini to'liq yuklash
                 // --start-maximized: Katta oyna sifatida ochish
+                // --disable-web-security: Iframe ichida Karmed to'siqsiz ishlashi uchun
                 string args;
                 if (Directory.Exists(extensionPath))
                 {
-                    args = string.Format("--app=\"{0}\" --load-extension=\"{1}\" --user-data-dir=\"{2}\" --start-maximized --no-first-run --no-default-browser-check --disable-features=Translate", 
-                                         activeUrl, extensionPath, profilePath);
+                    args = string.Format("--app=\"{0}\" --load-extension=\"{1}\" --user-data-dir=\"{2}\" --start-maximized --no-first-run --no-default-browser-check --disable-features=Translate --disable-web-security", 
+                                         workspaceUrl, extensionPath, profilePath);
                 }
                 else
                 {
-                    args = string.Format("--app=\"{0}\" --user-data-dir=\"{1}\" --start-maximized --no-first-run --no-default-browser-check", 
-                                         activeUrl, profilePath);
+                    args = string.Format("--app=\"{0}\" --user-data-dir=\"{1}\" --start-maximized --no-first-run --no-default-browser-check --disable-web-security", 
+                                         workspaceUrl, profilePath);
                 }
 
                 browserInfo.Arguments = args;
@@ -131,7 +132,7 @@ namespace MRTServerLauncher
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo(activeUrl) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(workspaceUrl) { UseShellExecute = true });
                 }
                 catch { }
             }
