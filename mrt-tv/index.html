@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRT & MSKT Kutish Zali TV Tablosi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="tv-wrapper">
+    <!-- Header -->
+    <header class="tv-header">
+      <div class="header-logo-section">
+        <div class="logo-icon"><i class="fa-solid fa-magnet"></i></div>
+        <div>
+          <h1 class="clinic-title" id="tvClinicTitle">TOMOGRAFIYA & MRT MARKAZI</h1>
+          <span class="sub-title">ELEKTRON AQLLI NAVBAT TIZIMI</span>
+        </div>
+      </div>
+
+      <div class="live-datetime">
+        <div class="clock-display" id="tvClock">12:00:00</div>
+        <div class="date-display" id="tvDate">02-sentabr, 2026</div>
+      </div>
+    </header>
+
+    <!-- Main Devices Columns Grid -->
+    <main class="tv-devices-grid" id="tvDevicesGrid">
+      <!-- Dynamic MRT 1, MRT 2, MSKT Columns -->
+    </main>
+
+    <!-- Footer Ticker -->
+    <footer class="tv-footer">
+      <div class="ticker-wrap">
+        <div class="ticker-item">
+          <i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i> 
+          Hurmatli bemorlar! MRT tekshiruviga kirishdan avval barcha metall buyumlar, soat, tilla va elektron moslamalarni yechib qoldirishingizni so'raymiz.
+        </div>
+      </div>
+      <div class="audio-control-indicator" id="btnAudioToggle" title="Ovozni yoqish / o'chirish">
+        <i class="fa-solid fa-volume-high"></i> Ovozli E'lon: Faol
+      </div>
+    </footer>
+  </div>
+
+  <!-- Audio Chime -->
+  <audio id="audioChime" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="app.js"></script>
+</body>
+</html>

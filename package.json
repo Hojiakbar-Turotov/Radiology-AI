@@ -1,0 +1,28 @@
+{
+  "name": "utt",
+  "version": "1.0.0",
+  "description": "Ushbu tizim yagona **Google Firebase Realtime Database** bulutli bazasida ishlaydigan 3 ta alohida front-end dasturlaridan iborat:",
+  "main": "bot-runner.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hojiakbar-Turotov/Radiology-AI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Hojiakbar-Turotov/Radiology-AI/issues"
+  },
+  "homepage": "https://github.com/Hojiakbar-Turotov/Radiology-AI#readme",
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

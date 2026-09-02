@@ -1,0 +1,329 @@
+:root {
+  --bg-color: #0b1120;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --accent-blue: #38bdf8;
+  --accent-green: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-red: #f87171;
+  --text-white: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-white);
+  height: 100vh;
+  overflow: hidden;
+  padding: 16px 20px;
+}
+
+.tv-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+/* Header */
+.tv-header {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.header-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.logo-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+}
+
+.clinic-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(to right, #ffffff, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sub-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 2px;
+}
+
+.live-datetime {
+  text-align: right;
+}
+
+.clock-display {
+  font-size: 36px;
+  font-weight: 800;
+  font-family: monospace;
+  color: #ffffff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.date-display {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Devices Grid */
+.tv-devices-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  min-height: 0;
+}
+
+.device-column {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.device-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #334155;
+  padding-bottom: 10px;
+}
+
+.col-dev-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.col-dev-room {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #334155;
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+/* In Progress Card */
+.in-progress-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 95, 70, 0.2));
+  border: 2px solid var(--accent-green);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+}
+
+.card-status-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-green);
+}
+
+.pat-ticket-badge {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  font-family: monospace;
+}
+
+.pat-fullname {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pat-service-name {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.pat-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.badge-contrast {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+/* Preparing Card */
+.preparing-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(120, 53, 15, 0.2));
+  border: 1.5px solid var(--accent-amber);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preparing-card .card-status-label {
+  color: var(--accent-amber);
+}
+
+.prep-pat-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Waiting List */
+.waiting-list-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.waiting-list-header {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.waiting-items-scroll {
+  flex: 1;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.waiting-item-row {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.wait-ticket {
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-family: monospace;
+}
+
+.wait-name {
+  color: #e2e8f0;
+  font-weight: 600;
+  flex: 1;
+  margin-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wait-time {
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-family: monospace;
+}
+
+/* Empty placeholder */
+.empty-placeholder {
+  text-align: center;
+  padding: 30px 15px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Footer Ticker */
+.tv-footer {
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticker-wrap {
+  flex: 1;
+  font-size: 13.5px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.audio-control-indicator {
+  font-size: 12px;
+  background: #1e293b;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: #38bdf8;
+  font-weight: 700;
+  cursor: pointer;
+}

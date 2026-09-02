@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lokal Server Boshqaruv & Audit Paneli | MRT & UTT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Top Navigation -->
+    <header class="dash-header">
+      <div class="header-left">
+        <div class="logo-badge">
+          <i class="fa-solid fa-server"></i>
+        </div>
+        <div>
+          <h1>Lokal Server Boshqaruvi & Audit Monitoringi</h1>
+          <p class="subtitle">Klinikaning Ichki Tarmog'i • 100% Lokal & Xavfsiz Muhit</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="txtServerStatus">Server Faol (Online)</span>
+        </div>
+        <div class="server-ip-badge">
+          <i class="fa-solid fa-network-wired"></i> <span id="txtServerIp">127.0.0.1:3000</span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btnManualBackup" title="Zaxira nusxa yaratish">
+          <i class="fa-solid fa-floppy-disk"></i> Zaxira Olish
+        </button>
+      </div>
+    </header>
+
+    <!-- Metrics Cards Grid -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon icon-blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <div class="metric-content">
+          <span class="metric-label">Server Ish Vaqti (Uptime)</span>
+          <h2 id="metricUptime">0d 0s</h2>
+          <span class="metric-sub" id="metricTime">Vaqt: --:--:--</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon icon-green"><i class="fa-solid fa-microchip"></i></div>
+        <div class="metric-content">
+          <span class="metric-label">Xotira Ishlatilishi (RAM)</span>
+          <h2 id="metricMemory">0 MB</h2>
+          <span class="metric-sub" id="metricHeap">Heap: 0 MB</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon icon-purple"><i class="fa-solid fa-plug"></i></div>
+        <div class="metric-content">
+          <span class="metric-label">Ulangan Qurilmalar</span>
+          <h2 id="metricClients">0 ta</h2>
+          <span class="metric-sub">WebSocket Live Hub</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon icon-amber"><i class="fa-solid fa-users"></i></div>
+        <div class="metric-content">
+          <span class="metric-label">Bugungi Bemorlar</span>
+          <h2 id="metricQueue">0 ta</h2>
+          <span class="metric-sub" id="metricDevicesCount">3 ta apparat</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <div class="main-grid">
+      <!-- Left Column: Devices & Connected Clients -->
+      <div class="grid-col left-col">
+        <!-- Devices Smart Status -->
+        <div class="panel-box">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-laptop-medical"></i> Apparatlar & Aqlli Taqsimot</h3>
+            <span class="panel-tag" id="tagScheduler">Aqlli Algoritm: ON</span>
+          </div>
+          <div class="devices-list" id="devicesListContainer">
+            <!-- Dynamic Devices -->
+          </div>
+        </div>
+
+        <!-- Active Connected Clients -->
+        <div class="panel-box">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-network-wired"></i> Tarmoqdagi Ulangan Mijozlar</h3>
+            <span class="badge badge-success" id="badgeClientsCount">0 ta ulangan</span>
+          </div>
+          <div class="clients-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>IP Manzil</th>
+                  <th>Qurilma / Rol</th>
+                  <th>Xona</th>
+                  <th>Kechikish</th>
+                  <th>Vaqt</th>
+                </tr>
+              </thead>
+              <tbody id="clientsTableBody">
+                <tr><td colspan="5" class="empty-state">Hozircha mijozlar ulanmagan</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quick Server Tools -->
+        <div class="panel-box">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-sliders"></i> Tezkor Server Boshqaruvi</h3>
+          </div>
+          <div class="server-tools-grid">
+            <button class="btn btn-outline" id="btnTestVoice">
+              <i class="fa-solid fa-volume-high"></i> Ovozli Test (TV)
+            </button>
+            <button class="btn btn-outline" id="btnOpenTv">
+              <i class="fa-solid fa-tv"></i> MRT TV Tabloni Ochish
+            </button>
+            <button class="btn btn-outline" id="btnOpenLaborant">
+              <i class="fa-solid fa-mobile-screen"></i> Laborant Portal
+            </button>
+            <button class="btn btn-danger-outline" id="btnResetQueue">
+              <i class="fa-solid fa-trash-can"></i> Bugungi Navbatni Tozalash
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Real-time Traffic & Security Audit Log -->
+      <div class="grid-col right-col">
+        <div class="panel-box full-height">
+          <div class="panel-header">
+            <div>
+              <h3><i class="fa-solid fa-shield-halved"></i> Jonli Trafik & Xavfsizlik Audit Logi</h3>
+              <span class="panel-desc">Barcha REST so'rovlar, IP manzillar va navbat o'zgarishlari</span>
+            </div>
+            <div class="log-actions">
+              <button class="btn btn-icon" id="btnClearLogs" title="Loglarni tozalash"><i class="fa-solid fa-eraser"></i></button>
+              <button class="btn btn-icon" id="btnRefreshLogs" title="Yangilash"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+          <div class="logs-feed" id="logsFeedContainer">
+            <!-- Dynamic Logs -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

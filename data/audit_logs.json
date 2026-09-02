@@ -1,0 +1,28 @@
+[
+  {
+    "id": "log_1788342097773_f8ck",
+    "timestamp": "2026-09-02T09:41:37.773Z",
+    "timeFormatted": "14:41:37",
+    "ip": "127.0.0.1",
+    "method": "POST",
+    "path": "/api/queue/add",
+    "status": 200,
+    "durationMs": 3,
+    "action": "REQUEST",
+    "details": "Yangi bemor: KASIMOVA DILNOZA BAXODIROVNA (#M-002) -> mrt1",
+    "userAgent": ""
+  },
+  {
+    "id": "log_1788342097751_saa1",
+    "timestamp": "2026-09-02T09:41:37.751Z",
+    "timeFormatted": "14:41:37",
+    "ip": "127.0.0.1",
+    "method": "POST",
+    "path": "/api/queue/add",
+    "status": 200,
+    "durationMs": 4,
+    "action": "REQUEST",
+    "details": "Yangi bemor: ALIMOV ANVAR SHOKIROVICH (#M-001) -> mrt1",
+    "userAgent": ""
+  }
+]

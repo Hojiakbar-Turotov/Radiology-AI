@@ -1,0 +1,13 @@
+{
+  "clinicName": "Radiologiya va MRT Markazi",
+  "autoSchedule": true,
+  "prepTimeMinutes": 15,
+  "voiceLanguage": "uz",
+  "enableSoundNotification": true,
+  "allowedSubnets": [
+    "127.0.0.1",
+    "192.168.",
+    "10."
+  ],
+  "mrt1ContrastOnly": true
+}

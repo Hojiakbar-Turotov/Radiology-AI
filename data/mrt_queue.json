@@ -1,0 +1,66 @@
+[
+  {
+    "id": "p_1788342097747_g6kq0",
+    "ticketNumber": "M-001",
+    "patientName": "ALIMOV ANVAR SHOKIROVICH",
+    "patientId": "104523",
+    "pinfl": "",
+    "phone": "",
+    "birthDate": "",
+    "date": "2026-09-02",
+    "services": [
+      {
+        "code": "R157",
+        "name": "Bosh Miya MRT Kontrastsiz"
+      }
+    ],
+    "primaryService": "Bosh Miya MRT Kontrastsiz",
+    "isContrast": false,
+    "totalPrice": 0,
+    "deviceId": "mrt1",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 25,
+    "estimatedStartTime": "2026-09-02T09:41:37.747Z",
+    "estimatedFinishTime": "2026-09-02T10:06:37.747Z",
+    "prepCallTime": "2026-09-02T09:26:37.747Z",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-02T09:41:37.747Z",
+    "updatedAt": "2026-09-02T09:41:37.747Z"
+  },
+  {
+    "id": "p_1788342097771_j4nsh",
+    "ticketNumber": "M-002",
+    "patientName": "KASIMOVA DILNOZA BAXODIROVNA",
+    "patientId": "104524",
+    "pinfl": "",
+    "phone": "",
+    "birthDate": "",
+    "date": "2026-09-02",
+    "services": [
+      {
+        "code": "R158",
+        "name": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)"
+      }
+    ],
+    "primaryService": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)",
+    "isContrast": true,
+    "totalPrice": 0,
+    "deviceId": "mrt1",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 40,
+    "estimatedStartTime": "2026-09-02T10:06:37.747Z",
+    "estimatedFinishTime": "2026-09-02T10:46:37.747Z",
+    "prepCallTime": "2026-09-02T09:51:37.747Z",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-02T09:41:37.771Z",
+    "updatedAt": "2026-09-02T09:41:37.771Z"
+  }
+]

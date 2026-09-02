@@ -4454,6 +4454,34 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
 
+  // 1. Lokal MRT Serveriga sinxronlash (http://localhost:3000/api/queue/add)
+  try {
+    fetch("http://localhost:3000/api/queue/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        patientName: patientData.name,
+        patientId: patientData.id,
+        pinfl: patientData.pinfl,
+        phone: patientData.phone,
+        birthDate: patientData.birthDate,
+        services: patientData.services,
+        deviceId: device.id,
+        deviceType: device.type,
+        isContrast: isContrastStudy,
+        totalPrice: patientData.totalPrice,
+        operatorName: currentUser ? currentUser.name : "Operator",
+        referringDoctor: patientData.referringDoctor || ""
+      })
+    }).then(r => r.json()).then(res => {
+      if (res && res.success) {
+        console.log("✅ Lokal MRT Serverga saqlandi (#" + res.patient?.ticketNumber + ")");
+      }
+    }).catch(e => {
+      // Lokal server ulanmagan bo'lsa xato chiqarmaydi
+    });
+  } catch (localErr) {}
+
   try {
     const url = `${FIREBASE_DB_URL}/patients/${saveDate}.json`;
     const response = await safeFetch(url, {

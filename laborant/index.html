@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laborant Portali | MRT & MSKT Navbati</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="mobile-container">
+    <!-- Header -->
+    <header class="lab-header">
+      <div class="lab-title">
+        <i class="fa-solid fa-user-doctor"></i>
+        <span>Laborant Portali</span>
+      </div>
+      <div class="room-selector-wrap">
+        <select id="selectDevice" class="room-select">
+          <option value="mrt1">🧲 1-MRT Xonasi (1.5 T)</option>
+          <option value="mrt2">🧲 2-MRT Xonasi (3.0 T)</option>
+          <option value="mskt1">⚡ 1-MSKT Xonasi</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Active Patient Card (Xonadagi yoki Chaqirilayotgan Bemor) -->
+    <section class="current-patient-section" id="currentPatientSection">
+      <div class="section-badge" id="currentSectionBadge">🟢 Xonadagi Bemor</div>
+      
+      <div class="patient-main-card" id="currentPatientCard">
+        <div class="empty-patient-box" id="emptyPatientBox">
+          <i class="fa-solid fa-bed-pulse"></i>
+          <p>Hozirda xonada bemor yo'q</p>
+          <small>Quyidagi navbatdan keyingi bemorni chaqiring</small>
+        </div>
+
+        <div class="active-patient-details" id="activePatientDetails" style="display:none;">
+          <div class="pat-top-meta">
+            <span class="ticket-pill" id="curTicket">M-001</span>
+            <span class="contrast-pill" id="curContrastPill" style="display:none;"><i class="fa-solid fa-syringe"></i> KONTRAST</span>
+          </div>
+
+          <h2 class="pat-name" id="curName">ALIYEV VALI</h2>
+          <p class="pat-service" id="curService">Bosh Miya MRT Tekshiruvi</p>
+          <div class="pat-info-line">
+            <span><i class="fa-regular fa-clock"></i> <strong id="curDuration">30</strong> daqiqa</span>
+            <span id="curStartTime">Boshlandi: --:--</span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons-grid">
+            <button class="btn btn-call" id="btnActionCall">
+              <i class="fa-solid fa-bullhorn"></i> Qayta Chaqirish
+            </button>
+            <button class="btn btn-complete" id="btnActionComplete">
+              <i class="fa-solid fa-check-double"></i> Tugatish (Bo'shatish)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preparing Patient Card (Navbatdagi / Kateter qo'yiladigan) -->
+    <section class="prep-section">
+      <div class="section-title">
+        <span>🟡 Tayyorgarlikdagi Bemor (Navbatdagi)</span>
+      </div>
+      <div class="prep-card" id="prepPatientCard">
+        <div id="emptyPrepBox" style="color:#64748b; font-size:12px; text-align:center; padding:10px;">
+          Hozirda tayyorgarlikda bemor yo'q
+        </div>
+        <div id="prepDetailsBox" style="display:none;">
+          <div class="prep-top">
+            <strong id="prepTicket" style="color:#fbbf24; font-family:monospace; font-size:16px;">M-002</strong>
+            <span id="prepContrastBadge" class="mini-contrast-badge" style="display:none;">💉 Kateter qo'yish!</span>
+          </div>
+          <div class="prep-name" id="prepName">Karimov Jasur</div>
+          <div class="prep-service" id="prepService">Ko'krak qafasi MRT</div>
+          <button class="btn btn-start-prep" id="btnCallToRoom">
+            <i class="fa-solid fa-door-open"></i> Xonaga Kirishga Ruxsat Berish
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Waiting Queue List -->
+    <section class="queue-list-section">
+      <div class="section-title">
+        <span>🔵 Kutayotgan Bemorlar Ro'yxati</span>
+        <span class="badge" id="waitingCountBadge">0 ta</span>
+      </div>
+      <div class="waiting-cards-wrap" id="waitingCardsContainer">
+        <!-- Dynamic Waiting List -->
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

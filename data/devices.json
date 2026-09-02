@@ -1,0 +1,35 @@
+[
+  {
+    "id": "mrt1",
+    "name": "MRT 1 (1.5 Tesla)",
+    "room": "1-MRT Xonasi",
+    "type": "MRT",
+    "specialty": "Tomografiya (MRT)",
+    "hasInjector": true,
+    "supportsContrast": true,
+    "status": "active",
+    "currentPatientId": null
+  },
+  {
+    "id": "mrt2",
+    "name": "MRT 2 (3.0 Tesla)",
+    "room": "2-MRT Xonasi",
+    "type": "MRT",
+    "specialty": "Tomografiya (MRT)",
+    "hasInjector": false,
+    "supportsContrast": false,
+    "status": "active",
+    "currentPatientId": null
+  },
+  {
+    "id": "mskt1",
+    "name": "MSKT 1",
+    "room": "1-MSKT Xonasi",
+    "type": "MSKT",
+    "specialty": "Tomografiya (MSKT)",
+    "hasInjector": true,
+    "supportsContrast": true,
+    "status": "active",
+    "currentPatientId": null
+  }
+]
