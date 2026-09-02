@@ -13,6 +13,7 @@ namespace MRTServerLauncher
         private static NotifyIcon trayIcon = null;
         private static string currentDir = "";
         private static string extensionPath = "";
+        private static string profilePath = "";
         private static string karmedLocalUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
         private static string karmedRemoteUrl = "http://213.230.91.59:2025/Radiology/Rbys.aspx";
 
@@ -43,7 +44,13 @@ namespace MRTServerLauncher
 
             currentDir = AppDomain.CurrentDomain.BaseDirectory;
             extensionPath = Path.Combine(currentDir, "extension-kardelen");
+            profilePath = Path.Combine(currentDir, "data", "karmed_profile");
             string serverScript = Path.Combine(currentDir, "server.js");
+
+            if (!Directory.Exists(profilePath))
+            {
+                try { Directory.CreateDirectory(profilePath); } catch { }
+            }
 
             if (!File.Exists(serverScript))
             {
@@ -52,17 +59,17 @@ namespace MRTServerLauncher
                 return;
             }
 
-            // 1. Eskirgan jarayonlarni yopish (Fonda, darchasiz)
+            // 1. Eskirgan jarayonlarni tozalash
             KillOldProcesses();
 
-            // 2. Node.js serverini fonda (mutlaqo darchasiz) ishga tushirish
+            // 2. Node.js serverini fonda (darchasiz) ishga tushirish
             try
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.FileName = "node.exe";
                 startInfo.Arguments = "\"" + serverScript + "\"";
                 startInfo.WorkingDirectory = currentDir;
-                startInfo.CreateNoWindow = true; // TERMINAL OCHILMASIN!
+                startInfo.CreateNoWindow = true;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.UseShellExecute = false;
 
@@ -77,38 +84,48 @@ namespace MRTServerLauncher
             }
 
             // Server yuklanishi uchun ozgina kutish
-            Thread.Sleep(1200);
+            Thread.Sleep(1000);
 
-            // 3. Google Chrome ni Karmed sahifasi va kengaytmasi bilan bevosita ochish (to'siqlarsiz)
-            OpenKarmedApp();
-
-            // 4. Windows Tray (Soat yonidagi panel) menyusini yaratish
+            // 3. Windows Tray menyusini yaratish
             SetupTrayIcon();
+
+            // 4. Karmedni ALOHIDA OYNADA (Standalone App Window) ochish
+            OpenKarmedApp();
 
             // Dasturni fonda ushlab turish
             Application.Run();
         }
 
-        static void OpenKarmedApp()
+        public static void OpenKarmedApp()
         {
             string activeUrl = GetActiveKarmedUrl();
-            string chromeExe = FindChromePath();
+            string browserExe = FindBrowserPath();
+
             try
             {
-                ProcessStartInfo chromeInfo = new ProcessStartInfo();
-                chromeInfo.FileName = chromeExe;
+                ProcessStartInfo browserInfo = new ProcessStartInfo();
+                browserInfo.FileName = browserExe;
 
+                // Windows 10 va Windows 11 da to'liq mustaqil alohida oyna:
+                // --app=URL: Manzil satrisiz, tablarsiz mustaqil desktop dastur oynasi
+                // --user-data-dir: Alohida profil (mavjud shaxsiy brauzer oynalari bilan aralashmaydi)
+                // --load-extension: Karmed navbat kengaytmasini to'liq yuklash
+                // --start-maximized: Katta oyna sifatida ochish
+                string args;
                 if (Directory.Exists(extensionPath))
                 {
-                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\"", extensionPath, activeUrl);
+                    args = string.Format("--app=\"{0}\" --load-extension=\"{1}\" --user-data-dir=\"{2}\" --start-maximized --no-first-run --no-default-browser-check --disable-features=Translate", 
+                                         activeUrl, extensionPath, profilePath);
                 }
                 else
                 {
-                    chromeInfo.Arguments = string.Format("\"{0}\"", activeUrl);
+                    args = string.Format("--app=\"{0}\" --user-data-dir=\"{1}\" --start-maximized --no-first-run --no-default-browser-check", 
+                                         activeUrl, profilePath);
                 }
 
-                chromeInfo.UseShellExecute = false;
-                Process.Start(chromeInfo);
+                browserInfo.Arguments = args;
+                browserInfo.UseShellExecute = false;
+                Process.Start(browserInfo);
             }
             catch
             {
@@ -120,13 +137,17 @@ namespace MRTServerLauncher
             }
         }
 
-        static string FindChromePath()
+        static string FindBrowserPath()
         {
+            // Windows 10 va 11 da avval Chrome, so'ngra Edge tekshiriladi
             string[] candidates = new string[]
             {
                 @"C:\Program Files\Google\Chrome\Application\chrome.exe",
                 @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\Application\chrome.exe")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\Application\chrome.exe"),
+                @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                @"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Edge\Application\msedge.exe")
             };
 
             foreach (string path in candidates)
@@ -148,7 +169,7 @@ namespace MRTServerLauncher
                 killProc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 killProc.StartInfo.UseShellExecute = false;
                 killProc.Start();
-                killProc.WaitForExit(1500);
+                killProc.WaitForExit(1200);
             }
             catch { }
         }
@@ -157,11 +178,11 @@ namespace MRTServerLauncher
         {
             ContextMenu contextMenu = new ContextMenu();
 
-            MenuItem itemOpen = new MenuItem("🏥 Karmed Dasturini Ochish", (s, e) => OpenKarmedApp());
+            MenuItem itemOpen = new MenuItem("🏥 Karmed Dasturini Ochish (Alohida Oyna)", (s, e) => OpenKarmedApp());
             itemOpen.DefaultItem = true;
             contextMenu.MenuItems.Add(itemOpen);
 
-            contextMenu.MenuItems.Add(new MenuItem("🌐 Karmed Ish Maydoni (Yagona Oyna)", (s, e) => {
+            contextMenu.MenuItems.Add(new MenuItem("🌐 Karmed Ish Maydoni (Workspace)", (s, e) => {
                 Process.Start(new ProcessStartInfo("http://localhost:3000/karmed-workspace/index.html") { UseShellExecute = true });
             }));
 
@@ -171,6 +192,10 @@ namespace MRTServerLauncher
 
             contextMenu.MenuItems.Add(new MenuItem("📺 MRT TV Tablo (Kutish Zali)", (s, e) => {
                 Process.Start(new ProcessStartInfo("http://localhost:3000/mrt-tv/") { UseShellExecute = true });
+            }));
+
+            contextMenu.MenuItems.Add(new MenuItem("👨‍⚕️ Laborant Portali", (s, e) => {
+                Process.Start(new ProcessStartInfo("http://localhost:3000/laborant/") { UseShellExecute = true });
             }));
 
             contextMenu.MenuItems.Add(new MenuItem("📊 Server Dashboard & Klaster", (s, e) => {
@@ -184,14 +209,16 @@ namespace MRTServerLauncher
             }));
 
             trayIcon = new NotifyIcon();
-            trayIcon.Text = "Karmed & MRT Lokal Serveri (Faol)";
+            trayIcon.Text = "Karmed & MRT Serveri (Faol)";
             trayIcon.Icon = SystemIcons.Application;
             trayIcon.ContextMenu = contextMenu;
             trayIcon.Visible = true;
 
             trayIcon.DoubleClick += (s, e) => OpenKarmedApp();
 
-            trayIcon.ShowBalloonTip(3000, "Karmed & MRT Serveri", "Lokal server va klaster muvaffaqiyatli ishga tushirildi.", ToolTipIcon.Info);
+            string currentUrl = GetActiveKarmedUrl();
+            string hostType = currentUrl.Contains("192.168.150.111") ? "Lokal (192.168.150.111)" : "Tashqi (213.230.91.59)";
+            trayIcon.ShowBalloonTip(3000, "Karmed & MRT Tizimi", "Lokal server faol. Karmed alohida oynada ochilmoqda...\nServer: " + hostType, ToolTipIcon.Info);
         }
 
         static void ExitApplication()
