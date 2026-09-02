@@ -13,7 +13,27 @@ namespace MRTServerLauncher
         private static NotifyIcon trayIcon = null;
         private static string currentDir = "";
         private static string extensionPath = "";
-        private static string karmedUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
+        private static string karmedLocalUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
+        private static string karmedRemoteUrl = "http://213.230.91.59:2025/Radiology/Rbys.aspx";
+
+        public static string GetActiveKarmedUrl()
+        {
+            try
+            {
+                using (var client = new System.Net.Sockets.TcpClient())
+                {
+                    var asyncResult = client.BeginConnect("192.168.150.111", 2025, null, null);
+                    bool connected = asyncResult.AsyncWaitHandle.WaitOne(1200);
+                    if (connected && client.Connected)
+                    {
+                        return karmedLocalUrl;
+                    }
+                }
+            }
+            catch { }
+
+            return karmedRemoteUrl;
+        }
 
         [STAThread]
         static void Main()
@@ -71,20 +91,20 @@ namespace MRTServerLauncher
 
         static void OpenKarmedApp()
         {
+            string activeUrl = GetActiveKarmedUrl();
             string chromeExe = FindChromePath();
             try
             {
                 ProcessStartInfo chromeInfo = new ProcessStartInfo();
                 chromeInfo.FileName = chromeExe;
 
-                // Chrome Karmedni to'g'ridan-to'g'ri (hech qanday iframe to'sig'isiz) kengaytma bilan ochadi
                 if (Directory.Exists(extensionPath))
                 {
-                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\"", extensionPath, karmedUrl);
+                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\"", extensionPath, activeUrl);
                 }
                 else
                 {
-                    chromeInfo.Arguments = string.Format("\"{0}\"", karmedUrl);
+                    chromeInfo.Arguments = string.Format("\"{0}\"", activeUrl);
                 }
 
                 chromeInfo.UseShellExecute = false;
@@ -94,7 +114,7 @@ namespace MRTServerLauncher
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo(karmedUrl) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(activeUrl) { UseShellExecute = true });
                 }
                 catch { }
             }
@@ -137,9 +157,13 @@ namespace MRTServerLauncher
         {
             ContextMenu contextMenu = new ContextMenu();
 
-            MenuItem itemOpen = new MenuItem("🏥 Karmed & Navbat Oynasini Ochish", (s, e) => OpenKarmedApp());
+            MenuItem itemOpen = new MenuItem("🏥 Karmed Dasturini Ochish", (s, e) => OpenKarmedApp());
             itemOpen.DefaultItem = true;
             contextMenu.MenuItems.Add(itemOpen);
+
+            contextMenu.MenuItems.Add(new MenuItem("🌐 Karmed Ish Maydoni (Yagona Oyna)", (s, e) => {
+                Process.Start(new ProcessStartInfo("http://localhost:3000/karmed-workspace/index.html") { UseShellExecute = true });
+            }));
 
             contextMenu.MenuItems.Add(new MenuItem("📝 Navbatga Yozish Portali", (s, e) => {
                 Process.Start(new ProcessStartInfo("http://localhost:3000/navbat-yozish/") { UseShellExecute = true });

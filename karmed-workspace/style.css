@@ -503,3 +503,127 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Karmed Host Switcher & Fallback Styles */
+.karmed-host-btn {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  font-family: monospace;
+  font-size: 11.5px;
+}
+
+.karmed-host-btn:hover {
+  background: #1e293b;
+  border-color: #38bdf8;
+}
+
+.host-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.host-dot.remote {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.host-dot.offline {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.karmed-fallback-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 15, 25, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.fallback-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 520px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.fallback-icon {
+  font-size: 40px;
+  color: #f59e0b;
+  margin-bottom: 16px;
+}
+
+.fallback-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f3f4f6;
+  margin-bottom: 10px;
+}
+
+.fallback-card p {
+  font-size: 13px;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.fallback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-fallback-primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.btn-fallback-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-fallback-secondary {
+  background: #1f2937;
+  color: #cbd5e1;
+  border: 1px solid #374151;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-fallback-secondary:hover {
+  background: #374151;
+  color: #fff;
+}

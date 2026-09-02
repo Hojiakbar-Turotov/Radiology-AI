@@ -85,6 +85,59 @@ function sendJSON(res, data, statusCode = 200) {
 }
 
 // -------------------------------------------------------------
+// KARMED SERVER TEKSHIRUVI VA AVTO-FAILOVER (192.168.150.111 -> 213.230.91.59)
+// -------------------------------------------------------------
+const KARMED_LOCAL_URL = 'http://192.168.150.111:2025/Radiology/Rbys.aspx';
+const KARMED_REMOTE_URL = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
+let cachedKarmedStatus = null;
+let lastKarmedCheckTime = 0;
+
+async function checkKarmedActiveUrl(force = false) {
+  const now = Date.now();
+  if (!force && cachedKarmedStatus && (now - lastKarmedCheckTime < 25000)) {
+    return cachedKarmedStatus;
+  }
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    const req = http.get(KARMED_LOCAL_URL, { timeout: 1600 }, (res) => {
+      if (!resolved) {
+        resolved = true;
+        cachedKarmedStatus = {
+          url: KARMED_LOCAL_URL,
+          host: '192.168.150.111:2025',
+          isLocal: true,
+          isFallback: false,
+          status: 'online',
+          message: 'Lokal Karmed serveri (192.168.150.111) faol'
+        };
+        lastKarmedCheckTime = Date.now();
+        resolve(cachedKarmedStatus);
+      }
+    });
+
+    const fallback = (errReason) => {
+      if (!resolved) {
+        resolved = true;
+        cachedKarmedStatus = {
+          url: KARMED_REMOTE_URL,
+          host: '213.230.91.59:2025',
+          isLocal: false,
+          isFallback: true,
+          status: 'fallback_online',
+          message: `Lokal Karmed (192.168.150.111) aloqa bermadi (${errReason}). Tashqi serverga (213.230.91.59) o'tildi.`
+        };
+        lastKarmedCheckTime = Date.now();
+        resolve(cachedKarmedStatus);
+      }
+    };
+
+    req.on('error', (e) => fallback(e.message));
+    req.on('timeout', () => { req.destroy(); fallback('TIMEOUT'); });
+  });
+}
+
+// -------------------------------------------------------------
 // ASOSIY HTTP SERVER
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
@@ -169,6 +222,13 @@ const server = http.createServer(async (req, res) => {
         const body = await parseBody(req);
         const repRes = cluster.handleIncomingReplication(body.txId, body.action, body.payload);
         return sendJSON(res, { success: true, ...repRes });
+      }
+
+      // 0.1 KARMED URL VA FAILOVER TEKSHIRUVI
+      if (req.method === 'GET' && pathname === '/api/karmed-url') {
+        const forceCheck = parsedUrl.searchParams.get('force') === 'true';
+        const karmedInfo = await checkKarmedActiveUrl(forceCheck);
+        return sendJSON(res, { success: true, ...karmedInfo });
       }
 
       // 1. GET /api/queue - Bugungi navbat
@@ -395,6 +455,14 @@ const server = http.createServer(async (req, res) => {
   // STATIK FAYLLARNI UZATISH (Static File Server)
   // -------------------------------------------------------------
   let reqUrl = decodeURI(pathname);
+
+  // Karmedga tezkor yo'naltirish (Redirect)
+  if (reqUrl === '/karmed' || reqUrl === '/open-karmed') {
+    const karmedInfo = await checkKarmedActiveUrl();
+    res.writeHead(302, { 'Location': karmedInfo.url });
+    return res.end();
+  }
+
   if (reqUrl === '/' || reqUrl === '') {
     reqUrl = '/karmed-workspace/index.html';
   }

@@ -6,14 +6,102 @@ let allServices = [];
 let todayQueue = [];
 let currentTab = 'karmed';
 let ws = null;
+let currentKarmedHost = '213.230.91.59:2025';
+let activeKarmedUrl = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
 
 document.addEventListener("DOMContentLoaded", () => {
+  initKarmedConnection();
   initServices();
   initWebSocket();
   fetchTodayQueue();
   pollClusterStatus();
   setInterval(pollClusterStatus, 5000);
 });
+
+// -------------------------------------------------------------
+// KARMED ALOQASINI ANIQLASH VA FAILOVER (192.168.150.111 -> 213.230.91.59)
+// -------------------------------------------------------------
+async function initKarmedConnection() {
+  const frame = document.getElementById("frameKarmed");
+  const overlay = document.getElementById("karmedFallbackOverlay");
+
+  try {
+    const res = await fetch("/api/karmed-url");
+    const data = await res.json();
+    if (data.success && data.url) {
+      activeKarmedUrl = data.url;
+      currentKarmedHost = data.host;
+      if (frame) frame.src = activeKarmedUrl;
+      updateKarmedUI(data.host, data.isLocal);
+    }
+  } catch (err) {
+    activeKarmedUrl = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
+    currentKarmedHost = '213.230.91.59:2025';
+    if (frame) frame.src = activeKarmedUrl;
+    updateKarmedUI('213.230.91.59:2025', false);
+  }
+
+  // Iframe yuklanishini kuzatish
+  if (frame) {
+    let frameLoaded = false;
+    frame.onload = () => {
+      frameLoaded = true;
+      if (overlay) overlay.style.display = "none";
+    };
+
+    setTimeout(() => {
+      if (!frameLoaded && currentKarmedHost.includes("192.168.150.111")) {
+        console.warn("[Karmed Frame] 192.168.150.111 yuklanmadi, 213.230.91.59 ga o'tilmoqda...");
+        switchKarmedHost("213.230.91.59");
+      }
+    }, 3800);
+  }
+}
+
+function updateKarmedUI(host, isLocal) {
+  const dot = document.getElementById("karmedHostDot");
+  const txt = document.getElementById("txtKarmedHost");
+  if (txt) {
+    txt.innerText = isLocal ? `Karmed: 192.168.150.111` : `Karmed: 213.230.91.59`;
+  }
+  if (dot) {
+    dot.className = isLocal ? "host-dot" : "host-dot remote";
+  }
+}
+
+window.switchKarmedHost = function(targetHost) {
+  const frame = document.getElementById("frameKarmed");
+  const overlay = document.getElementById("karmedFallbackOverlay");
+
+  if (targetHost.includes("192.168.150.111")) {
+    currentKarmedHost = "192.168.150.111:2025";
+    activeKarmedUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
+    updateKarmedUI(currentKarmedHost, true);
+  } else {
+    currentKarmedHost = "213.230.91.59:2025";
+    activeKarmedUrl = "http://213.230.91.59:2025/Radiology/Rbys.aspx";
+    updateKarmedUI(currentKarmedHost, false);
+  }
+
+  if (frame) {
+    frame.src = activeKarmedUrl;
+  }
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+};
+
+window.toggleKarmedHost = function() {
+  if (currentKarmedHost.includes("192.168.150.111")) {
+    switchKarmedHost("213.230.91.59");
+  } else {
+    switchKarmedHost("192.168.150.111");
+  }
+};
+
+window.openKarmedInNewTab = function() {
+  window.open(activeKarmedUrl, "_blank");
+};
 
 // -------------------------------------------------------------
 // VIEW SWITCHING

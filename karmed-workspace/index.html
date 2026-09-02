@@ -44,6 +44,17 @@
 
       <!-- Right: Action Tools & Cluster Status -->
       <div class="menu-actions">
+        <!-- Karmed Host Switcher -->
+        <button class="action-btn karmed-host-btn" id="btnKarmedHost" onclick="toggleKarmedHost()" title="Karmed server manzilini almashtirish (192.168.150.111 / 213.230.91.59)">
+          <span class="host-dot" id="karmedHostDot"></span>
+          <span id="txtKarmedHost">Karmed: 213.230.91.59</span>
+        </button>
+
+        <!-- Karmed in New Tab -->
+        <button class="action-btn" id="btnOpenExternal" onclick="openKarmedInNewTab()" title="Karmed dasturini alohida oynada ochish">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Alohida oyna
+        </button>
+
         <!-- Quick Queue Drawer Toggle -->
         <button class="action-btn btn-quick-queue active" id="btnToggleDrawer" onclick="toggleQuickQueueDrawer()" title="Yon tomonda tezkor navbat oynasini ochish / yopish">
           <i class="fa-solid fa-bolt"></i> Tezkor Navbat
@@ -72,7 +83,27 @@
       <!-- Primary Content Area (Embedded Views) -->
       <main class="primary-viewport" id="primaryViewport">
         <!-- 1. Karmed Frame -->
-        <iframe id="frameKarmed" class="view-frame active" src="http://192.168.150.111:2025/Radiology/Rbys.aspx" title="Karmed Radiologiya"></iframe>
+        <iframe id="frameKarmed" class="view-frame active" src="http://213.230.91.59:2025/Radiology/Rbys.aspx" title="Karmed Radiologiya"></iframe>
+
+        <!-- Karmed Fallback Overlay -->
+        <div id="karmedFallbackOverlay" class="karmed-fallback-overlay" style="display:none;">
+          <div class="fallback-card">
+            <div class="fallback-icon"><i class="fa-solid fa-network-wired"></i></div>
+            <h3>Karmed Serveriga Ulanish</h3>
+            <p id="karmedFallbackMsg">Lokal server (192.168.150.111:2025) javob bermadi. Tizim avtomatik ravishda tashqi serverga (213.230.91.59:2025) o'tdi.</p>
+            <div class="fallback-actions">
+              <button class="btn-fallback-primary" onclick="switchKarmedHost('213.230.91.59')">
+                <i class="fa-solid fa-globe"></i> 213.230.91.59 (Tashqi Server)
+              </button>
+              <button class="btn-fallback-secondary" onclick="openKarmedInNewTab()">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Alohida Oynada Ochish
+              </button>
+              <button class="btn-fallback-secondary" onclick="switchKarmedHost('192.168.150.111')">
+                <i class="fa-solid fa-rotate"></i> 192.168.150.111 (Lokal) ni tekshirish
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- 2. Navbat Yozish Frame -->
         <iframe id="frameNavbat" class="view-frame" src="/navbat-yozish/" title="Navbatga Yozish Portali"></iframe>
