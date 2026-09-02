@@ -7,6 +7,23 @@ namespace MRTServerLauncher
 {
     class Program
     {
+        static string FindChromePath()
+        {
+            string[] candidates = new string[]
+            {
+                @"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\Application\chrome.exe")
+            };
+
+            foreach (string path in candidates)
+            {
+                if (File.Exists(path)) return path;
+            }
+
+            return "chrome.exe";
+        }
+
         static void Main(string[] args)
         {
             Console.Title = "MRT & UTT Multi-Server Klasteri - Ishga Tushiruvchi";
@@ -77,15 +94,47 @@ namespace MRTServerLauncher
 
             Thread.Sleep(1200);
 
+            string karmedUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
+            string localPortalUrl = "http://localhost:3000/navbat-yozish/";
+            string extensionPath = Path.Combine(currentDir, "extension-kardelen");
+
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("[3/3] Brauzerda Navbatga Yozish Portali ochilmoqda...");
+            Console.WriteLine("[3/3] Google Chrome va Karmed Radiologiya oynasi ochilmoqda...");
+            Console.WriteLine("      • Karmed manzili: " + karmedUrl);
+            Console.WriteLine("      • Kengaytma:      " + extensionPath);
             Console.ResetColor();
 
             try
             {
-                Process.Start(new ProcessStartInfo("http://localhost:3000/navbat-yozish/") { UseShellExecute = true });
+                string chromeExe = FindChromePath();
+                ProcessStartInfo chromeInfo = new ProcessStartInfo();
+                chromeInfo.FileName = chromeExe;
+
+                // Kengaytmani yuklash va kerakli oynalarni ochish
+                if (Directory.Exists(extensionPath))
+                {
+                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\" \"{2}\"", extensionPath, karmedUrl, localPortalUrl);
+                }
+                else
+                {
+                    chromeInfo.Arguments = string.Format("\"{0}\" \"{1}\"", karmedUrl, localPortalUrl);
+                }
+
+                chromeInfo.UseShellExecute = false;
+                Process.Start(chromeInfo);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("[Ogohlantirish] Chrome ochilishida: " + ex.Message);
+                Console.ResetColor();
+                try
+                {
+                    Process.Start(new ProcessStartInfo(karmedUrl) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(localPortalUrl) { UseShellExecute = true });
+                }
+                catch { }
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n================================================================");
@@ -93,6 +142,7 @@ namespace MRTServerLauncher
             Console.WriteLine("================================================================");
             Console.ResetColor();
             Console.WriteLine("  • Klaster Rejimi:   High-Availability P2P Mesh (Maks: 5 ta Server)");
+            Console.WriteLine("  • Karmed URL:       " + karmedUrl);
             Console.WriteLine("  • Navbatga Yozish:  http://localhost:3000/navbat-yozish/");
             Console.WriteLine("  • Server Dashboard: http://localhost:3000/server-dashboard/");
             Console.WriteLine("  • MRT TV Tablo:     http://localhost:3000/mrt-tv/");
