@@ -1,12 +1,106 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace MRTServerLauncher
 {
-    class Program
+    static class Program
     {
+        private static Process serverProcess = null;
+        private static NotifyIcon trayIcon = null;
+        private static string currentDir = "";
+        private static string extensionPath = "";
+        private static string appUrl = "http://localhost:3000/karmed-workspace/";
+
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            extensionPath = Path.Combine(currentDir, "extension-kardelen");
+            string serverScript = Path.Combine(currentDir, "server.js");
+
+            if (!File.Exists(serverScript))
+            {
+                MessageBox.Show("server.js fayli topilmadi!\nIltimos, ushbu dasturni loyiha papkasida ishga tushiring.", 
+                                "MRT Server Xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // 1. Eskirgan jarayonlarni yopish (Fonda, darchasiz)
+            KillOldProcesses();
+
+            // 2. Node.js serverini fonda (mutlaqo darchasiz) ishga tushirish
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.FileName = "node.exe";
+                startInfo.Arguments = "\"" + serverScript + "\"";
+                startInfo.WorkingDirectory = currentDir;
+                startInfo.CreateNoWindow = true; // TERMINAL OCHILMASIN!
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.UseShellExecute = false;
+
+                serverProcess = Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Node.js serverini ishga tushirishda xatolik:\n" + ex.Message + 
+                                "\n\nIltimos, kompyuterda Node.js o'rnatilganligini tekshiring.", 
+                                "Server Xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Server yuklanishi uchun ozgina kutish
+            Thread.Sleep(1200);
+
+            // 3. Google Chrome ni Karmed menyusi va kengaytmasi bilan App rejimida ochish
+            OpenKarmedApp();
+
+            // 4. Windows Tray (Soat yonidagi panel) menyusini yaratish
+            SetupTrayIcon();
+
+            // Dasturni fonda ushlab turish
+            Application.Run();
+        }
+
+        static void OpenKarmedApp()
+        {
+            string chromeExe = FindChromePath();
+            try
+            {
+                ProcessStartInfo chromeInfo = new ProcessStartInfo();
+                chromeInfo.FileName = chromeExe;
+
+                // Chrome App rejimida (manzil satrisiz, alohida dastur oynasi kabi)
+                if (Directory.Exists(extensionPath))
+                {
+                    chromeInfo.Arguments = string.Format("--app=\"{0}\" --load-extension=\"{1}\"", appUrl, extensionPath);
+                }
+                else
+                {
+                    chromeInfo.Arguments = string.Format("--app=\"{0}\"", appUrl);
+                }
+
+                chromeInfo.UseShellExecute = false;
+                Process.Start(chromeInfo);
+            }
+            catch
+            {
+                // Agar Chrome topilmasa, standart brauzerda ochish
+                try
+                {
+                    Process.Start(new ProcessStartInfo(appUrl) { UseShellExecute = true });
+                }
+                catch { }
+            }
+        }
+
         static string FindChromePath()
         {
             string[] candidates = new string[]
@@ -24,139 +118,69 @@ namespace MRTServerLauncher
             return "chrome.exe";
         }
 
-        static void Main(string[] args)
+        static void KillOldProcesses()
         {
-            Console.Title = "MRT & UTT Multi-Server Klasteri - Ishga Tushiruvchi";
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("================================================================");
-            Console.WriteLine("  🏥 TOMOGRAFIYA (MRT & MSKT) MULTI-SERVER KLASTERI");
-            Console.WriteLine("  High-Availability P2P Mesh | Maks: 5 ta Server | Auto-Failover");
-            Console.WriteLine("================================================================");
-            Console.ResetColor();
-
-            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
-            string serverScript = Path.Combine(currentDir, "server.js");
-
-            if (!File.Exists(serverScript))
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\n[XATO] server.js fayli topilmadi!");
-                Console.WriteLine("Iltimos, ushbu dasturni loyihaning asosiy papkasida saqlang.");
-                Console.ResetColor();
-                Console.WriteLine("\nChiqish uchun istalgan tugmani bosing...");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n[1/3] Eskirgan jarayonlar tekshirilmoqda...");
-            Console.ResetColor();
-
-            // Eski node jarayonini to'xtatish
             try
             {
                 Process killProc = new Process();
                 killProc.StartInfo.FileName = "taskkill";
                 killProc.StartInfo.Arguments = "/F /IM node.exe";
                 killProc.StartInfo.CreateNoWindow = true;
+                killProc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 killProc.StartInfo.UseShellExecute = false;
                 killProc.Start();
                 killProc.WaitForExit(1500);
             }
             catch { }
+        }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("[2/3] Server ishga tushirilmoqda (Port: 3000)...");
-            Console.ResetColor();
+        static void SetupTrayIcon()
+        {
+            ContextMenu contextMenu = new ContextMenu();
 
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.FileName = "node.exe";
-            startInfo.Arguments = "\"" + serverScript + "\"";
-            startInfo.WorkingDirectory = currentDir;
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = false;
-            startInfo.RedirectStandardError = false;
+            MenuItem itemOpen = new MenuItem("🏥 Karmed & Navbat Oynasini Ochish", (s, e) => OpenKarmedApp());
+            itemOpen.DefaultItem = true;
+            contextMenu.MenuItems.Add(itemOpen);
 
-            Process serverProcess = null;
-            try
+            contextMenu.MenuItems.Add(new MenuItem("📝 Navbatga Yozish Portali", (s, e) => {
+                Process.Start(new ProcessStartInfo("http://localhost:3000/navbat-yozish/") { UseShellExecute = true });
+            }));
+
+            contextMenu.MenuItems.Add(new MenuItem("📺 MRT TV Tablo (Kutish Zali)", (s, e) => {
+                Process.Start(new ProcessStartInfo("http://localhost:3000/mrt-tv/") { UseShellExecute = true });
+            }));
+
+            contextMenu.MenuItems.Add(new MenuItem("📊 Server Dashboard & Klaster", (s, e) => {
+                Process.Start(new ProcessStartInfo("http://localhost:3000/server-dashboard/") { UseShellExecute = true });
+            }));
+
+            contextMenu.MenuItems.Add("-");
+
+            contextMenu.MenuItems.Add(new MenuItem("❌ Serverni To'xtatish va Chiqish", (s, e) => {
+                ExitApplication();
+            }));
+
+            trayIcon = new NotifyIcon();
+            trayIcon.Text = "Karmed & MRT Lokal Serveri (Faol)";
+            trayIcon.Icon = SystemIcons.Application;
+            trayIcon.ContextMenu = contextMenu;
+            trayIcon.Visible = true;
+
+            trayIcon.DoubleClick += (s, e) => OpenKarmedApp();
+
+            trayIcon.ShowBalloonTip(3000, "Karmed & MRT Serveri", "Lokal server va klaster muvaffaqiyatli ishga tushirildi.", ToolTipIcon.Info);
+        }
+
+        static void ExitApplication()
+        {
+            if (trayIcon != null)
             {
-                serverProcess = Process.Start(startInfo);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\n[XATO] Node.js ni ishga tushirishda xatolik: " + ex.Message);
-                Console.WriteLine("Kompyuterda Node.js o'rnatilganligini tekshiring.");
-                Console.ResetColor();
-                Console.ReadKey();
-                return;
-            }
-
-            Thread.Sleep(1200);
-
-            string karmedUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
-            string localPortalUrl = "http://localhost:3000/navbat-yozish/";
-            string extensionPath = Path.Combine(currentDir, "extension-kardelen");
-
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("[3/3] Google Chrome va Karmed Radiologiya oynasi ochilmoqda...");
-            Console.WriteLine("      • Karmed manzili: " + karmedUrl);
-            Console.WriteLine("      • Kengaytma:      " + extensionPath);
-            Console.ResetColor();
-
-            try
-            {
-                string chromeExe = FindChromePath();
-                ProcessStartInfo chromeInfo = new ProcessStartInfo();
-                chromeInfo.FileName = chromeExe;
-
-                // Kengaytmani yuklash va kerakli oynalarni ochish
-                if (Directory.Exists(extensionPath))
-                {
-                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\" \"{2}\"", extensionPath, karmedUrl, localPortalUrl);
-                }
-                else
-                {
-                    chromeInfo.Arguments = string.Format("\"{0}\" \"{1}\"", karmedUrl, localPortalUrl);
-                }
-
-                chromeInfo.UseShellExecute = false;
-                Process.Start(chromeInfo);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("[Ogohlantirish] Chrome ochilishida: " + ex.Message);
-                Console.ResetColor();
-                try
-                {
-                    Process.Start(new ProcessStartInfo(karmedUrl) { UseShellExecute = true });
-                    Process.Start(new ProcessStartInfo(localPortalUrl) { UseShellExecute = true });
-                }
-                catch { }
+                trayIcon.Visible = false;
+                trayIcon.Dispose();
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n================================================================");
-            Console.WriteLine("  ✓ SERVER MUVAFFAQIYATLI ISHLAMOQDA (KLASTER FAOL)!");
-            Console.WriteLine("================================================================");
-            Console.ResetColor();
-            Console.WriteLine("  • Klaster Rejimi:   High-Availability P2P Mesh (Maks: 5 ta Server)");
-            Console.WriteLine("  • Karmed URL:       " + karmedUrl);
-            Console.WriteLine("  • Navbatga Yozish:  http://localhost:3000/navbat-yozish/");
-            Console.WriteLine("  • Server Dashboard: http://localhost:3000/server-dashboard/");
-            Console.WriteLine("  • MRT TV Tablo:     http://localhost:3000/mrt-tv/");
-            Console.WriteLine("  • Laborant Portali: http://localhost:3000/laborant/");
-            Console.WriteLine("  • Tizimga Kirish:   http://localhost:3000/login.html");
-            Console.WriteLine("----------------------------------------------------------------");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("DIQQAT: Server ishlashi uchun ushbu darchani yopmang (kichraytirib qo'ying).");
-            Console.ResetColor();
-
-            if (serverProcess != null)
-            {
-                serverProcess.WaitForExit();
-            }
+            KillOldProcesses();
+            Application.Exit();
         }
     }
 }

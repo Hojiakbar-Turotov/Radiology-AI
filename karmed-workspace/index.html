@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karmed Radiologiya & MRT Navbat Tizimi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Auth Guard & Failover -->
+  <script src="/shared/auth-guard.js"></script>
+  <script src="/shared/failover.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Modern Menu Bar -->
+    <header class="app-menu-bar">
+      <!-- Left: Brand Logo -->
+      <div class="menu-brand">
+        <div class="brand-icon"><i class="fa-solid fa-hospital"></i></div>
+        <div class="brand-text">
+          <h2>KARMED RADIOLOGIYA</h2>
+          <span>Elektron Navbat & Multi-Server Klasteri</span>
+        </div>
+      </div>
+
+      <!-- Center: Navigation Tabs -->
+      <nav class="menu-nav-tabs">
+        <button class="nav-tab-btn active" id="tabKarmed" onclick="switchView('karmed')">
+          <i class="fa-solid fa-desktop"></i> Karmed Dasturi
+        </button>
+        <button class="nav-tab-btn" id="tabNavbat" onclick="switchView('navbat')">
+          <i class="fa-solid fa-calendar-plus"></i> Navbatga Yozish
+        </button>
+        <button class="nav-tab-btn" id="tabTv" onclick="switchView('tv')">
+          <i class="fa-solid fa-tv"></i> Kutish Zali TV
+        </button>
+        <button class="nav-tab-btn" id="tabLaborant" onclick="switchView('laborant')">
+          <i class="fa-solid fa-user-doctor"></i> Laborant Portali
+        </button>
+        <button class="nav-tab-btn" id="tabDashboard" onclick="switchView('dashboard')">
+          <i class="fa-solid fa-cubes"></i> Server & Klaster
+        </button>
+      </nav>
+
+      <!-- Right: Action Tools & Cluster Status -->
+      <div class="menu-actions">
+        <!-- Quick Queue Drawer Toggle -->
+        <button class="action-btn btn-quick-queue active" id="btnToggleDrawer" onclick="toggleQuickQueueDrawer()" title="Yon tomonda tezkor navbat oynasini ochish / yopish">
+          <i class="fa-solid fa-bolt"></i> Tezkor Navbat
+        </button>
+
+        <!-- Refresh Frame -->
+        <button class="action-btn icon-only" onclick="refreshCurrentFrame()" title="Sahifani yangilash">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
+        <!-- Fullscreen Toggle -->
+        <button class="action-btn icon-only" onclick="toggleFullScreen()" title="Butun ekranga yoyish">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+
+        <!-- Cluster Status Badge -->
+        <div class="cluster-badge" id="clusterBadge">
+          <span class="pulse-dot"></span>
+          <span id="txtClusterStatus">Klaster: Faol</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Body -->
+    <div class="workspace-body">
+      <!-- Primary Content Area (Embedded Views) -->
+      <main class="primary-viewport" id="primaryViewport">
+        <!-- 1. Karmed Frame -->
+        <iframe id="frameKarmed" class="view-frame active" src="http://192.168.150.111:2025/Radiology/Rbys.aspx" title="Karmed Radiologiya"></iframe>
+
+        <!-- 2. Navbat Yozish Frame -->
+        <iframe id="frameNavbat" class="view-frame" src="/navbat-yozish/" title="Navbatga Yozish Portali"></iframe>
+
+        <!-- 3. MRT TV Frame -->
+        <iframe id="frameTv" class="view-frame" src="/mrt-tv/" title="MRT TV Tablo"></iframe>
+
+        <!-- 4. Laborant Frame -->
+        <iframe id="frameLaborant" class="view-frame" src="/laborant/" title="Laborant Portali"></iframe>
+
+        <!-- 5. Server Dashboard Frame -->
+        <iframe id="frameDashboard" class="view-frame" src="/server-dashboard/" title="Server Dashboard"></iframe>
+      </main>
+
+      <!-- Side Drawer: Tezkor Navbatga Qo'yish Paneli -->
+      <aside class="quick-queue-drawer" id="quickQueueDrawer">
+        <div class="drawer-header">
+          <div class="drawer-title">
+            <i class="fa-solid fa-ticket-simple" style="color:#38bdf8;"></i>
+            <h3>Tezkor Navbatga Qo'yish</h3>
+          </div>
+          <button class="drawer-close-btn" onclick="toggleQuickQueueDrawer()" title="Panelni yashirish">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Quick Form -->
+        <form class="quick-form" id="quickQueueForm" onsubmit="handleQuickQueueSubmit(event)">
+          <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Bemor F.I.Sh *</label>
+            <input type="text" id="quickPatientName" placeholder="FAMILIYA ISM SHARIF" required autocomplete="off">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label><i class="fa-solid fa-id-card"></i> Karta / ID</label>
+              <input type="text" id="quickPatientId" placeholder="Masalan: 12450">
+            </div>
+            <div class="form-group flex-1">
+              <label><i class="fa-solid fa-phone"></i> Telefon</label>
+              <input type="tel" id="quickPhone" placeholder="+998 90 ...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-microscope"></i> Tekshiruv Sohasi (Xizmat) *</label>
+            <select id="quickServiceSelect" onchange="onServiceSelected()" required>
+              <option value="">-- Xizmatni tanlang --</option>
+              <!-- Dynamic Services -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label><i class="fa-solid fa-laptop-medical"></i> Apparat</label>
+              <select id="quickDeviceSelect">
+                <option value="auto">⚡ Aqlli Avtomat</option>
+                <option value="mrt1">🧲 MRT 1 (Injektor bor)</option>
+                <option value="mrt2">🧲 MRT 2 (Barcha MRT)</option>
+                <option value="mskt">🖥️ MSKT (Tomograf)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label><i class="fa-solid fa-syringe"></i> Kontrast</label>
+              <select id="quickContrastSelect">
+                <option value="no">Yo'q</option>
+                <option value="yes">💉 Kontrastli</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="quick-submit-btn" id="btnQuickSubmit">
+            <i class="fa-solid fa-print"></i> Navbatga Qo'shish & Chipta
+          </button>
+        </form>
+
+        <!-- Live Queue List in Drawer -->
+        <div class="drawer-queue-section">
+          <div class="section-header">
+            <h4><i class="fa-solid fa-users"></i> Bugungi Navbat</h4>
+            <span class="badge" id="quickQueueCount">0 ta</span>
+          </div>
+          <div class="quick-queue-list" id="quickQueueList">
+            <!-- Dynamic Items -->
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

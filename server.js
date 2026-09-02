@@ -396,7 +396,7 @@ const server = http.createServer(async (req, res) => {
   // -------------------------------------------------------------
   let reqUrl = decodeURI(pathname);
   if (reqUrl === '/' || reqUrl === '') {
-    reqUrl = '/navbat-yozish/index.html';
+    reqUrl = '/karmed-workspace/index.html';
   }
 
   let filePath = path.join(ROOT_DIR, reqUrl);

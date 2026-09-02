@@ -1,5 +1,57 @@
 [
   {
+    "id": "log_1788344027965_nmn1",
+    "timestamp": "2026-09-02T10:13:47.965Z",
+    "timeFormatted": "15:13:47",
+    "ip": "127.0.0.1",
+    "method": "GET",
+    "path": "/karmed-workspace/index.html",
+    "status": 200,
+    "durationMs": 2,
+    "action": "REQUEST",
+    "details": "Sahifa yuklandi",
+    "userAgent": ""
+  },
+  {
+    "id": "log_1788343724478_22nu",
+    "timestamp": "2026-09-02T10:08:44.478Z",
+    "timeFormatted": "15:08:44",
+    "ip": "127.0.0.1",
+    "method": "GET",
+    "path": "/login.html",
+    "status": 200,
+    "durationMs": 2,
+    "action": "REQUEST",
+    "details": "Sahifa yuklandi",
+    "userAgent": ""
+  },
+  {
+    "id": "log_1788343724435_gxpq",
+    "timestamp": "2026-09-02T10:08:44.435Z",
+    "timeFormatted": "15:08:44",
+    "ip": "127.0.0.1",
+    "method": "GET",
+    "path": "/navbat-yozish/",
+    "status": 200,
+    "durationMs": 2,
+    "action": "REQUEST",
+    "details": "Sahifa yuklandi",
+    "userAgent": ""
+  },
+  {
+    "id": "log_1788343723227_i33c",
+    "timestamp": "2026-09-02T10:08:43.227Z",
+    "timeFormatted": "15:08:43",
+    "ip": "127.0.0.1",
+    "method": "WS_CONNECT",
+    "path": "/ws",
+    "status": 101,
+    "durationMs": 0,
+    "action": "CLIENT_CONNECTED",
+    "details": "Yangi mijoz ulandi: Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+    "userAgent": ""
+  },
+  {
     "id": "log_1788343498238_l77d",
     "timestamp": "2026-09-02T10:04:58.239Z",
     "timeFormatted": "15:04:58",

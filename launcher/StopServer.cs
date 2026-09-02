@@ -1,36 +1,32 @@
 using System;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace MRTServerStopper
 {
-    class Program
+    static class Program
     {
-        static void Main(string[] args)
+        [STAThread]
+        static void Main()
         {
-            Console.Title = "MRT & UTT Serverini To'xtatish";
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Server jarayoni to'xtatilmoqda...");
             try
             {
                 Process killProc = new Process();
                 killProc.StartInfo.FileName = "taskkill";
                 killProc.StartInfo.Arguments = "/F /IM node.exe";
                 killProc.StartInfo.CreateNoWindow = true;
+                killProc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 killProc.StartInfo.UseShellExecute = false;
                 killProc.Start();
                 killProc.WaitForExit(2000);
 
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("\n[✓] MRT & UTT Lokal Serveri muvaffaqiyatli to'xtatildi.");
+                MessageBox.Show("MRT & Karmed lokal serveri muvaffaqiyatli to'xtatildi.", 
+                                "MRT Server", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\nXatolik: " + ex.Message);
+                MessageBox.Show("Xatolik: " + ex.Message, "MRT Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            Console.ResetColor();
-            System.Threading.Thread.Sleep(1500);
         }
     }
 }
