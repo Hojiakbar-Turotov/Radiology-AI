@@ -13,7 +13,7 @@ namespace MRTServerLauncher
         private static NotifyIcon trayIcon = null;
         private static string currentDir = "";
         private static string extensionPath = "";
-        private static string appUrl = "http://localhost:3000/karmed-workspace/";
+        private static string karmedUrl = "http://192.168.150.111:2025/Radiology/Rbys.aspx";
 
         [STAThread]
         static void Main()
@@ -59,7 +59,7 @@ namespace MRTServerLauncher
             // Server yuklanishi uchun ozgina kutish
             Thread.Sleep(1200);
 
-            // 3. Google Chrome ni Karmed menyusi va kengaytmasi bilan App rejimida ochish
+            // 3. Google Chrome ni Karmed sahifasi va kengaytmasi bilan bevosita ochish (to'siqlarsiz)
             OpenKarmedApp();
 
             // 4. Windows Tray (Soat yonidagi panel) menyusini yaratish
@@ -77,14 +77,14 @@ namespace MRTServerLauncher
                 ProcessStartInfo chromeInfo = new ProcessStartInfo();
                 chromeInfo.FileName = chromeExe;
 
-                // Chrome App rejimida (manzil satrisiz, alohida dastur oynasi kabi)
+                // Chrome Karmedni to'g'ridan-to'g'ri (hech qanday iframe to'sig'isiz) kengaytma bilan ochadi
                 if (Directory.Exists(extensionPath))
                 {
-                    chromeInfo.Arguments = string.Format("--app=\"{0}\" --load-extension=\"{1}\"", appUrl, extensionPath);
+                    chromeInfo.Arguments = string.Format("--load-extension=\"{0}\" \"{1}\"", extensionPath, karmedUrl);
                 }
                 else
                 {
-                    chromeInfo.Arguments = string.Format("--app=\"{0}\"", appUrl);
+                    chromeInfo.Arguments = string.Format("\"{0}\"", karmedUrl);
                 }
 
                 chromeInfo.UseShellExecute = false;
@@ -92,10 +92,9 @@ namespace MRTServerLauncher
             }
             catch
             {
-                // Agar Chrome topilmasa, standart brauzerda ochish
                 try
                 {
-                    Process.Start(new ProcessStartInfo(appUrl) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(karmedUrl) { UseShellExecute = true });
                 }
                 catch { }
             }

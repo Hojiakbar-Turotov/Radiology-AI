@@ -51,7 +51,7 @@
         "*://*.kardelen.uz/*",
         "*://*.kardelen.com/*"
       ],
-      "all_frames": true,
+      "all_frames": false,
       "js": ["logos.js", "i18n.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"

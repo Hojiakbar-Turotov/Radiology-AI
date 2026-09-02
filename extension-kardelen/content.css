@@ -28,6 +28,27 @@
   white-space: nowrap !important;
 }
 
+.utt-nav-link-btn {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+  border: 1px solid #334155 !important;
+  padding: 3px 8px !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  font-size: 10.5px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  transition: all 0.15s !important;
+}
+
+.utt-nav-link-btn:hover {
+  background: #0284c7 !important;
+  border-color: #38bdf8 !important;
+  color: #fff !important;
+}
+
 .utt-floating-user-btn {
   background: #1e293b !important;
   color: #38bdf8 !important;

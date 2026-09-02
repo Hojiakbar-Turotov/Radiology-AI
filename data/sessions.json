@@ -18,5 +18,15 @@
     },
     "createdAt": "2026-09-02T10:00:28.281Z",
     "expiresAt": "2026-10-02T10:00:28.281Z"
+  },
+  "tok_1788344119304_c58bf6b28de5d185997aa7606d35f3ef": {
+    "token": "tok_1788344119304_c58bf6b28de5d185997aa7606d35f3ef",
+    "user": {
+      "login": "TB1",
+      "name": "Turatov Hojiakbar",
+      "role": "operator"
+    },
+    "createdAt": "2026-09-02T10:15:19.304Z",
+    "expiresAt": "2026-10-02T10:15:19.304Z"
   }
 }

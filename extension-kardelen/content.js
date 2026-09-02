@@ -398,15 +398,11 @@ async function initExtension() {
     }
 
     await checkUserAuth();
-    loadOperatorsFromFirebase().catch(() => {});
-    await loadServicesCatalog();
-    await loadGeneralGuidelinesFromFirebase();
-    await loadDevicesFromFirebase();
-    await loadWorkScheduleFromFirebase();
-    await loadCalendarExceptionsFromFirebase();
-    await loadSchedulingRulesFromFirebase();
-
     createFloatingBar();
+
+    // Lokal serverdan qurilmalar va xizmatlarni fonda yuklash
+    loadLocalServerDevices().catch(() => {});
+    loadServicesCatalog().catch(() => {});
     fetchDeviceQueueCounts().catch(() => {});
 
     // Saytning DOM'iga hech narsa kiritmaymiz, faqat passiv click hodisasini tinglaymiz
@@ -449,6 +445,19 @@ function syncPatientAndServicesFromDom() {
       applyServicesToPatient(lastPatientInfo, currentServices);
     }
   } catch (e) {}
+}
+
+async function loadLocalServerDevices() {
+  try {
+    const res = await fetch("http://localhost:3000/api/devices");
+    const data = await res.json();
+    if (data && data.success && Array.isArray(data.devices)) {
+      dynamicDevices = data.devices;
+      updateFloatingBar();
+    }
+  } catch (e) {
+    dynamicDevices = [...DEFAULT_DEVICES];
+  }
 }
 
 function setupPeriodicSync() {
@@ -594,6 +603,20 @@ function updateFloatingBar() {
     }
 
     bar.innerHTML = `
+      <div style="display:inline-flex; align-items:center; gap:4px; margin-right:4px;">
+        <button class="utt-nav-link-btn" id="uttBtnNavPortal" title="Mustaqil Navbatga Yozish Portali">
+          📝 Navbat Portali
+        </button>
+        <button class="utt-nav-link-btn" id="uttBtnNavTv" title="Kutish Zali TV Tablosi">
+          📺 TV Tablo
+        </button>
+        <button class="utt-nav-link-btn" id="uttBtnNavLaborant" title="Laborant Portali">
+          🧑‍🔬 Laborant
+        </button>
+        <button class="utt-nav-link-btn" id="uttBtnNavDashboard" title="Server Dashboard & Klaster">
+          📊 Klaster
+        </button>
+      </div>
       <button class="utt-floating-user-btn" id="uttBtnOpenProfile" title="${dict.userProfile || "Ro'yxatchi profili"}">
         👤 <strong>${currentUser.login}</strong>: ${shortName} ⚙️
       </button>
@@ -615,6 +638,18 @@ function updateFloatingBar() {
       <span class="utt-floating-patient" id="uttFloatingPatientText">${patientHtml}</span>
       <button class="utt-floating-btn" id="uttFloatingSendBtn" ${selectedPatient ? '' : 'disabled'}>${dict.bookQueueBtn || '➕ Navbatga Yozish'}</button>
     `;
+
+    const navPortal = document.getElementById("uttBtnNavPortal");
+    if (navPortal) navPortal.onclick = () => window.open("http://localhost:3000/navbat-yozish/", "_blank");
+
+    const navTv = document.getElementById("uttBtnNavTv");
+    if (navTv) navTv.onclick = () => window.open("http://localhost:3000/mrt-tv/", "_blank");
+
+    const navLab = document.getElementById("uttBtnNavLaborant");
+    if (navLab) navLab.onclick = () => window.open("http://localhost:3000/laborant/", "_blank");
+
+    const navDash = document.getElementById("uttBtnNavDashboard");
+    if (navDash) navDash.onclick = () => window.open("http://localhost:3000/server-dashboard/", "_blank");
 
     const profBtn = document.getElementById("uttBtnOpenProfile");
     if (profBtn) profBtn.onclick = () => openProfileModal();
