@@ -97,5 +97,37 @@
     "comment": "",
     "createdAt": "2026-09-02T10:00:28.290Z",
     "updatedAt": "2026-09-02T10:00:28.290Z"
+  },
+  {
+    "id": "p_1788343488418_4g48h",
+    "ticketNumber": "M-004",
+    "patientName": "KLASTER TEST BEMOR",
+    "patientId": "",
+    "pinfl": "",
+    "phone": "+998931234567",
+    "birthDate": "",
+    "date": "2026-09-02",
+    "services": [
+      {
+        "code": "R157",
+        "name": "Bosh Miya MRT"
+      }
+    ],
+    "primaryService": "Bosh Miya MRT",
+    "isContrast": false,
+    "totalPrice": 0,
+    "deviceId": "mrt2",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 25,
+    "estimatedStartTime": "2026-09-02T10:25:28.290Z",
+    "estimatedFinishTime": "2026-09-02T10:50:28.290Z",
+    "prepCallTime": "2026-09-02T10:10:28.290Z",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-02T10:04:48.418Z",
+    "updatedAt": "2026-09-02T10:04:48.418Z"
   }
 ]

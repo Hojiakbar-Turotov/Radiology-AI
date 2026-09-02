@@ -84,8 +84,10 @@ function connectWebSocket() {
 function startStatsPolling() {
   fetchServerStats();
   fetchServerLogs();
+  fetchClusterNodes();
   pollTimer = setInterval(() => {
     fetchServerStats();
+    fetchClusterNodes();
   }, 2500);
 }
 
@@ -139,6 +141,51 @@ async function fetchServerLogs() {
       renderLogs(data.logs);
     }
   } catch (e) {}
+}
+
+async function fetchClusterNodes() {
+  try {
+    const res = await fetch("/api/cluster/nodes");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.nodes)) {
+      renderClusterNodes(data.nodes, data.maxNodes || 5);
+    }
+  } catch (e) {}
+}
+
+function renderClusterNodes(nodes, maxNodes = 5) {
+  const container = document.getElementById("clusterNodesContainer");
+  const badge = document.getElementById("badgeClusterCount");
+  if (!container) return;
+
+  const count = nodes.length;
+  if (badge) {
+    badge.innerText = `${count} / ${maxNodes} ta Server Faol`;
+    if (count >= maxNodes) {
+      badge.className = "badge badge-warning";
+    } else {
+      badge.className = "badge badge-success";
+    }
+  }
+
+  container.innerHTML = nodes.map((n, idx) => `
+    <div class="device-item" style="padding:10px 14px; background:${n.isSelf ? '#172554' : '#1f2937'}; border-color:${n.isSelf ? '#3b82f6' : '#374151'};">
+      <div class="device-info">
+        <h4 style="font-size:13px;">
+          <i class="fa-solid fa-server" style="color:${n.isSelf ? '#60a5fa' : '#34d399'};"></i> 
+          Node #${idx + 1}: ${escapeHtml(n.computerName)}
+        </h4>
+        <div class="device-tags">
+          <span class="mini-tag" style="font-family:monospace; color:#93c5fd;">IP: ${n.ip}:${n.port}</span>
+          ${n.isSelf ? '<span class="mini-tag" style="background:#1d4ed8; color:#fff;">Ushbu Server</span>' : '<span class="mini-tag" style="background:#065f46; color:#a7f3d0;">Zaxira Server</span>'}
+        </div>
+      </div>
+      <div class="device-status-badge">
+        <span class="status-free" style="color:#34d399;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> 🟢 Faol (100% Sinxron)</span>
+        <div style="font-size:10.5px; color:#9ca3af; margin-top:2px;">Bemorlar: ${n.queueCount} ta</div>
+      </div>
+    </div>
+  `).join("");
 }
 
 // -------------------------------------------------------------

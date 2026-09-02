@@ -18,6 +18,7 @@ const os = require('os');
 // Lokal kutubxonalar
 const db = require('./lib/db');
 const auth = require('./lib/auth');
+const cluster = require('./lib/cluster');
 const SmartScheduler = require('./lib/smart-scheduler');
 const wsHub = require('./lib/ws');
 const LaborantBot = require('./lib/laborant-bot');
@@ -144,6 +145,32 @@ const server = http.createServer(async (req, res) => {
         return sendJSON(res, { success: true, users: auth.getUsers() });
       }
 
+      // KLASTER YO'NALISHLARI (MULTI-SERVER CLUSTER)
+      if (req.method === 'GET' && pathname === '/api/cluster/nodes') {
+        const nodes = cluster.getAllClusterNodes();
+        return sendJSON(res, {
+          success: true,
+          nodes: nodes,
+          activeCount: nodes.length,
+          maxNodes: 5
+        });
+      }
+
+      if (req.method === 'GET' && pathname === '/api/cluster/sync-state') {
+        return sendJSON(res, {
+          success: true,
+          queue: db.getAllQueue(),
+          devices: db.getDevices(),
+          settings: db.getSettings()
+        });
+      }
+
+      if (req.method === 'POST' && pathname === '/api/cluster/replicate') {
+        const body = await parseBody(req);
+        const repRes = cluster.handleIncomingReplication(body.txId, body.action, body.payload);
+        return sendJSON(res, { success: true, ...repRes });
+      }
+
       // 1. GET /api/queue - Bugungi navbat
       if (req.method === 'GET' && pathname === '/api/queue') {
         const dateFilter = parsedUrl.searchParams.get('date');
@@ -173,6 +200,9 @@ const server = http.createServer(async (req, res) => {
 
         const addedPatient = db.addPatient(patientData);
 
+        // Klasterdagi boshqa serverlarga yetkazish (P2P Replication)
+        cluster.replicate('patient_added', { patient: addedPatient });
+
         // WebSocket orqali barchaga xabar berish
         wsHub.broadcast('queue_updated', {
           action: 'patient_added',
@@ -199,6 +229,9 @@ const server = http.createServer(async (req, res) => {
           return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
         }
 
+        // Klasterdagi boshqa serverlarga yetkazish
+        cluster.replicate('status_updated', { id, status, extraData });
+
         wsHub.broadcast('queue_updated', {
           action: 'status_updated',
           patient: updated,
@@ -217,6 +250,9 @@ const server = http.createServer(async (req, res) => {
         const { id } = body;
         const patient = db.updatePatientStatus(id, 'calling');
         if (!patient) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        // Klasterdagi boshqa serverlarga yetkazish
+        cluster.replicate('patient_called', { id });
 
         const dev = db.getDeviceById(patient.deviceId);
 
@@ -246,6 +282,9 @@ const server = http.createServer(async (req, res) => {
         const { id } = body;
         const patient = db.updatePatientStatus(id, 'preparing');
         if (!patient) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        // Klasterdagi boshqa serverlarga yetkazish
+        cluster.replicate('patient_prep', { id });
 
         const dev = db.getDeviceById(patient.deviceId);
 
@@ -322,6 +361,7 @@ const server = http.createServer(async (req, res) => {
         db.createManualBackup(); // Tozalashdan oldin zaxira
         db.queue = [];
         db.saveQueue();
+        cluster.replicate('queue_reset', {});
         wsHub.broadcast('queue_updated', { action: 'queue_reset', queue: [] });
         sendJSON(res, { success: true, message: "Navbat tozalandi" });
         logRequest(clientIp, 'POST', pathname, 200, startTime, `Navbat tozalandi`);
@@ -420,6 +460,9 @@ server.listen(PORT, '0.0.0.0', () => {
 
   // WebSocket Hub ni ulash
   wsHub.init(server, db);
+
+  // Multi-Server Klasterini ishga tushirish (UDP Discovery & 5-Node Cap)
+  cluster.init(db, wsHub);
 
   // Laborantlar Telegram botini ishga tushirish
   laborantBot.start();

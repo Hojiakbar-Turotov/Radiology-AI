@@ -9,11 +9,11 @@ namespace MRTServerLauncher
     {
         static void Main(string[] args)
         {
-            Console.Title = "MRT & UTT Lokal Serveri - Ishga Tushiruvchi";
+            Console.Title = "MRT & UTT Multi-Server Klasteri - Ishga Tushiruvchi";
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("================================================================");
-            Console.WriteLine("  🏥 TOMOGRAFIYA (MRT & MSKT) ELEKTRON NAVBAT TIZIMI");
-            Console.WriteLine("  100% Lokal Server | Offline Muhit | Avtomat Taqsimlash");
+            Console.WriteLine("  🏥 TOMOGRAFIYA (MRT & MSKT) MULTI-SERVER KLASTERI");
+            Console.WriteLine("  High-Availability P2P Mesh | Maks: 5 ta Server | Auto-Failover");
             Console.WriteLine("================================================================");
             Console.ResetColor();
 
@@ -89,9 +89,10 @@ namespace MRTServerLauncher
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n================================================================");
-            Console.WriteLine("  ✓ SERVER MUVAFFAQIYATLI ISHLAMOQDA!");
+            Console.WriteLine("  ✓ SERVER MUVAFFAQIYATLI ISHLAMOQDA (KLASTER FAOL)!");
             Console.WriteLine("================================================================");
             Console.ResetColor();
+            Console.WriteLine("  • Klaster Rejimi:   High-Availability P2P Mesh (Maks: 5 ta Server)");
             Console.WriteLine("  • Navbatga Yozish:  http://localhost:3000/navbat-yozish/");
             Console.WriteLine("  • Server Dashboard: http://localhost:3000/server-dashboard/");
             Console.WriteLine("  • MRT TV Tablo:     http://localhost:3000/mrt-tv/");
