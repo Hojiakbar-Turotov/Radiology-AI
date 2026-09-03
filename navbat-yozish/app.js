@@ -3,7 +3,7 @@
  */
 
 let ws = null;
-let servicesCatalog = {};
+let servicesList = [];
 let selectedServices = [];
 let todayQueue = [];
 let lastAddedPatient = null;
@@ -36,42 +36,46 @@ async function loadServicesCatalog() {
   try {
     const res = await fetch("/api/services");
     const data = await res.json();
-    if (data.success && data.catalog) {
-      servicesCatalog = data.catalog;
-      renderServicesList(servicesCatalog);
+    const list = data.catalog || data.services || [];
+    if (Array.isArray(list)) {
+      servicesList = list;
+      renderServicesList(servicesList);
     }
   } catch (e) {
     console.error("Xizmatlar yuklanmadi:", e);
   }
 }
 
-function renderServicesList(catalog, query = "") {
+function renderServicesList(list, query = "") {
   const container = document.getElementById("servicesCatalogContainer");
   if (!container) return;
 
-  const entries = Object.entries(catalog).filter(([code, item]) => {
+  const filtered = list.filter(item => {
     if (!query) return true;
     const q = query.toLowerCase();
-    return code.toLowerCase().includes(q) || item.name.toLowerCase().includes(q);
+    return (item.code || "").toLowerCase().includes(q) || (item.name || "").toLowerCase().includes(q);
   });
 
-  if (entries.length === 0) {
+  if (filtered.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:12px;">Xizmat topilmadi</div>`;
     return;
   }
 
-  container.innerHTML = entries.map(([code, item]) => {
+  container.innerHTML = filtered.map(item => {
+    const code = item.code;
     const isChecked = selectedServices.some(s => s.code === code);
+    const priceText = item.priceFormatted ? item.priceFormatted : (item.price ? `${item.price.toLocaleString()} so'm` : '');
     return `
-      <div class="service-item-row" onclick="toggleService('${code}')">
+      <div class="service-item-row ${isChecked ? 'selected' : ''}" onclick="toggleService('${code}')">
         <div class="service-item-left">
           <input type="checkbox" id="chk_srv_${code}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleService('${code}')">
           <span class="srv-code">${code}</span>
           <span class="srv-name">${escapeHtml(item.name)}</span>
           ${item.isContrast ? '<span class="srv-contrast-badge">💉 Kontrast</span>' : ''}
         </div>
-        <div style="font-size:11.5px; color:#94a3b8; font-family:monospace;">
-          ${item.duration} daqiqa
+        <div class="service-item-right" style="display:flex; align-items:center; gap:12px;">
+          ${priceText ? `<span style="font-size:11px; color:#34d399; font-weight:700;">${priceText}</span>` : ''}
+          <span style="font-size:11.5px; color:#94a3b8; font-family:monospace;">${item.duration} daqiqa</span>
         </div>
       </div>
     `;
@@ -80,17 +84,20 @@ function renderServicesList(catalog, query = "") {
 
 function handleServiceSearch(e) {
   const q = e.target.value.trim();
-  renderServicesList(servicesCatalog, q);
+  renderServicesList(servicesList, q);
 }
 
 window.toggleService = function(code) {
-  const item = servicesCatalog[code];
+  if (!code) return;
+  const item = servicesList.find(s => s.code === code);
   if (!item) return;
 
-  const index = selectedServices.findIndex(s => s.code === code);
-  if (index > -1) {
-    selectedServices.splice(index, 1);
+  const existingIdx = selectedServices.findIndex(s => s.code === code);
+  if (existingIdx > -1) {
+    // Tanlangan bo'lsa -> ro'yxatdan olib tashlaymiz (uncheck)
+    selectedServices.splice(existingIdx, 1);
   } else {
+    // Tanlanmagan bo'lsa -> FAQAT 1 MARTA QO'SHAMIZ (takrorlanish mutlaqo bo'lmaydi!)
     selectedServices.push(item);
   }
 
@@ -98,12 +105,34 @@ window.toggleService = function(code) {
   const chk = document.getElementById(`chk_srv_${code}`);
   if (chk) chk.checked = selectedServices.some(s => s.code === code);
 
+  // Qatordagi 'selected' klassini yangilash
+  const rows = document.querySelectorAll(".service-item-row");
+  rows.forEach(r => {
+    const input = r.querySelector("input[type='checkbox']");
+    if (input && input.id === `chk_srv_${code}`) {
+      if (selectedServices.some(s => s.code === code)) {
+        r.classList.add("selected");
+      } else {
+        r.classList.remove("selected");
+      }
+    }
+  });
+
   // Agar kontrastli tekshiruv tanlansa, avtomatik kontrast checkboxini yoqish
-  if (selectedServices.some(s => s.isContrast)) {
-    document.getElementById("chkIsContrast").checked = true;
+  const hasContrast = selectedServices.some(s => s.isContrast);
+  const chkContrast = document.getElementById("chkIsContrast");
+  if (chkContrast) {
+    chkContrast.checked = hasContrast;
   }
 
-  document.getElementById("txtSelectedCount").innerText = `${selectedServices.length} ta xizmat tanlandi`;
+  // Tanlanganlar hisoblagichi
+  const txtCount = document.getElementById("txtSelectedCount");
+  if (txtCount) {
+    txtCount.innerText = selectedServices.length > 0 
+      ? `Tanlangan xizmatlar: ${selectedServices.length} ta xizmat tanlandi`
+      : "Tanlangan xizmatlar: 0 ta";
+  }
+
   updateCalculationsPreview();
 };
 
@@ -193,8 +222,8 @@ async function handleFormSubmit(e) {
       // Formani tozalash
       document.getElementById("patientQueueForm").reset();
       selectedServices = [];
-      document.getElementById("txtSelectedCount").innerText = "0 ta";
-      renderServicesList(servicesCatalog);
+      document.getElementById("txtSelectedCount").innerText = "Tanlangan xizmatlar: 0 ta";
+      renderServicesList(servicesList);
       updateCalculationsPreview();
 
       fetchQueue();
