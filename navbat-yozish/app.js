@@ -296,6 +296,20 @@ function renderQueueTable() {
     return;
   }
 
+  const authUser = window.currentUser || (window.parent && window.parent.currentUser) || (function() {
+    try {
+      const u = localStorage.getItem("auth_user") || (window.parent && window.parent.localStorage ? window.parent.localStorage.getItem("auth_user") : null);
+      return u ? JSON.parse(u) : null;
+    } catch(e) { return null; }
+  })();
+
+  const canDelete = Boolean(
+    !authUser ||
+    authUser.role === 'super_admin' ||
+    authUser.role === 'server_nazoratchisi' ||
+    authUser.role === 'admin'
+  );
+
   tbody.innerHTML = list.map(p => {
     const statusClass = `status-tag ${p.status}`;
     const statusMap = {
@@ -321,9 +335,14 @@ function renderQueueTable() {
         <td><span style="font-size:11.5px; font-weight:700; color:#93c5fd;">${escapeHtml(p.deviceId.toUpperCase())}</span></td>
         <td><span class="${statusClass}">${statusMap[p.status] || p.status}</span></td>
         <td style="font-family:monospace; font-size:11.5px;">${p.estimatedStartTimeFormatted || '--:--'}</td>
-        <td style="text-align:right;">
+        <td style="text-align:right; white-space:nowrap;">
           <button class="btn-icon" onclick="callPatientAction('${p.id}')" title="Chaqirish"><i class="fa-solid fa-bullhorn"></i></button>
           <button class="btn-icon" onclick="printSingleTicket('${p.id}')" title="Chipta"><i class="fa-solid fa-print"></i></button>
+          ${canDelete ? `
+            <button class="btn-icon btn-icon-delete" onclick="deletePatientAction('${p.id}', '${escapeHtml(p.ticketNumber)}', '${escapeHtml(p.patientName)}')" title="Navbatdan o'chirish" style="color:#ef4444; margin-left:3px;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
         </td>
       </tr>
     `;
@@ -345,6 +364,36 @@ window.callPatientAction = async function(id) {
 window.printSingleTicket = function(id) {
   const p = todayQueue.find(x => x.id === id);
   if (p) printTicket(p);
+};
+
+window.deletePatientAction = async function(id, ticketNumber, patientName) {
+  if (!confirm(`⚠️ DIQQAT!\n\nHaqiqatan ham ${ticketNumber} (${patientName}) bemorni navbatdan butunlay o'chirmoqchimisiz?`)) {
+    return;
+  }
+
+  let token = localStorage.getItem("auth_token");
+  if (!token && window.parent && window.parent.localStorage) {
+    try { token = window.parent.localStorage.getItem("auth_token"); } catch(e) {}
+  }
+
+  try {
+    const res = await fetch("/api/queue/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${token}` : ""
+      },
+      body: JSON.stringify({ id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchQueue();
+    } else {
+      alert("Xatolik: " + (data.error || "Bemorni o'chirib bo'lmadi"));
+    }
+  } catch (e) {
+    alert("Server xatosi: " + e.message);
+  }
 };
 
 // -------------------------------------------------------------

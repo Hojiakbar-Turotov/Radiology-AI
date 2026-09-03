@@ -1756,6 +1756,20 @@ function renderDrawerQueue(queue) {
     return;
   }
 
+  const authUser = window.currentUser || (function() {
+    try {
+      const u = localStorage.getItem("auth_user");
+      return u ? JSON.parse(u) : null;
+    } catch(e) { return null; }
+  })();
+
+  const canDelete = Boolean(
+    !authUser ||
+    authUser.role === 'super_admin' ||
+    authUser.role === 'server_nazoratchisi' ||
+    authUser.role === 'admin'
+  );
+
   // Oxirgi qo'shilganlar yuqorida
   const sorted = [...queue].reverse();
 
@@ -1774,13 +1788,47 @@ function renderDrawerQueue(queue) {
           </div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
-          <span class="item-badge ${devBadgeClass}">${devName}</span>
-          <span style="font-size:10px; color:#6b7280;">${p.estimatedStartTime || ''}</span>
+          <div style="display:flex; align-items:center; gap:5px;">
+            <span class="item-badge ${devBadgeClass}">${devName}</span>
+            ${canDelete ? `
+              <button class="queue-item-del-btn" onclick="deleteQueuePatient('${p.id}', '${escapeHtml(p.ticketNumber)}', '${escapeHtml(p.patientName)}')" title="Navbatdan o'chirish" style="background:transparent; border:none; color:#ef4444; cursor:pointer; padding:2px 4px; border-radius:4px; font-size:12px;">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+          </div>
+          <span style="font-size:10px; color:#6b7280;">${p.scheduledTime || p.estimatedStartTime || ''}</span>
         </div>
       </div>
     `;
   }).join("");
 }
+
+window.deleteQueuePatient = async function(id, ticketNumber, patientName) {
+  if (!confirm(`⚠️ DIQQAT!\n\nHaqiqatan ham ${ticketNumber} (${patientName}) bemorni navbatdan butunlay o'chirmoqchimisiz?`)) {
+    return;
+  }
+
+  const token = localStorage.getItem("auth_token") || "";
+
+  try {
+    const res = await fetch("/api/queue/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${token}` : ""
+      },
+      body: JSON.stringify({ id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchTodayQueue();
+    } else {
+      alert("Xatolik: " + (data.error || "Bemorni o'chirib bo'lmadi"));
+    }
+  } catch (e) {
+    alert("Server xatosi: " + e.message);
+  }
+};
 
 function escapeHtml(text) {
   if (!text) return "";

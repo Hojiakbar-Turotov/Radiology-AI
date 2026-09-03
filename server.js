@@ -639,6 +639,34 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // 5.3 POST /api/queue/delete - Admin va Server Nazoratchisi uchun bemorni navbatdan o'chirish
+      if (req.method === 'POST' && pathname === '/api/queue/delete') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin')) {
+          return sendJSON(res, { success: false, error: "Faqat Admin yoki Server Nazoratchisi navbatdagi bemorni o'chirishi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        const { id } = body;
+        if (!id) return sendJSON(res, { success: false, error: "Bemor ID talab qilinadi" }, 400);
+
+        const deleted = db.deletePatient(id);
+        if (!deleted) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        cluster.replicate('patient_deleted', { id, deletedBy: currentUser.login || currentUser.name });
+        wsHub.broadcast('queue_updated', {
+          action: 'patient_deleted',
+          patientId: id,
+          deletedPatient: deleted,
+          queue: db.getQueue(),
+          devices: db.getDevices()
+        });
+
+        sendJSON(res, { success: true, patient: deleted, message: `Bemor (${deleted.patientName || deleted.ticketNumber}) navbatdan muvaffaqiyatli o'chirildi` });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Bemor navbatdan o'chirildi: ${deleted.ticketNumber} (${deleted.patientName})`);
+        return;
+      }
+
       // 6. GET /api/devices - Qurilmalar holati
       if (req.method === 'GET' && pathname === '/api/devices') {
         sendJSON(res, { success: true, devices: db.getDevices() });
