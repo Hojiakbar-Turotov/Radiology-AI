@@ -25,36 +25,27 @@ async function initKarmedConnection() {
   const frame = document.getElementById("frameKarmed");
   const overlay = document.getElementById("karmedFallbackOverlay");
 
+  // Har doim bir xil origin (Same-Origin) proksi orqali yuklash (kuki va AJAX to'siqsiz ishlashi uchun)
+  if (frame && (!frame.src || !frame.src.includes("/Radiology/Rbys.aspx"))) {
+    frame.src = "/Radiology/Rbys.aspx";
+  }
+
   try {
     const res = await fetch("/api/karmed-url");
     const data = await res.json();
     if (data.success && data.url) {
       activeKarmedUrl = data.url;
       currentKarmedHost = data.host;
-      if (frame) frame.src = activeKarmedUrl;
       updateKarmedUI(data.host, data.isLocal);
     }
   } catch (err) {
-    activeKarmedUrl = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
-    currentKarmedHost = '213.230.91.59:2025';
-    if (frame) frame.src = activeKarmedUrl;
-    updateKarmedUI('213.230.91.59:2025', false);
+    updateKarmedUI('192.168.150.111:2025', true);
   }
 
-  // Iframe yuklanishini kuzatish
   if (frame) {
-    let frameLoaded = false;
     frame.onload = () => {
-      frameLoaded = true;
       if (overlay) overlay.style.display = "none";
     };
-
-    setTimeout(() => {
-      if (!frameLoaded && currentKarmedHost.includes("192.168.150.111")) {
-        console.warn("[Karmed Frame] 192.168.150.111 yuklanmadi, 213.230.91.59 ga o'tilmoqda...");
-        switchKarmedHost("213.230.91.59");
-      }
-    }, 3800);
   }
 }
 
@@ -84,7 +75,7 @@ window.switchKarmedHost = function(targetHost) {
   }
 
   if (frame) {
-    frame.src = activeKarmedUrl;
+    frame.src = "/Radiology/Rbys.aspx";
   }
   if (overlay) {
     overlay.style.display = "none";

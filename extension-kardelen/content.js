@@ -344,22 +344,27 @@ function isKardelenEnvironment() {
     const hostname = (loc.hostname || '').toLowerCase();
     const href = (loc.href || '').toLowerCase();
 
-    // 1. Tizimning o'zining ichki app sahifalari (app1-registratura, app2-vrach, app3-android-tv) bo'lsa kengaytma ISHLAMASIN!
-    if (href.includes("app1-registratura") || href.includes("app2-vrach") || href.includes("app3-android-tv")) {
+    // 1. Tizimning o'zining ichki app sahifalarida ishlamasin:
+    if (href.includes("app1-registratura") || href.includes("app2-vrach") || href.includes("app3-android-tv") || href.includes("karmed-workspace") || href.includes("navbat-yozish") || href.includes("mrt-tv") || href.includes("laborant") || href.includes("server-dashboard") || href.includes("login.html")) {
       return false;
     }
 
-    // 2. Karmed / Kardelen rasmiy IP manzillari
+    // 2. Karmed sahifasi bo'lsa (Radiology/Rbys.aspx)
+    if (href.includes("/radiology/") || href.includes("rbys.aspx")) {
+      return true;
+    }
+
+    // 3. Karmed / Kardelen rasmiy IP manzillari
     if (hostname === "192.168.150.111" || hostname === "213.230.91.59") {
       return true;
     }
 
-    // 3. Karmed / Kardelen domen nomlari
+    // 4. Karmed / Kardelen domen nomlari
     if (hostname.includes("karmed") || hostname.includes("kardelen")) {
       return true;
     }
 
-    // 4. Test qilish uchun maxsus parametr (?kardelen=1 yoki ?karmed=1)
+    // 5. Test qilish uchun maxsus parametr (?kardelen=1 yoki ?karmed=1)
     if (loc.search && (loc.search.includes("kardelen=1") || loc.search.includes("karmed=1"))) {
       return true;
     }
@@ -370,8 +375,8 @@ function isKardelenEnvironment() {
   }
 }
 
-// Faqat asosiy oynada (window === window.top) va faqat Karmed hostlarida ishga tushirish
-if (window === window.top && isKardelenEnvironment()) {
+// Karmed muhitida ishga tushirish
+if (isKardelenEnvironment()) {
   initExtension();
 }
 

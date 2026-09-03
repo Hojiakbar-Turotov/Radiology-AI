@@ -1,0 +1,185 @@
+{
+  "date": "2026-09-03",
+  "timestamp": "2026-09-03T03:37:58.993Z",
+  "queue": [
+    {
+      "id": "p_1788342097747_g6kq0",
+      "ticketNumber": "M-001",
+      "patientName": "ALIMOV ANVAR SHOKIROVICH",
+      "patientId": "104523",
+      "pinfl": "",
+      "phone": "",
+      "birthDate": "",
+      "date": "2026-09-02",
+      "services": [
+        {
+          "code": "R157",
+          "name": "Bosh Miya MRT Kontrastsiz"
+        }
+      ],
+      "primaryService": "Bosh Miya MRT Kontrastsiz",
+      "isContrast": false,
+      "totalPrice": 0,
+      "deviceId": "mrt1",
+      "deviceType": "MRT",
+      "status": "in_progress",
+      "estimatedDurationMinutes": 25,
+      "estimatedStartTime": "2026-09-02T09:41:37.747Z",
+      "estimatedFinishTime": "2026-09-02T10:06:37.747Z",
+      "prepCallTime": "2026-09-02T09:26:37.747Z",
+      "referringDoctor": "",
+      "performingDoctor": "",
+      "operatorName": "Operator",
+      "comment": "",
+      "createdAt": "2026-09-02T09:41:37.747Z",
+      "updatedAt": "2026-09-02T09:54:05.413Z",
+      "calledAt": "2026-09-02T09:54:05.395Z",
+      "startedAt": "2026-09-02T09:54:05.413Z"
+    },
+    {
+      "id": "p_1788342097771_j4nsh",
+      "ticketNumber": "M-002",
+      "patientName": "KASIMOVA DILNOZA BAXODIROVNA",
+      "patientId": "104524",
+      "pinfl": "",
+      "phone": "",
+      "birthDate": "",
+      "date": "2026-09-02",
+      "services": [
+        {
+          "code": "R158",
+          "name": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)"
+        }
+      ],
+      "primaryService": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)",
+      "isContrast": true,
+      "totalPrice": 0,
+      "deviceId": "mrt1",
+      "deviceType": "MRT",
+      "status": "waiting",
+      "estimatedDurationMinutes": 40,
+      "estimatedStartTime": "2026-09-02T10:06:37.747Z",
+      "estimatedFinishTime": "2026-09-02T10:46:37.747Z",
+      "prepCallTime": "2026-09-02T09:51:37.747Z",
+      "referringDoctor": "",
+      "performingDoctor": "",
+      "operatorName": "Operator",
+      "comment": "",
+      "createdAt": "2026-09-02T09:41:37.771Z",
+      "updatedAt": "2026-09-02T09:41:37.771Z"
+    },
+    {
+      "id": "p_1788343228290_27mij",
+      "ticketNumber": "M-003",
+      "patientName": "ERGASHEV BOTIR RUSTAMOVICH",
+      "patientId": "",
+      "pinfl": "",
+      "phone": "+998901112233",
+      "birthDate": "",
+      "date": "2026-09-02",
+      "services": [
+        {
+          "code": "R166",
+          "name": "Bo'yin Umurtqalari MRT",
+          "duration": 25
+        }
+      ],
+      "primaryService": "Bo'yin Umurtqalari MRT",
+      "isContrast": false,
+      "totalPrice": 0,
+      "deviceId": "mrt2",
+      "deviceType": "MRT",
+      "status": "waiting",
+      "estimatedDurationMinutes": 25,
+      "estimatedStartTime": "2026-09-02T10:00:28.290Z",
+      "estimatedFinishTime": "2026-09-02T10:25:28.290Z",
+      "prepCallTime": "2026-09-02T09:45:28.290Z",
+      "referringDoctor": "",
+      "performingDoctor": "",
+      "operatorName": "Operator",
+      "comment": "",
+      "createdAt": "2026-09-02T10:00:28.290Z",
+      "updatedAt": "2026-09-02T10:00:28.290Z"
+    },
+    {
+      "id": "p_1788343488418_4g48h",
+      "ticketNumber": "M-004",
+      "patientName": "KLASTER TEST BEMOR",
+      "patientId": "",
+      "pinfl": "",
+      "phone": "+998931234567",
+      "birthDate": "",
+      "date": "2026-09-02",
+      "services": [
+        {
+          "code": "R157",
+          "name": "Bosh Miya MRT"
+        }
+      ],
+      "primaryService": "Bosh Miya MRT",
+      "isContrast": false,
+      "totalPrice": 0,
+      "deviceId": "mrt2",
+      "deviceType": "MRT",
+      "status": "waiting",
+      "estimatedDurationMinutes": 25,
+      "estimatedStartTime": "2026-09-02T10:25:28.290Z",
+      "estimatedFinishTime": "2026-09-02T10:50:28.290Z",
+      "prepCallTime": "2026-09-02T10:10:28.290Z",
+      "referringDoctor": "",
+      "performingDoctor": "",
+      "operatorName": "Operator",
+      "comment": "",
+      "createdAt": "2026-09-02T10:04:48.418Z",
+      "updatedAt": "2026-09-02T10:04:48.418Z"
+    }
+  ],
+  "devices": [
+    {
+      "id": "mrt1",
+      "name": "MRT 1 (1.5 Tesla)",
+      "room": "1-MRT Xonasi",
+      "type": "MRT",
+      "specialty": "Tomografiya (MRT)",
+      "hasInjector": true,
+      "supportsContrast": true,
+      "status": "active",
+      "currentPatientId": "p_1788342097747_g6kq0"
+    },
+    {
+      "id": "mrt2",
+      "name": "MRT 2 (3.0 Tesla)",
+      "room": "2-MRT Xonasi",
+      "type": "MRT",
+      "specialty": "Tomografiya (MRT)",
+      "hasInjector": false,
+      "supportsContrast": false,
+      "status": "active",
+      "currentPatientId": null
+    },
+    {
+      "id": "mskt1",
+      "name": "MSKT 1",
+      "room": "1-MSKT Xonasi",
+      "type": "MSKT",
+      "specialty": "Tomografiya (MSKT)",
+      "hasInjector": true,
+      "supportsContrast": true,
+      "status": "active",
+      "currentPatientId": null
+    }
+  ],
+  "settings": {
+    "clinicName": "Radiologiya va MRT Markazi",
+    "autoSchedule": true,
+    "prepTimeMinutes": 15,
+    "voiceLanguage": "uz",
+    "enableSoundNotification": true,
+    "allowedSubnets": [
+      "127.0.0.1",
+      "192.168.",
+      "10."
+    ],
+    "mrt1ContrastOnly": true
+  }
+}

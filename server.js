@@ -138,6 +138,79 @@ async function checkKarmedActiveUrl(force = false) {
 }
 
 // -------------------------------------------------------------
+// KARMED TESKARI PROKSI (REVERSE PROXY - BIR XIL ORIGIN MUHITI)
+// -------------------------------------------------------------
+function isKarmedProxiedPath(pathname) {
+  const p = pathname.toLowerCase();
+  return (
+    p.startsWith('/radiology') ||
+    p.startsWith('/login') ||
+    p.includes('.axd') ||
+    p.startsWith('/telerik') ||
+    p.startsWith('/dxr') ||
+    p.startsWith('/app_themes') ||
+    p.startsWith('/common/') ||
+    p.startsWith('/reports/') ||
+    p.startsWith('/karmed-proxy')
+  );
+}
+
+function proxyToKarmed(req, res, pathname) {
+  const isLocal = !(cachedKarmedStatus && cachedKarmedStatus.isFallback);
+  const targetHost = isLocal ? '192.168.150.111' : '213.230.91.59';
+  const targetPort = 2025;
+
+  let targetPath = req.url;
+  if (targetPath.startsWith('/karmed-proxy/')) {
+    targetPath = targetPath.replace('/karmed-proxy', '');
+  }
+
+  const headers = { ...req.headers };
+  headers['host'] = `${targetHost}:${targetPort}`;
+
+  if (headers['referer']) {
+    headers['referer'] = headers['referer'].replace(new RegExp(`https?://${req.headers.host}`, 'gi'), `http://${targetHost}:${targetPort}`);
+  }
+  if (headers['origin']) {
+    headers['origin'] = `http://${targetHost}:${targetPort}`;
+  }
+
+  const proxy = http.request({
+    hostname: targetHost,
+    port: targetPort,
+    path: targetPath,
+    method: req.method,
+    headers: headers,
+    timeout: 15000
+  }, (targetRes) => {
+    const resHeaders = { ...targetRes.headers };
+
+    // Redirect bo'lsa localhost ga o'zgartirish
+    if (resHeaders['location']) {
+      resHeaders['location'] = resHeaders['location'].replace(new RegExp(`https?://${targetHost}:${targetPort}`, 'gi'), `http://${req.headers.host}`);
+    }
+
+    // Set-Cookie ni localhost ga moslash (SameSite=Lax birinchi darajali bo'ladi)
+    if (resHeaders['set-cookie']) {
+      resHeaders['set-cookie'] = resHeaders['set-cookie'].map(c => {
+        return c.replace(/domain=[^;]+;?/gi, '').replace(/secure;?/gi, '');
+      });
+    }
+
+    res.writeHead(targetRes.statusCode, resHeaders);
+    targetRes.pipe(res);
+  });
+
+  proxy.on('error', (err) => {
+    console.error('[Karmed Proxy Error]:', err.message);
+    res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Karmed Serveriga ulanib bo\'lmadi: ' + err.message);
+  });
+
+  req.pipe(proxy);
+}
+
+// -------------------------------------------------------------
 // ASOSIY HTTP SERVER
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
@@ -156,6 +229,11 @@ const server = http.createServer(async (req, res) => {
 
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = parsedUrl.pathname;
+
+  // Karmed yo'llari bo'lsa, to'g'ridan-to'g'ri Karmedga proksi qilish (CORS va kuki to'siqsiz)
+  if (isKarmedProxiedPath(pathname)) {
+    return proxyToKarmed(req, res, pathname);
+  }
 
   // -------------------------------------------------------------
   // API YO'NALISHLARI (REST API)
