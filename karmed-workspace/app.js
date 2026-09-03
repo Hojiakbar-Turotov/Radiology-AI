@@ -856,6 +856,8 @@ function applyRolePermissions(user) {
 
     if (btnToggleDrawer) btnToggleDrawer.style.display = "none";
     if (clusterBadge) clusterBadge.style.display = "none";
+    const btnKarmedHost = document.getElementById("btnKarmedHost");
+    if (btnKarmedHost) btnKarmedHost.style.display = "none";
 
     if (quickQueueDrawer) quickQueueDrawer.classList.add("collapsed");
 
@@ -898,41 +900,34 @@ function applyRolePermissions(user) {
     }
   });
 
+  const btnKarmedHost = document.getElementById("btnKarmedHost");
   const role = user.role || 'tibbiy_navbat';
 
-  if (role === 'tibbiy_navbat') {
-    // Tibbiy navbatga qo'yuvchi: Karmed, Navbatga Yozish, TV Tablo, Tezkor navbat
-    if (tabNavbat) tabNavbat.style.display = "inline-flex";
-    if (tabTv) tabTv.style.display = "inline-flex";
-    if (tabLaborant) tabLaborant.style.display = "none";
-    if (tabStaff) tabStaff.style.display = "none";
-    if (tabDashboard) tabDashboard.style.display = "none";
-    if (clusterBadge) clusterBadge.style.display = "none";
-  } else if (role === 'laborant') {
-    // Laborant: Karmed, Navbat, TV Tablo, Laborant Portali, Tezkor navbat
-    if (tabNavbat) tabNavbat.style.display = "inline-flex";
-    if (tabTv) tabTv.style.display = "inline-flex";
-    if (tabLaborant) tabLaborant.style.display = "inline-flex";
-    if (tabStaff) tabStaff.style.display = "none";
-    if (tabDashboard) tabDashboard.style.display = "none";
-    if (clusterBadge) clusterBadge.style.display = "none";
-  } else if (role === 'super_admin') {
-    // Super Admin: Karmed, Navbat, TV Tablo, Laborant, Xodimlar Nazorati, Tezkor navbat
-    if (tabNavbat) tabNavbat.style.display = "inline-flex";
-    if (tabTv) tabTv.style.display = "inline-flex";
-    if (tabLaborant) tabLaborant.style.display = "inline-flex";
-    if (tabStaff) tabStaff.style.display = "inline-flex";
-    if (tabDashboard) tabDashboard.style.display = "none";
-    if (clusterBadge) clusterBadge.style.display = "none";
-  } else if (role === 'server_nazoratchisi' || role === 'admin') {
-    // Server Nazoratchisi: BARCHA DARCHALARGA TO'LIQ RUXSAT!
-    if (tabNavbat) tabNavbat.style.display = "inline-flex";
-    if (tabTv) tabTv.style.display = "inline-flex";
-    if (tabLaborant) tabLaborant.style.display = "inline-flex";
-    if (tabStaff) tabStaff.style.display = "inline-flex";
-    if (tabDashboard) tabDashboard.style.display = "inline-flex";
-    if (clusterBadge) clusterBadge.style.display = "inline-flex";
+  // Server ma'lumotlari (tugma va indikatorlar) faqat Server Nazoratchisiga ko'rinadi ("bu yerda server ko'rinmasin")
+  if (btnKarmedHost) {
+    btnKarmedHost.style.display = (role === 'server_nazoratchisi') ? 'inline-flex' : 'none';
   }
+  if (clusterBadge) {
+    clusterBadge.style.display = (role === 'server_nazoratchisi') ? 'inline-flex' : 'none';
+  }
+
+  // TV va Laborant menyulari ruxsati bo'lsa yuqorida tursin:
+  const canAccessTv = !user.permissions || user.permissions.includes('tv') || 
+    ['tibbiy_navbat', 'laborant', 'super_admin', 'server_nazoratchisi'].includes(role);
+
+  const laborantAllowedNames = ['isfandiyor', 'hojiakbar', 'shoxruh', 'dilmurod', 'miraziz', 'aziz', 'sardor', 'shariat', 'sevinch', 'nodirbek', 'akbar'];
+  const userNameLower = (user.name || '').toLowerCase();
+
+  const canAccessLaborant = (role === 'laborant' || role === 'super_admin' || role === 'server_nazoratchisi') ||
+    (user.permissions && user.permissions.includes('laborant')) ||
+    (user.isLaborant === true) ||
+    laborantAllowedNames.some(n => userNameLower.includes(n));
+
+  if (tabNavbat) tabNavbat.style.display = "inline-flex";
+  if (tabTv) tabTv.style.display = canAccessTv ? "inline-flex" : "none";
+  if (tabLaborant) tabLaborant.style.display = canAccessLaborant ? "inline-flex" : "none";
+  if (tabStaff) tabStaff.style.display = (role === 'super_admin' || role === 'server_nazoratchisi') ? "inline-flex" : "none";
+  if (tabDashboard) tabDashboard.style.display = (role === 'server_nazoratchisi') ? "inline-flex" : "none";
 }
 
 function formatRoleName(role) {
