@@ -11,6 +11,7 @@ let activeKarmedUrl = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
 
 document.addEventListener("DOMContentLoaded", () => {
   initKarmedConnection();
+  setupKarmedIframeBridge();
   initServices();
   initWebSocket();
   fetchTodayQueue();
@@ -193,6 +194,310 @@ function onServiceSelected() {
 }
 
 // -------------------------------------------------------------
+// KARMED IFRAME INTEGRATSIYASI VA AQLLI NAVBATGA OLISH
+// -------------------------------------------------------------
+function setupKarmedIframeBridge() {
+  const frame = document.getElementById("frameKarmed");
+  if (!frame) return;
+
+  function attachListeners() {
+    try {
+      const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+      if (!doc || !doc.body) return;
+
+      // Karmed jadvalidagi qator bosilganda darhol ma'lumotlarni o'qib olish
+      doc.body.addEventListener("click", (e) => {
+        const row = e.target.closest("tr");
+        if (!row) return;
+
+        // Header, Pager, Filter qatorlarini tashlab ketish
+        if (row.querySelector("th") || (row.className && (row.className.includes("Filter") || row.className.includes("Pager")))) return;
+
+        // Karmed pastki jadvalini yangilashi uchun 120ms kutish
+        setTimeout(() => {
+          const patient = extractPatientFromKarmedDoc(doc, row);
+          if (patient && (patient.name || patient.id)) {
+            autoFillQuickQueue(patient);
+          }
+        }, 120);
+
+        // Agar pastki tekshiruvlar jadvali biroz kechikib yangilansa:
+        setTimeout(() => {
+          const patient = extractPatientFromKarmedDoc(doc, row);
+          if (patient && patient.service) {
+            autoFillQuickQueue(patient);
+          }
+        }, 500);
+      }, true);
+
+      console.log("[Karmed Workspace] Iframe DOM tinglovchisi ulandi!");
+    } catch (err) {
+      console.warn("[Karmed Workspace] Iframe bridge ulanish:", err.message);
+    }
+  }
+
+  frame.addEventListener("load", attachListeners);
+  attachListeners();
+}
+
+// Kengaytma (Extension) postMessage orqali yuborganda ham qabul qilish:
+window.addEventListener("message", (event) => {
+  if (event.data && event.data.type === 'KARMED_PATIENT_SELECTED' && event.data.patient) {
+    console.log("[Karmed Workspace] Kengaytmadan bemor qabul qilindi:", event.data.patient);
+    autoFillQuickQueue(event.data.patient);
+  }
+});
+
+function extractPatientFromKarmedDoc(doc, clickedRow) {
+  try {
+    if (!doc) return null;
+
+    // 1. Tanlangan bemor qatori (Focused / Magenta yoki bosilgan qator)
+    let focusedRow = doc.querySelector(".dxgvFocusedRow_DevEx, .dxgvSelectedRow_DevEx") || clickedRow;
+    if (!focusedRow) {
+      const allRows = doc.querySelectorAll("tr");
+      for (const r of allRows) {
+        const bg = (r.style.backgroundColor || "").toLowerCase();
+        if (bg.includes("magenta") || bg.includes("rgb(255, 0, 255)") || bg.includes("#ff00ff") || bg.includes("rgb(255, 105, 180)") || bg.includes("pink")) {
+          focusedRow = r;
+          break;
+        }
+      }
+    }
+
+    if (!focusedRow) return null;
+
+    const cells = Array.from(focusedRow.querySelectorAll("td"));
+    if (cells.length < 3) return null;
+
+    const cellTexts = cells.map(c => (c.innerText || "").trim());
+
+    // Ustunlarni aniqlash
+    let surname = "";
+    let name = "";
+    let middle = "";
+    let patientId = "";
+    let pinfl = "";
+
+    const table = focusedRow.closest("table");
+    if (table) {
+      const headerThs = Array.from(table.querySelectorAll("th, td.dxgvHeader_DevEx, tr:first-child td")).map(h => (h.innerText || "").trim().toLowerCase());
+      headerThs.forEach((h, idx) => {
+        if (idx >= cellTexts.length) return;
+        const val = cellTexts[idx];
+        if (!val) return;
+        if (h.includes("familiya")) surname = val;
+        else if (h.includes("ism") && !h.includes("ota") && !h.includes("sharif")) name = val;
+        else if (h.includes("ota") || h.includes("sharif")) middle = val;
+        else if (h.includes("bemor id") || (h.includes("id") && !patientId)) patientId = val;
+        else if (h.includes("pinfl") || h.includes("jshshir")) pinfl = val;
+      });
+    }
+
+    if (!surname && cellTexts[0] && isNaN(cellTexts[0])) surname = cellTexts[0];
+    if (!name && cellTexts[1] && isNaN(cellTexts[1])) name = cellTexts[1];
+    if (!patientId) {
+      for (const val of cellTexts) {
+        if (/^\d{4,8}$/.test(val)) {
+          patientId = val;
+          break;
+        }
+      }
+    }
+
+    const fullName = `${surname} ${name} ${middle}`.trim();
+    if (!fullName && !patientId) return null;
+
+    // 2. Pastki jadvaldan tekshiruv (Xizmat) ma'lumotlarini olish
+    let serviceCode = "";
+    let serviceName = "";
+    let isContrast = false;
+
+    const allDocRows = doc.querySelectorAll("tr");
+    for (const r of allDocRows) {
+      const rowCells = Array.from(r.querySelectorAll("td"));
+      if (rowCells.length < 2) continue;
+      const texts = rowCells.map(c => (c.innerText || "").trim());
+
+      // R kodini qidirish (R157, R184, R92, R143 va h.k.)
+      const codeCellIdx = texts.findIndex(t => /^R\s*\d{2,5}$/i.test(t));
+      if (codeCellIdx !== -1) {
+        serviceCode = texts[codeCellIdx].toUpperCase();
+        if (texts[codeCellIdx + 1] && texts[codeCellIdx + 1].length > 2) {
+          serviceName = texts[codeCellIdx + 1];
+        } else if (codeCellIdx > 0 && texts[codeCellIdx - 1].length > 2) {
+          serviceName = texts[codeCellIdx - 1];
+        }
+        break;
+      }
+    }
+
+    if (!serviceName) {
+      for (const r of allDocRows) {
+        const text = (r.innerText || "").trim();
+        if ((text.includes("Mrt") || text.includes("MRT") || text.includes("Mskt") || text.includes("MSKT")) && text.length < 80 && !text.includes("Qidiruv") && !text.includes("Markazi")) {
+          serviceName = text;
+          break;
+        }
+      }
+    }
+
+    // Kontrast bor-yo'qligini aniqlash:
+    const sNameLower = serviceName.toLowerCase();
+    if (sNameLower.includes("kontrastsiz") || sNameLower.includes("bez kontrast") || sNameLower.includes("oddiy") || sNameLower.includes("native")) {
+      isContrast = false;
+    } else if (sNameLower.includes("kontrast") || sNameLower.includes("bilan") || sNameLower.includes("injektor") || sNameLower.includes("dinamik")) {
+      isContrast = true;
+    }
+
+    return {
+      name: fullName,
+      id: patientId,
+      pinfl: pinfl,
+      serviceCode: serviceCode,
+      service: serviceName,
+      isContrast: isContrast
+    };
+  } catch (err) {
+    console.warn("[extractPatientFromKarmedDoc Error]:", err);
+    return null;
+  }
+}
+
+// -------------------------------------------------------------
+// AQLLI QURILMA TANLASH ALGORITMI
+// -------------------------------------------------------------
+function determineSmartDevice(patientData) {
+  const serviceName = (patientData.service || "").toUpperCase();
+  const serviceCode = (patientData.serviceCode || "").toUpperCase();
+  const isContrast = Boolean(patientData.isContrast);
+
+  // 1. Agar MSKT / KT tekshiruvi bo'lsa
+  if (serviceName.includes("MSKT") || serviceName.includes(" KT ") || serviceCode.startsWith("R2") || serviceName.includes("KOMPYUTER TOMOGRAFIYA")) {
+    const msktWaiting = todayQueue.filter(p => p.deviceId === 'mskt' && p.status === 'waiting').length;
+    return {
+      deviceId: "mskt",
+      deviceName: "MSKT 1",
+      badgeText: `🖥️ <strong>MSKT 1</strong> (Tomograf tanlandi | Navbatda: <strong>${msktWaiting}</strong> ta bemor)`
+    };
+  }
+
+  // 2. Agar KONTRASTLI MRT bo'lsa -> Faqat MRT 1 (Injektorli)
+  if (isContrast) {
+    const mrt1Waiting = todayQueue.filter(p => (p.deviceId === 'mrt1' || p.deviceId === 'mrt') && p.status === 'waiting').length;
+    return {
+      deviceId: "mrt1",
+      deviceName: "MRT 1 (Injektor)",
+      badgeText: `💉 <strong>MRT 1</strong> (Injektorli apparat | Kontrastli MRT | Navbatda: <strong>${mrt1Waiting}</strong> ta bemor)`
+    };
+  }
+
+  // 3. Agar KONTRASTSIZ (Oddiy) MRT bo'lsa:
+  const mrt1Waiting = todayQueue.filter(p => (p.deviceId === 'mrt1' || p.deviceId === 'mrt') && p.status === 'waiting').length;
+  const mrt2Waiting = todayQueue.filter(p => p.deviceId === 'mrt2' && p.status === 'waiting').length;
+
+  if (mrt2Waiting <= mrt1Waiting) {
+    return {
+      deviceId: "mrt2",
+      deviceName: "MRT 2 (3.0T)",
+      badgeText: `⚡ <strong>MRT 2</strong> (Optimal tezkor navbat | Navbatda: <strong>${mrt2Waiting}</strong> ta bemor)`
+    };
+  } else {
+    return {
+      deviceId: "mrt1",
+      deviceName: "MRT 1 (1.5T)",
+      badgeText: `⚡ <strong>MRT 1</strong> (Kamroq kutish vaqti | Navbatda: <strong>${mrt1Waiting}</strong> ta bemor)`
+    };
+  }
+}
+
+// -------------------------------------------------------------
+// FORMANI AVTOMAT TO'LDIRISH VA TAYYOR TURISH
+// -------------------------------------------------------------
+function autoFillQuickQueue(patientData) {
+  if (!patientData) return;
+
+  const nameInput = document.getElementById("quickPatientName");
+  const idInput = document.getElementById("quickPatientId");
+  const phoneInput = document.getElementById("quickPhone");
+  const serviceSelect = document.getElementById("quickServiceSelect");
+  const contrastSelect = document.getElementById("quickContrastSelect");
+  const deviceSelect = document.getElementById("quickDeviceSelect");
+  const submitBtn = document.getElementById("btnQuickSubmit");
+  const recBox = document.getElementById("smartRecommendationBox");
+  const recDesc = document.getElementById("smartBoxDesc");
+
+  // 1. Bemor F.I.SH va ID
+  if (nameInput && patientData.name) {
+    nameInput.value = patientData.name.toUpperCase();
+  }
+  if (idInput && patientData.id) {
+    idInput.value = patientData.id;
+  }
+  if (phoneInput && patientData.phone) {
+    phoneInput.value = patientData.phone;
+  }
+
+  // 2. Kontrast
+  const isContrast = Boolean(patientData.isContrast);
+  if (contrastSelect) {
+    contrastSelect.value = isContrast ? "yes" : "no";
+  }
+
+  // 3. Tekshiruv sohasi (Xizmat)
+  if (serviceSelect && (patientData.serviceCode || patientData.service)) {
+    let matched = false;
+    for (let i = 0; i < serviceSelect.options.length; i++) {
+      const opt = serviceSelect.options[i];
+      if (patientData.serviceCode && opt.value === patientData.serviceCode) {
+        serviceSelect.selectedIndex = i;
+        matched = true;
+        break;
+      }
+      if (patientData.service && opt.text.toLowerCase().includes(patientData.service.toLowerCase())) {
+        serviceSelect.selectedIndex = i;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched && patientData.service) {
+      const val = patientData.serviceCode || ("R_AUTO_" + Date.now());
+      const label = (patientData.serviceCode ? `[${patientData.serviceCode}] ` : "") + patientData.service;
+      const opt = new Option(label, val, true, true);
+      opt.setAttribute("data-contrast", isContrast ? "yes" : "no");
+      opt.setAttribute("data-device", patientData.service.toUpperCase().includes("MSKT") ? "MSKT" : "MRT");
+      serviceSelect.add(opt);
+    }
+  }
+
+  // 4. AQLLI QURILMA TANLASH
+  const smart = determineSmartDevice(patientData);
+  if (deviceSelect) {
+    deviceSelect.value = smart.deviceId;
+  }
+
+  if (recBox && recDesc) {
+    recDesc.innerHTML = smart.badgeText;
+    recBox.style.display = "flex";
+  }
+
+  // 5. Tezkor navbat darchasini ochish
+  const drawer = document.getElementById("quickQueueDrawer");
+  if (drawer && drawer.classList.contains("collapsed")) {
+    drawer.classList.remove("collapsed");
+    const btnToggle = document.getElementById("btnToggleDrawer");
+    if (btnToggle) btnToggle.classList.add("active");
+  }
+
+  // 6. Tugmani yashil pulsatsiya bilan tayyor holga keltirish
+  if (submitBtn) {
+    submitBtn.classList.add("ready-pulse");
+    submitBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${smart.deviceName} ga Navbatga Qo'yish & Chipta`;
+    submitBtn.title = "Barcha ma'lumotlar olindi! Navbatga qo'yish uchun bosing yoki Enter bosing.";
+  }
+}
+
+// -------------------------------------------------------------
 // TEZKOR NAVBATGA QO'SHISH & CHIPTA
 // -------------------------------------------------------------
 async function handleQuickQueueSubmit(e) {
@@ -250,6 +555,9 @@ async function handleQuickQueueSubmit(e) {
       serviceSelect.selectedIndex = 0;
       contrastSelect.value = "no";
       deviceSelect.value = "auto";
+      submitBtn.classList.remove("ready-pulse");
+      const recBox = document.getElementById("smartRecommendationBox");
+      if (recBox) recBox.style.display = "none";
 
       // 3. Ro'yxatni yangilash
       fetchTodayQueue();

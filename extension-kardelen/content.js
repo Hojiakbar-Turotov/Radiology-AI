@@ -1132,6 +1132,25 @@ async function updateFloatingBarPatientDisplay() {
   const btn = document.getElementById("uttFloatingSendBtn");
   if (!txt || !btn || !selectedPatient) return;
 
+  // Asosiy dastur oynasiga (Karmed Workspace) bemor tanlanganligi haqida xabar uzatish:
+  try {
+    if (window.parent && window.parent !== window && selectedPatient) {
+      window.parent.postMessage({
+        type: 'KARMED_PATIENT_SELECTED',
+        patient: {
+          name: selectedPatient.name,
+          id: selectedPatient.id,
+          phone: selectedPatient.phone || '',
+          pinfl: selectedPatient.pinfl || '',
+          service: selectedPatient.service || '',
+          serviceCode: selectedPatient.serviceCode || '',
+          isContrast: Boolean(selectedPatient.isContrast),
+          suggestedDevice: selectedPatient.autoDeviceId || (selectedPatient.isContrast ? 'mrt1' : 'mrt2')
+        }
+      }, '*');
+    }
+  } catch (e) {}
+
   const currentLang = (typeof getI18nLanguage === 'function') ? getI18nLanguage() : 'uz';
   const dict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[currentLang]) 
     ? I18N_TRANSLATIONS.ext[currentLang] 
