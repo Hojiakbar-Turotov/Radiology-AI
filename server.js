@@ -230,6 +230,13 @@ function proxyToKarmed(req, res, pathname) {
   req.pipe(proxy);
 }
 
+function getAuthUser(req) {
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!token) return null;
+  return auth.verifySession(token);
+}
+
 // -------------------------------------------------------------
 // ASOSIY HTTP SERVER
 // -------------------------------------------------------------
@@ -631,6 +638,98 @@ const server = http.createServer(async (req, res) => {
       // 6. GET /api/devices - Qurilmalar holati
       if (req.method === 'GET' && pathname === '/api/devices') {
         sendJSON(res, { success: true, devices: db.getDevices() });
+        return;
+      }
+
+      // 6.1 POST /api/devices/save - Super Admin / Admin uchun qurilma qo'shish yoki nomini tahrirlash
+      if (req.method === 'POST' && pathname === '/api/devices/save') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin')) {
+          return sendJSON(res, { success: false, error: "Faqat Super Admin yoki Administrator qurilmalarni boshqarishi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        if (!body.name || !body.name.trim()) {
+          return sendJSON(res, { success: false, error: "Qurilma nomi kiritilmadi" }, 400);
+        }
+
+        let device = null;
+        if (body.id && db.getDeviceById(body.id)) {
+          // Tahrirlash (Edit)
+          device = db.updateDevice(body.id, {
+            name: body.name,
+            room: body.room,
+            type: body.type,
+            specialty: body.specialty,
+            hasInjector: body.hasInjector,
+            supportsContrast: body.supportsContrast,
+            status: body.status
+          });
+        } else {
+          // Yangi qo'shish (Add)
+          device = db.addDevice({
+            id: body.id,
+            name: body.name,
+            room: body.room,
+            type: body.type,
+            specialty: body.specialty,
+            hasInjector: body.hasInjector,
+            supportsContrast: body.supportsContrast,
+            status: body.status || 'active'
+          });
+        }
+
+        const allDevices = db.getDevices();
+        // Barcha mijozlarga WebSocket va Klaster orqali xabar berish
+        wsHub.broadcast('devices_updated', { devices: allDevices });
+        wsHub.broadcast('devices_status', { devices: allDevices });
+        cluster.replicate('devices_updated', { devices: allDevices });
+
+        db.addLog({
+          ip: clientIp,
+          method: 'POST',
+          path: '/api/devices/save',
+          status: 200,
+          action: 'DEVICE_SAVED',
+          details: `Qurilma saqlandi: ${device.name} (${device.id}) [Foydalanuvchi: ${currentUser.name}]`
+        });
+
+        sendJSON(res, { success: true, message: "Qurilma muvaffaqiyatli saqlandi", device, devices: allDevices });
+        return;
+      }
+
+      // 6.2 POST /api/devices/delete - Super Admin / Admin uchun qurilmani o'chirish
+      if (req.method === 'POST' && pathname === '/api/devices/delete') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin')) {
+          return sendJSON(res, { success: false, error: "Faqat Super Admin yoki Administrator qurilmalarni o'chirishi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        if (!body.id) {
+          return sendJSON(res, { success: false, error: "Qurilma ID kiritilmadi" }, 400);
+        }
+
+        const removed = db.deleteDevice(body.id);
+        if (!removed) {
+          return sendJSON(res, { success: false, error: "Qurilma topilmadi" }, 404);
+        }
+
+        const allDevices = db.getDevices();
+        wsHub.broadcast('devices_updated', { devices: allDevices });
+        wsHub.broadcast('devices_status', { devices: allDevices });
+        cluster.replicate('devices_updated', { devices: allDevices });
+
+        db.addLog({
+          ip: clientIp,
+          method: 'POST',
+          path: '/api/devices/delete',
+          status: 200,
+          action: 'DEVICE_DELETED',
+          details: `Qurilma o'chirildi: ${removed.name} (${removed.id}) [Foydalanuvchi: ${currentUser.name}]`
+        });
+
+        sendJSON(res, { success: true, message: "Qurilma o'chirildi", devices: allDevices });
         return;
       }
 

@@ -168,18 +168,18 @@
     "createdAt": "2026-09-03T04:42:09.528Z",
     "expiresAt": "2026-10-03T04:42:09.528Z"
   },
-  "tok_1788413755555_11b29a3e73788baedf809c23bac5f033": {
-    "token": "tok_1788413755555_11b29a3e73788baedf809c23bac5f033",
+  "tok_1788421174703_e28b68814c34e2d697eaf6a3e3ea75b8": {
+    "token": "tok_1788421174703_e28b68814c34e2d697eaf6a3e3ea75b8",
     "user": {
-      "login": "T1",
-      "name": "Isfandiyor",
+      "login": "T2",
+      "name": "A'loxon",
       "role": "tibbiy_navbat",
       "status": "active",
-      "phone": "+998 90 999-99-99",
+      "phone": "",
       "room": "Registratura",
       "workSchedule": {
-        "start": "08:30",
-        "end": "17:30",
+        "start": "08:00",
+        "end": "17:00",
         "lunchStart": "12:00",
         "lunchEnd": "13:00",
         "days": [
@@ -196,7 +196,151 @@
       },
       "createdAt": "2026-09-03"
     },
-    "createdAt": "2026-09-03T05:35:55.555Z",
-    "expiresAt": "2026-10-03T05:35:55.555Z"
+    "createdAt": "2026-09-03T07:39:34.703Z",
+    "expiresAt": "2026-10-03T07:39:34.703Z"
+  },
+  "tok_1788422554971_029bf2d14be54f2dcc6f162696001185": {
+    "token": "tok_1788422554971_029bf2d14be54f2dcc6f162696001185",
+    "user": {
+      "login": "L1",
+      "name": "Shoxruh",
+      "role": "super_admin",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 1 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T08:02:34.971Z",
+    "expiresAt": "2026-10-03T08:02:34.971Z"
+  },
+  "tok_1788423659608_35fe88218e2db8e3a45a8c2ff8d2908d": {
+    "token": "tok_1788423659608_35fe88218e2db8e3a45a8c2ff8d2908d",
+    "user": {
+      "login": "L1",
+      "name": "Shoxruh",
+      "role": "super_admin",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 1 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T08:20:59.608Z",
+    "expiresAt": "2026-10-03T08:20:59.608Z"
+  },
+  "tok_1788423668399_3c72f1ca2782f709382269a00704ea6a": {
+    "token": "tok_1788423668399_3c72f1ca2782f709382269a00704ea6a",
+    "user": {
+      "login": "L1",
+      "name": "Shoxruh",
+      "role": "super_admin",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 1 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T08:21:08.399Z",
+    "expiresAt": "2026-10-03T08:21:08.399Z"
+  },
+  "tok_1788423681914_6e9ad61db084d8283e3e0c20f1e98719": {
+    "token": "tok_1788423681914_6e9ad61db084d8283e3e0c20f1e98719",
+    "user": {
+      "login": "L1",
+      "name": "Shoxruh",
+      "role": "super_admin",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 1 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T08:21:21.914Z",
+    "expiresAt": "2026-10-03T08:21:21.914Z"
   }
 }

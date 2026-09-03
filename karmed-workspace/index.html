@@ -396,8 +396,8 @@
     <div class="custom-modal-card staff-modal-card">
       <div class="modal-card-header">
         <div class="modal-card-title">
-          <i class="fa-solid fa-users-gear" style="color:#f59e0b;"></i>
-          <h3>Xodimlar va Rollar Boshqaruvi</h3>
+          <i class="fa-solid fa-sliders" style="color:#f59e0b;"></i>
+          <h3>Tizim, Xodimlar va Qurilmalar Boshqaruvi</h3>
         </div>
         <button class="modal-close-btn" onclick="closeStaffModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -407,6 +407,9 @@
         </button>
         <button type="button" class="staff-tab-btn" id="btnStaffTabServices" onclick="switchStaffTab('services')">
           <i class="fa-solid fa-stethoscope"></i> Tekshiruvlar & Standart Vaqtlar
+        </button>
+        <button type="button" class="staff-tab-btn" id="btnStaffTabDevices" onclick="switchStaffTab('devices')">
+          <i class="fa-solid fa-laptop-medical"></i> Qurilmalar (Apparatlar)
         </button>
       </div>
 
@@ -547,6 +550,99 @@
             </thead>
             <tbody id="servicesTableBody">
               <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 3: QURILMALAR (APPARATLAR) -->
+      <div class="modal-card-body" id="panelStaffDevices" style="display:none;">
+        <div class="staff-mgmt-toolbar">
+          <p class="modal-sub-desc" style="margin:0;">MRT va MSKT apparatlarini boshqarish, nomlarini tahrirlash va yangi qurilma qo'shish paneli.</p>
+          <button class="btn-add-staff" onclick="toggleAddDeviceForm()">
+            <i class="fa-solid fa-plus-circle"></i> + Yangi Qurilma Qo'shish
+          </button>
+        </div>
+
+        <!-- Add / Edit Device Form Box -->
+        <div id="boxAddDevice" class="add-staff-box" style="display:none; border-color:#38bdf8;">
+          <h4 id="lblDeviceFormTitle" style="font-size:13px; color:#38bdf8; margin-bottom:8px;">
+            <i class="fa-solid fa-laptop-medical"></i> Yangi Qurilma Qo'shish
+          </h4>
+          <form id="formDevice" onsubmit="handleSaveDevice(event)">
+            <input type="hidden" id="editDeviceMode" value="new">
+            <div class="modal-field-row">
+              <div class="modal-field" style="max-width:130px;">
+                <label>Qurilma ID*</label>
+                <input type="text" id="devId" required placeholder="mrt3" style="text-transform:lowercase;">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Qurilma Nomi (Apparat)*</label>
+                <input type="text" id="devName" required placeholder="Masalan: MRT 2 (Barcha MRT 3.0T)">
+              </div>
+              <div class="modal-field" style="max-width:110px;">
+                <label>Turi*</label>
+                <select id="devType">
+                  <option value="MRT">MRT</option>
+                  <option value="MSKT">MSKT</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Xonasi / Joylashuvi*</label>
+                <input type="text" id="devRoom" required placeholder="Masalan: 2-MRT Xonasi">
+              </div>
+            </div>
+
+            <div class="modal-field-row" style="margin-top:8px;">
+              <div class="modal-field flex-1">
+                <label>Shprits-Injektor</label>
+                <select id="devInjector">
+                  <option value="no">Yo'q</option>
+                  <option value="yes">Mavjud (Bor)</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Kontrastli Tekshiruv</label>
+                <select id="devContrast">
+                  <option value="yes">Qo'llab-quvvatlaydi</option>
+                  <option value="no">Qo'llab-quvvatlamaydi</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Qurilma Holati*</label>
+                <select id="devStatus">
+                  <option value="active">🟢 Faol (Ishlayapti)</option>
+                  <option value="maintenance">🟡 Ta'mirda (Profilaktika)</option>
+                  <option value="inactive">🔴 Nofaol (O'chirilgan)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+              <button type="button" class="btn-modal-cancel" onclick="toggleAddDeviceForm()">Bekor qilish</button>
+              <button type="submit" class="btn-modal-primary" id="btnSaveDeviceSubmit" style="background:#0284c7;">
+                <i class="fa-solid fa-check"></i> Saqlash
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="staff-table-wrap" style="max-height:380px; overflow-y:auto; margin-top:10px;">
+          <table class="staff-table">
+            <thead>
+              <tr>
+                <th style="width:75px;">ID</th>
+                <th>Qurilma Nomi</th>
+                <th style="width:75px;">Turi</th>
+                <th>Xonasi</th>
+                <th style="width:110px;">Injektor</th>
+                <th style="width:110px;">Kontrast</th>
+                <th style="width:110px;">Holati</th>
+                <th style="width:105px;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="devicesTableBody">
+              <!-- Dynamically populated from /api/devices -->
             </tbody>
           </table>
         </div>

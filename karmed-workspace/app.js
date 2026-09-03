@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKarmedIframeBridge();
   checkCurrentUser();
   initServices();
+  fetchDevicesList();
   initWebSocket();
   fetchTodayQueue();
   pollClusterStatus();
@@ -1434,6 +1435,8 @@ function initWebSocket() {
         const msg = JSON.parse(evt.data);
         if (msg.type === "queue_updated") {
           fetchTodayQueue();
+        } else if (msg.type === "devices_updated" || msg.type === "devices_status") {
+          fetchDevicesList();
         }
       } catch (e) {}
     };
@@ -2093,25 +2096,30 @@ async function triggerSmartSlotRecalc() {
 // TEKSHIRUVLAR & STANDART VAQTLAR BOSHQARUVI (SUPER ADMIN)
 // -------------------------------------------------------------
 let catalogServicesList = [];
+let allDevicesList = [];
 
 window.switchStaffTab = function(tabName) {
   const btnMembers = document.getElementById("btnStaffTabMembers");
   const btnServices = document.getElementById("btnStaffTabServices");
+  const btnDevices = document.getElementById("btnStaffTabDevices");
   const panelMembers = document.getElementById("panelStaffMembers");
   const panelServices = document.getElementById("panelStaffServices");
+  const panelDevices = document.getElementById("panelStaffDevices");
+
+  if (btnMembers) btnMembers.classList.toggle("active", tabName === 'members');
+  if (btnServices) btnServices.classList.toggle("active", tabName === 'services');
+  if (btnDevices) btnDevices.classList.toggle("active", tabName === 'devices');
+
+  if (panelMembers) panelMembers.style.display = (tabName === 'members') ? "block" : "none";
+  if (panelServices) panelServices.style.display = (tabName === 'services') ? "block" : "none";
+  if (panelDevices) panelDevices.style.display = (tabName === 'devices') ? "block" : "none";
 
   if (tabName === 'members') {
-    if (btnMembers) btnMembers.classList.add("active");
-    if (btnServices) btnServices.classList.remove("active");
-    if (panelMembers) panelMembers.style.display = "block";
-    if (panelServices) panelServices.style.display = "none";
     fetchStaffList();
-  } else {
-    if (btnMembers) btnMembers.classList.remove("active");
-    if (btnServices) btnServices.classList.add("active");
-    if (panelMembers) panelMembers.style.display = "none";
-    if (panelServices) panelServices.style.display = "block";
+  } else if (tabName === 'services') {
     fetchServicesList();
+  } else if (tabName === 'devices') {
+    fetchDevicesList();
   }
 };
 
@@ -2278,6 +2286,249 @@ window.handleDeleteService = async function(code) {
       alert(`✅ ${code} tekshiruvi o'chirildi!`);
       fetchServicesList();
       if (typeof initServiceOptions === 'function') initServiceOptions();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "O'chirib bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+// -------------------------------------------------------------
+// QURILMALAR (APPARATLAR) BOSHQARUVI (SUPER ADMIN & ADMIN)
+// -------------------------------------------------------------
+window.toggleAddDeviceForm = function() {
+  const box = document.getElementById("boxAddDevice");
+  if (!box) return;
+
+  const isVisible = box.style.display !== "none";
+  if (isVisible) {
+    box.style.display = "none";
+  } else {
+    box.style.display = "block";
+    const form = document.getElementById("formDevice");
+    if (form) form.reset();
+    document.getElementById("editDeviceMode").value = "new";
+    const devIdInp = document.getElementById("devId");
+    if (devIdInp) {
+      devIdInp.readOnly = false;
+      devIdInp.placeholder = "mrt3";
+      const count = (allDevicesList.length || 0) + 1;
+      devIdInp.value = `mrt${count}`;
+    }
+    const lbl = document.getElementById("lblDeviceFormTitle");
+    if (lbl) lbl.innerHTML = '<i class="fa-solid fa-laptop-medical"></i> Yangi Qurilma Qo\'shish';
+    const submitBtn = document.getElementById("btnSaveDeviceSubmit");
+    if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Saqlash';
+  }
+};
+
+window.editDevice = function(devId) {
+  const dev = allDevicesList.find(d => d.id === devId);
+  if (!dev) return;
+
+  const box = document.getElementById("boxAddDevice");
+  if (box) box.style.display = "block";
+
+  document.getElementById("editDeviceMode").value = "edit";
+  const devIdInp = document.getElementById("devId");
+  if (devIdInp) {
+    devIdInp.value = dev.id;
+    devIdInp.readOnly = true;
+  }
+
+  const devNameInp = document.getElementById("devName");
+  if (devNameInp) devNameInp.value = dev.name;
+
+  const devTypeSel = document.getElementById("devType");
+  if (devTypeSel) devTypeSel.value = dev.type || "MRT";
+
+  const devRoomInp = document.getElementById("devRoom");
+  if (devRoomInp) devRoomInp.value = dev.room || "";
+
+  const devInjectorSel = document.getElementById("devInjector");
+  if (devInjectorSel) devInjectorSel.value = dev.hasInjector ? "yes" : "no";
+
+  const devContrastSel = document.getElementById("devContrast");
+  if (devContrastSel) devContrastSel.value = dev.supportsContrast ? "yes" : "no";
+
+  const devStatusSel = document.getElementById("devStatus");
+  if (devStatusSel) devStatusSel.value = dev.status || "active";
+
+  const lbl = document.getElementById("lblDeviceFormTitle");
+  if (lbl) lbl.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Qurilmani Tahrirlash: <strong>${escapeHtml(dev.name)}</strong>`;
+
+  const submitBtn = document.getElementById("btnSaveDeviceSubmit");
+  if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> O\'zgarishlarni Saqlash';
+
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+async function fetchDevicesList() {
+  const tbody = document.getElementById("devicesTableBody");
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Qurilmalar yuklanmoqda...</td></tr>';
+  }
+
+  try {
+    const res = await fetch("/api/devices");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.devices)) {
+      allDevicesList = data.devices;
+      renderDevicesTable(allDevicesList);
+      populateDeviceDropdowns(allDevicesList);
+    } else if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#f87171; padding:16px;">❌ Qurilmalarni yuklab bo\'lmadi</td></tr>';
+    }
+  } catch (err) {
+    console.error("[fetchDevicesList error]:", err);
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo\'q</td></tr>';
+    }
+  }
+}
+
+function renderDevicesTable(list) {
+  const tbody = document.getElementById("devicesTableBody");
+  if (!tbody) return;
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:16px; color:#94a3b8;">Qurilmalar mavjud emas</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(d => {
+    let statusBadge = '<span class="badge" style="background:#064e3b; color:#6ee7b7; font-weight:700;">🟢 Faol</span>';
+    if (d.status === 'maintenance') {
+      statusBadge = '<span class="badge" style="background:#78350f; color:#fcd34d; font-weight:700;">🟡 Ta\'mirda</span>';
+    } else if (d.status === 'inactive') {
+      statusBadge = '<span class="badge" style="background:#7f1d1d; color:#fca5a5; font-weight:700;">🔴 Nofaol</span>';
+    }
+
+    const typeBadge = d.type === 'MSKT' 
+      ? '<span class="badge" style="background:#3b0764; color:#d8b4fe; font-weight:700;">🖥️ MSKT</span>'
+      : '<span class="badge" style="background:#0369a1; color:#e0f2fe; font-weight:700;">🧲 MRT</span>';
+
+    return `
+      <tr>
+        <td><strong style="color:#38bdf8; font-family:monospace;">${escapeHtml(d.id)}</strong></td>
+        <td><strong style="color:#f8fafc; font-size:13px;">${escapeHtml(d.name)}</strong></td>
+        <td>${typeBadge}</td>
+        <td><span style="color:#cbd5e1;">${escapeHtml(d.room || '-')}</span></td>
+        <td>${d.hasInjector ? '<span style="color:#34d399; font-weight:700;"><i class="fa-solid fa-check"></i> Bor</span>' : '<span style="color:#94a3b8;">Yo\'q</span>'}</td>
+        <td>${d.supportsContrast ? '<span style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-syringe"></i> Ha</span>' : '<span style="color:#94a3b8;">Yo\'q</span>'}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn-table-action" onclick="editDevice('${d.id}')" title="Qurilma nomini va sozlamalarini tahrirlash" style="background:#0284c7; color:#fff; padding:5px 9px; border-radius:5px; border:none; cursor:pointer; font-size:12px;">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" class="btn-table-action" onclick="deleteDevice('${d.id}')" title="Qurilmani o'chirish" style="background:#ef4444; color:#fff; padding:5px 9px; border-radius:5px; border:none; cursor:pointer; font-size:12px;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function populateDeviceDropdowns(devices) {
+  const quickSelect = document.getElementById("quickDeviceSelect");
+  if (!quickSelect) return;
+
+  const currentVal = quickSelect.value;
+  quickSelect.innerHTML = '<option value="auto">⚡ Aqlli Avtomat</option>';
+
+  devices.forEach(d => {
+    if (d.status === 'inactive') return;
+    const opt = document.createElement("option");
+    opt.value = d.id;
+    const icon = d.type === 'MSKT' ? '🖥️' : '🧲';
+    const tag = d.hasInjector ? 'Injektor bor' : (d.supportsContrast ? 'Kontrast' : d.room || d.type);
+    opt.textContent = `${icon} ${d.name} (${tag})`;
+    quickSelect.appendChild(opt);
+  });
+
+  if (currentVal && Array.from(quickSelect.options).some(o => o.value === currentVal)) {
+    quickSelect.value = currentVal;
+  }
+}
+
+window.handleSaveDevice = async function(e) {
+  e.preventDefault();
+
+  const devId = document.getElementById("devId").value.trim();
+  const devName = document.getElementById("devName").value.trim();
+  const devType = document.getElementById("devType").value;
+  const devRoom = document.getElementById("devRoom").value.trim();
+  const devInjector = document.getElementById("devInjector").value === "yes";
+  const devContrast = document.getElementById("devContrast").value === "yes";
+  const devStatus = document.getElementById("devStatus").value;
+
+  if (!devName) {
+    alert("⚠️ Qurilma nomini kiriting!");
+    return;
+  }
+
+  const token = localStorage.getItem("auth_token");
+
+  try {
+    const res = await fetch("/api/devices/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        id: devId,
+        name: devName,
+        type: devType,
+        room: devRoom,
+        hasInjector: devInjector,
+        supportsContrast: devContrast,
+        status: devStatus
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ Qurilma muvaffaqiyatli saqlandi: ${devName}`);
+      const box = document.getElementById("boxAddDevice");
+      if (box) box.style.display = "none";
+      fetchDevicesList();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Saqlab bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+window.deleteDevice = async function(devId) {
+  const dev = allDevicesList.find(d => d.id === devId);
+  const name = dev ? dev.name : devId;
+
+  if (!confirm(`Haqiqatan ham "${name}" apparatini o'chirmoqchimisiz?`)) {
+    return;
+  }
+
+  const token = localStorage.getItem("auth_token");
+
+  try {
+    const res = await fetch("/api/devices/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ id: devId })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ Qurilma o'chirildi!`);
+      fetchDevicesList();
     } else {
       alert("❌ Xatolik: " + (data.error || "O'chirib bo'lmadi"));
     }
