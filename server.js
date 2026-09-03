@@ -432,6 +432,18 @@ const server = http.createServer(async (req, res) => {
           }, 400);
         }
 
+        // 10 kundan oldingi tekshiruv bo'lsa - so'rovni yangilash kerak
+        if (body.registrationDate) {
+          const dateCheck = scheduler.checkRegistrationDate(body.registrationDate);
+          if (dateCheck.isExpired) {
+            return sendJSON(res, {
+              success: false,
+              isDateExpired: true,
+              error: `Ushbu tekshiruv ro'yxatga olinganiga ${dateCheck.daysDiff} kun bo'lgan (10 kundan oshgan)! So'rovni yangilash kerak.`
+            }, 400);
+          }
+        }
+
         // Aqlli rejalashtirish (Eng yaqin ish kuni, bo'sh soat, navbatchi laborantlar vaqti)
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         const patientData = {
@@ -671,6 +683,17 @@ const server = http.createServer(async (req, res) => {
             isAllowed: false,
             error: "Ushbu tekshiruvga navbat berilmaydi! Elektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan."
           }, 400);
+        }
+
+        if (body.registrationDate) {
+          const dateCheck = scheduler.checkRegistrationDate(body.registrationDate);
+          if (dateCheck.isExpired) {
+            return sendJSON(res, {
+              success: false,
+              isDateExpired: true,
+              error: `Ushbu tekshiruv ro'yxatga olinganiga ${dateCheck.daysDiff} kun bo'lgan (10 kundan oshgan)! So'rovni yangilash kerak.`
+            }, 400);
+          }
         }
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         sendJSON(res, { success: true, slot: slotAllocation });

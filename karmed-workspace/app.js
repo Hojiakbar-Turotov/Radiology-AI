@@ -346,6 +346,78 @@ function isGreenColorRgb(colorStr) {
   return false;
 }
 
+// -------------------------------------------------------------
+// RO'YXATGA OLINGAN SANANI TEKSHIRISH (OXIRGI 10 KUNLIK QOIDA)
+// -------------------------------------------------------------
+function checkRegistrationDate(dateStr) {
+  if (!dateStr || typeof dateStr !== "string") {
+    return { isExpired: false, daysDiff: 0, dateFormatted: "" };
+  }
+
+  try {
+    const trimmed = dateStr.trim();
+    if (!trimmed) return { isExpired: false, daysDiff: 0, dateFormatted: "" };
+
+    // 1. DD.MM.YYYY yoki DD/MM/YYYY yoki DD-MM-YYYY formatini qidirish
+    const dmyMatch = trimmed.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+    let regDate = null;
+
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10) - 1;
+      const year = parseInt(dmyMatch[3], 10);
+      regDate = new Date(year, month, day);
+    } else {
+      // 2. YYYY-MM-DD formati
+      const ymdMatch = trimmed.match(/(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
+      if (ymdMatch) {
+        const year = parseInt(ymdMatch[1], 10);
+        const month = parseInt(ymdMatch[2], 10) - 1;
+        const day = parseInt(ymdMatch[3], 10);
+        regDate = new Date(year, month, day);
+      } else {
+        const parsed = Date.parse(trimmed);
+        if (!isNaN(parsed)) regDate = new Date(parsed);
+      }
+    }
+
+    if (!regDate || isNaN(regDate.getTime())) {
+      return { isExpired: false, daysDiff: 0, dateFormatted: dateStr };
+    }
+
+    // Bugungi sana (faqat kunni solishtirish uchun vaqt 00:00:00)
+    const now = new Date();
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const regZero = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate()).getTime();
+
+    const diffDays = Math.floor((todayZero - regZero) / (1000 * 60 * 60 * 24));
+
+    const dd = String(regDate.getDate()).padStart(2, '0');
+    const mm = String(regDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = regDate.getFullYear();
+    const dateFormatted = `${dd}.${mm}.${yyyy}`;
+
+    // Agar 10 kundan oldingi tekshiruv bo'lsa (diffDays > 10):
+    if (diffDays > 10) {
+      return {
+        isExpired: true,
+        daysDiff: diffDays,
+        dateFormatted: dateFormatted,
+        reason: "So'rovni yangilash kerak (10 kundan oshgan)"
+      };
+    }
+
+    return {
+      isExpired: false,
+      daysDiff: Math.max(0, diffDays),
+      dateFormatted: dateFormatted
+    };
+  } catch (err) {
+    console.warn("[checkRegistrationDate error]:", err);
+    return { isExpired: false, daysDiff: 0, dateFormatted: dateStr };
+  }
+}
+
 function onServiceSelected() {
   const select = document.getElementById("quickServiceSelect");
   const selectedOpt = select.options[select.selectedIndex];
@@ -355,6 +427,31 @@ function onServiceSelected() {
   const recBox = document.getElementById("smartRecommendationBox");
   const recTitle = document.getElementById("smartBoxTitle");
   const recDesc = document.getElementById("smartBoxDesc");
+
+  // Agar 10 kundan oldingi tekshiruv bo'lsa (Muddat o'tgan):
+  if (selectedOpt.getAttribute("data-expired") === "true" || select.value === "EXPIRED") {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.style.background = "#475569";
+      submitBtn.style.cursor = "not-allowed";
+      submitBtn.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="color:#fbbf24;"></i> So'rovni yangilash kerak (10 kundan oshgan)`;
+      submitBtn.title = "Ro'yxatga olingan sana 10 kundan oshgan. So'rovni yangilash kerak!";
+    }
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(180, 83, 9, 0.35))";
+      recBox.style.borderColor = "#f59e0b";
+      recBox.style.boxShadow = "0 4px 14px rgba(245, 158, 11, 0.3)";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="color:#fbbf24;"></i> SO'ROVNI YANGILASH KERAK`;
+        recTitle.style.color = "#fbbf24";
+      }
+      recDesc.innerHTML = `<span style="color:#fef3c7;">Ro'yxatga olingan sana 10 kundan oshgan. Bemor shifokor orqali so'rovni yangilashi shart!</span>`;
+    }
+    return;
+  }
 
   // Agar tekshiruv allaqachon o'tkazilgan bo'lsa (Yashil):
   if (selectedOpt.getAttribute("data-done") === "true" || select.value === "DONE") {
@@ -536,6 +633,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     let middle = "";
     let patientId = "";
     let pinfl = "";
+    let regDate = "";
 
     const table = focusedRow.closest("table");
     if (table) {
@@ -549,6 +647,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
         else if (h.includes("ota") || h.includes("sharif")) middle = val;
         else if (h.includes("bemor id") || (h.includes("id") && !patientId)) patientId = val;
         else if (h.includes("pinfl") || h.includes("jshshir")) pinfl = val;
+        else if (h.includes("ro'yxat") || h.includes("royxat") || (h.includes("sana") && !h.includes("tug"))) regDate = val;
       });
     }
 
@@ -558,6 +657,16 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       for (const val of cellTexts) {
         if (/^\d{4,8}$/.test(val)) {
           patientId = val;
+          break;
+        }
+      }
+    }
+
+    // Agar ustun orqali sana topilmagan bo'lsa, katakchalardan qidirish:
+    if (!regDate) {
+      for (const val of cellTexts) {
+        if (/^\d{1,2}[./-]\d{1,2}[./-]\d{4}/.test(val)) {
+          regDate = val;
           break;
         }
       }
@@ -671,12 +780,16 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     }
 
     const isAlreadyCompleted = isTopRowGreen || Boolean(chosenService.isGreen);
+    const dateCheck = checkRegistrationDate(regDate);
 
     return {
       name: fullName,
       id: patientId,
       pinfl: pinfl,
       groupName: groupName,
+      registrationDate: regDate,
+      isDateExpired: Boolean(dateCheck.isExpired),
+      daysDiff: dateCheck.daysDiff,
       serviceCode: chosenService.code,
       service: chosenService.name,
       isMrtOrMskt: chosenService.isMrtOrMskt,
@@ -775,6 +888,31 @@ function autoFillQuickQueue(patientData) {
   }
   if (phoneInput && patientData.phone) {
     phoneInput.value = patientData.phone;
+  }
+
+  // Ro'yxatga olingan sana indikatori
+  const regWrap = document.getElementById("quickRegDateWrap");
+  const regText = document.getElementById("quickRegDateText");
+  const regBadge = document.getElementById("quickRegDateBadge");
+  if (regWrap && regText && regBadge) {
+    if (patientData.registrationDate) {
+      const dc = checkRegistrationDate(patientData.registrationDate);
+      regWrap.style.display = "block";
+      regText.innerText = `${dc.dateFormatted || patientData.registrationDate} (${dc.daysDiff} kun oldin)`;
+      if (dc.isExpired) {
+        regBadge.style.background = "#7f1d1d";
+        regBadge.style.color = "#fca5a5";
+        regBadge.style.border = "1px solid #ef4444";
+        regBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> ${dc.daysDiff} kun (>10 kun)`;
+      } else {
+        regBadge.style.background = "#064e3b";
+        regBadge.style.color = "#6ee7b7";
+        regBadge.style.border = "1px solid #10b981";
+        regBadge.innerHTML = `<i class="fa-solid fa-check"></i> Oxirgi 10 kunlik`;
+      }
+    } else {
+      regWrap.style.display = "none";
+    }
   }
 
   // 2. FAQAT MRT VA MSKT UCHUN NAVBAT BERILADI (BOSHQA TEKSHIRUVLAR BLOKLANADI)
@@ -906,12 +1044,80 @@ function autoFillQuickQueue(patientData) {
     return;
   }
 
+  // 4. RO'YXATGA OLINGAN SANA OXIRGI 10 KUNLIK BO'LISHI SHART! (10 KUNDAN OSHGAN BO'LSA - SO'ROVNI YANGILASH KERAK)
+  const dateCheck = checkRegistrationDate(patientData.registrationDate);
+  const isDateExpired = Boolean(patientData.isDateExpired) || dateCheck.isExpired;
+
+  if (isDateExpired) {
+    if (contrastSelect) contrastSelect.value = patientData.isContrast ? "yes" : "no";
+
+    // Service selectda ogohlantirish ko'rsatish
+    if (serviceSelect) {
+      let expOpt = serviceSelect.querySelector("option[data-expired='true']");
+      if (!expOpt) {
+        expOpt = document.createElement("option");
+        expOpt.setAttribute("data-expired", "true");
+        serviceSelect.prepend(expOpt);
+      }
+      const labelText = patientData.service || patientData.serviceCode || "MRT Tekshiruvi";
+      expOpt.value = "EXPIRED";
+      expOpt.text = `⚠️ [${patientData.serviceCode || 'MRT'}] ${labelText} — So'rovni yangilash kerak (${dateCheck.daysDiff} kun oldin)`;
+      serviceSelect.selectedIndex = 0;
+    }
+
+    if (deviceSelect) {
+      deviceSelect.value = "auto";
+    }
+
+    // Ogohlantirish darchasini ko'rsatish
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(180, 83, 9, 0.4))";
+      recBox.style.borderColor = "#f59e0b";
+      recBox.style.boxShadow = "0 4px 14px rgba(245, 158, 11, 0.3)";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="color:#fbbf24;"></i> SO'ROVNI YANGILASH KERAK (10 KUNDAN OSHGAN)`;
+        recTitle.style.color = "#fbbf24";
+      }
+      recDesc.innerHTML = `
+        <div style="color:#fef3c7; font-size:12.5px; line-height:1.45;">
+          📅 Ro'yxatga olingan sana: <strong>${escapeHtml(dateCheck.dateFormatted || patientData.registrationDate || '')}</strong> (<strong>${dateCheck.daysDiff} kun oldin</strong>).<br>
+          ⚠️ Qoida bo'yicha sana <strong>oxirgi 10 kunlik</strong> bo'lishi shart.<br>
+          <strong style="color:#f87171; font-size:13px;">⛔ So'rovni yangilash kerak! 10 kundan oldingi tekshiruvga navbat berilmaydi.</strong>
+        </div>
+      `;
+    }
+
+    // Tugmani to'liq bloklash
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.style.background = "#475569";
+      submitBtn.style.cursor = "not-allowed";
+      submitBtn.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="color:#fbbf24;"></i> So'rovni yangilash kerak (10 kundan oshgan)`;
+      submitBtn.title = "Tekshiruv ro'yxatga olinganiga 10 kundan oshgan. Bemor shifokor orqali so'rovni yangilashi shart!";
+    }
+
+    // Tezkor navbat darchasini ochish
+    const drawer = document.getElementById("quickQueueDrawer");
+    if (drawer && drawer.classList.contains("collapsed")) {
+      drawer.classList.remove("collapsed");
+      const btnToggle = document.getElementById("btnToggleDrawer");
+      if (btnToggle) btnToggle.classList.add("active");
+    }
+
+    return;
+  }
+
   // ✅ RUXSAT ETILGAN (MRT YOKI MSKT):
   if (serviceSelect) {
     const blockedOpt = serviceSelect.querySelector("option[data-blocked='true']");
     if (blockedOpt) blockedOpt.remove();
     const doneOpt = serviceSelect.querySelector("option[data-done='true']");
     if (doneOpt) doneOpt.remove();
+    const expOpt = serviceSelect.querySelector("option[data-expired='true']");
+    if (expOpt) expOpt.remove();
   }
 
   const isContrast = Boolean(patientData.isContrast);
@@ -1006,6 +1212,11 @@ async function handleQuickQueueSubmit(e) {
   }
 
   const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+  if (selectedOpt && (selectedOpt.getAttribute("data-expired") === "true" || serviceSelect.value === "EXPIRED")) {
+    alert("⚠️ Ushbu tekshiruv ro'yxatga olinganiga 10 kundan oshgan!\n\nSo'rovni yangilash kerak deb qaytarildi. Bemor shifokor orqali yo'llanma/so'rovni yangilashi shart.");
+    return;
+  }
+
   if (selectedOpt && (selectedOpt.getAttribute("data-done") === "true" || serviceSelect.value === "DONE")) {
     alert("ℹ️ Ushbu tekshiruv allaqachon o'tkazilgan (yashil rangda)! Buni navbatga qo'yish kerak emas.");
     return;
