@@ -111,9 +111,32 @@ function switchView(tabKey) {
   // Frames
   document.querySelectorAll(".view-frame").forEach(frame => frame.classList.remove("active"));
   const activeFrame = document.getElementById("frame" + capitalize(tabKey));
-  if (activeFrame) activeFrame.classList.add("active");
+  if (activeFrame) {
+    activeFrame.classList.add("active");
 
-  // Karmed bo'lmagan darchalarda yon panelni avtomat yopish mumkin yoki ochiq qoldirish
+    // Agar frame oldin noto'g'ri URL ga o'tib ketgan bo'lsa, toza manzilini yuklash
+    const expectedSrcs = {
+      navbat: "/navbat-yozish/",
+      tv: "/mrt-tv/",
+      laborant: "/laborant/",
+      dashboard: "/server-dashboard/",
+      karmed: "/Radiology/Rbys.aspx"
+    };
+
+    const targetSrc = expectedSrcs[tabKey];
+    if (targetSrc) {
+      try {
+        const curPath = activeFrame.contentWindow.location.pathname;
+        if (!curPath || curPath.includes("login.html") || !curPath.includes(targetSrc.replace(/\//g, ''))) {
+          activeFrame.src = targetSrc;
+        }
+      } catch (e) {
+        if (!activeFrame.src || !activeFrame.src.includes(targetSrc)) {
+          activeFrame.src = targetSrc;
+        }
+      }
+    }
+  }
 }
 
 function capitalize(s) {
@@ -840,6 +863,27 @@ function applyRolePermissions(user) {
 
   // Har doim Karmed ochiq
   if (tabKarmed) tabKarmed.style.display = "inline-flex";
+
+  // Agar frame oldin 404 ga tushgan bo'lsa, toza manzillarga yo'naltirish
+  const expectedIframes = [
+    { id: "frameNavbat", src: "/navbat-yozish/" },
+    { id: "frameTv", src: "/mrt-tv/" },
+    { id: "frameLaborant", src: "/laborant/" },
+    { id: "frameDashboard", src: "/server-dashboard/" }
+  ];
+  expectedIframes.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (el) {
+      try {
+        const curPath = el.contentWindow.location.pathname;
+        if (!curPath || curPath.includes("login.html") || !curPath.includes(item.src.replace(/\//g, ''))) {
+          el.src = item.src;
+        }
+      } catch (e) {
+        if (!el.src || !el.src.includes(item.src)) el.src = item.src;
+      }
+    }
+  });
 
   const role = user.role || 'tibbiy_navbat';
 

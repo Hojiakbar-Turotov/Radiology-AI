@@ -1,6 +1,7 @@
 /**
  * Tibbiyot / MRT - Barcha Darchalar Uchun Umumiy Auth Guard (shared/auth-guard.js)
  * Tizimga ruxsatsiz kirishni to'sib, login sahifasiga yo'naltiradi.
+ * Workspace ichida iframe bo'lganda to'g'ridan-to'g'ri integratsiya qilinadi.
  */
 
 (function() {
@@ -13,9 +14,9 @@
 
   // Karmed Workspace uchun: kirilmagan bo'lsa ham ochiladi, lekin oynalar cheklanadi
   if (pathname.includes('/karmed-workspace/')) {
-    const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-    if (token) {
-      fetch("/api/auth/me", { headers: { "Authorization": `Bearer ${token}` } })
+    const wsToken = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+    if (wsToken) {
+      fetch("/api/auth/me", { headers: { "Authorization": `Bearer ${wsToken}` } })
         .then(res => res.json())
         .then(data => {
           if (data.success && data.user) {
@@ -46,6 +47,28 @@
     return;
   }
 
+  // Agar ushbu sahifa boshqa darcha (masalan, Karmed Workspace) ichida iframe bo'lib ochilgan bo'lsa:
+  // Iframe hech qachon o'zini login.html ga redirect qilmasligi shart!
+  const isInsideIframe = (window.parent && window.parent !== window);
+  if (isInsideIframe) {
+    let iframeToken = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+    if (!iframeToken && window.parent && window.parent.localStorage) {
+      try { iframeToken = window.parent.localStorage.getItem("auth_token"); } catch(e) {}
+    }
+
+    if (iframeToken) {
+      fetch("/api/auth/me", { headers: { "Authorization": `Bearer ${iframeToken}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            window.currentUser = data.user;
+          }
+        }).catch(() => {});
+    }
+    return; // Iframe ichida hech qachon redirect bo'lmaydi!
+  }
+
+  // Mustaqil sahifa sifatida to'g'ridan-to'g'ri ochilganda:
   let token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 
   if (!token) {
@@ -69,7 +92,6 @@
     }
   })
   .catch(() => {
-    // Server vaqtincha javob bermasa keshdagi sessiya bilan davom ettirish
     const cachedUser = localStorage.getItem("auth_user");
     if (cachedUser) {
       window.currentUser = JSON.parse(cachedUser);

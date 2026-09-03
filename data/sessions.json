@@ -167,5 +167,41 @@
     },
     "createdAt": "2026-09-03T04:42:09.528Z",
     "expiresAt": "2026-10-03T04:42:09.528Z"
+  },
+  "tok_1788410947415_a3e51dca0ef98777daf042fb7380a7de": {
+    "token": "tok_1788410947415_a3e51dca0ef98777daf042fb7380a7de",
+    "user": {
+      "login": "T4",
+      "name": "Hojiakbar",
+      "role": "server_nazoratchisi",
+      "status": "active",
+      "phone": "",
+      "room": "Server & Radiologiya",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "18:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Server nazoratchisi, Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T04:49:07.415Z",
+    "expiresAt": "2026-10-03T04:49:07.415Z"
   }
 }

@@ -142,9 +142,29 @@ async function checkKarmedActiveUrl(force = false) {
 // -------------------------------------------------------------
 function isKarmedProxiedPath(pathname) {
   const p = pathname.toLowerCase();
+
+  // Mahalliy server sahifalari va fayllari (Hech qachon Karmed/IIS ga proksi qilinmasligi shart):
+  if (
+    p === '/login.html' ||
+    p.startsWith('/login.html') ||
+    p.startsWith('/karmed-workspace') ||
+    p.startsWith('/navbat-yozish') ||
+    p.startsWith('/laborant') ||
+    p.startsWith('/mrt-tv') ||
+    p.startsWith('/server-dashboard') ||
+    p.startsWith('/app4-admin') ||
+    p.startsWith('/shared') ||
+    p.startsWith('/data') ||
+    p.startsWith('/api')
+  ) {
+    return false;
+  }
+
   return (
     p.startsWith('/radiology') ||
-    p.startsWith('/login') ||
+    p.startsWith('/login/') ||
+    p === '/login' ||
+    p.startsWith('/login.aspx') ||
     p.includes('.axd') ||
     p.startsWith('/telerik') ||
     p.startsWith('/dxr') ||
