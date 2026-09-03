@@ -50,13 +50,13 @@
     "required": false
   },
   {
-    "id": "cq_mrt_pregnancy",
-    "category": "MRT",
+    "id": "cq_gen_pregnancy",
+    "category": "ALL",
     "order": 6,
     "text": "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?",
-    "riskLevel": "warning",
+    "riskLevel": "danger",
     "dangerAnswer": "yes",
-    "description": "Homiladorlikning 1-trimestrida (birinchi 12 hafta) faqat hayotiy ko'rsatma bo'yicha o'tkaziladi.",
+    "description": "Homiladorlikning 1-trimestrida MRT faqat hayotiy ko'rsatma bo'yicha o'tkaziladi. MSKT tekshiruvida rentgen nurlanishi sababli homiladorlikda qat'iyan taqiqlanadi.",
     "required": true
   },
   {
@@ -80,19 +80,9 @@
     "required": true
   },
   {
-    "id": "cq_mskt_pregnancy",
-    "category": "MSKT",
-    "order": 9,
-    "text": "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?",
-    "riskLevel": "danger",
-    "dangerAnswer": "yes",
-    "description": "Rentgen nurlanishi homilaga salbiy ta'sir ko'rsatishi mumkin. Homiladorlikda MSKT qat'iyan taqiqlanadi.",
-    "required": true
-  },
-  {
     "id": "cq_mskt_barium",
     "category": "MSKT",
-    "order": 10,
+    "order": 9,
     "text": "Oxirgi 7 kun ichida oshqozon-ichak trakti bariy moddasi bilan rentgen qilinganmi?",
     "riskLevel": "warning",
     "dangerAnswer": "yes",

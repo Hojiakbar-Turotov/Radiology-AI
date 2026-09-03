@@ -354,21 +354,62 @@ window.closePatientConsentModal = function() {
   consentTargetPatient = null;
 };
 
+function getDeduplicatedRelevantQuestions(patient) {
+  if (!patient) return [];
+
+  const services = Array.isArray(patient.services) && patient.services.length > 0
+    ? patient.services
+    : [{ name: patient.primaryService, deviceType: patient.deviceType, isContrast: patient.isContrast }];
+  
+  let isMrt = false;
+  let isMskt = false;
+  let isContrast = Boolean(patient.isContrast);
+
+  const devId = String(patient.deviceId || '').toLowerCase();
+  if (devId.includes('mrt') || patient.deviceType === 'MRT') isMrt = true;
+  if (devId.includes('mskt') || devId.includes('kt') || patient.deviceType === 'MSKT') isMskt = true;
+
+  services.forEach(s => {
+    const sName = String(s.name || '').toLowerCase();
+    const sType = String(s.type || s.examType || '').toUpperCase();
+    if (sType === 'MRT' || sName.includes('mrt')) isMrt = true;
+    if (sType === 'MSKT' || sName.includes('mskt') || sName.includes('kt')) isMskt = true;
+    if (s.isContrast || sName.includes('kontrast')) isContrast = true;
+  });
+
+  if (!isMrt && !isMskt) isMrt = true;
+
+  // Filtrlash: tegishli apparat savollari + agar kontrastli bo'lsa kontrast savollari + umumiy (ALL) savollar
+  const rawRelevant = allConsentQuestions.filter(q => {
+    if (q.category === "ALL") return true;
+    if (q.category === "MRT" && isMrt) return true;
+    if (q.category === "MSKT" && isMskt) return true;
+    if (q.category === "CONTRAST" && isContrast) return true;
+    return false;
+  });
+
+  // Takroriylikni mutlaqo yo'qotish (ID va normallashtirilgan savol matni bo'yicha)
+  const seenIds = new Set();
+  const seenTexts = new Set();
+  const deduped = [];
+
+  for (const q of rawRelevant) {
+    if (!q || !q.text) continue;
+    const norm = q.text.toLowerCase().replace(/[\s\?\,\.\!ʻʼ'`]+/g, ' ').trim();
+    if (seenIds.has(q.id) || seenTexts.has(norm)) continue;
+    seenIds.add(q.id);
+    seenTexts.add(norm);
+    deduped.push(q);
+  }
+
+  return deduped;
+}
+
 function renderConsentQuestionsForPatient(patient) {
   const container = document.getElementById("consentQuestionsList");
   if (!container) return;
 
-  const isMskt = patient.deviceType === "MSKT" || (patient.deviceId && patient.deviceId.includes("mskt")) || (patient.primaryService && patient.primaryService.includes("MSKT"));
-  const devCategory = isMskt ? "MSKT" : "MRT";
-  const isContrast = Boolean(patient.isContrast);
-
-  // Filtrlash: tegishli apparat savollari + agar kontrastli bo'lsa kontrast savollari + umumiy savollar
-  const relevantQuestions = allConsentQuestions.filter(q => {
-    if (q.category === "ALL") return true;
-    if (q.category === devCategory) return true;
-    if (q.category === "CONTRAST" && isContrast) return true;
-    return false;
-  });
+  const relevantQuestions = getDeduplicatedRelevantQuestions(patient);
 
   if (relevantQuestions.length === 0) {
     container.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:20px; font-size:12px;">Ushbu tekshiruv uchun savollar topilmadi.</div>`;
@@ -503,14 +544,8 @@ window.printPatientConsentForm = function() {
   const pat = consentTargetPatient;
   const isMskt = pat.deviceType === "MSKT" || (pat.deviceId && pat.deviceId.includes("mskt"));
   const devCategory = isMskt ? "MSKT" : "MRT";
-  const isContrast = Boolean(pat.isContrast);
 
-  const relevantQuestions = allConsentQuestions.filter(q => {
-    if (q.category === "ALL") return true;
-    if (q.category === devCategory) return true;
-    if (q.category === "CONTRAST" && isContrast) return true;
-    return false;
-  });
+  const relevantQuestions = getDeduplicatedRelevantQuestions(pat);
 
   const todayStr = new Date().toLocaleDateString("ru-RU");
 
@@ -652,9 +687,22 @@ function renderConsentQuestionsManager() {
   const container = document.getElementById("cqItemsList");
   if (!container) return;
 
-  const filtered = activeCqFilter === "ALL" 
+  const rawFiltered = activeCqFilter === "ALL" 
     ? allConsentQuestions 
     : allConsentQuestions.filter(q => q.category === activeCqFilter || q.category === "ALL");
+
+  const seenIds = new Set();
+  const seenTexts = new Set();
+  const filtered = [];
+
+  for (const q of rawFiltered) {
+    if (!q || !q.text) continue;
+    const norm = q.text.toLowerCase().replace(/[\s\?\,\.\!ʻʼ'`]+/g, ' ').trim();
+    if (seenIds.has(q.id) || seenTexts.has(norm)) continue;
+    seenIds.add(q.id);
+    seenTexts.add(norm);
+    filtered.push(q);
+  }
 
   if (filtered.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Ushbu bo'limda savollar mavjud emas.</div>`;

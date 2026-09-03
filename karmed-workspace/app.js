@@ -1544,20 +1544,61 @@ function printThermalTicket(patient) {
     formattedTimeStr = `${dd}.${mm}.${yyyy}`;
   }
 
-  // Tayyorgarlik va Qarshi ko'rsatmalarni aniqlash
-  let prepText = patient.preparation || "";
-  let contraText = patient.contraindications || "";
-  if (!prepText || !contraText) {
-    const sCode = patient.services?.[0]?.code || patient.serviceCode;
-    const cat = allServices.find(s => s.code === sCode) || (typeof catalogServicesList !== 'undefined' ? catalogServicesList.find(s => s.code === sCode) : null);
+  // Tayyorgarlik va Qarshi ko'rsatmalarni aniqlash (Bir nechta tekshiruv bo'lganda takrorlanishlarsiz)
+  const rawPrepList = [];
+  const rawContraList = [];
+
+  if (patient.preparation) rawPrepList.push(patient.preparation);
+  if (patient.contraindications) rawContraList.push(patient.contraindications);
+
+  const servicesToCheck = Array.isArray(patient.services) && patient.services.length > 0
+    ? patient.services
+    : [{ code: patient.serviceCode, name: patient.primaryService }];
+
+  servicesToCheck.forEach(s => {
+    if (s.preparation) rawPrepList.push(s.preparation);
+    if (s.contraindications) rawContraList.push(s.contraindications);
+    const sCode = s.code || s.serviceCode;
+    const cat = allServices.find(x => x.code === sCode) || (typeof catalogServicesList !== 'undefined' ? catalogServicesList.find(x => x.code === sCode) : null);
     if (cat) {
-      if (!prepText) prepText = cat.preparation || "";
-      if (!contraText) contraText = cat.contraindications || "";
+      if (cat.preparation) rawPrepList.push(cat.preparation);
+      if (cat.contraindications) rawContraList.push(cat.contraindications);
     }
+  });
+
+  const isContrastExam = Boolean(patient.isContrast) || rawPrepList.join(' ').toLowerCase().includes('kontrast');
+
+  function deduplicateLines(rawList) {
+    const seen = new Set();
+    const result = [];
+    rawList.forEach(raw => {
+      if (!raw) return;
+      const lines = String(raw).split(/[\r\n]+/);
+      lines.forEach(rawLine => {
+        let line = rawLine.replace(/^(\d+[\.\)]|[•\-\*])\s*/, '').trim();
+        line = line.replace(/[\.;,]+$/, '').trim();
+        if (!line || line === '—' || line === '-') return;
+
+        if (isContrastExam && (line.toLowerCase().includes('och qolish talab etilmaydi') || line.toLowerCase().includes('parhez talab etilmaydi'))) {
+          return;
+        }
+
+        const normKey = line.toLowerCase()
+          .replace(/[\s\-_]+/g, ' ')
+          .replace(/[ʻʼ'`]/g, "'")
+          .replace(/[\.,;:!\?]/g, '');
+
+        if (!seen.has(normKey)) {
+          seen.add(normKey);
+          result.push(line);
+        }
+      });
+    });
+    return result;
   }
 
-  const prepItems = prepText ? prepText.split('\n').map(p => p.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean) : [];
-  const contraItems = contraText ? contraText.split('\n').map(c => c.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean) : [];
+  const prepItems = deduplicateLines(rawPrepList);
+  const contraItems = deduplicateLines(rawContraList);
 
   const prepHtml = prepItems.length > 0 ? `
     <div style="margin-top:7px;">
@@ -3054,9 +3095,22 @@ function renderAdminConsentQuestions() {
   const tbody = document.getElementById("adminConsentTableBody");
   if (!tbody) return;
 
-  const filtered = activeAdminConsentFilter === "ALL"
+  const rawFiltered = activeAdminConsentFilter === "ALL"
     ? allAdminConsentQuestions
     : allAdminConsentQuestions.filter(q => q.category === activeAdminConsentFilter || q.category === "ALL");
+
+  const seenIds = new Set();
+  const seenTexts = new Set();
+  const filtered = [];
+
+  for (const q of rawFiltered) {
+    if (!q || !q.text) continue;
+    const norm = q.text.toLowerCase().replace(/[\s\?\,\.\!ʻʼ'`]+/g, ' ').trim();
+    if (seenIds.has(q.id) || seenTexts.has(norm)) continue;
+    seenIds.add(q.id);
+    seenTexts.add(norm);
+    filtered.push(q);
+  }
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Ushbu bo'limda savollar mavjud emas</td></tr>`;
