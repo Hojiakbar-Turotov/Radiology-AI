@@ -93,10 +93,6 @@ window.toggleKarmedHost = function() {
   }
 };
 
-window.openKarmedInNewTab = function() {
-  window.open(activeKarmedUrl, "_blank");
-};
-
 // -------------------------------------------------------------
 // VIEW SWITCHING
 // -------------------------------------------------------------
