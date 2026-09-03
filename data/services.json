@@ -1,0 +1,401 @@
+[
+  {
+    "code": "R134",
+    "name": "Bosh Miya MSKT (Kontrast Moddasiz)",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R135",
+    "name": "Bosh Miya MSKT (Vena ichi Kontrast Bilan)",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R136",
+    "name": "Gipofiz bezining kontrast moddasiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R137",
+    "name": "Gipofiz bezining vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R138",
+    "name": "Bosh-Bo'yin Kontrastsiz MSKT Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R139",
+    "name": "Bosh-Bo'yin Vena Ichi Kontrast Bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R140",
+    "name": "Ko'krak qafasi organlarini kontrastsiz MSKT",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R141",
+    "name": "Ko'krak qafasi organlarini kontrast modda bilan MSKT (PER OS)",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R142",
+    "name": "Ko'krak qafasi organlarini vena ichi Kontrast Bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R143",
+    "name": "Qorin bo'shlig'i va retroperitoneal soha kontrastsiz MSKT",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R144",
+    "name": "Qorin bo'shlig'i va retroperitoneal soha kontrast bilan MSKT (Per Os)",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R145",
+    "name": "Qorin bo'shlig'i va retroperitoneal soha vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 40
+  },
+  {
+    "code": "R146",
+    "name": "Kichik tos a'zolarini kontrastsiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R147",
+    "name": "Kichik tos a'zolarini kontrast bilan MSKT (Per Os)",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R148",
+    "name": "Kichik tos a'zolarini vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R149",
+    "name": "Buyrak usti bezini kontrastsiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R150",
+    "name": "Buyrak usti bezini vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R151",
+    "name": "Umurtqa pog'onasi (1-bo'limi) kontrastsiz MSKT",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R152",
+    "name": "Umurtqa pog'onasi (1-bo'limi) vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R153",
+    "name": "Bo'g'imlar MSKT tekshiruvi (1 soha)",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R154",
+    "name": "Qo'l va oyoqlarning kontrastsiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "duration": 20
+  },
+  {
+    "code": "R155",
+    "name": "Qo'l va oyoqlarning vena ichi kontrast bilan MSKT",
+    "type": "MSKT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R157",
+    "name": "Bosh Miya MRT Kontrastsiz",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R158",
+    "name": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 40
+  },
+  {
+    "code": "R159",
+    "name": "Bosh Miya MRT Kontrast Bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R160",
+    "name": "Bosh Miya MRT + Traktografiya Kontrastsiz",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 35
+  },
+  {
+    "code": "R161",
+    "name": "Gipofiz MRT + Kontrast",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R162",
+    "name": "Bosh Miya Angiografiya MRT (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R163",
+    "name": "Bosh Miya Angiografiya MRT (MPA/MPB)",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R164",
+    "name": "Ko'z va orbita MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R165",
+    "name": "Yevstaxiy nayi va Ichki quloq MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R166",
+    "name": "Bo'yin Umurtqalari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R167",
+    "name": "Ko'krak Umurtqalari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R168",
+    "name": "Bel Umurtqalari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R169",
+    "name": "Butun Umurtqa Pog'onasi MRT (3 soha)",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 50
+  },
+  {
+    "code": "R170",
+    "name": "Spinal Kanal va Orqa Miya MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 30
+  },
+  {
+    "code": "R171",
+    "name": "Bo'yin Qon Tomirlari Angiografiya MRT (Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 35
+  },
+  {
+    "code": "R172",
+    "name": "Bo'yin Qon Tomirlari Angiografiya MRT",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 30
+  },
+  {
+    "code": "R173",
+    "name": "Yurak MRT Kontrastsiz",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 40
+  },
+  {
+    "code": "R174",
+    "name": "Yurak Qon Tomirlari Angiografiya MRT (Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 45
+  },
+  {
+    "code": "R175",
+    "name": "Yurak Qon Tomirlari Angiografiya MRT",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 40
+  },
+  {
+    "code": "R177",
+    "name": "Jigar MRT Kontrastsiz",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 30
+  },
+  {
+    "code": "R178",
+    "name": "Jigar MRT Kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 45
+  },
+  {
+    "code": "R179",
+    "name": "Jigar MRT Kontrast Bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 40
+  },
+  {
+    "code": "R180",
+    "name": "O't Yo'llari MR-Xolangiografiya",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R181",
+    "name": "Oshqozon Osti Bezi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 30
+  },
+  {
+    "code": "R182",
+    "name": "Buyrak va Buyrak Usti Bezlar MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 30
+  },
+  {
+    "code": "R183",
+    "name": "Kichik Tos A'zolari MRT (Erkaklar - Prostata)",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 35
+  },
+  {
+    "code": "R184",
+    "name": "Kichik Tos A'zolari MRT (Ayollar - Bachadon)",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 35
+  },
+  {
+    "code": "R185",
+    "name": "Kichik Tos A'zolari MRT Kontrast Bilan (Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 45
+  },
+  {
+    "code": "R186",
+    "name": "Tizza Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R187",
+    "name": "Chanoq-Son Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R188",
+    "name": "Yelka Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R189",
+    "name": "Oshiq-Boldir Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R190",
+    "name": "Tirsak Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R191",
+    "name": "Kaft Bo'g'imi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "duration": 25
+  },
+  {
+    "code": "R192",
+    "name": "Sut Bezlar MRT Kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "duration": 45
+  }
+]

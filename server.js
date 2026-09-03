@@ -424,11 +424,15 @@ const server = http.createServer(async (req, res) => {
           return sendJSON(res, { success: false, error: "Bemor ismi kiritilmadi" }, 400);
         }
 
-        // Aqlli rejalashtirish
-        const slotAllocation = scheduler.allocateOptimalSlot(body);
+        // Aqlli rejalashtirish (Eng yaqin ish kuni, bo'sh soat, navbatchi laborantlar vaqti)
+        const slotAllocation = scheduler.findNextAvailableSlot(body);
         const patientData = {
           ...body,
-          ...slotAllocation
+          ...slotAllocation,
+          scheduledDate: body.scheduledDate || slotAllocation.scheduledDate,
+          estimatedStartTime: body.estimatedStartTime || slotAllocation.estimatedStartTime,
+          estimatedFinishTime: body.estimatedFinishTime || slotAllocation.estimatedFinishTime,
+          estimatedDurationMinutes: body.estimatedDurationMinutes || slotAllocation.durationMinutes
         };
 
         const addedPatient = db.addPatient(patientData);
@@ -613,6 +617,48 @@ const server = http.createServer(async (req, res) => {
       // 7. GET /api/services - Xizmatlar katalogi
       if (req.method === 'GET' && pathname === '/api/services') {
         sendJSON(res, { success: true, catalog: scheduler.getServicesCatalog() });
+        return;
+      }
+
+      // 7.1 POST /api/services/save - Super Admin uchun tekshiruv qo'shish yoki tahrirlash
+      if (req.method === 'POST' && pathname === '/api/services/save') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi')) {
+          return sendJSON(res, { success: false, error: "Faqat Super Admin yoki Server Nazoratchisi tekshiruv vaqtlarini o'zgartirishi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        const savedItem = scheduler.upsertService(body, currentUser);
+        cluster.replicate('services_updated', { services: scheduler.getServicesCatalog() });
+        wsHub.broadcast('services_updated', { services: scheduler.getServicesCatalog() });
+
+        sendJSON(res, { success: true, service: savedItem, message: "Tekshiruv ma'lumotlari muvaffaqiyatli saqlandi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Tekshiruv saqlandi: ${savedItem.code} (${savedItem.duration} daqiqa)`);
+        return;
+      }
+
+      // 7.2 POST /api/services/delete - Super Admin uchun tekshiruvni o'chirish
+      if (req.method === 'POST' && pathname === '/api/services/delete') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi')) {
+          return sendJSON(res, { success: false, error: "Faqat Super Admin yoki Server Nazoratchisi tekshiruvni o'chirishi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        scheduler.deleteService(body.code, currentUser);
+        cluster.replicate('services_updated', { services: scheduler.getServicesCatalog() });
+        wsHub.broadcast('services_updated', { services: scheduler.getServicesCatalog() });
+
+        sendJSON(res, { success: true, message: "Tekshiruv o'chirildi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Tekshiruv o'chirildi: ${body.code}`);
+        return;
+      }
+
+      // 7.3 POST /api/queue/smart-slot - Eng yaqin ish kuni va bo'sh soatni oldindan hisoblash (Preview)
+      if (req.method === 'POST' && pathname === '/api/queue/smart-slot') {
+        const body = await parseBody(req);
+        const slotAllocation = scheduler.findNextAvailableSlot(body);
+        sendJSON(res, { success: true, slot: slotAllocation });
         return;
       }
 

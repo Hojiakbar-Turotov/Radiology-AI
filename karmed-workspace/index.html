@@ -198,12 +198,23 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label><i class="fa-regular fa-calendar"></i> Ish Kuni *</label>
+              <input type="date" id="quickScheduledDate" onchange="triggerSmartSlotRecalc()" required>
+            </div>
+            <div class="form-group flex-1">
+              <label><i class="fa-regular fa-clock"></i> Bo'sh Soat *</label>
+              <input type="time" id="quickScheduledTime" required>
+            </div>
+          </div>
+
           <!-- Smart Recommendation Box -->
           <div id="smartRecommendationBox" class="smart-recommendation-box" style="display:none;">
             <div class="smart-box-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="smart-box-content">
-              <div class="smart-box-title" id="smartBoxTitle">⚡ AQLLI TAVSIYA</div>
-              <div class="smart-box-desc" id="smartBoxDesc">Optimal apparat aniqlandi</div>
+              <div class="smart-box-title" id="smartBoxTitle">⚡ AQLLI TAQSIMLASH</div>
+              <div class="smart-box-desc" id="smartBoxDesc">Optimal apparat va eng yaqin bo'sh soat aniqlandi</div>
             </div>
           </div>
 
@@ -391,7 +402,17 @@
         </div>
         <button class="modal-close-btn" onclick="closeStaffModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-card-body">
+      <div class="staff-tabs-nav" style="display:flex; gap:10px; padding:0 20px; border-bottom:1px solid #334155; margin-top:8px;">
+        <button type="button" class="staff-tab-btn active" id="btnStaffTabMembers" onclick="switchStaffTab('members')">
+          <i class="fa-solid fa-users"></i> Xodimlar & Rollar
+        </button>
+        <button type="button" class="staff-tab-btn" id="btnStaffTabServices" onclick="switchStaffTab('services')">
+          <i class="fa-solid fa-stethoscope"></i> Tekshiruvlar & Standart Vaqtlar
+        </button>
+      </div>
+
+      <!-- PANEL 1: XODIMLAR -->
+      <div class="modal-card-body" id="panelStaffMembers">
         <div class="staff-mgmt-toolbar">
           <p class="modal-sub-desc" style="margin:0;">Xodimlarni ro'yxatga olish, rollarini belgilash va parollarini tiklash paneli.</p>
           <button class="btn-add-staff" onclick="toggleAddStaffForm()">
@@ -452,6 +473,81 @@
           </table>
         </div>
       </div>
+
+      <!-- PANEL 2: TEKSHIRUVLAR VA STANDART VAQTLAR (SUPER ADMIN) -->
+      <div class="modal-card-body" id="panelStaffServices" style="display:none;">
+        <div class="staff-mgmt-toolbar">
+          <div>
+            <p class="modal-sub-desc" style="margin:0;">Super Admin: Rasmiy tekshiruvlar qo'shish va standart daqiqalarni belgilash.</p>
+          </div>
+          <button class="btn-add-staff" onclick="toggleAddServiceForm()" style="background:#0284c7;">
+            <i class="fa-solid fa-plus"></i> + Yangi Tekshiruv Qo'shish
+          </button>
+        </div>
+
+        <!-- Add Service Form Box (Toggle) -->
+        <div id="boxAddService" class="add-staff-box" style="display:none; border-color:#0284c7;">
+          <h4 style="font-size:13px; color:#38bdf8; margin-bottom:8px;"><i class="fa-solid fa-file-medical"></i> Yangi Tekshiruvni Katalogga Qo'shish</h4>
+          <form id="formAddService" onsubmit="handleCreateService(event)">
+            <div class="modal-field-row">
+              <div class="modal-field" style="max-width:110px;">
+                <label>Kodi (masalan: R196)*</label>
+                <input type="text" id="newSrvCode" required placeholder="R196" style="text-transform:uppercase;">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Tekshiruv Nomi*</label>
+                <input type="text" id="newSrvName" required placeholder="Tekshiruv to'liq nomi...">
+              </div>
+              <div class="modal-field" style="max-width:110px;">
+                <label>Apparat Turi*</label>
+                <select id="newSrvType">
+                  <option value="MRT">MRT</option>
+                  <option value="MSKT">MSKT</option>
+                </select>
+              </div>
+              <div class="modal-field" style="max-width:130px;">
+                <label>Kontrast*</label>
+                <select id="newSrvContrast">
+                  <option value="no">Yo'q (Oddiy)</option>
+                  <option value="yes">💉 Kontrastli</option>
+                </select>
+              </div>
+              <div class="modal-field" style="max-width:120px;">
+                <label>Standart Vaqt (daq)*</label>
+                <input type="number" id="newSrvDuration" required min="5" max="120" value="25">
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button type="button" class="btn-modal-cancel" onclick="toggleAddServiceForm()">Bekor qilish</button>
+              <button type="submit" class="btn-modal-primary" style="background:#0284c7;"><i class="fa-solid fa-check"></i> Saqlash</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="margin-bottom:10px; display:flex; gap:10px;">
+          <input type="text" id="inpSearchServices" placeholder="🔍 Tekshiruv nomi yoki kodini qidirish..." oninput="filterServicesTable()" style="width:100%; padding:8px 12px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:12px;">
+        </div>
+
+        <div class="staff-table-wrap" style="max-height:380px; overflow-y:auto;">
+          <table class="staff-table">
+            <thead>
+              <tr>
+                <th style="width:70px;">Kod</th>
+                <th>Tekshiruv Nomi</th>
+                <th style="width:75px;">Turi</th>
+                <th style="width:100px;">Kontrast</th>
+                <th style="width:140px;">Standart Vaqt (daq)</th>
+                <th style="width:100px;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="servicesTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="modal-card-actions">
         <button type="button" class="btn-modal-cancel" onclick="closeStaffModal()">Yopish</button>
       </div>

@@ -506,7 +506,10 @@ function autoFillQuickQueue(patientData) {
     recBox.style.display = "flex";
   }
 
-  // 5. Tezkor navbat darchasini ochish
+  // 5. Eng yaqin ish kuni va bo'sh soatni avtomatik hisoblash
+  triggerSmartSlotRecalc();
+
+  // 6. Tezkor navbat darchasini ochish
   const drawer = document.getElementById("quickQueueDrawer");
   if (drawer && drawer.classList.contains("collapsed")) {
     drawer.classList.remove("collapsed");
@@ -514,7 +517,7 @@ function autoFillQuickQueue(patientData) {
     if (btnToggle) btnToggle.classList.add("active");
   }
 
-  // 6. Tugmani yashil pulsatsiya bilan tayyor holga keltirish
+  // 7. Tugmani yashil pulsatsiya bilan tayyor holga keltirish
   if (submitBtn) {
     submitBtn.classList.add("ready-pulse");
     submitBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${smart.deviceName} ga Navbatga Qo'yish & Chipta`;
@@ -534,6 +537,8 @@ async function handleQuickQueueSubmit(e) {
   const serviceSelect = document.getElementById("quickServiceSelect");
   const deviceSelect = document.getElementById("quickDeviceSelect");
   const contrastSelect = document.getElementById("quickContrastSelect");
+  const dateInput = document.getElementById("quickScheduledDate");
+  const timeInput = document.getElementById("quickScheduledTime");
   const submitBtn = document.getElementById("btnQuickSubmit");
 
   const serviceCode = serviceSelect.value;
@@ -555,6 +560,8 @@ async function handleQuickQueueSubmit(e) {
     phone: phoneInput.value.trim(),
     deviceId: targetDeviceId,
     isContrast: isContrast,
+    scheduledDate: dateInput ? dateInput.value : undefined,
+    scheduledTime: timeInput ? timeInput.value : undefined,
     services: [serviceObj]
   };
 
@@ -1336,4 +1343,260 @@ async function promptEditStaffRole(login, currentRole) {
     alert("❌ Server xatosi: " + err.message);
   }
 }
+
+// -------------------------------------------------------------
+// AQLLI SLOT REKALKULATSIYASI (Smart Slot Recalculator)
+// -------------------------------------------------------------
+async function triggerSmartSlotRecalc() {
+  const serviceSelect = document.getElementById("quickServiceSelect");
+  const contrastSelect = document.getElementById("quickContrastSelect");
+  const deviceSelect = document.getElementById("quickDeviceSelect");
+  const dateInput = document.getElementById("quickScheduledDate");
+  const nameInput = document.getElementById("quickPatientName");
+
+  if (!serviceSelect) return;
+
+  const serviceCode = serviceSelect.value;
+  const serviceObj = allServices.find(s => s.code === serviceCode) || {
+    code: serviceCode,
+    name: serviceSelect.options[serviceSelect.selectedIndex]?.text || "MRT Tekshiruvi",
+    duration: 25
+  };
+
+  const isContrast = contrastSelect ? contrastSelect.value === "yes" : false;
+  let targetDeviceId = deviceSelect ? deviceSelect.value : "auto";
+
+  try {
+    const res = await fetch("/api/queue/smart-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        services: [serviceObj],
+        deviceId: targetDeviceId,
+        isContrast: isContrast,
+        scheduledDate: dateInput ? dateInput.value : undefined,
+        patientName: nameInput ? nameInput.value.trim() : ""
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.slot) {
+      const slot = data.slot;
+      const dateInp = document.getElementById("quickScheduledDate");
+      const timeInp = document.getElementById("quickScheduledTime");
+      const recBox = document.getElementById("smartRecommendationBox");
+      const recDesc = document.getElementById("smartBoxDesc");
+
+      if (dateInp && (!dateInp.value || dateInp.value < slot.scheduledDate)) {
+        dateInp.value = slot.scheduledDate;
+      }
+      if (timeInp) timeInp.value = slot.startTime;
+
+      if (recBox && recDesc) {
+        recDesc.innerHTML = `
+          <strong>📅 Bo'sh Vaqt:</strong> ${slot.scheduledDateFormatted}, soat <strong>${slot.startTime}</strong> (${slot.deviceId.toUpperCase()})<br>
+          <strong>⏱️ Davomiyligi:</strong> ${slot.durationMinutes} daqiqa<br>
+          <span style="font-size:11px; color:#38bdf8;">📌 ${slot.ruleDescription}</span>
+        `;
+        recBox.style.display = "flex";
+      }
+    }
+  } catch (e) {
+    console.warn("Smart slot recalc error:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// TEKSHIRUVLAR & STANDART VAQTLAR BOSHQARUVI (SUPER ADMIN)
+// -------------------------------------------------------------
+let catalogServicesList = [];
+
+window.switchStaffTab = function(tabName) {
+  const btnMembers = document.getElementById("btnStaffTabMembers");
+  const btnServices = document.getElementById("btnStaffTabServices");
+  const panelMembers = document.getElementById("panelStaffMembers");
+  const panelServices = document.getElementById("panelStaffServices");
+
+  if (tabName === 'members') {
+    if (btnMembers) btnMembers.classList.add("active");
+    if (btnServices) btnServices.classList.remove("active");
+    if (panelMembers) panelMembers.style.display = "block";
+    if (panelServices) panelServices.style.display = "none";
+    fetchStaffList();
+  } else {
+    if (btnMembers) btnMembers.classList.remove("active");
+    if (btnServices) btnServices.classList.add("active");
+    if (panelMembers) panelMembers.style.display = "none";
+    if (panelServices) panelServices.style.display = "block";
+    fetchServicesList();
+  }
+};
+
+window.toggleAddServiceForm = function() {
+  const box = document.getElementById("boxAddService");
+  if (box) {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+};
+
+async function fetchServicesList() {
+  const tbody = document.getElementById("servicesTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Tekshiruvlar ro\'yxati yuklanmoqda...</td></tr>';
+
+  try {
+    const res = await fetch("/api/services");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.catalog)) {
+      catalogServicesList = data.catalog;
+      renderServicesTable(catalogServicesList);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f87171; padding:16px;">❌ Yuklab bo'lmadi</td></tr>`;
+    }
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
+  }
+}
+
+function renderServicesTable(list) {
+  const tbody = document.getElementById("servicesTableBody");
+  if (!tbody) return;
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#94a3b8;">Xizmatlar mavjud emas</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    return `
+      <tr>
+        <td><strong style="color:#38bdf8;">${escapeHtml(s.code)}</strong></td>
+        <td>${escapeHtml(s.name)}</td>
+        <td><span class="badge" style="background:#1e293b; color:#cbd5e1; font-weight:700;">${escapeHtml(s.type)}</span></td>
+        <td>${s.isContrast ? '<span style="color:#f87171; font-weight:700;">💉 Kontrastli</span>' : '<span style="color:#94a3b8;">Oddiy</span>'}</td>
+        <td>
+          <input type="number" id="srvDur_${escapeHtml(s.code)}" class="service-duration-inp" value="${s.duration}" min="5" max="120"> daq
+        </td>
+        <td>
+          <button class="btn-table-action" onclick="handleSaveServiceDuration('${escapeHtml(s.code)}')" title="Standart vaqtni saqlash">
+            <i class="fa-solid fa-check"></i>
+          </button>
+          <button class="btn-table-action danger" onclick="handleDeleteService('${escapeHtml(s.code)}')" title="O'chirish">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+window.filterServicesTable = function() {
+  const q = (document.getElementById("inpSearchServices")?.value || "").toLowerCase().trim();
+  if (!q) {
+    renderServicesTable(catalogServicesList);
+    return;
+  }
+  const filtered = catalogServicesList.filter(s => 
+    s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+  );
+  renderServicesTable(filtered);
+};
+
+window.handleCreateService = async function(e) {
+  e.preventDefault();
+  const code = document.getElementById("newSrvCode").value.trim().toUpperCase();
+  const name = document.getElementById("newSrvName").value.trim();
+  const type = document.getElementById("newSrvType").value;
+  const isContrast = document.getElementById("newSrvContrast").value === "yes";
+  const duration = parseInt(document.getElementById("newSrvDuration").value, 10);
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/services/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ code, name, type, isContrast, duration })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ ${code} tekshiruvi muvaffaqiyatli saqlandi!`);
+      toggleAddServiceForm();
+      fetchServicesList();
+      if (typeof initServiceOptions === 'function') initServiceOptions();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Saqlab bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+window.handleSaveServiceDuration = async function(code) {
+  const inp = document.getElementById(`srvDur_${code}`);
+  if (!inp) return;
+  const duration = parseInt(inp.value, 10);
+  if (isNaN(duration) || duration < 5) {
+    alert("Iltimos, to'g'ri daqiqa kiriting (kamida 5 daqiqa)");
+    return;
+  }
+
+  const srv = catalogServicesList.find(s => s.code === code);
+  if (!srv) return;
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/services/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        code: srv.code,
+        name: srv.name,
+        type: srv.type,
+        isContrast: srv.isContrast,
+        duration: duration
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ ${code} standart vaqti ${duration} daqiqaga o'zgartirildi!`);
+      fetchServicesList();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Yangilab bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+window.handleDeleteService = async function(code) {
+  if (!confirm(`${code} tekshiruvini katalogdan o'chirmoqchimisiz?`)) return;
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/services/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ ${code} tekshiruvi o'chirildi!`);
+      fetchServicesList();
+      if (typeof initServiceOptions === 'function') initServiceOptions();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "O'chirib bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
 
