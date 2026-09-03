@@ -1297,55 +1297,173 @@ async function handleQuickQueueSubmit(e) {
 // CHIPTA CHOP ETISH
 // -------------------------------------------------------------
 function printThermalTicket(patient) {
-  const printWindow = window.open('', '_blank', 'width=350,height=500');
+  const printWindow = window.open('', '_blank', 'width=380,height=620');
   if (!printWindow) return;
 
-  const servicesText = (patient.services || []).map(s => s.name).join(', ') || 'MRT Tekshiruvi';
-  const roomName = patient.deviceId === 'mrt1' ? '1-MRT (101-xona)' : (patient.deviceId === 'mrt2' ? '2-MRT (102-xona)' : 'MSKT Xonasi');
+  const servicesText = (patient.services || []).map(s => s.name).join(', ') || patient.primaryService || 'MRT Tekshiruvi';
+  
+  // Apparat kodi: MR1, MR2, KT1
+  let devCode = "MR1";
+  if (patient.deviceId === 'mrt2') devCode = "MR2";
+  else if (patient.deviceId === 'mskt1' || patient.deviceType === 'MSKT') devCode = "KT1";
+
+  // Sana qismi: DD-MM
+  const dateObj = patient.scheduledDate ? new Date(patient.scheduledDate) : new Date();
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const yyyy = dateObj.getFullYear();
+
+  // Ketma-ket raqam: 001
+  const rawNum = String(patient.ticketNumber || '001').replace(/[^0-9]/g, '');
+  const seqStr = (rawNum || '1').padStart(3, '0');
+
+  // Format: 13-09-MR1-001 (Foydalanuvchi chizmasi bo'yicha)
+  const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
+
+  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, 13:00)
+  let formattedTimeStr = "";
+  if (patient.scheduledTime) {
+    formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.scheduledTime}`;
+  } else if (patient.estimatedStartTime) {
+    const sDate = new Date(patient.estimatedStartTime);
+    if (!isNaN(sDate.getTime())) {
+      const sh = String(sDate.getHours()).padStart(2, '0');
+      const sm = String(sDate.getMinutes()).padStart(2, '0');
+      formattedTimeStr = `${dd}.${mm}.${yyyy}, ${sh}:${sm}`;
+    } else {
+      formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTime}`;
+    }
+  } else {
+    formattedTimeStr = `${dd}.${mm}.${yyyy}`;
+  }
+
+  // Tayyorgarlik va Qarshi ko'rsatmalarni aniqlash
+  let prepText = patient.preparation || "";
+  let contraText = patient.contraindications || "";
+  if (!prepText || !contraText) {
+    const sCode = patient.services?.[0]?.code || patient.serviceCode;
+    const cat = allServices.find(s => s.code === sCode) || (typeof catalogServicesList !== 'undefined' ? catalogServicesList.find(s => s.code === sCode) : null);
+    if (cat) {
+      if (!prepText) prepText = cat.preparation || "";
+      if (!contraText) contraText = cat.contraindications || "";
+    }
+  }
+
+  const prepItems = prepText ? prepText.split('\n').map(p => p.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean) : [];
+  const contraItems = contraText ? contraText.split('\n').map(c => c.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean) : [];
+
+  const prepHtml = prepItems.length > 0 ? `
+    <div style="margin-top:7px;">
+      <div style="font-weight:bold; margin-bottom:2px;">Ko'rilishi kerak tayyorgarlik:</div>
+      <div style="padding-left:2px;">
+        ${prepItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const contraHtml = contraItems.length > 0 ? `
+    <div style="margin-top:7px;">
+      <div style="font-weight:bold; margin-bottom:2px;">Qarshi ko'rsatmalar:</div>
+      <div style="padding-left:2px;">
+        ${contraItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+      </div>
+    </div>
+  ` : '';
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Chipta #${patient.ticketNumber}</title>
+      <title>Chipta #${fullTicketNumber}</title>
       <style>
         @page { size: 80mm auto; margin: 0; }
         body {
-          font-family: 'Courier New', monospace;
-          width: 76mm;
-          margin: 2mm auto;
-          text-align: center;
+          font-family: 'Courier New', Courier, monospace;
+          width: 74mm;
+          margin: 3mm auto;
           color: #000;
+          font-size: 11.5px;
+          line-height: 1.35;
         }
-        h2 { font-size: 16px; margin: 2px 0; }
-        h1 { font-size: 34px; margin: 6px 0; letter-spacing: 2px; }
-        .room { font-size: 15px; font-weight: bold; margin: 4px 0; border: 1px dashed #000; padding: 4px; }
-        .info { font-size: 11px; text-align: left; margin: 8px 0; line-height: 1.4; }
-        .footer { font-size: 10px; margin-top: 10px; border-top: 1px dashed #000; padding-top: 4px; }
+        .header {
+          text-align: center;
+          font-weight: bold;
+          font-size: 13px;
+          line-height: 1.3;
+          margin-bottom: 5px;
+        }
+        .divider {
+          border: none;
+          border-top: 1px dashed #000;
+          margin: 6px 0;
+        }
+        .ticket-center {
+          text-align: center;
+          margin: 6px 0;
+        }
+        .ticket-title {
+          font-size: 13px;
+          font-weight: bold;
+          letter-spacing: 1px;
+        }
+        .ticket-num {
+          font-size: 24px;
+          font-weight: 900;
+          letter-spacing: 1.5px;
+          margin: 4px 0;
+        }
+        .info-row {
+          margin: 4px 0;
+        }
+        .footer-contacts {
+          text-align: center;
+          font-size: 11px;
+          margin: 6px 0;
+          line-height: 1.4;
+        }
+        .footer-notice {
+          text-align: center;
+          font-size: 12px;
+          font-weight: bold;
+          line-height: 1.35;
+          margin-top: 8px;
+        }
       </style>
     </head>
     <body>
-      <h2>🏥 RESPUBLIKA ONKOLOGIYA</h2>
-      <div>Tomografiya (MRT & MSKT) Markazi</div>
-      <hr style="border:none; border-top:1px dashed #000; margin: 6px 0;">
-      
-      <div>NAVBAT RAQAMI:</div>
-      <h1>${patient.ticketNumber}</h1>
-      
-      <div class="room">${roomName}</div>
-      
-      <div class="info">
-        <div><b>Bemor:</b> ${patient.patientName}</div>
-        <div><b>Xizmat:</b> ${servicesText}</div>
-        ${patient.services && patient.services[0] && patient.services[0].priceFormatted ? `<div><b>Narxi:</b> ${patient.services[0].priceFormatted}</div>` : ''}
-        ${patient.isContrast ? '<div><b>Turi:</b> 💉 KONTRASTLI</div>' : ''}
-        <div><b>Taxminiy vaqt:</b> ${patient.estimatedStartTime || '--:--'}</div>
-        <div><b>Sana:</b> ${new Date().toLocaleDateString('ru-RU')} ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+      <div class="header">
+        RESPUBLIKA ONKOLOGIYA VA<br>
+        RADIOLOGIYA MARKAZI
       </div>
-      
-      <div class="footer">
-        Iltimos, navbatingizni monitorda kuting!<br>
-        Navbat chaqirilganda ovozli e'lon beriladi.
+      <hr class="divider">
+
+      <div class="ticket-center">
+        <div class="ticket-title">NAVBAT RAQAMI:</div>
+        <div class="ticket-num">${fullTicketNumber}</div>
+      </div>
+      <hr class="divider">
+
+      <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
+      <div class="info-row"><b>Xizmat:</b> ${escapeHtml(servicesText)}</div>
+      <div class="info-row"><b>Qabul vaqti:</b> ${escapeHtml(formattedTimeStr)}</div>
+
+      ${prepHtml}
+
+      ${contraHtml}
+
+      <hr class="divider">
+
+      <div class="footer-contacts">
+        <b>Savol va takliflar uchun:</b><br>
+        Tel: 1303<br>
+        Telegram: @rons_2026
+      </div>
+
+      <hr class="divider">
+
+      <div class="footer-notice">
+        Iltimos, navbat vaqtidan<br>
+        30-40 minut oldin keling!
       </div>
     </body>
     </html>
@@ -2125,15 +2243,50 @@ window.switchStaffTab = function(tabName) {
 
 window.toggleAddServiceForm = function() {
   const box = document.getElementById("boxAddService");
-  if (box) {
-    box.style.display = box.style.display === "none" ? "block" : "none";
+  const formTitle = document.getElementById("formAddServiceTitle");
+  if (!box) return;
+  const isHidden = box.style.display === "none" || box.style.display === "";
+  box.style.display = isHidden ? "block" : "none";
+  if (isHidden) {
+    if (formTitle) formTitle.innerText = "Yangi Tekshiruvni Katalogga Qo'shish";
+    document.getElementById("newSrvCode").value = "";
+    document.getElementById("newSrvCode").readOnly = false;
+    document.getElementById("newSrvName").value = "";
+    document.getElementById("newSrvType").value = "MRT";
+    document.getElementById("newSrvContrast").value = "no";
+    document.getElementById("newSrvPrice").value = "424340";
+    document.getElementById("newSrvDuration").value = "25";
+    document.getElementById("newSrvPreparation").value = "";
+    document.getElementById("newSrvContraindications").value = "";
   }
+};
+
+window.editService = function(code) {
+  const s = catalogServicesList.find(x => x.code === code);
+  if (!s) return;
+
+  const box = document.getElementById("boxAddService");
+  const formTitle = document.getElementById("formAddServiceTitle");
+  if (box) box.style.display = "block";
+  if (formTitle) formTitle.innerText = `Tekshiruvni Tahrirlash: ${s.code} - ${s.name}`;
+
+  document.getElementById("newSrvCode").value = s.code;
+  document.getElementById("newSrvCode").readOnly = true;
+  document.getElementById("newSrvName").value = s.name;
+  document.getElementById("newSrvType").value = s.type || "MRT";
+  document.getElementById("newSrvContrast").value = s.isContrast ? "yes" : "no";
+  document.getElementById("newSrvPrice").value = s.price || 0;
+  document.getElementById("newSrvDuration").value = s.duration || 25;
+  document.getElementById("newSrvPreparation").value = s.preparation || "";
+  document.getElementById("newSrvContraindications").value = s.contraindications || "";
+
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 async function fetchServicesList() {
   const tbody = document.getElementById("servicesTableBody");
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Tekshiruvlar ro\'yxati yuklanmoqda...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Tekshiruvlar ro\'yxati yuklanmoqda...</td></tr>';
 
   try {
     const res = await fetch("/api/services");
@@ -2142,10 +2295,10 @@ async function fetchServicesList() {
       catalogServicesList = data.catalog;
       renderServicesTable(catalogServicesList);
     } else {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ Yuklab bo'lmadi</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#f87171; padding:16px;">❌ Yuklab bo'lmadi</td></tr>`;
     }
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
   }
 }
 
@@ -2154,15 +2307,18 @@ function renderServicesTable(list) {
   if (!tbody) return;
 
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:#94a3b8;">Xizmatlar mavjud emas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:16px; color:#94a3b8;">Xizmatlar mavjud emas</td></tr>';
     return;
   }
 
   tbody.innerHTML = list.map(s => {
+    const prepShort = (s.preparation || "").replace(/\n/g, " • ").trim();
+    const contraShort = (s.contraindications || "").replace(/\n/g, " • ").trim();
+
     return `
       <tr>
         <td><strong style="color:#38bdf8;">${escapeHtml(s.code)}</strong></td>
-        <td>${escapeHtml(s.name)}</td>
+        <td><strong>${escapeHtml(s.name)}</strong></td>
         <td><span class="badge" style="background:#1e293b; color:#cbd5e1; font-weight:700;">${escapeHtml(s.type)}</span></td>
         <td>${s.isContrast ? '<span style="color:#f87171; font-weight:700;">💉 Kontrastli</span>' : '<span style="color:#94a3b8;">Oddiy</span>'}</td>
         <td style="color:#34d399; font-weight:700; font-size:11.5px; white-space:nowrap;">${s.priceFormatted || (s.price ? (s.price.toLocaleString() + " so'm") : '-')}</td>
@@ -2170,7 +2326,20 @@ function renderServicesTable(list) {
           <input type="number" id="srvDur_${escapeHtml(s.code)}" class="service-duration-inp" value="${s.duration}" min="5" max="120"> daq
         </td>
         <td>
-          <button class="btn-table-action" onclick="handleSaveServiceDuration('${escapeHtml(s.code)}')" title="Standart vaqtni saqlash">
+          <div style="font-size:11px; max-width:240px; line-height:1.3;">
+            <div style="color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(s.preparation || '')}">
+              📋 ${escapeHtml(prepShort ? prepShort.substring(0, 45) + '...' : 'Tayyorgarlik kiritilmagan')}
+            </div>
+            <div style="color:#f87171; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(s.contraindications || '')}">
+              ⚠️ ${escapeHtml(contraShort ? contraShort.substring(0, 45) + '...' : 'Qarshi ko\'rsatma kiritilmagan')}
+            </div>
+          </div>
+        </td>
+        <td>
+          <button class="btn-table-action" onclick="editService('${escapeHtml(s.code)}')" title="Tahrirlash (Vaqt, tayyorgarlik va qarshi ko'rsatmalarni o'zgartirish)">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button class="btn-table-action" onclick="handleSaveServiceDuration('${escapeHtml(s.code)}')" title="Tezkor vaqtni saqlash">
             <i class="fa-solid fa-check"></i>
           </button>
           <button class="btn-table-action danger" onclick="handleDeleteService('${escapeHtml(s.code)}')" title="O'chirish">
@@ -2189,7 +2358,10 @@ window.filterServicesTable = function() {
     return;
   }
   const filtered = catalogServicesList.filter(s => 
-    s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+    (s.code || "").toLowerCase().includes(q) || 
+    (s.name || "").toLowerCase().includes(q) || 
+    (s.preparation || "").toLowerCase().includes(q) || 
+    (s.contraindications || "").toLowerCase().includes(q)
   );
   renderServicesTable(filtered);
 };
@@ -2203,6 +2375,8 @@ window.handleCreateService = async function(e) {
   const duration = parseInt(document.getElementById("newSrvDuration").value, 10);
   const priceInput = document.getElementById("newSrvPrice");
   const price = priceInput ? parseInt(priceInput.value, 10) : 0;
+  const preparation = document.getElementById("newSrvPreparation").value.trim();
+  const contraindications = document.getElementById("newSrvContraindications").value.trim();
 
   try {
     const token = localStorage.getItem("auth_token");
@@ -2212,11 +2386,11 @@ window.handleCreateService = async function(e) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ code, name, type, isContrast, duration, price })
+      body: JSON.stringify({ code, name, type, isContrast, duration, price, preparation, contraindications })
     });
     const data = await res.json();
     if (data.success) {
-      alert(`✅ ${code} tekshiruvi muvaffaqiyatli saqlandi!`);
+      alert(`✅ ${code} tekshiruvi (tayyorgarlik va qarshi ko'rsatmalari bilan) muvaffaqiyatli saqlandi!`);
       toggleAddServiceForm();
       fetchServicesList();
       if (typeof initServiceOptions === 'function') initServiceOptions();
@@ -2227,6 +2401,7 @@ window.handleCreateService = async function(e) {
     alert("❌ Server xatosi: " + err.message);
   }
 };
+
 
 window.handleSaveServiceDuration = async function(code) {
   const inp = document.getElementById(`srvDur_${code}`);

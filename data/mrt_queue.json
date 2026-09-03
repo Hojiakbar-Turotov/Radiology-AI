@@ -198,7 +198,7 @@
     "totalPrice": 0,
     "deviceId": "mrt1",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "in_progress",
     "estimatedDurationMinutes": 15,
     "estimatedStartTime": "2026-09-03T08:00:00.000Z",
     "estimatedFinishTime": "2026-09-03T08:15:00.000Z",
@@ -208,7 +208,9 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-03T07:42:52.416Z",
-    "updatedAt": "2026-09-03T07:42:52.416Z"
+    "updatedAt": "2026-09-03T08:33:21.086Z",
+    "calledAt": "2026-09-03T08:33:21.056Z",
+    "startedAt": "2026-09-03T08:33:21.086Z"
   },
   {
     "id": "p_1788421380881_n3iyr",

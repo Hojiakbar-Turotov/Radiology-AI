@@ -8,11 +8,11 @@
     "hasInjector": true,
     "supportsContrast": true,
     "status": "active",
-    "currentPatientId": "p_1788342097747_g6kq0"
+    "currentPatientId": "p_1788421372416_274rb"
   },
   {
     "id": "mrt2",
-    "name": "MRT 2 (Barcha MRT 3.0T)",
+    "name": "MRT 2 (Barcha MRT 1,5T)",
     "room": "2-MRT Xonasi",
     "type": "MRT",
     "specialty": "Tomografiya (MRT)",

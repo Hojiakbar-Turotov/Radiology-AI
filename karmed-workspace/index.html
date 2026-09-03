@@ -487,9 +487,11 @@
           </button>
         </div>
 
-        <!-- Add Service Form Box (Toggle) -->
+        <!-- Add / Edit Service Form Box (Toggle) -->
         <div id="boxAddService" class="add-staff-box" style="display:none; border-color:#0284c7;">
-          <h4 style="font-size:13px; color:#38bdf8; margin-bottom:8px;"><i class="fa-solid fa-file-medical"></i> Yangi Tekshiruvni Katalogga Qo'shish</h4>
+          <h4 style="font-size:13px; color:#38bdf8; margin-bottom:8px;">
+            <i class="fa-solid fa-file-medical"></i> <span id="formAddServiceTitle">Yangi Tekshiruvni Katalogga Qo'shish</span>
+          </h4>
           <form id="formAddService" onsubmit="handleCreateService(event)">
             <div class="modal-field-row">
               <div class="modal-field" style="max-width:110px;">
@@ -519,11 +521,24 @@
                 <input type="number" id="newSrvPrice" placeholder="424340" value="424340">
               </div>
               <div class="modal-field" style="max-width:110px;">
-                <label>Standart Vaqt*</label>
+                <label>Standart Vaqt (daq)*</label>
                 <input type="number" id="newSrvDuration" required min="5" max="120" value="25">
               </div>
             </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+
+            <!-- Tayyorgarlik va Qarshi ko'rsatmalar maydonlari -->
+            <div class="modal-field-row" style="margin-top:10px;">
+              <div class="modal-field flex-1">
+                <label><i class="fa-solid fa-notes-medical" style="color:#38bdf8;"></i> Ko'rilishi kerak tayyorgarlik (Chiptaga chiqadi)</label>
+                <textarea id="newSrvPreparation" rows="3" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:12px; padding:6px 10px; resize:vertical; font-family:inherit;" placeholder="• Tekshiruvdan 4-6 soat oldin och qolish&#10;• Metall buyumlarni yechish..."></textarea>
+              </div>
+              <div class="modal-field flex-1">
+                <label><i class="fa-solid fa-triangle-exclamation" style="color:#f87171;"></i> Qarshi ko'rsatmalar (Chiptaga chiqadi)</label>
+                <textarea id="newSrvContraindications" rows="3" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:12px; padding:6px 10px; resize:vertical; font-family:inherit;" placeholder="• Kardiostimulyator mavjudligi&#10;• Homiladorlik (I trimestr)..."></textarea>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
               <button type="button" class="btn-modal-cancel" onclick="toggleAddServiceForm()">Bekor qilish</button>
               <button type="submit" class="btn-modal-primary" style="background:#0284c7;"><i class="fa-solid fa-check"></i> Saqlash</button>
             </div>
@@ -532,7 +547,7 @@
 
         <!-- Filter bar -->
         <div style="margin-bottom:10px; display:flex; gap:10px;">
-          <input type="text" id="inpSearchServices" placeholder="🔍 Tekshiruv nomi yoki kodini qidirish..." oninput="filterServicesTable()" style="width:100%; padding:8px 12px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:12px;">
+          <input type="text" id="inpSearchServices" placeholder="🔍 Tekshiruv nomi, kodi yoki tayyorgarligini qidirish..." oninput="filterServicesTable()" style="width:100%; padding:8px 12px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:12px;">
         </div>
 
         <div class="staff-table-wrap" style="max-height:380px; overflow-y:auto;">
@@ -541,11 +556,12 @@
               <tr>
                 <th style="width:65px;">Kod</th>
                 <th>Tekshiruv Nomi</th>
-                <th style="width:75px;">Turi</th>
+                <th style="width:70px;">Turi</th>
                 <th style="width:90px;">Kontrast</th>
-                <th style="width:110px;">Narxi</th>
-                <th style="width:130px;">Standart Vaqt</th>
-                <th style="width:90px;">Amallar</th>
+                <th style="width:105px;">Narxi</th>
+                <th style="width:115px;">Standart Vaqt</th>
+                <th>Tayyorgarlik & Qarshi ko'rsatmalar</th>
+                <th style="width:95px;">Amallar</th>
               </tr>
             </thead>
             <tbody id="servicesTableBody">

@@ -456,10 +456,14 @@ const server = http.createServer(async (req, res) => {
         const patientData = {
           ...body,
           ...slotAllocation,
-          scheduledDate: body.scheduledDate || slotAllocation.scheduledDate,
-          estimatedStartTime: body.estimatedStartTime || slotAllocation.estimatedStartTime,
-          estimatedFinishTime: body.estimatedFinishTime || slotAllocation.estimatedFinishTime,
-          estimatedDurationMinutes: body.estimatedDurationMinutes || slotAllocation.durationMinutes
+          scheduledDate: slotAllocation.scheduledDate,
+          scheduledTime: slotAllocation.startTime,
+          finishTime: slotAllocation.finishTime,
+          estimatedStartTime: slotAllocation.estimatedStartTime,
+          estimatedFinishTime: slotAllocation.estimatedFinishTime,
+          estimatedDurationMinutes: slotAllocation.durationMinutes,
+          preparation: slotAllocation.preparation || body.preparation || '',
+          contraindications: slotAllocation.contraindications || body.contraindications || ''
         };
 
         const addedPatient = db.addPatient(patientData);

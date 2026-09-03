@@ -5,11 +5,13 @@
     "type": "MRT",
     "isContrast": false,
     "isInjector": false,
-    "duration": 25,
+    "duration": 30,
     "price": 424340,
     "priceFormatted": "424 340 so'm",
-    "updatedAt": "2026-09-03T05:28:36.228Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.477Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R159",
@@ -20,8 +22,10 @@
     "duration": 35,
     "price": 1114260,
     "priceFormatted": "1 114 260 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R158",
@@ -32,8 +36,10 @@
     "duration": 45,
     "price": 2018800,
     "priceFormatted": "2 018 800 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R163",
@@ -44,8 +50,10 @@
     "duration": 25,
     "price": 1209320,
     "priceFormatted": "1 209 320 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R162",
@@ -56,8 +64,10 @@
     "duration": 45,
     "price": 2025660,
     "priceFormatted": "2 025 660 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R160",
@@ -68,8 +78,10 @@
     "duration": 25,
     "price": 535080,
     "priceFormatted": "535 080 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R211",
@@ -80,8 +92,10 @@
     "duration": 35,
     "price": 1053500,
     "priceFormatted": "1 053 500 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R214",
@@ -92,8 +106,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R213",
@@ -104,8 +120,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R210",
@@ -116,8 +134,10 @@
     "duration": 45,
     "price": 2018800,
     "priceFormatted": "2 018 800 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R161",
@@ -128,8 +148,10 @@
     "duration": 35,
     "price": 1102500,
     "priceFormatted": "1 102 500 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R165",
@@ -140,8 +162,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R164",
@@ -152,8 +176,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R199",
@@ -164,8 +190,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R166",
@@ -176,8 +204,10 @@
     "duration": 25,
     "price": 535080,
     "priceFormatted": "535 080 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R200",
@@ -188,8 +218,10 @@
     "duration": 25,
     "price": 575341,
     "priceFormatted": "575 341 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R172",
@@ -200,8 +232,10 @@
     "duration": 25,
     "price": 1169000,
     "priceFormatted": "1 169 000 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R171",
@@ -212,8 +246,10 @@
     "duration": 45,
     "price": 2025660,
     "priceFormatted": "2 025 660 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R167",
@@ -224,8 +260,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R191",
@@ -236,8 +274,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R193",
@@ -248,8 +288,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R192",
@@ -260,8 +302,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R173",
@@ -272,8 +316,10 @@
     "duration": 25,
     "price": 535080,
     "priceFormatted": "535 080 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R175",
@@ -284,8 +330,10 @@
     "duration": 25,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R174",
@@ -296,8 +344,10 @@
     "duration": 45,
     "price": 2025660,
     "priceFormatted": "2 025 660 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R177",
@@ -308,8 +358,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R179",
@@ -320,8 +372,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R178",
@@ -332,8 +386,10 @@
     "duration": 45,
     "price": 2025660,
     "priceFormatted": "2 025 660 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R180",
@@ -344,8 +400,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R181",
@@ -356,8 +414,10 @@
     "duration": 35,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R203",
@@ -368,8 +428,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R204",
@@ -380,8 +442,10 @@
     "duration": 35,
     "price": 1292620,
     "priceFormatted": "1 292 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R182",
@@ -392,8 +456,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R201",
@@ -404,8 +470,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R202",
@@ -416,8 +484,10 @@
     "duration": 35,
     "price": 1292620,
     "priceFormatted": "1 292 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R4896",
@@ -428,8 +498,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R188",
@@ -440,8 +512,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R190",
@@ -452,8 +526,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.229Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R189",
@@ -464,8 +540,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R217",
@@ -476,8 +554,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R168",
@@ -488,8 +568,10 @@
     "duration": 25,
     "price": 535080,
     "priceFormatted": "535 080 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R169",
@@ -500,8 +582,10 @@
     "duration": 50,
     "price": 1084860,
     "priceFormatted": "1 084 860 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R170",
@@ -512,8 +596,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 6 soat oldin mutlaqo ovqatlanmaslik (qat'iy och qoringa kelish).\n• 1-2 kun oldin parhez tutish: gaz hosil qiluvchi va yog'li taomlardan tiyilish.\n• Tekshiruvdan 40 daqiqa oldin 2 tabletka No-shpa (spazmolitik) qabul qilish.\n• Oldingi UTT (UZI) va MRT xulosalarini o'zi bilan olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R206",
@@ -524,8 +610,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R219",
@@ -536,8 +624,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R222",
@@ -548,8 +638,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R218",
@@ -560,8 +652,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R221",
@@ -572,8 +666,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R220",
@@ -584,8 +680,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R215",
@@ -596,8 +694,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R223",
@@ -608,8 +708,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R216",
@@ -620,8 +722,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R183",
@@ -632,8 +736,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R186",
@@ -644,8 +750,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R184",
@@ -656,8 +764,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R185",
@@ -668,8 +778,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R187",
@@ -680,8 +792,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R205",
@@ -692,8 +806,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R197",
@@ -704,8 +820,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R196",
@@ -716,8 +834,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R195",
@@ -728,8 +848,10 @@
     "duration": 35,
     "price": 1145620,
     "priceFormatted": "1 145 620 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R194",
@@ -740,8 +862,10 @@
     "duration": 45,
     "price": 2001160,
     "priceFormatted": "2 001 160 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.\n• Kontrastli bo'lgani uchun 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiruvdan so'ng tanadan kontrastni chiqarish uchun ko'proq suv ichish.",
+    "contraindications": "• Buyrak faoliyatining og'ir yetishmovchiligi (kreatinin me'yordan ancha baland).\n• Gadoliniy saqlovchi kontrast moddaga og'ir allergik reaktsiya tarixi.\n• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R4920",
@@ -752,8 +876,10 @@
     "duration": 25,
     "price": 546840,
     "priceFormatted": "546 840 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R4929",
@@ -764,8 +890,10 @@
     "duration": 25,
     "price": 535080,
     "priceFormatted": "535 080 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R198",
@@ -776,8 +904,10 @@
     "duration": 50,
     "price": 988820,
     "priceFormatted": "988 820 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R207",
@@ -788,8 +918,10 @@
     "duration": 5,
     "price": 119560,
     "priceFormatted": "119 560 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.478Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R208",
@@ -800,8 +932,10 @@
     "duration": 5,
     "price": 66640,
     "priceFormatted": "66 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R156",
@@ -812,8 +946,10 @@
     "duration": 15,
     "price": 184240,
     "priceFormatted": "184 240 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R94",
@@ -824,8 +960,10 @@
     "duration": 15,
     "price": 132300,
     "priceFormatted": "132 300 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruv sohasidagi metall buyumlar va taqinchoqlarni yechish.\n• Telefon, magnit kartalar va elektron vositalarni qoldirish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
   },
   {
     "code": "R133",
@@ -836,8 +974,10 @@
     "duration": 20,
     "price": 184240,
     "priceFormatted": "184 240 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi (odatdagidek ovqatlanish mumkin).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Oldingi rentgen yoki KT suratlari bo'lsa, o'zi bilan olib kelish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Og'ir holatdagi, nafasini ushlab tura olmaydigan bemorlar."
   },
   {
     "code": "R134",
@@ -848,8 +988,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R135",
@@ -860,8 +1002,10 @@
     "duration": 30,
     "price": 880040,
     "priceFormatted": "880 040 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R138",
@@ -872,8 +1016,10 @@
     "duration": 20,
     "price": 413560,
     "priceFormatted": "413 560 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R139",
@@ -884,8 +1030,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R136",
@@ -896,8 +1044,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R137",
@@ -908,8 +1058,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R151",
@@ -920,8 +1072,10 @@
     "duration": 20,
     "price": 415520,
     "priceFormatted": "415 520 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi (odatdagidek ovqatlanish mumkin).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Oldingi rentgen yoki KT suratlari bo'lsa, o'zi bilan olib kelish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Og'ir holatdagi, nafasini ushlab tura olmaydigan bemorlar."
   },
   {
     "code": "R152",
@@ -932,8 +1086,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R140",
@@ -944,8 +1100,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R142",
@@ -956,8 +1114,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R141",
@@ -968,8 +1128,10 @@
     "duration": 30,
     "price": 426300,
     "priceFormatted": "426 300 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R143",
@@ -980,8 +1142,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R144",
@@ -992,8 +1156,10 @@
     "duration": 30,
     "price": 426300,
     "priceFormatted": "426 300 so'm",
-    "updatedAt": "2026-09-03T05:28:36.230Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R145",
@@ -1004,8 +1170,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R149",
@@ -1016,8 +1184,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R150",
@@ -1028,8 +1198,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R146",
@@ -1040,8 +1212,10 @@
     "duration": 20,
     "price": 378280,
     "priceFormatted": "378 280 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R148",
@@ -1052,8 +1226,10 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R147",
@@ -1064,8 +1240,10 @@
     "duration": 30,
     "price": 426300,
     "priceFormatted": "426 300 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R153",
@@ -1076,8 +1254,10 @@
     "duration": 20,
     "price": 451780,
     "priceFormatted": "451 780 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Maxsus parhez talab etilmaydi (odatdagidek ovqatlanish mumkin).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Oldingi rentgen yoki KT suratlari bo'lsa, o'zi bilan olib kelish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Og'ir holatdagi, nafasini ushlab tura olmaydigan bemorlar."
   },
   {
     "code": "R154",
@@ -1088,8 +1268,10 @@
     "duration": 20,
     "price": 451780,
     "priceFormatted": "451 780 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   },
   {
     "code": "R155",
@@ -1100,7 +1282,9 @@
     "duration": 30,
     "price": 850640,
     "priceFormatted": "850 640 so'm",
-    "updatedAt": "2026-09-03T05:28:36.231Z",
-    "updatedBy": "official_catalog"
+    "updatedAt": "2026-09-03T08:41:56.479Z",
+    "updatedBy": "ai_medical_standard",
+    "preparation": "• Tekshiruvdan kamida 4 soat oldin ovqatlanmaslik (och qoringa kelish).\n• Qonda kreatinin tahlili javobini olib kelish (oxirgi 14 kunlik).\n• Tekshiriladigan sohadagi barcha metall buyumlar va taqinchoqlarni yechish.\n• Tekshiruvdan so'ng kontrastni tezroq chiqarish uchun 1-1.5 litr suv ichish.",
+    "contraindications": "• Homiladorlikning barcha davrlari (rentgen nurlanishi sababli).\n• Yod saqlovchi kontrast moddalarga og'ir allergiya.\n• Surunkali buyrak yetishmovchiligi (kreatinin yuqori bo'lganda).\n• Qalqonsimon bez gipertireozi (tireotoksikoz)."
   }
 ]
