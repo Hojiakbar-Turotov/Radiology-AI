@@ -19,7 +19,7 @@
     "hasInjector": false,
     "supportsContrast": false,
     "status": "active",
-    "currentPatientId": null
+    "currentPatientId": "p_1788421353988_d9xr4"
   },
   {
     "id": "mskt1",
@@ -30,6 +30,6 @@
     "hasInjector": true,
     "supportsContrast": true,
     "status": "active",
-    "currentPatientId": null
+    "currentPatientId": "p_1788425849301_yz45c"
   }
 ]

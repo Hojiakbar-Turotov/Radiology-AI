@@ -224,7 +224,7 @@ async function initServices() {
       allServices = list;
       const select = document.getElementById("quickServiceSelect");
       if (select) {
-        select.innerHTML = '<option value="">-- Tekshiruv sohasini tanlang --</option>' +
+        select.innerHTML = '<option value="">+ Boshqa tekshiruv qo\'shish...</option>' +
           allServices.map(s => {
             const priceLabel = s.priceFormatted ? ` [ ${s.priceFormatted} ]` : (s.price ? ` [ ${s.price.toLocaleString()} so'm ]` : '');
             return `
@@ -240,6 +240,135 @@ async function initServices() {
   }
 }
 window.initServiceOptions = initServices;
+
+// -------------------------------------------------------------
+// BIR NECHTA TEKSHIRUVLARNI BOSHQARISH (MULTI-SERVICES STATE)
+// Foydalanuvchi talabi:
+// 1. MRT: Barcha organlar tekshiruv vaqtlari qo'shilsin (T_1 + T_2 + ...)
+// 2. MSKT: 2 yoki undan ortiq tekshiruvlar ichidan eng katta vaqt olinadi (max(T_1, T_2, ...))
+// -------------------------------------------------------------
+let currentSelectedServices = [];
+
+function renderSelectedServicesList() {
+  const container = document.getElementById("quickSelectedServicesList");
+  const badge = document.getElementById("quickTotalDurationBadge");
+  const contrastSelect = document.getElementById("quickContrastSelect");
+  const deviceSelect = document.getElementById("quickDeviceSelect");
+
+  if (!container) return;
+
+  if (currentSelectedServices.length === 0) {
+    container.innerHTML = `<div style="font-size:11.5px; color:#94a3b8; font-style:italic; padding:6px 0;">Hech qanday tekshiruv tanlanmagan. Quyidan tekshiruv qo'shing.</div>`;
+    if (badge) badge.innerText = "0 daq";
+    return;
+  }
+
+  // Qurilma turi
+  const hasMskt = currentSelectedServices.some(s => s.examType === "MSKT" || (s.name && s.name.toUpperCase().includes("MSKT")));
+  const deviceType = hasMskt ? "MSKT" : "MRT";
+
+  // Davomiyliklar
+  const durations = currentSelectedServices.map(s => {
+    const cat = allServices.find(cs => cs.code === s.code);
+    return s.duration || (cat ? cat.duration : (deviceType === "MSKT" ? 15 : 25));
+  });
+
+  let totalDuration = 0;
+  let durationExplanation = "";
+
+  if (deviceType === "MSKT") {
+    // MSKT: Eng katta vaqt sarflanadigan tekshiruv vaqti umumiy vaqt deb qabul qilib olinadi
+    totalDuration = Math.max(...durations);
+    durationExplanation = currentSelectedServices.length > 1 
+      ? `MSKT max: ${totalDuration} daq` 
+      : `${totalDuration} daq`;
+  } else {
+    // MRT: Organlar uchun tekshiruv vaqtlari qo'shiladi (T_1 + T_2 + ...)
+    totalDuration = durations.reduce((sum, d) => sum + d, 0);
+    durationExplanation = currentSelectedServices.length > 1
+      ? `${durations.join(' + ')} = ${totalDuration} daq`
+      : `${totalDuration} daq`;
+  }
+
+  if (badge) {
+    badge.innerText = `⏱️ ${durationExplanation}`;
+    badge.title = deviceType === "MSKT" 
+      ? "MSKT qoidasi: Eng katta vaqt sarflanadigan tekshiruv vaqti umumiy vaqt deb olindi" 
+      : "MRT qoidasi: Barcha organlar tekshiruv vaqtlari to'liq qo'shildi";
+  }
+
+  // Kontrastni tekshirish
+  const hasContrast = currentSelectedServices.some(s => s.isContrast);
+  if (contrastSelect) {
+    contrastSelect.value = hasContrast ? "yes" : "no";
+  }
+
+  // Apparatni tekshirish
+  if (deviceSelect && deviceSelect.value === "auto") {
+    if (deviceType === "MSKT") deviceSelect.value = "mskt";
+    else if (hasContrast) deviceSelect.value = "mrt1";
+    else deviceSelect.value = "mrt2";
+  }
+
+  container.innerHTML = currentSelectedServices.map((srv, idx) => {
+    const isContr = Boolean(srv.isContrast);
+    const cat = allServices.find(cs => cs.code === srv.code);
+    const dur = srv.duration || (cat ? cat.duration : (deviceType === "MSKT" ? 15 : 25));
+    return `
+      <div class="selected-service-item ${isContr ? 'contrast-service' : ''}" data-code="${escapeHtml(srv.code || '')}">
+        <div class="ss-info">
+          ${srv.code ? `<span class="ss-code">[${escapeHtml(srv.code)}]</span>` : ''}
+          <span class="ss-name" title="${escapeHtml(srv.name)}">${escapeHtml(srv.name)}</span>
+          <span class="ss-duration">${dur} daq</span>
+          ${isContr ? `<span style="font-size:10px; color:#f472b6; font-weight:700;">💉 Kontrast</span>` : ''}
+        </div>
+        <button type="button" class="ss-remove-btn" onclick="removeSelectedService('${escapeHtml(srv.code || String(idx))}')" title="Ushbu tekshiruvni o'chirish">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function addSelectedService(serviceObj) {
+  if (!serviceObj) return;
+  const existing = currentSelectedServices.find(s => s.code && s.code === serviceObj.code);
+  if (existing) return;
+
+  currentSelectedServices.push(serviceObj);
+  renderSelectedServicesList();
+  triggerSmartSlotRecalc();
+}
+
+function removeSelectedService(codeOrIdx) {
+  currentSelectedServices = currentSelectedServices.filter((s, idx) => {
+    if (s.code && s.code === codeOrIdx) return false;
+    if (String(idx) === String(codeOrIdx)) return false;
+    return true;
+  });
+  renderSelectedServicesList();
+  triggerSmartSlotRecalc();
+}
+
+function onAddServiceFromSelect() {
+  const select = document.getElementById("quickServiceSelect");
+  if (!select || !select.value) return;
+
+  const code = select.value;
+  const found = allServices.find(s => s.code === code);
+  if (found) {
+    addSelectedService({
+      code: found.code,
+      name: found.name,
+      duration: found.duration || 25,
+      isContrast: Boolean(found.isContrast),
+      examType: found.type || "MRT",
+      preparation: found.preparation || "",
+      contraindications: found.contraindications || ""
+    });
+  }
+  select.value = "";
+}
 
 // -------------------------------------------------------------
 // TEKSHIRUV TURI ANIQLASH VA SARALASH (FAQAT MRT VA MSKT)
@@ -755,25 +884,42 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       }
     }
 
-    // Bemorning xizmatlari orasidan tekshiruv turini saralash:
-    let chosenService = null;
-
-    // 1-ustuvorlik: Agar pastki jadvalda MRT yoki MSKT bo'lsa, birinchi navbatda shuni olamiz
+    // Bemorning barcha xizmatlarini to'plash
+    const allowedMrtMsktServices = [];
     for (const cs of candidateServices) {
       const check = checkIsMrtOrMskt(cs.code, cs.name, groupName);
       if (check.isMrtOrMskt) {
-        chosenService = {
+        allowedMrtMsktServices.push({
           code: cs.code,
           name: cs.name,
-          isMrtOrMskt: true,
           examType: check.examType,
-          isContrast: check.isContrast,
-          isInjector: check.isInjector,
-          serviceObj: check.serviceObj,
+          isContrast: Boolean(check.isContrast),
+          isInjector: Boolean(check.isInjector),
+          duration: check.serviceObj ? check.serviceObj.duration : 25,
+          price: check.serviceObj ? check.serviceObj.price : 0,
+          priceFormatted: check.serviceObj ? check.serviceObj.priceFormatted : "",
+          preparation: check.serviceObj ? check.serviceObj.preparation : "",
+          contraindications: check.serviceObj ? check.serviceObj.contraindications : "",
           isGreen: Boolean(cs.isGreen)
-        };
-        break;
+        });
       }
+    }
+
+    let chosenService = null;
+    let finalServices = [];
+
+    // 1-ustuvorlik: Agar pastki jadvalda MRT yoki MSKT tekshiruvlari topilsa
+    if (allowedMrtMsktServices.length > 0) {
+      const pendingServices = allowedMrtMsktServices.filter(s => !s.isGreen);
+      finalServices = pendingServices.length > 0 ? pendingServices : allowedMrtMsktServices;
+      chosenService = {
+        code: finalServices[0].code,
+        name: finalServices.map(s => s.name).join(" + "),
+        isMrtOrMskt: true,
+        examType: finalServices.some(s => s.examType === 'MSKT') ? 'MSKT' : 'MRT',
+        isContrast: finalServices.some(s => s.isContrast),
+        isGreen: finalServices.every(s => s.isGreen)
+      };
     }
 
     // 2-ustuvorlik: Agar birorta ham MRT/MSKT topilmasa (masalan, UZI R78, R82 bo'lsa)
@@ -803,6 +949,14 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
             isContrast: text.toLowerCase().includes("kontrast") && !text.toLowerCase().includes("kontrastsiz"),
             isGreen: isRowGreenOrCompleted(r, doc)
           };
+          finalServices = [{
+            code: "",
+            name: text,
+            examType: isMskt ? "MSKT" : "MRT",
+            isContrast: chosenService.isContrast,
+            duration: isMskt ? 15 : 25,
+            isGreen: chosenService.isGreen
+          }];
           break;
         }
       }
@@ -819,7 +973,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       };
     }
 
-    const isAlreadyCompleted = isTopRowGreen || Boolean(chosenService.isGreen);
+    const isAlreadyCompleted = isTopRowGreen || (allowedMrtMsktServices.length > 0 && allowedMrtMsktServices.every(s => s.isGreen)) || Boolean(chosenService.isGreen);
     const dateCheck = checkRegistrationDate(regDate);
 
     return {
@@ -830,6 +984,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       registrationDate: regDate,
       isDateExpired: Boolean(dateCheck.isExpired),
       daysDiff: dateCheck.daysDiff,
+      services: finalServices.length > 0 ? finalServices : (chosenService.isMrtOrMskt ? [chosenService] : []),
       serviceCode: chosenService.code,
       service: chosenService.name,
       isMrtOrMskt: chosenService.isMrtOrMskt,
@@ -1165,31 +1320,24 @@ function autoFillQuickQueue(patientData) {
     contrastSelect.value = isContrast ? "yes" : "no";
   }
 
-  // 3. Tekshiruv sohasi (Xizmat)
-  if (serviceSelect && (patientData.serviceCode || patientData.service)) {
-    let matched = false;
-    for (let i = 0; i < serviceSelect.options.length; i++) {
-      const opt = serviceSelect.options[i];
-      if (patientData.serviceCode && opt.value === patientData.serviceCode) {
-        serviceSelect.selectedIndex = i;
-        matched = true;
-        break;
-      }
-      if (patientData.service && opt.text.toLowerCase().includes(patientData.service.toLowerCase())) {
-        serviceSelect.selectedIndex = i;
-        matched = true;
-        break;
-      }
-    }
-    if (!matched && patientData.service) {
-      const val = patientData.serviceCode || ("R_AUTO_" + Date.now());
-      const label = (patientData.serviceCode ? `[${patientData.serviceCode}] ` : "") + patientData.service;
-      const opt = new Option(label, val, true, true);
-      opt.setAttribute("data-contrast", isContrast ? "yes" : "no");
-      opt.setAttribute("data-device", (patientData.examType === "MSKT" || patientData.service.toUpperCase().includes("MSKT")) ? "MSKT" : "MRT");
-      serviceSelect.add(opt);
-    }
+  // 3. Tekshiruvlar ro'yxatini to'ldirish (currentSelectedServices)
+  if (patientData.services && patientData.services.length > 0) {
+    currentSelectedServices = [...patientData.services];
+  } else if (patientData.serviceCode || patientData.service) {
+    const cat = allServices.find(s => s.code === patientData.serviceCode);
+    currentSelectedServices = [{
+      code: patientData.serviceCode || "",
+      name: patientData.service || (cat ? cat.name : "MRT Tekshiruvi"),
+      duration: cat ? cat.duration : 25,
+      isContrast: Boolean(patientData.isContrast),
+      examType: patientData.examType || (cat ? cat.type : "MRT"),
+      preparation: cat ? cat.preparation : "",
+      contraindications: cat ? cat.contraindications : ""
+    }];
+  } else {
+    currentSelectedServices = [];
   }
+  renderSelectedServicesList();
 
   // 4. AQLLI QURILMA TANLASH
   const smart = determineSmartDevice(patientData);
@@ -1239,7 +1387,6 @@ async function handleQuickQueueSubmit(e) {
   const nameInput = document.getElementById("quickPatientName");
   const idInput = document.getElementById("quickPatientId");
   const phoneInput = document.getElementById("quickPhone");
-  const serviceSelect = document.getElementById("quickServiceSelect");
   const deviceSelect = document.getElementById("quickDeviceSelect");
   const contrastSelect = document.getElementById("quickContrastSelect");
   const dateInput = document.getElementById("quickScheduledDate");
@@ -1251,39 +1398,17 @@ async function handleQuickQueueSubmit(e) {
     return;
   }
 
-  const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
-  if (selectedOpt && (selectedOpt.getAttribute("data-expired") === "true" || serviceSelect.value === "EXPIRED")) {
-    alert("⚠️ Ushbu tekshiruv ro'yxatga olinganiga 10 kundan oshgan!\n\nSo'rovni yangilash kerak deb qaytarildi. Bemor shifokor orqali yo'llanma/so'rovni yangilashi shart.");
+  if (!currentSelectedServices || currentSelectedServices.length === 0) {
+    alert("Iltimos, kamida bitta tekshiruvni tanlang!");
     return;
   }
 
-  if (selectedOpt && (selectedOpt.getAttribute("data-done") === "true" || serviceSelect.value === "DONE")) {
-    alert("ℹ️ Ushbu tekshiruv allaqachon o'tkazilgan (yashil rangda)! Buni navbatga qo'yish kerak emas.");
-    return;
-  }
-
-  if (!selectedOpt || selectedOpt.getAttribute("data-blocked") === "true" || serviceSelect.value === "BLOCKED") {
-    alert("⛔ Ushbu tekshiruvga elektron navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
-    return;
-  }
-
-  const check = checkIsMrtOrMskt(serviceSelect.value, selectedOpt.text);
-  if (!check.isMrtOrMskt) {
-    alert("⛔ Ushbu tekshiruvga elektron navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
-    return;
-  }
-
-  const serviceCode = serviceSelect.value;
-  const serviceObj = allServices.find(s => s.code === serviceCode) || {
-    code: serviceCode,
-    name: serviceSelect.options[serviceSelect.selectedIndex].text,
-    duration: 20
-  };
-
-  const isContrast = contrastSelect.value === "yes";
-  let targetDeviceId = deviceSelect.value;
+  const isContrast = (contrastSelect && contrastSelect.value === "yes") || currentSelectedServices.some(s => s.isContrast);
+  let targetDeviceId = deviceSelect ? deviceSelect.value : "auto";
   if (targetDeviceId === "auto") {
-    targetDeviceId = isContrast ? "mrt1" : "mrt2";
+    const hasMskt = currentSelectedServices.some(s => s.examType === "MSKT" || (s.name && s.name.toUpperCase().includes("MSKT")));
+    if (hasMskt) targetDeviceId = "mskt";
+    else targetDeviceId = isContrast ? "mrt1" : "mrt2";
   }
 
   const payload = {
@@ -1294,7 +1419,7 @@ async function handleQuickQueueSubmit(e) {
     isContrast: isContrast,
     scheduledDate: dateInput ? dateInput.value : undefined,
     scheduledTime: timeInput ? timeInput.value : undefined,
-    services: [serviceObj]
+    services: currentSelectedServices
   };
 
   submitBtn.disabled = true;
@@ -1343,7 +1468,16 @@ function printThermalTicket(patient) {
   const printWindow = window.open('', '_blank', 'width=380,height=640');
   if (!printWindow) return;
 
-  const servicesText = (patient.services || []).map(s => s.name).join(', ') || patient.primaryService || 'MRT Tekshiruvi';
+  const servicesList = patient.services || [];
+  const servicesText = servicesList.map(s => s.name).join(', ') || patient.primaryService || 'MRT Tekshiruvi';
+  const servicesHtml = servicesList.length > 1
+    ? `
+      <div class="info-row"><b>Tekshiruvlar (${servicesList.length} ta):</b></div>
+      <div style="padding-left:3px; margin:2px 0 4px 0;">
+        ${servicesList.map((s, idx) => `<div style="font-size:12px; font-weight:700; color:#000000; margin:2px 0;">${idx + 1}. ${escapeHtml(s.name)}</div>`).join('')}
+      </div>
+    `
+    : `<div class="info-row"><b>Xizmat:</b> ${escapeHtml(servicesText)}</div>`;
   
   // Bemor ID raqami
   const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '-').trim();
@@ -1563,7 +1697,7 @@ function printThermalTicket(patient) {
       <hr class="divider">
 
       <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
-      <div class="info-row"><b>Xizmat:</b> ${escapeHtml(servicesText)}</div>
+      ${servicesHtml}
       <div class="info-row"><b>Qabul vaqti:</b> ${escapeHtml(formattedTimeStr)}</div>
 
       ${prepHtml}
@@ -2272,30 +2406,27 @@ async function promptEditStaffRole(login, currentRole) {
 // AQLLI SLOT REKALKULATSIYASI (Smart Slot Recalculator)
 // -------------------------------------------------------------
 async function triggerSmartSlotRecalc() {
-  const serviceSelect = document.getElementById("quickServiceSelect");
   const contrastSelect = document.getElementById("quickContrastSelect");
   const deviceSelect = document.getElementById("quickDeviceSelect");
   const dateInput = document.getElementById("quickScheduledDate");
   const nameInput = document.getElementById("quickPatientName");
 
-  if (!serviceSelect) return;
+  if (!currentSelectedServices || currentSelectedServices.length === 0) return;
 
-  const serviceCode = serviceSelect.value;
-  const serviceObj = allServices.find(s => s.code === serviceCode) || {
-    code: serviceCode,
-    name: serviceSelect.options[serviceSelect.selectedIndex]?.text || "MRT Tekshiruvi",
-    duration: 25
-  };
-
-  const isContrast = contrastSelect ? contrastSelect.value === "yes" : false;
+  const isContrast = contrastSelect ? contrastSelect.value === "yes" : currentSelectedServices.some(s => s.isContrast);
   let targetDeviceId = deviceSelect ? deviceSelect.value : "auto";
+  if (targetDeviceId === "auto") {
+    const hasMskt = currentSelectedServices.some(s => s.examType === "MSKT" || (s.name && s.name.toUpperCase().includes("MSKT")));
+    if (hasMskt) targetDeviceId = "mskt";
+    else targetDeviceId = isContrast ? "mrt1" : "mrt2";
+  }
 
   try {
     const res = await fetch("/api/queue/smart-slot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        services: [serviceObj],
+        services: currentSelectedServices,
         deviceId: targetDeviceId,
         isContrast: isContrast,
         scheduledDate: dateInput ? dateInput.value : undefined,

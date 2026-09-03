@@ -406,6 +406,86 @@ body {
   min-width: 0;
 }
 
+/* Multi-services list in drawer */
+.services-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 160px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+}
+
+.services-list-container:empty {
+  display: none;
+}
+
+.selected-service-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-left: 3px solid #38bdf8;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.selected-service-item.contrast-service {
+  border-left-color: #ec4899;
+}
+
+.ss-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ss-code {
+  font-weight: 800;
+  color: #38bdf8;
+  font-size: 11px;
+}
+
+.ss-name {
+  color: #f1f5f9;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ss-duration {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.ss-remove-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.ss-remove-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
 .quick-submit-btn {
   margin-top: 4px;
   background: linear-gradient(135deg, #059669, #10b981);

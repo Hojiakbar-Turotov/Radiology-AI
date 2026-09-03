@@ -173,10 +173,16 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label><i class="fa-solid fa-microscope"></i> Tekshiruv Sohasi (Xizmat) *</label>
-            <select id="quickServiceSelect" onchange="onServiceSelected()" required>
-              <option value="">-- Xizmatni tanlang --</option>
+          <div class="form-group" id="quickServicesSection">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+              <span><i class="fa-solid fa-microscope"></i> Tekshiruvlar (Bir vaqtda bir nechta) *</span>
+              <span id="quickTotalDurationBadge" style="font-size:11px; font-weight:800; color:#38bdf8; background:#0f172a; padding:2px 8px; border-radius:12px; border:1px solid #38bdf8;">0 daq</span>
+            </label>
+            <!-- Tanlangan tekshiruvlar kartochkalari -->
+            <div id="quickSelectedServicesList" class="services-list-container"></div>
+            <!-- Qo'shimcha tekshiruv qo'shish -->
+            <select id="quickServiceSelect" onchange="onAddServiceFromSelect()">
+              <option value="">+ Boshqa tekshiruv qo'shish...</option>
               <!-- Dynamic Services -->
             </select>
           </div>
