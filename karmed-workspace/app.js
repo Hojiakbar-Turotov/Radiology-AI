@@ -271,6 +271,81 @@ function checkIsMrtOrMskt(code, name, groupName = "") {
   };
 }
 
+// -------------------------------------------------------------
+// YASHIL RANGDAGI / O'TKAZILIB BO'LINGAN QATORNI ANIQLASH
+// -------------------------------------------------------------
+function isRowGreenOrCompleted(row, doc) {
+  if (!row) return false;
+
+  try {
+    // 1. Matn bo'yicha "Fayl holati" yoki statusni tekshirish:
+    const rowText = (row.innerText || "").toLowerCase();
+    if (
+      rowText.includes("rapor onayli") || 
+      rowText.includes("raporlu") ||
+      rowText.includes("tamamlandi") ||
+      rowText.includes("onaylandi") ||
+      rowText.includes("bajarildi") ||
+      rowText.includes("o'tkazildi") ||
+      rowText.includes("suret alindi") ||
+      rowText.includes("sonuc cikti")
+    ) {
+      return true;
+    }
+
+    // 2. Element va uning barcha katakchalari (td) rangini tekshirish:
+    const cells = Array.from(row.querySelectorAll("td"));
+    const elementsToCheck = [row, ...cells];
+
+    for (const el of elementsToCheck) {
+      if (!el) continue;
+      // Inline style tekshiruvi:
+      const attrStyle = (el.getAttribute("style") || "").toLowerCase();
+      if (isGreenColorString(attrStyle)) return true;
+
+      // Direct style property:
+      if (isGreenColorString(el.style.backgroundColor)) return true;
+
+      // Computed style tekshiruvi:
+      try {
+        const view = (doc && doc.defaultView) ? doc.defaultView : window;
+        const comp = view.getComputedStyle(el);
+        if (comp && isGreenColorRgb(comp.backgroundColor)) return true;
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn("[isRowGreenOrCompleted Error]:", err);
+  }
+
+  return false;
+}
+
+function isGreenColorString(s) {
+  if (!s) return false;
+  const str = s.toLowerCase();
+  return str.includes("green") || str.includes("lime") || 
+         str.includes("#00ff") || str.includes("#00ee") || str.includes("#00e6") ||
+         str.includes("#22c55e") || str.includes("#10b981") || str.includes("#4ade80") ||
+         str.includes("#86efac") || str.includes("#bbf7d0") || str.includes("#c8e6c9") ||
+         str.includes("#a5d") || str.includes("#81c") || str.includes("#69f") ||
+         str.includes("rgb(0, 255") || str.includes("rgb(0, 238") || str.includes("rgb(34, 197") ||
+         str.includes("rgb(0, 204") || str.includes("rgb(16, 185") || str.includes("rgb(74, 222");
+}
+
+function isGreenColorRgb(colorStr) {
+  if (!colorStr || colorStr === "rgba(0, 0, 0, 0)" || colorStr === "transparent") return false;
+  const m = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (m) {
+    const r = parseInt(m[1], 10);
+    const g = parseInt(m[2], 10);
+    const b = parseInt(m[3], 10);
+    // Agar yashil (green) komponenti boshqa ranglardan ancha ustun bo'lsa:
+    if (g >= 120 && g > r + 15 && g > b + 15) return true;
+    if (g >= 150 && (g - r > 10 || g - b > 10)) return true;
+  }
+  return false;
+}
+
 function onServiceSelected() {
   const select = document.getElementById("quickServiceSelect");
   const selectedOpt = select.options[select.selectedIndex];
@@ -280,6 +355,30 @@ function onServiceSelected() {
   const recBox = document.getElementById("smartRecommendationBox");
   const recTitle = document.getElementById("smartBoxTitle");
   const recDesc = document.getElementById("smartBoxDesc");
+
+  // Agar tekshiruv allaqachon o'tkazilgan bo'lsa (Yashil):
+  if (selectedOpt.getAttribute("data-done") === "true" || select.value === "DONE") {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.style.background = "#334155";
+      submitBtn.style.cursor = "not-allowed";
+      submitBtn.innerHTML = `<i class="fa-solid fa-check-double" style="color:#34d399;"></i> Tekshiruv o'tkazilgan (Navbat shart emas)`;
+      submitBtn.title = "Ushbu tekshiruv allaqachon o'tkazilgan (yashil). Qayta navbatga qo'yish kerak emas!";
+    }
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.35))";
+      recBox.style.borderColor = "#10b981";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#34d399;"></i> TEKSHIRUV O'TKAZILIB BO'LGAN (YASHIL)`;
+        recTitle.style.color = "#34d399";
+      }
+      recDesc.innerHTML = `<span style="color:#ecfdf5;">Ushbu tekshiruv o'tkazilib bo'lgan, buni navbatga qo'yish kerak emas!</span>`;
+    }
+    return;
+  }
 
   if (selectedOpt.getAttribute("data-blocked") === "true" || select.value === "BLOCKED") {
     if (submitBtn) {
@@ -479,6 +578,9 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       p = p.previousElementSibling;
     }
 
+    // Yashil / O'tkazilgan holatni tekshirish (Top row):
+    const isTopRowGreen = isRowGreenOrCompleted(focusedRow, doc) || isRowGreenOrCompleted(clickedRow, doc);
+
     // 2. Pastki jadvaldan barcha xizmat nomlari va kodlarini yig'ish
     const candidateServices = [];
     const allDocRows = doc.querySelectorAll("tr");
@@ -497,8 +599,9 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
         } else if (codeCellIdx > 0 && texts[codeCellIdx - 1].length > 2) {
           sName = texts[codeCellIdx - 1];
         }
+        const isServiceRowGreen = isRowGreenOrCompleted(r, doc);
         if (sName && !candidateServices.some(cs => cs.code === code)) {
-          candidateServices.push({ code, name: sName });
+          candidateServices.push({ code, name: sName, isGreen: isServiceRowGreen });
         }
       }
     }
@@ -517,7 +620,8 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
           examType: check.examType,
           isContrast: check.isContrast,
           isInjector: check.isInjector,
-          serviceObj: check.serviceObj
+          serviceObj: check.serviceObj,
+          isGreen: Boolean(cs.isGreen)
         };
         break;
       }
@@ -531,6 +635,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
         name: first.name,
         isMrtOrMskt: false,
         examType: "OTHER",
+        isGreen: Boolean(first.isGreen),
         reason: "Ushbu tekshiruvga navbat berilmaydi"
       };
     }
@@ -546,7 +651,8 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
             name: text,
             isMrtOrMskt: true,
             examType: isMskt ? "MSKT" : "MRT",
-            isContrast: text.toLowerCase().includes("kontrast") && !text.toLowerCase().includes("kontrastsiz")
+            isContrast: text.toLowerCase().includes("kontrast") && !text.toLowerCase().includes("kontrastsiz"),
+            isGreen: isRowGreenOrCompleted(r, doc)
           };
           break;
         }
@@ -559,9 +665,12 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
         name: groupName || "Ultratovush / Boshqa tekshiruv",
         isMrtOrMskt: false,
         examType: "OTHER",
+        isGreen: isTopRowGreen,
         reason: "Ushbu tekshiruvga navbat berilmaydi"
       };
     }
+
+    const isAlreadyCompleted = isTopRowGreen || Boolean(chosenService.isGreen);
 
     return {
       name: fullName,
@@ -572,7 +681,8 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       service: chosenService.name,
       isMrtOrMskt: chosenService.isMrtOrMskt,
       examType: chosenService.examType,
-      isContrast: Boolean(chosenService.isContrast)
+      isContrast: Boolean(chosenService.isContrast),
+      isAlreadyCompleted: Boolean(isAlreadyCompleted)
     };
   } catch (err) {
     console.warn("[extractPatientFromKarmedDoc Error]:", err);
@@ -731,10 +841,77 @@ function autoFillQuickQueue(patientData) {
     return;
   }
 
+  // 3. YASHIL RANGDAGI / O'TKAZILIB BO'LGAN TEKSHIRUV BO'LSA - NAVBATGA QO'YISH KERAK EMAS!
+  const isAlreadyCompleted = Boolean(patientData.isAlreadyCompleted);
+
+  if (isAlreadyCompleted) {
+    if (contrastSelect) contrastSelect.value = patientData.isContrast ? "yes" : "no";
+
+    // Service selectda ogohlantirish ko'rsatish
+    if (serviceSelect) {
+      let doneOpt = serviceSelect.querySelector("option[data-done='true']");
+      if (!doneOpt) {
+        doneOpt = document.createElement("option");
+        doneOpt.setAttribute("data-done", "true");
+        serviceSelect.prepend(doneOpt);
+      }
+      const labelText = patientData.service || patientData.serviceCode || "MRT Tekshiruvi";
+      doneOpt.value = "DONE";
+      doneOpt.text = `✅ [${patientData.serviceCode || 'MRT'}] ${labelText} — Tekshiruv o'tkazilgan (Bajarilgan)`;
+      serviceSelect.selectedIndex = 0;
+    }
+
+    if (deviceSelect) {
+      deviceSelect.value = "auto";
+    }
+
+    // Yashil / Tinchlantiruvchi ogohlantirish darchasini ko'rsatish
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.35))";
+      recBox.style.borderColor = "#10b981";
+      recBox.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.25)";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#34d399;"></i> TEKSHIRUV O'TKAZILIB BO'LGAN (YASHIL)`;
+        recTitle.style.color = "#34d399";
+      }
+      recDesc.innerHTML = `
+        <div style="color:#ecfdf5; font-size:12.5px; line-height:1.4;">
+          ✅ Bemor: <strong>${escapeHtml(patientData.name || '')}</strong><br>
+          🔬 Tekshiruv: <strong>${escapeHtml(patientData.service || patientData.serviceCode || '')}</strong> (Rapor Onayli / Bajarilgan).<br>
+          <strong style="color:#fbbf24;">ℹ️ Ushbu tekshiruv o'tkazilib bo'lgan, buni navbatga qo'yish kerak emas!</strong>
+        </div>
+      `;
+    }
+
+    // Tugmani to'liq bloklash
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.style.background = "#334155";
+      submitBtn.style.cursor = "not-allowed";
+      submitBtn.innerHTML = `<i class="fa-solid fa-check-double" style="color:#34d399;"></i> Tekshiruv o'tkazilgan (Navbat shart emas)`;
+      submitBtn.title = "Ushbu tekshiruv allaqachon o'tkazilgan (yashil). Qayta navbatga qo'yish kerak emas!";
+    }
+
+    // Tezkor navbat darchasini ochish
+    const drawer = document.getElementById("quickQueueDrawer");
+    if (drawer && drawer.classList.contains("collapsed")) {
+      drawer.classList.remove("collapsed");
+      const btnToggle = document.getElementById("btnToggleDrawer");
+      if (btnToggle) btnToggle.classList.add("active");
+    }
+
+    return;
+  }
+
   // ✅ RUXSAT ETILGAN (MRT YOKI MSKT):
   if (serviceSelect) {
     const blockedOpt = serviceSelect.querySelector("option[data-blocked='true']");
     if (blockedOpt) blockedOpt.remove();
+    const doneOpt = serviceSelect.querySelector("option[data-done='true']");
+    if (doneOpt) doneOpt.remove();
   }
 
   const isContrast = Boolean(patientData.isContrast);
@@ -829,6 +1006,11 @@ async function handleQuickQueueSubmit(e) {
   }
 
   const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+  if (selectedOpt && (selectedOpt.getAttribute("data-done") === "true" || serviceSelect.value === "DONE")) {
+    alert("ℹ️ Ushbu tekshiruv allaqachon o'tkazilgan (yashil rangda)! Buni navbatga qo'yish kerak emas.");
+    return;
+  }
+
   if (!selectedOpt || selectedOpt.getAttribute("data-blocked") === "true" || serviceSelect.value === "BLOCKED") {
     alert("⛔ Ushbu tekshiruvga elektron navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
     return;

@@ -1145,6 +1145,7 @@ async function updateFloatingBarPatientDisplay() {
           service: selectedPatient.service || '',
           serviceCode: selectedPatient.serviceCode || '',
           isContrast: Boolean(selectedPatient.isContrast),
+          isAlreadyCompleted: Boolean(selectedPatient.isGreen),
           suggestedDevice: selectedPatient.autoDeviceId || (selectedPatient.isContrast ? 'mrt1' : 'mrt2')
         }
       }, '*');
