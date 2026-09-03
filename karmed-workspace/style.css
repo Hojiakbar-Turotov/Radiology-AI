@@ -110,17 +110,19 @@ body {
 }
 
 .brand-text h2 {
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   color: #ffffff;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brand-text span {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #94a3b8;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 /* Navigation Tabs */

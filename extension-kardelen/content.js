@@ -4632,7 +4632,7 @@ function printThermalTicketDirect(payload, lang) {
     const doc = iframe.contentWindow.document;
     doc.open();
 
-    const centerTitle = dict ? dict.centerName : "ONKOLOGIYA VA RADIOLOGIYA MARKAZI";
+    const centerTitle = dict ? dict.centerName : "RESPUBLIKA RADIOLOGIYA VA ONKOLOGIYA MARKAZI";
     const subTitle = dict ? dict.ticketTitle : "Elektron Navbat Taloni";
     const lblPatient = dict ? dict.patient : "Bemor";
     const lblPatientType = dict ? dict.patientType : "Bemor Toifasi";

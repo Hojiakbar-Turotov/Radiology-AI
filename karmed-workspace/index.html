@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Karmed Radiologiya & MRT Navbat Tizimi</title>
+  <title>Respublika Radiologiya va Onkologiya Markazi | Navbat Tizimi</title>
   <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -20,7 +20,7 @@
       <div class="menu-brand">
         <img src="/karmed-workspace/assets/logo-onko.png" alt="Markaz Logotipi" class="brand-logo-img">
         <div class="brand-text">
-          <h2>KARMED RADIOLOGIYA</h2>
+          <h2>RESPUBLIKA RADIOLOGIYA VA ONKOLOGIYA MARKAZI</h2>
           <span>Elektron Navbat & Multi-Server Klasteri</span>
         </div>
       </div>
@@ -96,8 +96,8 @@
         </button>
 
         <!-- Fullscreen Toggle -->
-        <button class="action-btn icon-only" onclick="toggleFullScreen()" title="Butun ekranga yoyish">
-          <i class="fa-solid fa-expand"></i>
+        <button class="action-btn icon-only" id="btnFullscreen" onclick="toggleFullScreen()" title="Butun ekranga yoyish (F11 / Fullscreen)">
+          <i class="fa-solid fa-expand" id="workspaceFsIcon"></i>
         </button>
 
         <!-- Cluster Status Badge -->
@@ -113,7 +113,7 @@
       <!-- Primary Content Area (Embedded Views) -->
       <main class="primary-viewport" id="primaryViewport">
         <!-- 1. Karmed Frame (Same-Origin Proksi orqali to'siqsiz ulanish) -->
-        <iframe id="frameKarmed" class="view-frame active" src="/Radiology/Rbys.aspx" title="Karmed Radiologiya"></iframe>
+        <iframe id="frameKarmed" class="view-frame active" src="/Radiology/Rbys.aspx" title="Karmed Radiologiya" allowfullscreen="true" allow="fullscreen"></iframe>
 
         <!-- Karmed Fallback Overlay -->
         <div id="karmedFallbackOverlay" class="karmed-fallback-overlay" style="display:none;">
@@ -133,16 +133,16 @@
         </div>
 
         <!-- 2. Navbat Yozish Frame -->
-        <iframe id="frameNavbat" class="view-frame" src="/navbat-yozish/" title="Navbatga Yozish Portali"></iframe>
+        <iframe id="frameNavbat" class="view-frame" src="/navbat-yozish/" title="Navbatga Yozish Portali" allowfullscreen="true" allow="fullscreen"></iframe>
 
         <!-- 3. MRT TV Frame -->
-        <iframe id="frameTv" class="view-frame" src="/mrt-tv/" title="MRT TV Tablo"></iframe>
+        <iframe id="frameTv" class="view-frame" src="/mrt-tv/" title="MRT TV Tablo" allowfullscreen="true" allow="fullscreen"></iframe>
 
         <!-- 4. Laborant Frame -->
-        <iframe id="frameLaborant" class="view-frame" src="/laborant/" title="Laborant Portali"></iframe>
+        <iframe id="frameLaborant" class="view-frame" src="/laborant/" title="Laborant Portali" allowfullscreen="true" allow="fullscreen"></iframe>
 
         <!-- 5. Server Dashboard Frame -->
-        <iframe id="frameDashboard" class="view-frame" src="/server-dashboard/" title="Server Dashboard"></iframe>
+        <iframe id="frameDashboard" class="view-frame" src="/server-dashboard/" title="Server Dashboard" allowfullscreen="true" allow="fullscreen"></iframe>
       </main>
 
       <!-- Side Drawer: Tezkor Navbatga Qo'yish Paneli -->

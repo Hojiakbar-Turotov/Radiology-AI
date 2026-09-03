@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MRT & MSKT Kutish Zali TV Tablosi</title>
+  <title>Respublika Radiologiya va Onkologiya Markazi | TV Tablo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="/shared/failover.js"></script>
@@ -11,11 +11,11 @@
 <body>
   <div class="tv-wrapper">
     <!-- Header -->
-    <header class="tv-header">
+    <header class="tv-header" title="Butun ekranga chiqarish uchun ikki marta bosing">
       <div class="header-logo-section">
         <img src="/karmed-workspace/assets/logo-onko.png" alt="Markaz Logotipi" class="hospital-tv-logo">
         <div>
-          <h1 class="clinic-title" id="tvClinicTitle">TOMOGRAFIYA & MRT MARKAZI</h1>
+          <h1 class="clinic-title" id="tvClinicTitle">RESPUBLIKA RADIOLOGIYA VA ONKOLOGIYA MARKAZI</h1>
           <span class="sub-title">ELEKTRON AQLLI NAVBAT TIZIMI</span>
         </div>
       </div>
@@ -40,6 +40,9 @@
         </div>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
+        <button type="button" class="tv-action-pill" id="btnTvFullscreen" onclick="toggleTvFullscreen()" title="To'liq butun ekranga chiqarish (F11 / Fullscreen)">
+          <i class="fa-solid fa-expand" id="tvFsIcon"></i> <span id="tvFsText">Butun Ekran</span>
+        </button>
         <button type="button" class="tv-action-pill" id="btnThemeToggle" onclick="toggleTvTheme()" title="Mavzuni almashtirish (Kunduzgi / Tungi)">
           <i class="fa-solid fa-sun" id="themeIcon"></i> <span id="themeText">Kunduzgi</span>
         </button>

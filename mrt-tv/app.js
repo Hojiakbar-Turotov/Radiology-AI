@@ -25,6 +25,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("click", () => {
     playChime(true);
   }, { once: true });
+
+  // Ekran yoki sarlavhaga 2 marta bosilganda (Double click) butun ekranga chiqarish / qaytish
+  document.addEventListener("dblclick", (e) => {
+    if (!e.target.closest("button") && !e.target.closest("a")) {
+      toggleTvFullscreen();
+    }
+  });
+
+  // F11 tugmasi bosilganda to'liq ekranni boshqarish
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "F11") {
+      e.preventDefault();
+      toggleTvFullscreen();
+    }
+  });
+
+  // Fullscreen o'zgarishini kuzatish
+  document.addEventListener("fullscreenchange", updateTvFullscreenUi);
+  document.addEventListener("webkitfullscreenchange", updateTvFullscreenUi);
+  try {
+    if (window.parent && window.parent.document) {
+      window.parent.document.addEventListener("fullscreenchange", updateTvFullscreenUi);
+      window.parent.document.addEventListener("webkitfullscreenchange", updateTvFullscreenUi);
+    }
+  } catch(e) {}
 });
 
 // -------------------------------------------------------------
@@ -289,4 +314,83 @@ function applyTvTheme(theme) {
     if (text) text.innerText = "Kunduzgi";
   }
 }
+
+// -------------------------------------------------------------
+// BUTUN EKRAN (FULLSCREEN) FUNKSIYALARI
+// -------------------------------------------------------------
+window.toggleTvFullscreen = function() {
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement || 
+    (window.parent && (window.parent.document.fullscreenElement || window.parent.document.webkitFullscreenElement));
+
+  if (!isFs) {
+    // 1. Agar TV Karmed Workspace iframe ichida ochilgan bo'lsa:
+    // To'g'ridan-to'g'ri tashqi frameTv ni butun ekranga chiqaramiz (yuqori menyusiz, 100% toza TV bo'ladi)
+    try {
+      if (window.parent && window.parent.document && window.parent.document.getElementById('frameTv')) {
+        const pFrame = window.parent.document.getElementById('frameTv');
+        if (pFrame.requestFullscreen) {
+          pFrame.requestFullscreen().catch(() => {
+            requestStandaloneFullscreen();
+          });
+          return;
+        } else if (pFrame.webkitRequestFullscreen) {
+          pFrame.webkitRequestFullscreen();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    // 2. Standart alohida ochilgan holat
+    requestStandaloneFullscreen();
+  } else {
+    // Fullscreen'dan chiqish
+    try {
+      if (window.parent && window.parent.document && (window.parent.document.fullscreenElement || window.parent.document.webkitFullscreenElement)) {
+        if (window.parent.document.exitFullscreen) {
+          window.parent.document.exitFullscreen().catch(() => {});
+          return;
+        } else if (window.parent.document.webkitExitFullscreen) {
+          window.parent.document.webkitExitFullscreen();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+};
+
+function requestStandaloneFullscreen() {
+  const doc = document.documentElement;
+  if (doc.requestFullscreen) {
+    doc.requestFullscreen().catch(() => {});
+  } else if (doc.webkitRequestFullscreen) {
+    doc.webkitRequestFullscreen();
+  }
+}
+
+function updateTvFullscreenUi() {
+  const isFs = Boolean(
+    document.fullscreenElement || 
+    document.webkitFullscreenElement || 
+    (window.parent && (window.parent.document?.fullscreenElement || window.parent.document?.webkitFullscreenElement))
+  );
+
+  const icon = document.getElementById("tvFsIcon");
+  const text = document.getElementById("tvFsText");
+  if (icon && text) {
+    if (isFs) {
+      icon.className = "fa-solid fa-compress";
+      text.innerText = "Kichraytirish";
+    } else {
+      icon.className = "fa-solid fa-expand";
+      text.innerText = "Butun Ekran";
+    }
+  }
+}
+
 

@@ -149,12 +149,54 @@ function refreshCurrentFrame() {
 }
 
 function toggleFullScreen() {
-  if (!document.fullscreenElement) {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+  if (isFs) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+    return;
+  }
+
+  // Foydalanuvchi talabi: "tv ekranida butun ekrak xususiyati to'liq butun ekrangga chiqarsin"
+  // Agar hozirda TV oynasi (currentTab === 'tv') faol bo'lsa, to'g'ridan-to'g'ri TV iframe'ning o'zini butun ekranga chiqaramiz!
+  // Natijada yuqori Karmed menyusi va tugmalari yo'qolib, butun TV ekrani monitor yuzasini 100% to'liq egallaydi!
+  if (currentTab === 'tv') {
+    const frameTv = document.getElementById("frameTv");
+    if (frameTv) {
+      if (frameTv.requestFullscreen) {
+        frameTv.requestFullscreen().catch(() => {
+          document.documentElement.requestFullscreen().catch(() => {});
+        });
+        return;
+      } else if (frameTv.webkitRequestFullscreen) {
+        frameTv.webkitRequestFullscreen();
+        return;
+      }
+    }
+  }
+
+  // Boshqa oynalarda butun dasturni to'liq ekranga yoyish
+  if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen().catch(() => {});
-  } else {
-    document.exitFullscreen().catch(() => {});
+  } else if (document.documentElement.webkitRequestFullscreen) {
+    document.documentElement.webkitRequestFullscreen();
   }
 }
+
+// Fullscreen o'zgarganda ikonkani yangilash
+function handleWorkspaceFullscreenChange() {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  const icon = document.getElementById("workspaceFsIcon");
+  if (icon) {
+    icon.className = isFs ? "fa-solid fa-compress" : "fa-solid fa-expand";
+  }
+}
+document.addEventListener("fullscreenchange", handleWorkspaceFullscreenChange);
+document.addEventListener("webkitfullscreenchange", handleWorkspaceFullscreenChange);
+
 
 // -------------------------------------------------------------
 // TEZKOR NAVBAT DRAWER TOGGLE
@@ -1719,8 +1761,8 @@ function printThermalTicket(patient) {
     </head>
     <body>
       <div class="header">
-        RESPUBLIKA ONKOLOGIYA VA<br>
-        RADIOLOGIYA MARKAZI
+        RESPUBLIKA RADIOLOGIYA VA<br>
+        ONKOLOGIYA MARKAZI
       </div>
       <hr class="divider">
 
