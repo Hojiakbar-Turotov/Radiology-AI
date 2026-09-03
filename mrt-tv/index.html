@@ -13,7 +13,7 @@
     <!-- Header -->
     <header class="tv-header">
       <div class="header-logo-section">
-        <div class="logo-icon"><i class="fa-solid fa-magnet"></i></div>
+        <img src="/karmed-workspace/assets/logo-onko.png" alt="Markaz Logotipi" class="hospital-tv-logo">
         <div>
           <h1 class="clinic-title" id="tvClinicTitle">TOMOGRAFIYA & MRT MARKAZI</h1>
           <span class="sub-title">ELEKTRON AQLLI NAVBAT TIZIMI</span>
@@ -35,12 +35,17 @@
     <footer class="tv-footer">
       <div class="ticker-wrap">
         <div class="ticker-item">
-          <i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i> 
+          <i class="fa-solid fa-circle-info" style="color:#0284c7;"></i> 
           Hurmatli bemorlar! MRT tekshiruviga kirishdan avval barcha metall buyumlar, soat, tilla va elektron moslamalarni yechib qoldirishingizni so'raymiz.
         </div>
       </div>
-      <div class="audio-control-indicator" id="btnAudioToggle" title="Ovozni yoqish / o'chirish">
-        <i class="fa-solid fa-volume-high"></i> Ovozli E'lon: Faol
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button type="button" class="tv-action-pill" id="btnThemeToggle" onclick="toggleTvTheme()" title="Mavzuni almashtirish (Kunduzgi / Tungi)">
+          <i class="fa-solid fa-sun" id="themeIcon"></i> <span id="themeText">Kunduzgi</span>
+        </button>
+        <button type="button" class="tv-action-pill" id="btnAudioToggle" title="Ovozni yoqish / o'chirish">
+          <i class="fa-solid fa-volume-high"></i> Ovozli E'lon: Faol
+        </button>
       </div>
     </footer>
   </div>

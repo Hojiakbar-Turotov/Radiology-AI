@@ -1,13 +1,53 @@
 :root {
+  /* Kunduzgi Yorqin va Toza Mavzu (Daylight / Hospital Light Theme - Standart) */
+  --bg-color: #eef2f6;
+  --header-bg: #ffffff;
+  --header-border: #dbeafe;
+  --card-bg: #ffffff;
+  --card-border: #cbd5e1;
+  --card-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  --row-bg: #f8fafc;
+  --row-border: #e2e8f0;
+  
+  --text-title: #0f172a;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-sub: #475569;
+  
+  --accent-blue: #0284c7;
+  --accent-blue-bg: #e0f2fe;
+  --accent-green: #059669;
+  --accent-green-bg: #ecfdf5;
+  --accent-amber: #d97706;
+  --accent-amber-bg: #fffbeb;
+  --accent-red: #dc2626;
+  --accent-red-bg: #fef2f2;
+}
+
+/* Tungi / Qorong'i Mavzu (Optional Dark Mode) */
+body.dark-theme {
   --bg-color: #0b1120;
+  --header-bg: linear-gradient(135deg, #0f172a, #1e293b);
+  --header-border: #334155;
   --card-bg: #1e293b;
   --card-border: #334155;
-  --accent-blue: #38bdf8;
-  --accent-green: #34d399;
-  --accent-amber: #fbbf24;
-  --accent-red: #f87171;
-  --text-white: #f8fafc;
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --row-bg: #0f172a;
+  --row-border: #334155;
+  
+  --text-title: #ffffff;
+  --text-main: #f8fafc;
   --text-muted: #94a3b8;
+  --text-sub: #cbd5e1;
+  
+  --accent-blue: #38bdf8;
+  --accent-blue-bg: #1e293b;
+  --accent-green: #34d399;
+  --accent-green-bg: rgba(16, 185, 129, 0.15);
+  --accent-amber: #fbbf24;
+  --accent-amber-bg: rgba(245, 158, 11, 0.15);
+  --accent-red: #f87171;
+  --accent-red-bg: rgba(239, 68, 68, 0.25);
 }
 
 * {
@@ -20,10 +60,11 @@
 
 body {
   background-color: var(--bg-color);
-  color: var(--text-white);
+  color: var(--text-main);
   height: 100vh;
   overflow: hidden;
   padding: 16px 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .tv-wrapper {
@@ -35,14 +76,15 @@ body {
 
 /* Header */
 .tv-header {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  border: 1px solid var(--card-border);
+  background: var(--header-bg);
+  border: 1.5px solid var(--header-border);
   border-radius: 16px;
   padding: 14px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
 }
 
 .header-logo-section {
@@ -51,31 +93,28 @@ body {
   gap: 18px;
 }
 
-.logo-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #0284c7, #0369a1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: #fff;
-  box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+.hospital-tv-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 3px;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.2);
+  border: 1.5px solid #bae6fd;
 }
 
 .clinic-title {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 25px;
+  font-weight: 900;
   letter-spacing: 0.5px;
-  background: linear-gradient(to right, #ffffff, #93c5fd);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-title);
+  line-height: 1.2;
 }
 
 .sub-title {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent-blue);
   letter-spacing: 2px;
 }
@@ -85,18 +124,17 @@ body {
 }
 
 .clock-display {
-  font-size: 36px;
-  font-weight: 800;
-  font-family: monospace;
-  color: #ffffff;
+  font-size: 38px;
+  font-weight: 900;
+  font-family: 'Segoe UI', monospace;
+  color: var(--text-title);
   letter-spacing: 2px;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 .date-display {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Devices Grid */
@@ -116,23 +154,24 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--card-shadow);
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .device-column-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #334155;
+  border-bottom: 2px solid var(--row-border);
   padding-bottom: 10px;
 }
 
 .col-dev-title {
-  font-size: 19px;
-  font-weight: 800;
-  color: #ffffff;
+  font-size: 19.5px;
+  font-weight: 900;
+  color: var(--text-title);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -142,14 +181,15 @@ body {
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 8px;
-  background: #334155;
+  background: var(--accent-blue-bg);
   color: var(--accent-blue);
-  font-weight: 700;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  font-weight: 800;
 }
 
 /* In Progress Card */
 .in-progress-card {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 95, 70, 0.2));
+  background: var(--accent-green-bg);
   border: 2px solid var(--accent-green);
   border-radius: 14px;
   padding: 14px 16px;
@@ -157,11 +197,11 @@ body {
   flex-direction: column;
   gap: 6px;
   position: relative;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.15);
 }
 
 .card-status-label {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -172,24 +212,26 @@ body {
 }
 
 .pat-ticket-badge {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 900;
-  color: #ffffff;
+  color: var(--text-title);
   font-family: monospace;
+  line-height: 1.1;
 }
 
 .pat-fullname {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-title);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .pat-service-name {
-  font-size: 13px;
-  color: #cbd5e1;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-sub);
 }
 
 .pat-meta-row {
@@ -197,22 +239,47 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 12.5px;
+  color: var(--text-sub);
+  font-weight: 600;
 }
 
 .badge-contrast {
-  background: rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.5);
-  padding: 2px 8px;
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  padding: 3px 8px;
   border-radius: 6px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 11px;
+}
+
+/* Idle / Apparat Bo'sh Card */
+.in-progress-card.idle-card {
+  background: var(--row-bg);
+  border: 1.5px dashed var(--card-border);
+  box-shadow: none;
+}
+
+.card-status-label.idle-label {
+  color: var(--text-muted);
+}
+
+.pat-ticket-badge.idle-badge {
+  color: var(--text-sub);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.pat-fullname.idle-desc {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 /* Preparing Card */
 .preparing-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(120, 53, 15, 0.2));
+  background: var(--accent-amber-bg);
   border: 1.5px solid var(--accent-amber);
   border-radius: 12px;
   padding: 10px 14px;
@@ -226,9 +293,9 @@ body {
 }
 
 .prep-pat-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--text-title);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -245,10 +312,12 @@ body {
 .waiting-list-header {
   font-size: 12.5px;
   color: var(--text-muted);
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .waiting-items-scroll {
@@ -260,25 +329,27 @@ body {
 }
 
 .waiting-item-row {
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 8px;
+  background: var(--row-bg);
+  border: 1px solid var(--row-border);
+  border-radius: 9px;
   padding: 8px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
+  transition: transform 0.2s;
 }
 
 .wait-ticket {
-  font-weight: 800;
+  font-weight: 900;
   color: var(--accent-blue);
   font-family: monospace;
+  font-size: 14px;
 }
 
 .wait-name {
-  color: #e2e8f0;
-  font-weight: 600;
+  color: var(--text-main);
+  font-weight: 700;
   flex: 1;
   margin-left: 12px;
   white-space: nowrap;
@@ -287,43 +358,80 @@ body {
 }
 
 .wait-time {
-  font-size: 11.5px;
-  color: #94a3b8;
+  font-size: 12px;
+  color: var(--text-muted);
   font-family: monospace;
+  font-weight: 600;
 }
 
 /* Empty placeholder */
 .empty-placeholder {
   text-align: center;
   padding: 30px 15px;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 14px;
+  font-weight: 600;
 }
 
 /* Footer Ticker */
 .tv-footer {
-  background: #0f172a;
-  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
   border-radius: 12px;
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: var(--card-shadow);
 }
 
 .ticker-wrap {
   flex: 1;
-  font-size: 13.5px;
-  color: #e2e8f0;
+  font-size: 14px;
+  color: var(--text-main);
   font-weight: 600;
 }
 
-.audio-control-indicator {
+.tv-action-pill {
   font-size: 12px;
-  background: #1e293b;
-  padding: 6px 12px;
+  background: var(--accent-blue-bg);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  padding: 6px 14px;
   border-radius: 8px;
-  color: #38bdf8;
-  font-weight: 700;
+  color: var(--accent-blue);
+  font-weight: 800;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.tv-action-pill:hover {
+  filter: brightness(0.95);
+}
+
+/* Chaqiruv animatsiyasi */
+.pulse-calling {
+  animation: pulseCalling 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseCalling {
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
+  50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(5, 150, 105, 0.4); }
+  100% { transform: scale(1); box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: dotBlink 1s infinite alternate;
+}
+
+@keyframes dotBlink {
+  0% { opacity: 0.3; }
+  100% { opacity: 1; }
 }

@@ -8,6 +8,7 @@ let currentQueue = [];
 let currentDevices = [];
 
 document.addEventListener("DOMContentLoaded", () => {
+  initTvTheme();
   startLiveClock();
   connectWebSocket();
   fetchInitialQueue();
@@ -132,12 +133,12 @@ function renderTVGrid() {
       `;
     } else {
       inProgressHtml = `
-        <div class="in-progress-card" style="border-color:#475569; background:rgba(30, 41, 59, 0.4);">
-          <div class="card-status-label" style="color:#94a3b8;">
+        <div class="in-progress-card idle-card">
+          <div class="card-status-label idle-label">
             <i class="fa-solid fa-bed"></i> APPARAT BO'SH
           </div>
-          <div class="pat-ticket-badge" style="color:#64748b; font-size:24px;">NAVAT KUTILMOQDA</div>
-          <div class="pat-fullname" style="color:#94a3b8; font-size:14px;">Bemor xonaga taklif etilishi kutilmoqda</div>
+          <div class="pat-ticket-badge idle-badge">NAVBAT KUTILMOQDA</div>
+          <div class="pat-fullname idle-desc">Bemor xonaga taklif etilishi kutilmoqda</div>
         </div>
       `;
     }
@@ -248,3 +249,34 @@ function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+// -------------------------------------------------------------
+// MAVZU (THEME): KUNDUZGI / TUNGI BOSHQARUVI
+// -------------------------------------------------------------
+function initTvTheme() {
+  const savedTheme = localStorage.getItem("tv_theme") || "light";
+  applyTvTheme(savedTheme);
+}
+
+window.toggleTvTheme = function() {
+  const isDark = document.body.classList.contains("dark-theme");
+  const newTheme = isDark ? "light" : "dark";
+  applyTvTheme(newTheme);
+  localStorage.setItem("tv_theme", newTheme);
+};
+
+function applyTvTheme(theme) {
+  const icon = document.getElementById("themeIcon");
+  const text = document.getElementById("themeText");
+
+  if (theme === "dark") {
+    document.body.classList.add("dark-theme");
+    if (icon) icon.className = "fa-solid fa-moon";
+    if (text) text.innerText = "Tungi";
+  } else {
+    document.body.classList.remove("dark-theme");
+    if (icon) icon.className = "fa-solid fa-sun";
+    if (text) text.innerText = "Kunduzgi";
+  }
+}
+
