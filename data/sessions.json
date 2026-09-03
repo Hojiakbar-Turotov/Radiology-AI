@@ -28,5 +28,144 @@
     },
     "createdAt": "2026-09-02T10:15:19.304Z",
     "expiresAt": "2026-10-02T10:15:19.304Z"
+  },
+  "tok_1788410529526_b15e5d90291b03db0d643913eab8aa6a": {
+    "token": "tok_1788410529526_b15e5d90291b03db0d643913eab8aa6a",
+    "user": {
+      "login": "T1",
+      "name": "Isfandiyor",
+      "role": "tibbiy_navbat",
+      "status": "active",
+      "phone": "",
+      "room": "Registratura",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "notes": "Tibbiy navbatga qo'yuvchi"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T04:42:09.526Z",
+    "expiresAt": "2026-10-03T04:42:09.526Z"
+  },
+  "tok_1788410529527_b0efe678eb40a38f0a0d159c03c394c4": {
+    "token": "tok_1788410529527_b0efe678eb40a38f0a0d159c03c394c4",
+    "user": {
+      "login": "L2",
+      "name": "Dilmurod",
+      "role": "laborant",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 2 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T04:42:09.527Z",
+    "expiresAt": "2026-10-03T04:42:09.527Z"
+  },
+  "tok_1788410529528_fc94b7aa7a361513eceed11315f9b711": {
+    "token": "tok_1788410529528_fc94b7aa7a361513eceed11315f9b711",
+    "user": {
+      "login": "L1",
+      "name": "Shoxruh",
+      "role": "super_admin",
+      "status": "active",
+      "phone": "",
+      "room": "MRT 1 Xonasi",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "17:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T04:42:09.528Z",
+    "expiresAt": "2026-10-03T04:42:09.528Z"
+  },
+  "tok_1788410529528_c2354aa386a26c206d8368611784c6aa": {
+    "token": "tok_1788410529528_c2354aa386a26c206d8368611784c6aa",
+    "user": {
+      "login": "T4",
+      "name": "Hojiakbar",
+      "role": "server_nazoratchisi",
+      "status": "active",
+      "phone": "",
+      "room": "Server & Radiologiya",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "18:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Server nazoratchisi, Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T04:42:09.528Z",
+    "expiresAt": "2026-10-03T04:42:09.528Z"
   }
 }

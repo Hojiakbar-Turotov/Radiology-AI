@@ -41,7 +41,59 @@ function initActionButtons() {
     await postAPI("/api/queue/call", { id: prepPatient.id });
     await postAPI("/api/queue/update-status", { id: prepPatient.id, status: "in_progress" });
   });
+
+  // Bekor qilish tugmasi
+  const btnCancel = document.getElementById("btnActionCancel");
+  if (btnCancel) {
+    btnCancel.addEventListener("click", () => {
+      if (!activePatient) {
+        alert("Hozirda xonada faol bemor yo'q");
+        return;
+      }
+      const modal = document.getElementById("modalCancelReason");
+      if (modal) modal.style.display = "flex";
+    });
+  }
+
+  // Qayta navbatga qo'yish tugmasi
+  const btnRequeue = document.getElementById("btnActionRequeue");
+  if (btnRequeue) {
+    btnRequeue.addEventListener("click", async () => {
+      if (!activePatient) {
+        alert("Hozirda xonada faol bemor yo'q");
+        return;
+      }
+      if (confirm(`${activePatient.patientName} ni navbatga qayta qo'ymoqchimisiz? (Bemor kutish navbatiga qaytariladi)`)) {
+        await postAPI("/api/queue/requeue", { id: activePatient.id, notes: "Laborant tomonidan qayta navbatga qo'yildi" });
+        fetchQueue();
+      }
+    });
+  }
 }
+
+window.closeCancelModal = function() {
+  const modal = document.getElementById("modalCancelReason");
+  if (modal) modal.style.display = "none";
+};
+
+window.confirmCancelExamination = async function() {
+  if (!activePatient) return;
+  const selectedRadio = document.querySelector('input[name="cancelReason"]:checked');
+  const reason = selectedRadio ? selectedRadio.value : "Sabab ko'rsatilmadi";
+  const extraNotes = document.getElementById("cancelExtraNotes").value.trim();
+
+  const res = await postAPI("/api/queue/cancel", {
+    id: activePatient.id,
+    reason: reason,
+    notes: extraNotes
+  });
+
+  closeCancelModal();
+  if (res && res.success) {
+    document.getElementById("cancelExtraNotes").value = "";
+    fetchQueue();
+  }
+};
 
 function connectWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -186,9 +238,13 @@ window.handleCallPatient = async function(id) {
 
 async function postAPI(url, data) {
   try {
+    const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token") || "";
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: headers,
       body: JSON.stringify(data)
     });
     return await res.json();

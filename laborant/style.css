@@ -338,3 +338,137 @@ body {
   border-radius: 10px;
   font-size: 11px;
 }
+
+.btn-cancel {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+.btn-cancel:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-requeue {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid #f59e0b;
+}
+.btn-requeue:hover {
+  background: #f59e0b;
+  color: #fff;
+}
+
+/* Cancel Modal */
+.cancel-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.cancel-modal-card {
+  background: #0f172a;
+  border: 1px solid #ef4444;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.25);
+}
+
+.cancel-modal-header {
+  padding: 12px 16px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cancel-modal-header h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close-x {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancel-modal-body {
+  padding: 16px;
+}
+
+.reason-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reason-radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1e293b;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #334155;
+  font-size: 12.5px;
+  color: #e2e8f0;
+}
+
+.reason-radio:hover {
+  border-color: #ef4444;
+}
+
+.cancel-modal-actions {
+  padding: 12px 16px;
+  background: #1e293b;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel-modal-close {
+  background: #334155;
+  border: none;
+  color: #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirm-cancel {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

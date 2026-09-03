@@ -256,14 +256,86 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'GET' && pathname === '/api/auth/me') {
         const authHeader = req.headers['authorization'] || '';
         const token = authHeader.replace(/^Bearer\s+/i, '');
-        let user = auth.verifySession(token);
-        if (!user && (token === 'local_auto_token' || token.startsWith('session_local_'))) {
-          user = { login: "admin", name: "Administrator", role: "admin" };
-        }
+        const user = auth.verifySession(token);
         if (user) {
           return sendJSON(res, { success: true, user });
         } else {
-          return sendJSON(res, { success: false, error: "Sessiya yaroqsiz" }, 401);
+          return sendJSON(res, { success: false, error: "Avtorizatsiyadan o'tilmagan" }, 401);
+        }
+      }
+
+      // Shaxsiy profilni yangilash (F.I.SH, Login, Parol, Ish vaqti, h.k.)
+      if (req.method === 'POST' && pathname === '/api/auth/profile') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        if (!user) return sendJSON(res, { success: false, error: "Avtorizatsiya talab qilinadi" }, 401);
+
+        const body = await parseBody(req);
+        try {
+          const updated = auth.updateProfile(user.login, body);
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Profil yangilandi: ${updated.login}`);
+          return sendJSON(res, { success: true, user: updated, message: "Profil muvaffaqiyatli saqlandi" });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
+      // Xodimlarni boshqarish: Ro'yxatni olish
+      if (req.method === 'GET' && pathname === '/api/auth/staff') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        try {
+          const staff = auth.getStaffList(user);
+          return sendJSON(res, { success: true, staff });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 403);
+        }
+      }
+
+      // Xodimlarni boshqarish: Yangi xodim qo'shish
+      if (req.method === 'POST' && pathname === '/api/auth/staff/create') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        const body = await parseBody(req);
+        try {
+          const newStaff = auth.addStaff(user, body);
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Yangi xodim qo'shildi: ${newStaff.login} (${newStaff.role})`);
+          return sendJSON(res, { success: true, staff: newStaff, message: "Xodim muvaffaqiyatli ro'yxatga olindi" });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
+      // Xodimlarni boshqarish: Xodim ma'lumotlari yoki rolini o'zgartirish
+      if (req.method === 'POST' && pathname === '/api/auth/staff/update') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        const body = await parseBody(req);
+        try {
+          const updatedStaff = auth.updateStaff(user, body.login, body);
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Xodim yangilandi: ${updatedStaff.login}`);
+          return sendJSON(res, { success: true, staff: updatedStaff, message: "Xodim ma'lumotlari saqlandi" });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
+      // Xodimlarni boshqarish: Parolni tiklash (Reset Password)
+      if (req.method === 'POST' && pathname === '/api/auth/staff/reset-password') {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token);
+        const body = await parseBody(req);
+        try {
+          const resetRes = auth.resetPassword(user, body.login, body.password);
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Parol tiklandi: ${body.login}`);
+          return sendJSON(res, { success: true, message: resetRes.message });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
         }
       }
 
@@ -276,7 +348,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (req.method === 'GET' && pathname === '/api/users') {
-        return sendJSON(res, { success: true, users: auth.getUsers() });
+        return sendJSON(res, { success: true, users: auth.users.map(u => auth.sanitizeUser(u)) });
       }
 
       // KLASTER YO'NALISHLARI (MULTI-SERVER CLUSTER)
@@ -446,6 +518,69 @@ const server = http.createServer(async (req, res) => {
 
         sendJSON(res, { success: true, patient });
         logRequest(clientIp, 'POST', pathname, 200, startTime, `Tayyorgarlikka chaqirildi: ${patient.ticketNumber}`);
+        return;
+      }
+
+      // 5.1 POST /api/queue/cancel - Laborant tomonidan bemorni sabab bilan bekor qilish
+      if (req.method === 'POST' && pathname === '/api/queue/cancel') {
+        const body = await parseBody(req);
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token) || { login: 'laborant' };
+
+        const { id, reason, notes } = body;
+        if (!id) return sendJSON(res, { success: false, error: "Bemor ID talab qilinadi" }, 400);
+
+        const updated = db.updatePatientStatus(id, 'cancelled', {
+          cancelReason: reason || "Sabab ko'rsatilmadi",
+          cancelNotes: notes || "",
+          cancelledBy: user.login,
+          cancelledAt: new Date().toISOString()
+        });
+
+        if (!updated) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        cluster.replicate('status_updated', { id, status: 'cancelled', extraData: { cancelReason: reason, cancelNotes: notes } });
+        wsHub.broadcast('queue_updated', {
+          action: 'patient_cancelled',
+          patient: updated,
+          queue: db.getQueue(),
+          devices: db.getDevices()
+        });
+
+        sendJSON(res, { success: true, patient: updated, message: "Bemor tekshiruvi bekor qilindi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Bemor ${updated.ticketNumber} bekor qilindi: ${reason}`);
+        return;
+      }
+
+      // 5.2 POST /api/queue/requeue - Laborant tomonidan bemorni qayta navbatga qo'yish
+      if (req.method === 'POST' && pathname === '/api/queue/requeue') {
+        const body = await parseBody(req);
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const user = auth.verifySession(token) || { login: 'laborant' };
+
+        const { id, notes } = body;
+        if (!id) return sendJSON(res, { success: false, error: "Bemor ID talab qilinadi" }, 400);
+
+        const updated = db.updatePatientStatus(id, 'waiting', {
+          requeueNotes: notes || "",
+          requeuedBy: user.login,
+          requeuedAt: new Date().toISOString()
+        });
+
+        if (!updated) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        cluster.replicate('status_updated', { id, status: 'waiting', extraData: { requeueNotes: notes } });
+        wsHub.broadcast('queue_updated', {
+          action: 'patient_requeued',
+          patient: updated,
+          queue: db.getQueue(),
+          devices: db.getDevices()
+        });
+
+        sendJSON(res, { success: true, patient: updated, message: "Bemor qayta navbatga qo'yildi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Bemor ${updated.ticketNumber} qayta navbatga qo'yildi`);
         return;
       }
 

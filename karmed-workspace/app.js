@@ -8,10 +8,12 @@ let currentTab = 'karmed';
 let ws = null;
 let currentKarmedHost = '213.230.91.59:2025';
 let activeKarmedUrl = 'http://213.230.91.59:2025/Radiology/Rbys.aspx';
+let currentUser = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initKarmedConnection();
   setupKarmedIframeBridge();
+  checkCurrentUser();
   initServices();
   initWebSocket();
   fetchTodayQueue();
@@ -738,3 +740,556 @@ async function pollClusterStatus() {
     }
   } catch (e) {}
 }
+
+// -------------------------------------------------------------
+// FOYDALANUVCHI SESSIYASINI VA ROLLRINI TEKSHIRISH
+// -------------------------------------------------------------
+async function checkCurrentUser() {
+  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+  if (!token) {
+    currentUser = null;
+    applyRolePermissions(null);
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success && data.user) {
+      currentUser = data.user;
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      applyRolePermissions(currentUser);
+    } else {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      currentUser = null;
+      applyRolePermissions(null);
+    }
+  } catch (e) {
+    const cached = localStorage.getItem("auth_user");
+    if (cached) {
+      currentUser = JSON.parse(cached);
+      applyRolePermissions(currentUser);
+    } else {
+      currentUser = null;
+      applyRolePermissions(null);
+    }
+  }
+}
+
+window.onAuthStateChanged = function(user) {
+  currentUser = user;
+  applyRolePermissions(user);
+};
+
+// -------------------------------------------------------------
+// ROLLIK RUXSATLAR TIZIMI (DYNAMIC VIEW GATING)
+// -------------------------------------------------------------
+function applyRolePermissions(user) {
+  const btnOpenLogin = document.getElementById("btnOpenLogin");
+  const authUserWrap = document.getElementById("authUserWrap");
+  const userAvatarLetter = document.getElementById("userAvatarLetter");
+  const userNavName = document.getElementById("userNavName");
+  const userNavRole = document.getElementById("userNavRole");
+
+  const tabKarmed = document.getElementById("tabKarmed");
+  const tabNavbat = document.getElementById("tabNavbat");
+  const tabTv = document.getElementById("tabTv");
+  const tabLaborant = document.getElementById("tabLaborant");
+  const tabStaff = document.getElementById("tabStaff");
+  const tabDashboard = document.getElementById("tabDashboard");
+
+  const btnToggleDrawer = document.getElementById("btnToggleDrawer");
+  const clusterBadge = document.getElementById("clusterBadge");
+  const quickQueueDrawer = document.getElementById("quickQueueDrawer");
+
+  // 1. TIZIMGA KIRMAGAN FOYDALANUVCHI (ANONYMOUS / GUEST)
+  if (!user) {
+    if (btnOpenLogin) btnOpenLogin.style.display = "inline-flex";
+    if (authUserWrap) authUserWrap.style.display = "none";
+
+    // Faqat Karmed ko'rinadi, qolgan barcha oynalar mutlaqo yashirin!
+    if (tabKarmed) tabKarmed.style.display = "inline-flex";
+    if (tabNavbat) tabNavbat.style.display = "none";
+    if (tabTv) tabTv.style.display = "none";
+    if (tabLaborant) tabLaborant.style.display = "none";
+    if (tabStaff) tabStaff.style.display = "none";
+    if (tabDashboard) tabDashboard.style.display = "none";
+
+    if (btnToggleDrawer) btnToggleDrawer.style.display = "none";
+    if (clusterBadge) clusterBadge.style.display = "none";
+
+    if (quickQueueDrawer) quickQueueDrawer.classList.add("collapsed");
+
+    switchView("karmed");
+    return;
+  }
+
+  // 2. TIZIMGA KIRGAN FOYDALANUVCHI (AUTHENTICATED USER)
+  if (btnOpenLogin) btnOpenLogin.style.display = "none";
+  if (authUserWrap) authUserWrap.style.display = "flex";
+
+  if (userAvatarLetter) userAvatarLetter.innerText = (user.name ? user.name[0] : user.login[0]).toUpperCase();
+  if (userNavName) userNavName.innerText = user.name || user.login;
+  if (userNavRole) userNavRole.innerText = formatRoleName(user.role);
+
+  // Tezkor navbat darchasi tugmasini ko'rsatish
+  if (btnToggleDrawer) btnToggleDrawer.style.display = "inline-flex";
+
+  // Har doim Karmed ochiq
+  if (tabKarmed) tabKarmed.style.display = "inline-flex";
+
+  const role = user.role || 'tibbiy_navbat';
+
+  if (role === 'tibbiy_navbat') {
+    // Tibbiy navbatga qo'yuvchi: Karmed, Navbatga Yozish, TV Tablo, Tezkor navbat
+    if (tabNavbat) tabNavbat.style.display = "inline-flex";
+    if (tabTv) tabTv.style.display = "inline-flex";
+    if (tabLaborant) tabLaborant.style.display = "none";
+    if (tabStaff) tabStaff.style.display = "none";
+    if (tabDashboard) tabDashboard.style.display = "none";
+    if (clusterBadge) clusterBadge.style.display = "none";
+  } else if (role === 'laborant') {
+    // Laborant: Karmed, Navbat, TV Tablo, Laborant Portali, Tezkor navbat
+    if (tabNavbat) tabNavbat.style.display = "inline-flex";
+    if (tabTv) tabTv.style.display = "inline-flex";
+    if (tabLaborant) tabLaborant.style.display = "inline-flex";
+    if (tabStaff) tabStaff.style.display = "none";
+    if (tabDashboard) tabDashboard.style.display = "none";
+    if (clusterBadge) clusterBadge.style.display = "none";
+  } else if (role === 'super_admin') {
+    // Super Admin: Karmed, Navbat, TV Tablo, Laborant, Xodimlar Nazorati, Tezkor navbat
+    if (tabNavbat) tabNavbat.style.display = "inline-flex";
+    if (tabTv) tabTv.style.display = "inline-flex";
+    if (tabLaborant) tabLaborant.style.display = "inline-flex";
+    if (tabStaff) tabStaff.style.display = "inline-flex";
+    if (tabDashboard) tabDashboard.style.display = "none";
+    if (clusterBadge) clusterBadge.style.display = "none";
+  } else if (role === 'server_nazoratchisi' || role === 'admin') {
+    // Server Nazoratchisi: BARCHA DARCHALARGA TO'LIQ RUXSAT!
+    if (tabNavbat) tabNavbat.style.display = "inline-flex";
+    if (tabTv) tabTv.style.display = "inline-flex";
+    if (tabLaborant) tabLaborant.style.display = "inline-flex";
+    if (tabStaff) tabStaff.style.display = "inline-flex";
+    if (tabDashboard) tabDashboard.style.display = "inline-flex";
+    if (clusterBadge) clusterBadge.style.display = "inline-flex";
+  }
+}
+
+function formatRoleName(role) {
+  switch (role) {
+    case 'tibbiy_navbat': return 'Navbatchi';
+    case 'laborant': return 'Laborant';
+    case 'super_admin': return 'Super Admin';
+    case 'server_nazoratchisi': return 'Server Nazorati';
+    case 'admin': return 'Admin';
+    default: return role || 'Xodim';
+  }
+}
+
+// -------------------------------------------------------------
+// LOGIN MODAL VA AVTORIZATSIYA
+// -------------------------------------------------------------
+function openLoginModal() {
+  const modal = document.getElementById("modalLogin");
+  const errBox = document.getElementById("modalLoginError");
+  if (errBox) errBox.style.display = "none";
+  if (modal) modal.style.display = "flex";
+  const inp = document.getElementById("modalLoginUser");
+  if (inp) {
+    inp.focus();
+    inp.select();
+  }
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById("modalLogin");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleModalLogin(e) {
+  e.preventDefault();
+  const loginInput = document.getElementById("modalLoginUser");
+  const passInput = document.getElementById("modalLoginPass");
+  const errBox = document.getElementById("modalLoginError");
+  const submitBtn = document.getElementById("btnSubmitLogin");
+
+  const login = loginInput.value.trim();
+  const password = passInput.value.trim();
+
+  if (!login || !password) return;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Tekshirilmoqda...';
+  if (errBox) errBox.style.display = "none";
+
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login, password })
+    });
+    const data = await res.json();
+
+    if (data.success && data.token && data.user) {
+      localStorage.setItem("auth_token", data.token);
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      currentUser = data.user;
+      applyRolePermissions(currentUser);
+      closeLoginModal();
+      loginInput.value = "";
+      passInput.value = "";
+    } else {
+      if (errBox) {
+        errBox.innerText = "❌ " + (data.error || "Login yoki parol noto'g'ri!");
+        errBox.style.display = "block";
+      }
+    }
+  } catch (err) {
+    if (errBox) {
+      errBox.innerText = "❌ Server bilan aloqa xatosi: " + err.message;
+      errBox.style.display = "block";
+    }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Kirish';
+  }
+}
+
+function handleLogout() {
+  if (!confirm("Tizimdan chiqmoqchimisiz?")) return;
+  const token = localStorage.getItem("auth_token");
+  fetch("/api/auth/logout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  }).finally(() => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+    currentUser = null;
+    applyRolePermissions(null);
+  });
+}
+
+// -------------------------------------------------------------
+// SHAXSIY PROFILNI BOSHQARISH (MY PROFILE)
+// -------------------------------------------------------------
+function openProfileModal() {
+  if (!currentUser) {
+    openLoginModal();
+    return;
+  }
+
+  const modal = document.getElementById("modalProfile");
+  const msgBox = document.getElementById("modalProfileMsg");
+  if (msgBox) msgBox.style.display = "none";
+
+  document.getElementById("profName").value = currentUser.name || "";
+  document.getElementById("profLogin").value = currentUser.login || "";
+  document.getElementById("profPhone").value = currentUser.phone || "";
+  document.getElementById("profRoom").value = currentUser.room || "";
+  document.getElementById("profNewPass").value = "";
+  document.getElementById("profConfirmPass").value = "";
+
+  const ws = currentUser.workSchedule || {};
+  document.getElementById("profWorkStart").value = ws.start || "08:00";
+  document.getElementById("profWorkEnd").value = ws.end || "17:00";
+  document.getElementById("profLunchStart").value = ws.lunchStart || "12:00";
+  document.getElementById("profLunchEnd").value = ws.lunchEnd || "13:00";
+
+  const labSettings = document.getElementById("profLaborantSettings");
+  if (currentUser.role === 'laborant' || currentUser.role === 'super_admin' || currentUser.role === 'server_nazoratchisi' || currentUser.role === 'admin') {
+    if (labSettings) labSettings.style.display = "block";
+    const prefs = currentUser.preferences?.testDurations || {};
+    document.getElementById("profDurMrtPlain").value = prefs.MRT_ODDIY || 15;
+    document.getElementById("profDurMrtContrast").value = prefs.MRT_KONTRAST || 25;
+    document.getElementById("profDurMskt").value = prefs.MSKT || 10;
+  } else {
+    if (labSettings) labSettings.style.display = "none";
+  }
+
+  document.getElementById("profRoleBadge").innerText = formatRoleName(currentUser.role);
+  if (modal) modal.style.display = "flex";
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById("modalProfile");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleSaveProfile(e) {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const msgBox = document.getElementById("modalProfileMsg");
+  const saveBtn = document.getElementById("btnSaveProfile");
+
+  const name = document.getElementById("profName").value.trim();
+  const login = document.getElementById("profLogin").value.trim();
+  const phone = document.getElementById("profPhone").value.trim();
+  const room = document.getElementById("profRoom").value.trim();
+  const newPass = document.getElementById("profNewPass").value.trim();
+  const confirmPass = document.getElementById("profConfirmPass").value.trim();
+
+  if (newPass && newPass !== confirmPass) {
+    if (msgBox) {
+      msgBox.className = "modal-error-box";
+      msgBox.innerText = "❌ Yangi parollar bir-biriga mos kelmadi!";
+      msgBox.style.display = "block";
+    }
+    return;
+  }
+
+  const workSchedule = {
+    start: document.getElementById("profWorkStart").value || "08:00",
+    end: document.getElementById("profWorkEnd").value || "17:00",
+    lunchStart: document.getElementById("profLunchStart").value || "12:00",
+    lunchEnd: document.getElementById("profLunchEnd").value || "13:00"
+  };
+
+  const payload = { name, login, phone, room, workSchedule };
+  if (newPass) payload.password = newPass;
+
+  if (document.getElementById("profLaborantSettings").style.display !== 'none') {
+    payload.preferences = {
+      testDurations: {
+        MRT_ODDIY: parseInt(document.getElementById("profDurMrtPlain").value) || 15,
+        MRT_KONTRAST: parseInt(document.getElementById("profDurMrtContrast").value) || 25,
+        MSKT: parseInt(document.getElementById("profDurMskt").value) || 10
+      }
+    };
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saqlanmoqda...';
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/auth/profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.success && data.user) {
+      currentUser = data.user;
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      applyRolePermissions(currentUser);
+
+      if (msgBox) {
+        msgBox.className = "modal-msg-box";
+        msgBox.innerText = "✅ Profil ma'lumotlari muvaffaqiyatli saqlandi!";
+        msgBox.style.display = "block";
+      }
+
+      setTimeout(() => closeProfileModal(), 1200);
+    } else {
+      if (msgBox) {
+        msgBox.className = "modal-error-box";
+        msgBox.innerText = "❌ " + (data.error || "Profilni saqlab bo'lmadi");
+        msgBox.style.display = "block";
+      }
+    }
+  } catch (err) {
+    if (msgBox) {
+      msgBox.className = "modal-error-box";
+      msgBox.innerText = "❌ Server xatosi: " + err.message;
+      msgBox.style.display = "block";
+    }
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> O\'zgarishlarni Saqlash';
+  }
+}
+
+// -------------------------------------------------------------
+// XODIMLAR VA ROLLAR BOSHQARUVI (SUPER ADMIN & SERVER NAZORATCHISI)
+// -------------------------------------------------------------
+function openStaffModal() {
+  if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin')) {
+    alert("Xodimlarni boshqarish uchun Super Admin yoki Server Nazoratchisi huquqi talab qilinadi!");
+    return;
+  }
+
+  const modal = document.getElementById("modalStaff");
+  if (modal) modal.style.display = "flex";
+
+  const optSuper = document.getElementById("optSuperAdmin");
+  const optSupervisor = document.getElementById("optServerSupervisor");
+  const isSupervisor = (currentUser.role === 'server_nazoratchisi' || currentUser.role === 'admin');
+
+  if (optSuper) optSuper.style.display = isSupervisor ? "block" : "none";
+  if (optSupervisor) optSupervisor.style.display = isSupervisor ? "block" : "none";
+
+  fetchStaffList();
+}
+
+function closeStaffModal() {
+  const modal = document.getElementById("modalStaff");
+  if (modal) modal.style.display = "none";
+}
+
+function toggleAddStaffForm() {
+  const box = document.getElementById("boxAddStaff");
+  if (!box) return;
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+async function fetchStaffList() {
+  const tbody = document.getElementById("staffTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Xodimlar ro\'yxati yuklanmoqda...</td></tr>';
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/auth/staff", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (data.success && Array.isArray(data.staff)) {
+      renderStaffTable(data.staff);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ ${data.error || "Yuklash xatosi"}</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
+  }
+}
+
+function renderStaffTable(staffList) {
+  const tbody = document.getElementById("staffTableBody");
+  if (!tbody) return;
+
+  const isSupervisor = (currentUser.role === 'server_nazoratchisi' || currentUser.role === 'admin');
+
+  tbody.innerHTML = staffList.map(s => {
+    const ws = s.workSchedule || {};
+    const workHours = (ws.start && ws.end) ? `${ws.start}-${ws.end}` : "08:00-17:00";
+    const isTargetAdmin = (s.role === 'super_admin' || s.role === 'server_nazoratchisi');
+    const canManageThisUser = isSupervisor || !isTargetAdmin;
+
+    return `
+      <tr>
+        <td><strong style="color:#38bdf8;">${escapeHtml(s.login)}</strong></td>
+        <td>${escapeHtml(s.name)}</td>
+        <td><span class="badge-role">${formatRoleName(s.role)}</span></td>
+        <td>${escapeHtml(s.room || '-')}</td>
+        <td>${escapeHtml(s.phone || '-')}</td>
+        <td><span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> Faol</span></td>
+        <td>
+          ${canManageThisUser ? `
+            <button class="btn-table-action" onclick="promptResetStaffPassword('${escapeHtml(s.login)}')">
+              <i class="fa-solid fa-key"></i> Parol
+            </button>
+            <button class="btn-table-action" onclick="promptEditStaffRole('${escapeHtml(s.login)}', '${s.role}')">
+              <i class="fa-solid fa-user-gear"></i> Rol
+            </button>
+          ` : `<span style="color:#64748b; font-size:11px;">Himoyalangan</span>`}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function handleCreateStaff(e) {
+  e.preventDefault();
+  const login = document.getElementById("newStaffLogin").value.trim().toUpperCase();
+  const name = document.getElementById("newStaffName").value.trim();
+  const password = document.getElementById("newStaffPassword").value.trim();
+  const role = document.getElementById("newStaffRole").value;
+
+  if (!login || !password) return;
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/auth/staff/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ login, name, password, role })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      alert(`✅ Xodim ${login} (${name}) muvaffaqiyatli qo'shildi!`);
+      document.getElementById("formAddStaff").reset();
+      document.getElementById("newStaffPassword").value = "15420";
+      toggleAddStaffForm();
+      fetchStaffList();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Xodim qo'shib bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server bilan aloqa xatosi: " + err.message);
+  }
+}
+
+async function promptResetStaffPassword(login) {
+  const newPass = prompt(`${login} xodimi uchun yangi parolni kiriting:`, "15420");
+  if (!newPass) return;
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/auth/staff/reset-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ login, password: newPass })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ ${login} paroli muvaffaqiyatli o'zgartirildi!`);
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Parolni tiklab bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+}
+
+async function promptEditStaffRole(login, currentRole) {
+  const isSupervisor = (currentUser.role === 'server_nazoratchisi' || currentUser.role === 'admin');
+  let allowedOptions = ["tibbiy_navbat", "laborant"];
+  if (isSupervisor) allowedOptions.push("super_admin", "server_nazoratchisi");
+
+  const newRole = prompt(`${login} uchun yangi rolni kiriting:\nVariantlar: ${allowedOptions.join(", ")}`, currentRole);
+  if (!newRole || newRole === currentRole) return;
+
+  if (!allowedOptions.includes(newRole)) {
+    alert("❌ Noto'g'ri rol kiritildi! Variantlar: " + allowedOptions.join(", "));
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch("/api/auth/staff/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ login, role: newRole })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ ${login} roli ${formatRoleName(newRole)} ga o'zgartirildi!`);
+      fetchStaffList();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Rolni o'zgartirib bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+}
+

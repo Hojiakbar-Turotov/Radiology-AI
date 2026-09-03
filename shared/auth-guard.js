@@ -4,14 +4,44 @@
  */
 
 (function() {
-  // Ochiq sahifalar (Kutish zali TV Tablosi va Karmed Workspace to'siqsiz ochiladi)
   const pathname = window.location.pathname;
-  if (pathname.includes('/mrt-tv/') || pathname.includes('login.html') || pathname.includes('/karmed-workspace/')) {
-    if (!localStorage.getItem("auth_token")) {
-      const defaultUser = { login: "TB1", name: "Turatov Hojiakbar", role: "operator" };
-      localStorage.setItem("auth_token", "local_auto_token");
-      localStorage.setItem("auth_user", JSON.stringify(defaultUser));
-      window.currentUser = defaultUser;
+
+  // TV va Login sahifalarini to'g'ridan-to'g'ri o'tkazish
+  if (pathname.includes('/mrt-tv/') || pathname.includes('login.html')) {
+    return;
+  }
+
+  // Karmed Workspace uchun: kirilmagan bo'lsa ham ochiladi, lekin oynalar cheklanadi
+  if (pathname.includes('/karmed-workspace/')) {
+    const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+    if (token) {
+      fetch("/api/auth/me", { headers: { "Authorization": `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            window.currentUser = data.user;
+            localStorage.setItem("auth_user", JSON.stringify(data.user));
+          } else {
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("auth_user");
+            window.currentUser = null;
+          }
+          if (typeof window.onAuthStateChanged === 'function') {
+            window.onAuthStateChanged(window.currentUser);
+          }
+        })
+        .catch(() => {
+          const cached = localStorage.getItem("auth_user");
+          window.currentUser = cached ? JSON.parse(cached) : null;
+          if (typeof window.onAuthStateChanged === 'function') {
+            window.onAuthStateChanged(window.currentUser);
+          }
+        });
+    } else {
+      window.currentUser = null;
+      if (typeof window.onAuthStateChanged === 'function') {
+        window.onAuthStateChanged(null);
+      }
     }
     return;
   }

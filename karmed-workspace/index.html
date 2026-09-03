@@ -23,27 +23,54 @@
         </div>
       </div>
 
-      <!-- Center: Navigation Tabs -->
-      <nav class="menu-nav-tabs">
+      <!-- Center: Navigation Tabs (Dinamik Rollar Bo'yicha Boshqariladi) -->
+      <nav class="menu-nav-tabs" id="menuNavTabs">
         <button class="nav-tab-btn active" id="tabKarmed" onclick="switchView('karmed')">
           <i class="fa-solid fa-desktop"></i> Karmed Dasturi
         </button>
-        <button class="nav-tab-btn" id="tabNavbat" onclick="switchView('navbat')">
+        <button class="nav-tab-btn" id="tabNavbat" onclick="switchView('navbat')" style="display:none;">
           <i class="fa-solid fa-calendar-plus"></i> Navbatga Yozish
         </button>
-        <button class="nav-tab-btn" id="tabTv" onclick="switchView('tv')">
+        <button class="nav-tab-btn" id="tabTv" onclick="switchView('tv')" style="display:none;">
           <i class="fa-solid fa-tv"></i> Kutish Zali TV
         </button>
-        <button class="nav-tab-btn" id="tabLaborant" onclick="switchView('laborant')">
+        <button class="nav-tab-btn" id="tabLaborant" onclick="switchView('laborant')" style="display:none;">
           <i class="fa-solid fa-user-doctor"></i> Laborant Portali
         </button>
-        <button class="nav-tab-btn" id="tabDashboard" onclick="switchView('dashboard')">
+        <button class="nav-tab-btn" id="tabStaff" onclick="openStaffModal()" style="display:none;">
+          <i class="fa-solid fa-users-gear"></i> Xodimlar Nazorati
+        </button>
+        <button class="nav-tab-btn" id="tabDashboard" onclick="switchView('dashboard')" style="display:none;">
           <i class="fa-solid fa-cubes"></i> Server & Klaster
         </button>
       </nav>
 
       <!-- Right: Action Tools & Cluster Status -->
       <div class="menu-actions">
+        <!-- Auth: Login button (Agar tizimga kirmagan bo'lsa) -->
+        <button class="action-btn btn-auth-login" id="btnOpenLogin" onclick="openLoginModal()" title="Tizimga kirish">
+          <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
+        </button>
+
+        <!-- Auth: User Profile & Logout (Agar tizimga kirgan bo'lsa) -->
+        <div class="auth-user-wrap" id="authUserWrap" style="display:none;">
+          <button class="action-btn user-profile-btn" id="btnOpenProfile" onclick="openProfileModal()" title="Shaxsiy profilni ochish">
+            <span class="user-avatar-circle" id="userAvatarLetter">T</span>
+            <div class="user-badge-info">
+              <strong id="userNavName">Foydalanuvchi</strong>
+              <small id="userNavRole">Rol</small>
+            </div>
+          </button>
+          <button class="action-btn icon-only logout-btn" id="btnLogout" onclick="handleLogout()" title="Tizimdan chiqish">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <!-- Quick Queue Drawer Toggle (Faqat kirgan xodimlarga) -->
+        <button class="action-btn btn-quick-queue" id="btnToggleDrawer" onclick="toggleQuickQueueDrawer()" title="Yon tomonda tezkor navbat oynasini ochish / yopish" style="display:none;">
+          <i class="fa-solid fa-bolt"></i> Tezkor Navbat
+        </button>
+
         <!-- Karmed Host Switcher -->
         <button class="action-btn karmed-host-btn" id="btnKarmedHost" onclick="toggleKarmedHost()" title="Karmed server manzilini almashtirish (192.168.150.111 / 213.230.91.59)">
           <span class="host-dot" id="karmedHostDot"></span>
@@ -53,11 +80,6 @@
         <!-- Karmed in New Tab -->
         <button class="action-btn" id="btnOpenExternal" onclick="openKarmedInNewTab()" title="Karmed dasturini alohida oynada ochish">
           <i class="fa-solid fa-arrow-up-right-from-square"></i> Alohida oyna
-        </button>
-
-        <!-- Quick Queue Drawer Toggle -->
-        <button class="action-btn btn-quick-queue" id="btnToggleDrawer" onclick="toggleQuickQueueDrawer()" title="Yon tomonda tezkor navbat oynasini ochish / yopish">
-          <i class="fa-solid fa-bolt"></i> Tezkor Navbat
         </button>
 
         <!-- Refresh Frame -->
@@ -71,7 +93,7 @@
         </button>
 
         <!-- Cluster Status Badge -->
-        <div class="cluster-badge" id="clusterBadge">
+        <div class="cluster-badge" id="clusterBadge" style="display:none;">
           <span class="pulse-dot"></span>
           <span id="txtClusterStatus">Klaster: Faol</span>
         </div>
@@ -200,6 +222,238 @@
           </div>
         </div>
       </aside>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 1: TIZIMGA KIRISH (LOGIN MODAL) -->
+  <!-- ============================================================== -->
+  <div id="modalLogin" class="custom-modal-overlay" style="display:none;">
+    <div class="custom-modal-card login-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title">
+          <i class="fa-solid fa-user-shield" style="color:#38bdf8;"></i>
+          <h3>Tizimga Kirish</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeLoginModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formModalLogin" onsubmit="handleModalLogin(event)" class="modal-card-body">
+        <p class="modal-sub-desc">Foydalanuvchi hisobingizga kirish uchun login va parolingizni kiriting.</p>
+
+        <div class="modal-field">
+          <label><i class="fa-solid fa-user"></i> Login / Xodim Kodi</label>
+          <input type="text" id="modalLoginUser" required placeholder="Masalan: T1, L1, T4" autofocus style="text-transform:uppercase;">
+        </div>
+
+        <div class="modal-field">
+          <label><i class="fa-solid fa-key"></i> Parol</label>
+          <input type="password" id="modalLoginPass" required placeholder="Boshlang'ich parol: 15420">
+        </div>
+
+        <div id="modalLoginError" class="modal-error-box" style="display:none;"></div>
+
+        <div class="modal-card-actions">
+          <button type="button" class="btn-modal-cancel" onclick="closeLoginModal()">Bekor qilish</button>
+          <button type="submit" class="btn-modal-primary" id="btnSubmitLogin">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Kirish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 2: SHAXSIY PROFIL & SOZLAMALAR (MY PROFILE) -->
+  <!-- ============================================================== -->
+  <div id="modalProfile" class="custom-modal-overlay" style="display:none;">
+    <div class="custom-modal-card profile-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title">
+          <i class="fa-solid fa-id-card" style="color:#10b981;"></i>
+          <h3>Shaxsiy Profil & Ish Vaqti</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formModalProfile" onsubmit="handleSaveProfile(event)" class="modal-card-body">
+        <div class="profile-grid">
+          <!-- Chap ustun: Asosiy ma'lumotlar -->
+          <div class="profile-col">
+            <h4 class="profile-section-title"><i class="fa-solid fa-user-pen"></i> Asosiy Ma'lumotlar</h4>
+            
+            <div class="modal-field">
+              <label>F.I.SH (To'liq ism-familiya)</label>
+              <input type="text" id="profName" required placeholder="To'liq ismingizni kiriting...">
+            </div>
+
+            <div class="modal-field">
+              <label>Tizim Logini</label>
+              <input type="text" id="profLogin" required placeholder="Login...">
+            </div>
+
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Telefon Raqam</label>
+                <input type="text" id="profPhone" placeholder="+998 90 123-45-67">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Xona / Bo'lim</label>
+                <input type="text" id="profRoom" placeholder="Masalan: MRT 1, Registratura">
+              </div>
+            </div>
+
+            <h4 class="profile-section-title" style="margin-top:14px;"><i class="fa-solid fa-lock"></i> Parolni O'zgartirish</h4>
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Yangi Parol</label>
+                <input type="password" id="profNewPass" placeholder="O'zgartirmaslik uchun bo'sh qoldiring">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Parolni Tasdiqlang</label>
+                <input type="password" id="profConfirmPass" placeholder="Qayta kiriting...">
+              </div>
+            </div>
+          </div>
+
+          <!-- O'ng ustun: Ish vaqti va Tekshiruv sozlamalari -->
+          <div class="profile-col">
+            <h4 class="profile-section-title"><i class="fa-solid fa-clock"></i> Ish Vaqti Jadvali</h4>
+            
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Ish Boshlanishi</label>
+                <input type="time" id="profWorkStart" value="08:00">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Ish Tugashi</label>
+                <input type="time" id="profWorkEnd" value="17:00">
+              </div>
+            </div>
+
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Tushlik Boshlanishi</label>
+                <input type="time" id="profLunchStart" value="12:00">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Tushlik Tugashi</label>
+                <input type="time" id="profLunchEnd" value="13:00">
+              </div>
+            </div>
+
+            <!-- Laborantlar uchun shaxsiy tekshiruv davomiyligi -->
+            <div id="profLaborantSettings" style="display:none; margin-top:14px;">
+              <h4 class="profile-section-title"><i class="fa-solid fa-sliders"></i> Shaxsiy Tekshiruv Vaqtlari (Daqiqada)</h4>
+              <div class="modal-field-row">
+                <div class="modal-field flex-1">
+                  <label>MRT Oddiy</label>
+                  <input type="number" id="profDurMrtPlain" min="5" max="60" value="15">
+                </div>
+                <div class="modal-field flex-1">
+                  <label>MRT Kontrastli</label>
+                  <input type="number" id="profDurMrtContrast" min="10" max="90" value="25">
+                </div>
+                <div class="modal-field flex-1">
+                  <label>MSKT</label>
+                  <input type="number" id="profDurMskt" min="5" max="45" value="10">
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-role-card">
+              <span>Hozirgi Rolingiz:</span>
+              <strong id="profRoleBadge" class="badge-role">Laborant</strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="modalProfileMsg" class="modal-msg-box" style="display:none;"></div>
+
+        <div class="modal-card-actions">
+          <button type="button" class="btn-modal-cancel" onclick="closeProfileModal()">Yopish</button>
+          <button type="submit" class="btn-modal-primary" id="btnSaveProfile">
+            <i class="fa-solid fa-floppy-disk"></i> O'zgarishlarni Saqlash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 3: XODIMLAR VA ROLLAR NAZORATI (SUPER ADMIN & SERVER NAZORATCHISI) -->
+  <!-- ============================================================== -->
+  <div id="modalStaff" class="custom-modal-overlay" style="display:none;">
+    <div class="custom-modal-card staff-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title">
+          <i class="fa-solid fa-users-gear" style="color:#f59e0b;"></i>
+          <h3>Xodimlar va Rollar Boshqaruvi</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeStaffModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-card-body">
+        <div class="staff-mgmt-toolbar">
+          <p class="modal-sub-desc" style="margin:0;">Xodimlarni ro'yxatga olish, rollarini belgilash va parollarini tiklash paneli.</p>
+          <button class="btn-add-staff" onclick="toggleAddStaffForm()">
+            <i class="fa-solid fa-user-plus"></i> + Yangi Xodim Qo'shish
+          </button>
+        </div>
+
+        <!-- Add Staff Form Box (Toggle) -->
+        <div id="boxAddStaff" class="add-staff-box" style="display:none;">
+          <h4 style="font-size:13px; color:#38bdf8; margin-bottom:8px;"><i class="fa-solid fa-user-plus"></i> Yangi Xodimni Ro'yxatga Olish</h4>
+          <form id="formAddStaff" onsubmit="handleCreateStaff(event)">
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Login / Kod (masalan: T5, L11)*</label>
+                <input type="text" id="newStaffLogin" required placeholder="T5" style="text-transform:uppercase;">
+              </div>
+              <div class="modal-field flex-1">
+                <label>F.I.SH (To'liq ism)*</label>
+                <input type="text" id="newStaffName" required placeholder="Ism familiya...">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Boshlang'ich Parol*</label>
+                <input type="text" id="newStaffPassword" required value="15420">
+              </div>
+              <div class="modal-field flex-1">
+                <label>Roli*</label>
+                <select id="newStaffRole">
+                  <option value="tibbiy_navbat">Tibbiy navbatga qo'yuvchi</option>
+                  <option value="laborant">Laborant</option>
+                  <option value="super_admin" id="optSuperAdmin" style="display:none;">Super Admin</option>
+                  <option value="server_nazoratchisi" id="optServerSupervisor" style="display:none;">Server Nazoratchisi</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button type="button" class="btn-modal-cancel" onclick="toggleAddStaffForm()">Bekor qilish</button>
+              <button type="submit" class="btn-modal-primary"><i class="fa-solid fa-check"></i> Xodimni Saqlash</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="staffTableWrap" class="staff-table-wrap">
+          <table class="staff-table">
+            <thead>
+              <tr>
+                <th>Login</th>
+                <th>F.I.SH</th>
+                <th>Roli</th>
+                <th>Xona</th>
+                <th>Telefon</th>
+                <th>Holati</th>
+                <th>Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="staffTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-card-actions">
+        <button type="button" class="btn-modal-cancel" onclick="closeStaffModal()">Yopish</button>
+      </div>
     </div>
   </div>
 

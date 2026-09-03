@@ -51,11 +51,17 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons-grid">
-            <button class="btn btn-call" id="btnActionCall">
+            <button class="btn btn-call" id="btnActionCall" title="Ovozli chaqiruvni qayta e'lon qilish">
               <i class="fa-solid fa-bullhorn"></i> Qayta Chaqirish
             </button>
-            <button class="btn btn-complete" id="btnActionComplete">
-              <i class="fa-solid fa-check-double"></i> Tugatish (Bo'shatish)
+            <button class="btn btn-complete" id="btnActionComplete" title="Tekshiruv muvaffaqiyatli tugadi">
+              <i class="fa-solid fa-check-double"></i> Tugatish
+            </button>
+            <button class="btn btn-cancel" id="btnActionCancel" title="Tekshiruvni sabab bilan bekor qilish">
+              <i class="fa-solid fa-ban"></i> Bekor Qilish
+            </button>
+            <button class="btn btn-requeue" id="btnActionRequeue" title="Bemorni kutish navbatiga qaytarish">
+              <i class="fa-solid fa-rotate-left"></i> Qayta Navbat
             </button>
           </div>
         </div>
@@ -95,6 +101,50 @@
         <!-- Dynamic Waiting List -->
       </div>
     </section>
+  <!-- Bekor Qilish Sababi Modali -->
+  <div id="modalCancelReason" class="cancel-modal-overlay" style="display:none;">
+    <div class="cancel-modal-card">
+      <div class="cancel-modal-header">
+        <h4><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Tekshiruvni Bekor Qilish</h4>
+        <button class="modal-close-x" onclick="closeCancelModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="cancel-modal-body">
+        <p style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">Iltimos, bekor qilish sababini tanlang:</p>
+        <div class="reason-options">
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Klostrofobiya (Bemor yopiq joydan qo'rqdi)" checked>
+            <span>😨 Klostrofobiya (Qo'rquv)</span>
+          </label>
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Metall / Implantat aniqlandi">
+            <span>🧲 Metall / Implantat aniqlandi</span>
+          </label>
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Bemorning umumiy ahvoli og'irlashdi">
+            <span>⚠️ Ahvoli og'irlashdi</span>
+          </label>
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Tayyorgarlik talablariga rioya qilinmagan">
+            <span>❌ Tayyorgarlik ko'rilmagan</span>
+          </label>
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Bemorning o'zi rad etdi">
+            <span>🚫 Bemor rad etdi</span>
+          </label>
+          <label class="reason-radio">
+            <input type="radio" name="cancelReason" value="Boshqa sabab">
+            <span>📝 Boshqa sabab</span>
+          </label>
+        </div>
+        <div style="margin-top:10px;">
+          <input type="text" id="cancelExtraNotes" placeholder="Qo'shimcha izoh (ixtiyoriy)..." style="width:100%; padding:8px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:12px; box-sizing:border-box;">
+        </div>
+      </div>
+      <div class="cancel-modal-actions">
+        <button class="btn-cancel-modal-close" onclick="closeCancelModal()">Orqaga</button>
+        <button class="btn-confirm-cancel" onclick="confirmCancelExamination()"><i class="fa-solid fa-ban"></i> Bekor qilishni tasdiqlash</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

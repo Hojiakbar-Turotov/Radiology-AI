@@ -1,58 +1,467 @@
 [
   {
     "login": "admin",
-    "name": "Tizim Administratori",
+    "name": "Tizim Boshqaruvchisi",
     "password": "admin",
-    "role": "admin",
+    "role": "server_nazoratchisi",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "+998 90 000-00-00",
+    "room": "Server Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "18:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Asosiy tizim boshqaruvchisi"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "TB1",
-    "name": "Turatov Hojiakbar",
+    "login": "T1",
+    "name": "Isfandiyor",
     "password": "15420",
-    "role": "operator",
+    "role": "tibbiy_navbat",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "+998 90 999-99-99",
+    "room": "Registratura",
+    "workSchedule": {
+      "start": "08:30",
+      "end": "17:30",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "notes": "Tibbiy navbatga qo'yuvchi"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "TB2",
-    "name": "Saida'loxon Saidaxmadxonov",
+    "login": "T2",
+    "name": "A'loxon",
     "password": "15420",
-    "role": "operator",
+    "role": "tibbiy_navbat",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "",
+    "room": "Registratura",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "notes": "Tibbiy navbatga qo'yuvchi"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "TB3",
-    "name": "Isfandiyor Xaydaraliyev",
+    "login": "T3",
+    "name": "Nigora",
     "password": "15420",
-    "role": "operator",
+    "role": "tibbiy_navbat",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "",
+    "room": "Registratura",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "notes": "Tibbiy navbatga qo'yuvchi"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "vrach1",
-    "name": "Navbatchi Vrach MRT",
-    "password": "123",
-    "role": "doctor",
+    "login": "T4",
+    "name": "Hojiakbar",
+    "password": "15420",
+    "role": "server_nazoratchisi",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "",
+    "room": "Server & Radiologiya",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "18:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Server nazoratchisi, Super Admin va Laborant"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "laborant1",
-    "name": "MRT 1 Laboranti",
-    "password": "123",
+    "login": "L1",
+    "name": "Shoxruh",
+    "password": "15420",
+    "role": "super_admin",
+    "status": "active",
+    "phone": "",
+    "room": "MRT 1 Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Super Admin va Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L2",
+    "name": "Dilmurod",
+    "password": "15420",
     "role": "laborant",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "",
+    "room": "MRT 2 Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
   },
   {
-    "login": "laborant2",
-    "name": "MRT 2 Laboranti",
-    "password": "123",
+    "login": "L3",
+    "name": "Miraziz",
+    "password": "15420",
     "role": "laborant",
     "status": "active",
-    "createdAt": "2026-09-02"
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L4",
+    "name": "Aziz",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L5",
+    "name": "Sardor",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L6",
+    "name": "Shariat",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L7",
+    "name": "Sevinch",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L8",
+    "name": "Isfandiyor",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L9",
+    "name": "Nodirbek",
+    "password": "15420",
+    "role": "super_admin",
+    "status": "active",
+    "phone": "",
+    "room": "MRT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Super Admin va Laborant"
+    },
+    "createdAt": "2026-09-03"
+  },
+  {
+    "login": "L10",
+    "name": "Akbar",
+    "password": "15420",
+    "role": "laborant",
+    "status": "active",
+    "phone": "",
+    "room": "MSKT Xonasi",
+    "workSchedule": {
+      "start": "08:00",
+      "end": "17:00",
+      "lunchStart": "12:00",
+      "lunchEnd": "13:00",
+      "days": [
+        "Dush",
+        "Sesh",
+        "Chor",
+        "Pay",
+        "Jum",
+        "Shan"
+      ]
+    },
+    "preferences": {
+      "testDurations": {
+        "MRT_ODDIY": 15,
+        "MRT_KONTRAST": 25,
+        "MSKT": 10
+      },
+      "notes": "Laborant"
+    },
+    "createdAt": "2026-09-03"
   }
 ]
