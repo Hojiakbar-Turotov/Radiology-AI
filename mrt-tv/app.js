@@ -254,8 +254,14 @@ function escapeHtml(str) {
 // MAVZU (THEME): KUNDUZGI / TUNGI BOSHQARUVI
 // -------------------------------------------------------------
 function initTvTheme() {
-  const savedTheme = localStorage.getItem("tv_theme") || "light";
+  const savedTheme = localStorage.getItem("app_theme") || localStorage.getItem("tv_theme") || "dark";
   applyTvTheme(savedTheme);
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === "app_theme" || e.key === "tv_theme") {
+      applyTvTheme(e.newValue || "dark");
+    }
+  });
 }
 
 window.toggleTvTheme = function() {
@@ -263,18 +269,22 @@ window.toggleTvTheme = function() {
   const newTheme = isDark ? "light" : "dark";
   applyTvTheme(newTheme);
   localStorage.setItem("tv_theme", newTheme);
+  localStorage.setItem("app_theme", newTheme);
 };
 
 function applyTvTheme(theme) {
   const icon = document.getElementById("themeIcon");
   const text = document.getElementById("themeText");
 
+  document.documentElement.setAttribute("data-theme", theme);
   if (theme === "dark") {
     document.body.classList.add("dark-theme");
+    document.body.classList.remove("light-theme");
     if (icon) icon.className = "fa-solid fa-moon";
     if (text) text.innerText = "Tungi";
   } else {
     document.body.classList.remove("dark-theme");
+    document.body.classList.add("light-theme");
     if (icon) icon.className = "fa-solid fa-sun";
     if (text) text.innerText = "Kunduzgi";
   }

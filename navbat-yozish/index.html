@@ -6,9 +6,10 @@
   <title>Bemorlarni Navbatga Qo'yish Portali | MRT & MSKT</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <!-- Auth Guard & Failover -->
+  <!-- Auth Guard & Failover & Theme -->
   <script src="/shared/auth-guard.js"></script>
   <script src="/shared/failover.js"></script>
+  <script src="/shared/theme.js"></script>
 </head>
 <body>
   <div class="portal-wrapper">
@@ -20,6 +21,12 @@
           <h1>MRT & MSKT Navbatga Yozish Portali</h1>
           <p>Mustaqil Ro'yxatga Olish Darchasi • Aqlli Taqsimlash & Chek Chop Etish</p>
         </div>
+      </div>
+      <div class="header-actions">
+        <button class="nav-btn theme-toggle-btn" id="btnThemeToggle" onclick="toggleAppTheme()" title="Kunduzgi / Tungi rejimni almashtirish">
+          <i class="fa-solid fa-sun" id="themeIcon"></i>
+          <span id="themeLabel">Kunduzgi</span>
+        </button>
       </div>
     </header>
 

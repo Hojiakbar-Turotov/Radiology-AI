@@ -7,9 +7,10 @@
   <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <!-- Auth Guard & Failover -->
+  <!-- Auth Guard & Failover & Theme -->
   <script src="/shared/auth-guard.js"></script>
   <script src="/shared/failover.js"></script>
+  <script src="/shared/theme.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -76,6 +77,12 @@
         <button class="action-btn karmed-host-btn" id="btnKarmedHost" onclick="toggleKarmedHost()" title="Karmed server manzilini almashtirish (192.168.150.111 / 213.230.91.59)" style="display:none;">
           <span class="host-dot" id="karmedHostDot"></span>
           <span id="txtKarmedHost">Karmed: 213.230.91.59</span>
+        </button>
+
+        <!-- Theme Toggle: Kunduzgi / Tungi rejim -->
+        <button class="action-btn theme-toggle-btn" id="btnThemeToggle" onclick="toggleAppTheme()" title="Kunduzgi / Tungi rejimni almashtirish">
+          <i class="fa-solid fa-sun" id="themeIcon"></i>
+          <span id="themeLabel" style="font-size:12px; font-weight:700;">Kunduzgi</span>
         </button>
 
         <!-- Refresh Frame -->
