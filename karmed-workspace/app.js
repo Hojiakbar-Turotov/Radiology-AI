@@ -1297,41 +1297,71 @@ async function handleQuickQueueSubmit(e) {
 // CHIPTA CHOP ETISH
 // -------------------------------------------------------------
 function printThermalTicket(patient) {
-  const printWindow = window.open('', '_blank', 'width=380,height=620');
+  const printWindow = window.open('', '_blank', 'width=380,height=640');
   if (!printWindow) return;
 
   const servicesText = (patient.services || []).map(s => s.name).join(', ') || patient.primaryService || 'MRT Tekshiruvi';
   
-  // Apparat kodi: MR1, MR2, KT1
-  let devCode = "MR1";
-  if (patient.deviceId === 'mrt2') devCode = "MR2";
-  else if (patient.deviceId === 'mskt1' || patient.deviceType === 'MSKT') devCode = "KT1";
+  // Bemor ID raqami
+  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '-').trim();
 
-  // Sana qismi: DD-MM
-  const dateObj = patient.scheduledDate ? new Date(patient.scheduledDate) : new Date();
+  // Apparat kodi: MR1, MR2, KT1 va h.k.
+  let devCode = "MR1";
+  const devId = String(patient.deviceId || "").toLowerCase();
+  if (devId.includes("mrt2") || devId.includes("mr2")) devCode = "MR2";
+  else if (devId.includes("mrt3") || devId.includes("mr3")) devCode = "MR3";
+  else if (devId.includes("mskt2") || devId.includes("kt2")) devCode = "KT2";
+  else if (devId.includes("mskt") || devId.includes("kt") || patient.deviceType === "MSKT") devCode = "KT1";
+  else if (devId.includes("mrt1") || devId.includes("mr1")) devCode = "MR1";
+  else {
+    devCode = devId.toUpperCase().replace("MRT", "MR").replace("MSKT", "KT").replace(/[^A-Z0-9]/g, "") || "MR1";
+  }
+
+  // Sana qismi: DD-MM (birinchi raqamlar kun va oy)
+  let dateObj = new Date();
+  if (patient.scheduledDate) {
+    const parts = String(patient.scheduledDate).split('-');
+    if (parts.length === 3) {
+      dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    } else {
+      const d = new Date(patient.scheduledDate);
+      if (!isNaN(d.getTime())) dateObj = d;
+    }
+  } else if (patient.date) {
+    const parts = String(patient.date).split('-');
+    if (parts.length === 3) {
+      dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+  }
+
   const dd = String(dateObj.getDate()).padStart(2, '0');
   const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
   const yyyy = dateObj.getFullYear();
 
-  // Ketma-ket raqam: 001
+  // Usha kun uchun navbat raqami: masalan, 008
   const rawNum = String(patient.ticketNumber || '001').replace(/[^0-9]/g, '');
   const seqStr = (rawNum || '1').padStart(3, '0');
 
-  // Format: 13-09-MR1-001 (Foydalanuvchi chizmasi bo'yicha)
+  // Format: 03-09-MR1-008 (Kun va oy raqami, qurilma nomi, o'sha kun uchun navbat raqami)
   const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
 
-  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, 13:00)
+  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, soat 14:20)
   let formattedTimeStr = "";
   if (patient.scheduledTime) {
-    formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.scheduledTime}`;
+    formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${patient.scheduledTime}`;
   } else if (patient.estimatedStartTime) {
-    const sDate = new Date(patient.estimatedStartTime);
-    if (!isNaN(sDate.getTime())) {
-      const sh = String(sDate.getHours()).padStart(2, '0');
-      const sm = String(sDate.getMinutes()).padStart(2, '0');
-      formattedTimeStr = `${dd}.${mm}.${yyyy}, ${sh}:${sm}`;
+    if (patient.estimatedStartTime.includes(" ")) {
+      const parts = patient.estimatedStartTime.split(" ");
+      formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${parts[1]}`;
     } else {
-      formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTime}`;
+      const sDate = new Date(patient.estimatedStartTime);
+      if (!isNaN(sDate.getTime())) {
+        const sh = String(sDate.getHours()).padStart(2, '0');
+        const sm = String(sDate.getMinutes()).padStart(2, '0');
+        formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${sh}:${sm}`;
+      } else {
+        formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTime}`;
+      }
     }
   } else {
     formattedTimeStr = `${dd}.${mm}.${yyyy}`;
@@ -1354,18 +1384,18 @@ function printThermalTicket(patient) {
 
   const prepHtml = prepItems.length > 0 ? `
     <div style="margin-top:7px;">
-      <div style="font-weight:bold; margin-bottom:2px;">Ko'rilishi kerak tayyorgarlik:</div>
+      <div style="font-weight:900; font-size:12px; color:#000000; text-decoration:underline; margin-bottom:3px;">Ko'rilishi kerak tayyorgarlik:</div>
       <div style="padding-left:2px;">
-        ${prepItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+        ${prepItems.map(item => `<div style="margin:2px 0; font-size:11.5px; line-height:1.3; font-weight:700; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
       </div>
     </div>
   ` : '';
 
   const contraHtml = contraItems.length > 0 ? `
     <div style="margin-top:7px;">
-      <div style="font-weight:bold; margin-bottom:2px;">Qarshi ko'rsatmalar:</div>
+      <div style="font-weight:900; font-size:12px; color:#000000; text-decoration:underline; margin-bottom:3px;">Qarshi ko'rsatmalar:</div>
       <div style="padding-left:2px;">
-        ${contraItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+        ${contraItems.map(item => `<div style="margin:2px 0; font-size:11.5px; line-height:1.3; font-weight:700; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
       </div>
     </div>
   ` : '';
@@ -1376,57 +1406,96 @@ function printThermalTicket(patient) {
     <head>
       <title>Chipta #${fullTicketNumber}</title>
       <style>
-        @page { size: 80mm auto; margin: 0; }
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         body {
-          font-family: 'Courier New', Courier, monospace;
-          width: 74mm;
-          margin: 3mm auto;
-          color: #000;
-          font-size: 11.5px;
+          font-family: 'Arial', 'Helvetica', 'Segoe UI', sans-serif;
+          width: 72mm;
+          margin: 0 auto;
+          padding: 2mm 1mm 4mm 1mm;
+          color: #000000 !important;
+          background: #ffffff !important;
+          font-size: 12px;
           line-height: 1.35;
+          font-weight: 700;
         }
         .header {
           text-align: center;
-          font-weight: bold;
-          font-size: 13px;
-          line-height: 1.3;
-          margin-bottom: 5px;
+          font-weight: 900;
+          font-size: 13.5px;
+          line-height: 1.25;
+          color: #000000 !important;
+          text-transform: uppercase;
+          margin-bottom: 4px;
         }
         .divider {
           border: none;
-          border-top: 1px dashed #000;
-          margin: 6px 0;
+          border-top: 2px dashed #000000;
+          margin: 5px 0;
+        }
+        .patient-id-box {
+          text-align: center;
+          font-size: 13.5px;
+          font-weight: 900;
+          color: #000000 !important;
+          margin: 4px 0;
+          letter-spacing: 0.5px;
+        }
+        .patient-id-val {
+          font-size: 16px;
+          font-weight: 900;
+          color: #000000 !important;
         }
         .ticket-center {
           text-align: center;
-          margin: 6px 0;
+          margin: 5px 0;
         }
         .ticket-title {
-          font-size: 13px;
-          font-weight: bold;
+          font-size: 14px;
+          font-weight: 900;
           letter-spacing: 1px;
+          color: #000000 !important;
         }
         .ticket-num {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 900;
-          letter-spacing: 1.5px;
-          margin: 4px 0;
+          letter-spacing: 2px;
+          color: #000000 !important;
+          margin: 3px 0;
         }
         .info-row {
           margin: 4px 0;
+          font-size: 12px;
+          color: #000000 !important;
+          font-weight: 700;
+        }
+        .info-row b {
+          font-weight: 900;
+          color: #000000 !important;
         }
         .footer-contacts {
           text-align: center;
-          font-size: 11px;
+          font-size: 12px;
           margin: 6px 0;
-          line-height: 1.4;
+          line-height: 1.35;
+          color: #000000 !important;
+          font-weight: 800;
         }
         .footer-notice {
           text-align: center;
-          font-size: 12px;
-          font-weight: bold;
+          font-size: 12.5px;
+          font-weight: 900;
           line-height: 1.35;
-          margin-top: 8px;
+          margin-top: 6px;
+          color: #000000 !important;
+          text-transform: uppercase;
         }
       </style>
     </head>
@@ -1437,6 +1506,13 @@ function printThermalTicket(patient) {
       </div>
       <hr class="divider">
 
+      <!-- BEMORNING ID RAQAMI (NAVBAT RAQAMI dan OLDIN) -->
+      <div class="patient-id-box">
+        BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span>
+      </div>
+      <hr class="divider">
+
+      <!-- NAVBAT RAQAMI: 03-09-MR1-008 -->
       <div class="ticket-center">
         <div class="ticket-title">NAVBAT RAQAMI:</div>
         <div class="ticket-num">${fullTicketNumber}</div>
