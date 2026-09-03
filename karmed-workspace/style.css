@@ -17,7 +17,7 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --menu-height: 56px;
-  --drawer-width: 380px;
+  --drawer-width: clamp(420px, 28vw, 560px);
 }
 
 body {
@@ -255,15 +255,36 @@ body {
    SIDE DRAWER: TEZKOR NAVBATGA QO'YISH
    ------------------------------------------------------------- */
 .quick-queue-drawer {
+  position: relative;
   width: var(--drawer-width);
+  min-width: 360px;
+  max-width: 650px;
   height: 100%;
   background: #0f172a;
   border-left: 1px solid #1e293b;
   display: flex;
   flex-direction: column;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 40;
   box-shadow: -6px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.drawer-resizer {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 9px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 50;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.drawer-resizer:hover,
+.drawer-resizer.resizing {
+  background: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
 }
 
 .quick-queue-drawer.collapsed {
@@ -358,8 +379,31 @@ body {
   gap: 8px;
 }
 
+.form-row-apparatus {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 8px;
+}
+
+.fg-apparatus,
+.fg-contrast {
+  min-width: 0;
+}
+
+.fg-apparatus label,
+.fg-contrast label {
+  white-space: nowrap;
+}
+
+.form-group select {
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .flex-1 {
   flex: 1;
+  min-width: 0;
 }
 
 .quick-submit-btn {

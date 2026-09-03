@@ -312,37 +312,6 @@
     "createdAt": "2026-09-03T08:21:21.914Z",
     "expiresAt": "2026-10-03T08:21:21.914Z"
   },
-  "tok_1788424323668_d1a4794a832de036ac06ed64e675e335": {
-    "token": "tok_1788424323668_d1a4794a832de036ac06ed64e675e335",
-    "user": {
-      "login": "T1",
-      "name": "Isfandiyor",
-      "role": "tibbiy_navbat",
-      "status": "active",
-      "phone": "+998 90 999-99-99",
-      "room": "Registratura",
-      "workSchedule": {
-        "start": "08:30",
-        "end": "17:30",
-        "lunchStart": "12:00",
-        "lunchEnd": "13:00",
-        "days": [
-          "Dush",
-          "Sesh",
-          "Chor",
-          "Pay",
-          "Jum",
-          "Shan"
-        ]
-      },
-      "preferences": {
-        "notes": "Tibbiy navbatga qo'yuvchi"
-      },
-      "createdAt": "2026-09-03"
-    },
-    "createdAt": "2026-09-03T08:32:03.668Z",
-    "expiresAt": "2026-10-03T08:32:03.668Z"
-  },
   "tok_1788424864827_7beffb08410da6d91c7e26bacd8bdd3d": {
     "token": "tok_1788424864827_7beffb08410da6d91c7e26bacd8bdd3d",
     "user": {
@@ -414,5 +383,41 @@
     },
     "createdAt": "2026-09-03T08:41:51.390Z",
     "expiresAt": "2026-10-03T08:41:51.390Z"
+  },
+  "tok_1788425508554_862af3f4bc019c010d8945c0b3a1d750": {
+    "token": "tok_1788425508554_862af3f4bc019c010d8945c0b3a1d750",
+    "user": {
+      "login": "T4",
+      "name": "Hojiakbar",
+      "role": "server_nazoratchisi",
+      "status": "active",
+      "phone": "",
+      "room": "Server & Radiologiya",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "18:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ]
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "notes": "Server nazoratchisi, Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-03T08:51:48.554Z",
+    "expiresAt": "2026-10-03T08:51:48.554Z"
   }
 }

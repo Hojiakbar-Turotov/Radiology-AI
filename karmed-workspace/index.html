@@ -135,6 +135,9 @@
 
       <!-- Side Drawer: Tezkor Navbatga Qo'yish Paneli -->
       <aside class="quick-queue-drawer collapsed" id="quickQueueDrawer">
+        <!-- Resizer handle for flexible dragging -->
+        <div class="drawer-resizer" id="drawerResizer" title="O'lchamni moslashtirish uchun suring"></div>
+
         <div class="drawer-header">
           <div class="drawer-title">
             <i class="fa-solid fa-ticket-simple" style="color:#38bdf8;"></i>
@@ -178,8 +181,8 @@
             </select>
           </div>
 
-          <div class="form-row">
-            <div class="form-group flex-1">
+          <div class="form-row form-row-apparatus">
+            <div class="form-group fg-apparatus">
               <label><i class="fa-solid fa-laptop-medical"></i> Apparat</label>
               <select id="quickDeviceSelect">
                 <option value="auto">⚡ Aqlli Avtomat</option>
@@ -188,7 +191,7 @@
                 <option value="mskt">🖥️ MSKT (Tomograf)</option>
               </select>
             </div>
-            <div class="form-group flex-1">
+            <div class="form-group fg-contrast">
               <label><i class="fa-solid fa-syringe"></i> Kontrast</label>
               <select id="quickContrastSelect">
                 <option value="no">Yo'q</option>

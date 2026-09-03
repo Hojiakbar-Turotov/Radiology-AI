@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkCurrentUser();
   initServices();
   fetchDevicesList();
+  initDrawerResizer();
   initWebSocket();
   fetchTodayQueue();
   pollClusterStatus();
@@ -167,6 +168,48 @@ function toggleQuickQueueDrawer() {
   if (btn) {
     btn.classList.toggle("active", !isCollapsed);
   }
+}
+
+// -------------------------------------------------------------
+// TEZKOR NAVBAT DRAWER O'LCHAMINI MOSLASH (DRAG RESIZER)
+// -------------------------------------------------------------
+function initDrawerResizer() {
+  const drawer = document.getElementById("quickQueueDrawer");
+  const resizer = document.getElementById("drawerResizer");
+  if (!drawer || !resizer) return;
+
+  const savedWidth = localStorage.getItem("drawer_width");
+  if (savedWidth && parseInt(savedWidth, 10) >= 360) {
+    drawer.style.width = `${savedWidth}px`;
+  }
+
+  let isResizing = false;
+
+  resizer.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    isResizing = true;
+    resizer.classList.add("resizing");
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "ew-resize";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth >= 360 && newWidth <= 750) {
+      drawer.style.width = `${newWidth}px`;
+      localStorage.setItem("drawer_width", newWidth);
+    }
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove("resizing");
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    }
+  });
 }
 
 // -------------------------------------------------------------
