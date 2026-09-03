@@ -201,13 +201,140 @@ async function initServices() {
 }
 window.initServiceOptions = initServices;
 
+// -------------------------------------------------------------
+// TEKSHIRUV TURI ANIQLASH VA SARALASH (FAQAT MRT VA MSKT)
+// -------------------------------------------------------------
+function checkIsMrtOrMskt(code, name, groupName = "") {
+  const normCode = (code || "").toUpperCase().replace(/\s+/g, "");
+  const normName = (name || "").toUpperCase().trim();
+  const normGroup = (groupName || "").toUpperCase().trim();
+
+  // 1. Agar nomi yoki guruhida ochiq UZI / Ultratovush / Rentgen / EKG / Laboratoriya bo'lsa:
+  const isNonRadiology = 
+    normGroup.includes("ULTRATOVUSH") || normGroup.includes("UZI") || normGroup.includes("UTT") ||
+    normName.includes("ULTRATOVUSH") || normName.includes("UZI") || normName.includes("UTT") ||
+    normGroup.includes("RENTGEN") || normName.includes("RENTGEN") ||
+    normGroup.includes("LABORATORIYA") || normName.includes("LABORATORIYA") ||
+    normName.includes("MAMMOGRAFIYA") || normName.includes("PLEVRA") || normName.includes("LIMFA TUGUN");
+
+  if (isNonRadiology && !normName.includes("MRT") && !normName.includes("MSKT") && !normName.includes("TOMOGRAFIYA")) {
+    return {
+      isMrtOrMskt: false,
+      examType: "OTHER",
+      reason: "Ushbu tekshiruvga navbat berilmaydi (Ultratovush / Boshqa tekshiruv)"
+    };
+  }
+
+  // 2. Katalogimizdagi (allServices) rasmiy MRT va MSKT xizmatlari bilan solishtirish:
+  const catItem = allServices.find(s => s.code === normCode);
+  if (catItem) {
+    if (catItem.type === "MRT" || catItem.type === "MSKT") {
+      return {
+        isMrtOrMskt: true,
+        examType: catItem.type,
+        serviceObj: catItem,
+        isContrast: Boolean(catItem.isContrast),
+        isInjector: Boolean(catItem.isInjector)
+      };
+    } else {
+      return {
+        isMrtOrMskt: false,
+        examType: catItem.type,
+        reason: "Faqat MRT va MSKT tekshiruvlari uchun navbat beriladi"
+      };
+    }
+  }
+
+  // 3. Matn orqali aniqlash:
+  if (normName.includes("MSKT") || normName.includes("KOMPYUTER TOMOGRAFIYA") || (normName.includes("TOMOGRAFIYA") && !normName.includes("MAGNIT"))) {
+    return {
+      isMrtOrMskt: true,
+      examType: "MSKT",
+      isContrast: (normName.includes("KONTRAST") || normName.includes("VENA ICHI")) && !normName.includes("KONTRASTSIZ")
+    };
+  }
+
+  if (normName.includes("MRT") || normName.includes("MAGNIT-REZONANS") || normName.includes("MAGNIT REZONANS")) {
+    return {
+      isMrtOrMskt: true,
+      examType: "MRT",
+      isContrast: (normName.includes("KONTRAST") || normName.includes("VENA ICHI") || normName.includes("INJEKTOR")) && !normName.includes("KONTRASTSIZ"),
+      isInjector: normName.includes("INJEKTOR") || normName.includes("SHPRITS")
+    };
+  }
+
+  // 4. Boshqa barcha xizmatlar: NAVBAT BERILMAYDI!
+  return {
+    isMrtOrMskt: false,
+    examType: "OTHER",
+    reason: "Ushbu tekshiruvga navbat berilmaydi (Faqat MRT va MSKT tekshiruvlari uchun navbat mavjud)"
+  };
+}
+
 function onServiceSelected() {
   const select = document.getElementById("quickServiceSelect");
   const selectedOpt = select.options[select.selectedIndex];
   if (!selectedOpt || !selectedOpt.value) return;
 
+  const submitBtn = document.getElementById("btnQuickSubmit");
+  const recBox = document.getElementById("smartRecommendationBox");
+  const recTitle = document.getElementById("smartBoxTitle");
+  const recDesc = document.getElementById("smartBoxDesc");
+
+  if (selectedOpt.getAttribute("data-blocked") === "true" || select.value === "BLOCKED") {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Ushbu tekshiruvga navbat berilmaydi`;
+      submitBtn.title = "Ushbu tekshiruv MRT yoki MSKT emas!";
+    }
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "rgba(239, 68, 68, 0.15)";
+      recBox.style.borderColor = "#ef4444";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> USHBU TEKSHIRUVGA NAVBAT BERILMAYDI`;
+        recTitle.style.color = "#f87171";
+      }
+      recDesc.innerHTML = `<span style="color:#fecaca;">Elektron navbat faqat MRT va MSKT tekshiruvlari uchundir.</span>`;
+    }
+    return;
+  }
+
+  const check = checkIsMrtOrMskt(select.value, selectedOpt.text);
+  if (!check.isMrtOrMskt) {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Ushbu tekshiruvga navbat berilmaydi`;
+      submitBtn.title = "Ushbu tekshiruv MRT yoki MSKT emas!";
+    }
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "rgba(239, 68, 68, 0.15)";
+      recBox.style.borderColor = "#ef4444";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> USHBU TEKSHIRUVGA NAVBAT BERILMAYDI`;
+        recTitle.style.color = "#f87171";
+      }
+      recDesc.innerHTML = `<span style="color:#fecaca;">Elektron navbat faqat MRT va MSKT tekshiruvlari uchundir.</span>`;
+    }
+    return;
+  }
+
+  // Agar ruxsat etilgan bo'lsa:
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove("btn-disabled-blocked");
+    submitBtn.classList.add("ready-pulse");
+    submitBtn.style.background = "";
+    submitBtn.style.cursor = "pointer";
+  }
+
   const contrast = selectedOpt.getAttribute("data-contrast");
-  const device = selectedOpt.getAttribute("data-device");
+  const device = selectedOpt.getAttribute("data-device") || check.examType;
 
   const contrastSelect = document.getElementById("quickContrastSelect");
   const deviceSelect = document.getElementById("quickDeviceSelect");
@@ -221,6 +348,8 @@ function onServiceSelected() {
   } else if (device === "MRT" && deviceSelect && deviceSelect.value === "mskt") {
     deviceSelect.value = "auto";
   }
+
+  triggerSmartSlotRecalc();
 }
 
 // -------------------------------------------------------------
@@ -338,55 +467,112 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     const fullName = `${surname} ${name} ${middle}`.trim();
     if (!fullName && !patientId) return null;
 
-    // 2. Pastki jadvaldan tekshiruv (Xizmat) ma'lumotlarini olish
-    let serviceCode = "";
-    let serviceName = "";
-    let isContrast = false;
+    // Guruh nomini aniqlash (masalan: "Ultratovush (10)", "MRT (4)", "MSKT (2)")
+    let groupName = "";
+    let p = focusedRow.previousElementSibling;
+    while (p) {
+      const t = (p.innerText || "").trim();
+      if (t.includes("(") && t.includes(")") && (t.includes("Ultratovush") || t.includes("MRT") || t.includes("MSKT") || t.includes("Tomografiya") || t.includes("Rentgen"))) {
+        groupName = t;
+        break;
+      }
+      p = p.previousElementSibling;
+    }
 
+    // 2. Pastki jadvaldan barcha xizmat nomlari va kodlarini yig'ish
+    const candidateServices = [];
     const allDocRows = doc.querySelectorAll("tr");
     for (const r of allDocRows) {
       const rowCells = Array.from(r.querySelectorAll("td"));
       if (rowCells.length < 2) continue;
       const texts = rowCells.map(c => (c.innerText || "").trim());
 
-      // R kodini qidirish (R157, R184, R92, R143 va h.k.)
+      // R kodini qidirish (R157, R184, R78, R143 va h.k.)
       const codeCellIdx = texts.findIndex(t => /^R\s*\d{2,5}$/i.test(t));
       if (codeCellIdx !== -1) {
-        serviceCode = texts[codeCellIdx].toUpperCase();
+        const code = texts[codeCellIdx].toUpperCase().replace(/\s+/g, "");
+        let sName = "";
         if (texts[codeCellIdx + 1] && texts[codeCellIdx + 1].length > 2) {
-          serviceName = texts[codeCellIdx + 1];
+          sName = texts[codeCellIdx + 1];
         } else if (codeCellIdx > 0 && texts[codeCellIdx - 1].length > 2) {
-          serviceName = texts[codeCellIdx - 1];
+          sName = texts[codeCellIdx - 1];
         }
+        if (sName && !candidateServices.some(cs => cs.code === code)) {
+          candidateServices.push({ code, name: sName });
+        }
+      }
+    }
+
+    // Bemorning xizmatlari orasidan tekshiruv turini saralash:
+    let chosenService = null;
+
+    // 1-ustuvorlik: Agar pastki jadvalda MRT yoki MSKT bo'lsa, birinchi navbatda shuni olamiz
+    for (const cs of candidateServices) {
+      const check = checkIsMrtOrMskt(cs.code, cs.name, groupName);
+      if (check.isMrtOrMskt) {
+        chosenService = {
+          code: cs.code,
+          name: cs.name,
+          isMrtOrMskt: true,
+          examType: check.examType,
+          isContrast: check.isContrast,
+          isInjector: check.isInjector,
+          serviceObj: check.serviceObj
+        };
         break;
       }
     }
 
-    if (!serviceName) {
+    // 2-ustuvorlik: Agar birorta ham MRT/MSKT topilmasa (masalan, UZI R78, R82 bo'lsa)
+    if (!chosenService && candidateServices.length > 0) {
+      const first = candidateServices[0];
+      chosenService = {
+        code: first.code,
+        name: first.name,
+        isMrtOrMskt: false,
+        examType: "OTHER",
+        reason: "Ushbu tekshiruvga navbat berilmaydi"
+      };
+    }
+
+    // 3-ustuvorlik: Agar pastki jadvalda kodlar topilmagan bo'lsa, qatordagi matndan qidirish
+    if (!chosenService) {
       for (const r of allDocRows) {
         const text = (r.innerText || "").trim();
         if ((text.includes("Mrt") || text.includes("MRT") || text.includes("Mskt") || text.includes("MSKT")) && text.length < 80 && !text.includes("Qidiruv") && !text.includes("Markazi")) {
-          serviceName = text;
+          const isMskt = text.toUpperCase().includes("MSKT");
+          chosenService = {
+            code: "",
+            name: text,
+            isMrtOrMskt: true,
+            examType: isMskt ? "MSKT" : "MRT",
+            isContrast: text.toLowerCase().includes("kontrast") && !text.toLowerCase().includes("kontrastsiz")
+          };
           break;
         }
       }
     }
 
-    // Kontrast bor-yo'qligini aniqlash:
-    const sNameLower = serviceName.toLowerCase();
-    if (sNameLower.includes("kontrastsiz") || sNameLower.includes("bez kontrast") || sNameLower.includes("oddiy") || sNameLower.includes("native")) {
-      isContrast = false;
-    } else if (sNameLower.includes("kontrast") || sNameLower.includes("bilan") || sNameLower.includes("injektor") || sNameLower.includes("dinamik")) {
-      isContrast = true;
+    if (!chosenService) {
+      chosenService = {
+        code: "",
+        name: groupName || "Ultratovush / Boshqa tekshiruv",
+        isMrtOrMskt: false,
+        examType: "OTHER",
+        reason: "Ushbu tekshiruvga navbat berilmaydi"
+      };
     }
 
     return {
       name: fullName,
       id: patientId,
       pinfl: pinfl,
-      serviceCode: serviceCode,
-      service: serviceName,
-      isContrast: isContrast
+      groupName: groupName,
+      serviceCode: chosenService.code,
+      service: chosenService.name,
+      isMrtOrMskt: chosenService.isMrtOrMskt,
+      examType: chosenService.examType,
+      isContrast: Boolean(chosenService.isContrast)
     };
   } catch (err) {
     console.warn("[extractPatientFromKarmedDoc Error]:", err);
@@ -398,14 +584,23 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
 // AQLLI QURILMA TANLASH ALGORITMI
 // -------------------------------------------------------------
 function determineSmartDevice(patientData) {
-  const serviceName = (patientData.service || "").toUpperCase();
-  const serviceCode = (patientData.serviceCode || "").toUpperCase();
+  if (patientData.isMrtOrMskt === false) {
+    return {
+      isAllowed: false,
+      deviceId: "none",
+      deviceName: "Navbat berilmaydi",
+      badgeText: `⛔ <strong>Ushbu tekshiruvga navbat berilmaydi!</strong> (Elektron navbat faqat MRT va MSKT tekshiruvlari uchun)`
+    };
+  }
+
+  const examType = patientData.examType || (patientData.service && patientData.service.toUpperCase().includes("MSKT") ? "MSKT" : "MRT");
   const isContrast = Boolean(patientData.isContrast);
 
   // 1. Agar MSKT / KT tekshiruvi bo'lsa
-  if (serviceName.includes("MSKT") || serviceName.includes(" KT ") || serviceCode.startsWith("R2") || serviceName.includes("KOMPYUTER TOMOGRAFIYA")) {
+  if (examType === "MSKT" || (patientData.service && patientData.service.toUpperCase().includes("MSKT"))) {
     const msktWaiting = todayQueue.filter(p => p.deviceId === 'mskt' && p.status === 'waiting').length;
     return {
+      isAllowed: true,
       deviceId: "mskt",
       deviceName: "MSKT 1",
       badgeText: `🖥️ <strong>MSKT 1</strong> (Tomograf tanlandi | Navbatda: <strong>${msktWaiting}</strong> ta bemor)`
@@ -416,6 +611,7 @@ function determineSmartDevice(patientData) {
   if (isContrast) {
     const mrt1Waiting = todayQueue.filter(p => (p.deviceId === 'mrt1' || p.deviceId === 'mrt') && p.status === 'waiting').length;
     return {
+      isAllowed: true,
       deviceId: "mrt1",
       deviceName: "MRT 1 (Injektor)",
       badgeText: `💉 <strong>MRT 1</strong> (Injektorli apparat | Kontrastli MRT | Navbatda: <strong>${mrt1Waiting}</strong> ta bemor)`
@@ -428,12 +624,14 @@ function determineSmartDevice(patientData) {
 
   if (mrt2Waiting <= mrt1Waiting) {
     return {
+      isAllowed: true,
       deviceId: "mrt2",
       deviceName: "MRT 2 (3.0T)",
       badgeText: `⚡ <strong>MRT 2</strong> (Optimal tezkor navbat | Navbatda: <strong>${mrt2Waiting}</strong> ta bemor)`
     };
   } else {
     return {
+      isAllowed: true,
       deviceId: "mrt1",
       deviceName: "MRT 1 (1.5T)",
       badgeText: `⚡ <strong>MRT 1</strong> (Kamroq kutish vaqti | Navbatda: <strong>${mrt1Waiting}</strong> ta bemor)`
@@ -455,6 +653,7 @@ function autoFillQuickQueue(patientData) {
   const deviceSelect = document.getElementById("quickDeviceSelect");
   const submitBtn = document.getElementById("btnQuickSubmit");
   const recBox = document.getElementById("smartRecommendationBox");
+  const recTitle = document.getElementById("smartBoxTitle");
   const recDesc = document.getElementById("smartBoxDesc");
 
   // 1. Bemor F.I.SH va ID
@@ -468,7 +667,76 @@ function autoFillQuickQueue(patientData) {
     phoneInput.value = patientData.phone;
   }
 
-  // 2. Kontrast
+  // 2. FAQAT MRT VA MSKT UCHUN NAVBAT BERILADI (BOSHQA TEKSHIRUVLAR BLOKLANADI)
+  const examCheck = checkIsMrtOrMskt(patientData.serviceCode, patientData.service, patientData.groupName);
+  const isMrtOrMskt = (patientData.isMrtOrMskt !== false) && examCheck.isMrtOrMskt;
+
+  if (!isMrtOrMskt) {
+    // ⛔ USHBU TEKSHIRUVGA NAVBAT BERILMAYDI! (UZI / Ultratovush / Rentgen va h.k.)
+    if (contrastSelect) contrastSelect.value = "no";
+
+    // Service selectda ogohlantirish tanlovini ko'rsatish
+    if (serviceSelect) {
+      let blockedOpt = serviceSelect.querySelector("option[data-blocked='true']");
+      if (!blockedOpt) {
+        blockedOpt = document.createElement("option");
+        blockedOpt.setAttribute("data-blocked", "true");
+        serviceSelect.prepend(blockedOpt);
+      }
+      const labelText = patientData.service || patientData.serviceCode || "Ultratovush / Boshqa";
+      blockedOpt.value = "BLOCKED";
+      blockedOpt.text = `⛔ [${patientData.serviceCode || 'UZI'}] ${labelText} — Ushbu tekshiruvga navbat berilmaydi!`;
+      serviceSelect.selectedIndex = 0;
+    }
+
+    if (deviceSelect) {
+      deviceSelect.value = "auto";
+    }
+
+    // Qizil ogohlantirish darchasini ko'rsatish
+    if (recBox && recDesc) {
+      recBox.style.display = "flex";
+      recBox.style.background = "rgba(239, 68, 68, 0.15)";
+      recBox.style.borderColor = "#ef4444";
+      recBox.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.25)";
+      if (recTitle) {
+        recTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> USHBU TEKSHIRUVGA NAVBAT BERILMAYDI`;
+        recTitle.style.color = "#f87171";
+      }
+      recDesc.innerHTML = `
+        <div style="color:#fecaca; font-size:12.5px; line-height:1.4;">
+          ⚠️ Bemor tekshiruvi: <strong>${escapeHtml(patientData.service || patientData.serviceCode || 'Ultratovush')}</strong>.<br>
+          <span style="color:#f87171; font-weight:700;">Elektron navbat tizimi faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan!</span> Boshqa tekshiruvlarga navbat berilmaydi.
+        </div>
+      `;
+    }
+
+    // Tugmani to'liq bloklash
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled-blocked");
+      submitBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Ushbu tekshiruvga navbat berilmaydi`;
+      submitBtn.title = "Ushbu tekshiruv MRT yoki MSKT emas. Navbat berish taqiqlangan!";
+    }
+
+    // Tezkor navbat darchasini ochish
+    const drawer = document.getElementById("quickQueueDrawer");
+    if (drawer && drawer.classList.contains("collapsed")) {
+      drawer.classList.remove("collapsed");
+      const btnToggle = document.getElementById("btnToggleDrawer");
+      if (btnToggle) btnToggle.classList.add("active");
+    }
+
+    return;
+  }
+
+  // ✅ RUXSAT ETILGAN (MRT YOKI MSKT):
+  if (serviceSelect) {
+    const blockedOpt = serviceSelect.querySelector("option[data-blocked='true']");
+    if (blockedOpt) blockedOpt.remove();
+  }
+
   const isContrast = Boolean(patientData.isContrast);
   if (contrastSelect) {
     contrastSelect.value = isContrast ? "yes" : "no";
@@ -495,7 +763,7 @@ function autoFillQuickQueue(patientData) {
       const label = (patientData.serviceCode ? `[${patientData.serviceCode}] ` : "") + patientData.service;
       const opt = new Option(label, val, true, true);
       opt.setAttribute("data-contrast", isContrast ? "yes" : "no");
-      opt.setAttribute("data-device", patientData.service.toUpperCase().includes("MSKT") ? "MSKT" : "MRT");
+      opt.setAttribute("data-device", (patientData.examType === "MSKT" || patientData.service.toUpperCase().includes("MSKT")) ? "MSKT" : "MRT");
       serviceSelect.add(opt);
     }
   }
@@ -507,8 +775,15 @@ function autoFillQuickQueue(patientData) {
   }
 
   if (recBox && recDesc) {
-    recDesc.innerHTML = smart.badgeText;
     recBox.style.display = "flex";
+    recBox.style.background = "linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98))";
+    recBox.style.borderColor = "#0284c7";
+    recBox.style.boxShadow = "0 4px 14px rgba(2, 132, 199, 0.25)";
+    if (recTitle) {
+      recTitle.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> AQLLI TAQSIMLASH`;
+      recTitle.style.color = "#38bdf8";
+    }
+    recDesc.innerHTML = smart.badgeText;
   }
 
   // 5. Eng yaqin ish kuni va bo'sh soatni avtomatik hisoblash
@@ -524,6 +799,8 @@ function autoFillQuickQueue(patientData) {
 
   // 7. Tugmani yashil pulsatsiya bilan tayyor holga keltirish
   if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove("btn-disabled-blocked");
     submitBtn.classList.add("ready-pulse");
     submitBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${smart.deviceName} ga Navbatga Qo'yish & Chipta`;
     submitBtn.title = "Barcha ma'lumotlar olindi! Navbatga qo'yish uchun bosing yoki Enter bosing.";
@@ -545,6 +822,23 @@ async function handleQuickQueueSubmit(e) {
   const dateInput = document.getElementById("quickScheduledDate");
   const timeInput = document.getElementById("quickScheduledTime");
   const submitBtn = document.getElementById("btnQuickSubmit");
+
+  if (submitBtn && submitBtn.disabled) {
+    alert("⛔ Ushbu tekshiruvga navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
+    return;
+  }
+
+  const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+  if (!selectedOpt || selectedOpt.getAttribute("data-blocked") === "true" || serviceSelect.value === "BLOCKED") {
+    alert("⛔ Ushbu tekshiruvga elektron navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
+    return;
+  }
+
+  const check = checkIsMrtOrMskt(serviceSelect.value, selectedOpt.text);
+  if (!check.isMrtOrMskt) {
+    alert("⛔ Ushbu tekshiruvga elektron navbat berilmaydi!\n\nElektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan.");
+    return;
+  }
 
   const serviceCode = serviceSelect.value;
   const serviceObj = allServices.find(s => s.code === serviceCode) || {

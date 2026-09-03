@@ -448,9 +448,16 @@ body {
   70% {
     box-shadow: 0 0 0 10px rgba(16, 185, 129, 0), 0 4px 14px rgba(16, 185, 129, 0.4);
   }
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 4px 14px rgba(16, 185, 129, 0.4);
-  }
+}
+
+.quick-submit-btn.btn-disabled-blocked {
+  background: #475569 !important;
+  color: #cbd5e1 !important;
+  border: 1.5px solid #334155 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  animation: none !important;
+  opacity: 0.9;
 }
 
 /* Live Queue List in Drawer */

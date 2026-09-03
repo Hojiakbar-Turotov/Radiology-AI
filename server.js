@@ -424,6 +424,14 @@ const server = http.createServer(async (req, res) => {
           return sendJSON(res, { success: false, error: "Bemor ismi kiritilmadi" }, 400);
         }
 
+        // Tekshiruv faqat MRT yoki MSKT ekanligini tekshirish (UZI, Rentgen va h.k. navbat berilmaydi)
+        if (body.services && !scheduler.isAllowedExam(body.services)) {
+          return sendJSON(res, {
+            success: false,
+            error: "Ushbu tekshiruvga navbat berilmaydi! Elektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan."
+          }, 400);
+        }
+
         // Aqlli rejalashtirish (Eng yaqin ish kuni, bo'sh soat, navbatchi laborantlar vaqti)
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         const patientData = {
@@ -657,6 +665,13 @@ const server = http.createServer(async (req, res) => {
       // 7.3 POST /api/queue/smart-slot - Eng yaqin ish kuni va bo'sh soatni oldindan hisoblash (Preview)
       if (req.method === 'POST' && pathname === '/api/queue/smart-slot') {
         const body = await parseBody(req);
+        if (body.services && !scheduler.isAllowedExam(body.services)) {
+          return sendJSON(res, {
+            success: false,
+            isAllowed: false,
+            error: "Ushbu tekshiruvga navbat berilmaydi! Elektron navbat faqat MRT va MSKT tekshiruvlari uchun mo'ljallangan."
+          }, 400);
+        }
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         sendJSON(res, { success: true, slot: slotAllocation });
         return;
