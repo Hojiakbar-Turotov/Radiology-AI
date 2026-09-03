@@ -451,6 +451,28 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
+        // Namuna raqami (sampleNumber) takrorlanmasligini qat'iy tekshirish
+        const rawSample = body.sampleNumber || body.sampleNo || body.sample;
+        if (rawSample) {
+          const cleanSample = String(rawSample).trim();
+          if (cleanSample) {
+            const existingDuplicate = db.getAllQueue().find(p => 
+              p.sampleNumber && 
+              String(p.sampleNumber).trim() === cleanSample && 
+              p.status !== 'cancelled'
+            );
+            if (existingDuplicate) {
+              return sendJSON(res, {
+                success: false,
+                isDuplicateSample: true,
+                duplicateTicket: existingDuplicate.ticketNumber,
+                duplicatePatient: existingDuplicate.patientName,
+                error: `⚠️ DIQQAT: Ushbu tekshiruv (Namuna №${cleanSample}) allaqachon navbatga qo'yilgan!\nNavbat raqami: #${existingDuplicate.ticketNumber} • Bemor: ${existingDuplicate.patientName} (${existingDuplicate.scheduledTime || existingDuplicate.timeSlot || ''})`
+              }, 400);
+            }
+          }
+        }
+
         // Aqlli rejalashtirish (Eng yaqin ish kuni, bo'sh soat, navbatchi laborantlar vaqti)
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         const patientData = {

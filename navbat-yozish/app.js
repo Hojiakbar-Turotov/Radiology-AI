@@ -175,6 +175,7 @@ async function handleFormSubmit(e) {
 
   const name = document.getElementById("inpPatientName").value.trim();
   const id = document.getElementById("inpPatientId").value.trim();
+  const sampleNumber = document.getElementById("inpSampleNumber") ? document.getElementById("inpSampleNumber").value.trim() : "";
   const phone = document.getElementById("inpPhone").value.trim();
   const birthDate = document.getElementById("inpBirthDate").value;
   const doctor = document.getElementById("inpDoctor").value.trim();
@@ -186,11 +187,21 @@ async function handleFormSubmit(e) {
     return;
   }
 
+  // Namuna raqami bo'yicha takroriylikni tekshirish
+  if (sampleNumber) {
+    const existing = todayQueue.find(p => p.sampleNumber && String(p.sampleNumber).trim() === sampleNumber && p.status !== 'cancelled');
+    if (existing) {
+      alert(`⚠️ DIQQAT!\n\nUshbu tekshiruv (Namuna №${sampleNumber}) allaqachon navbatga qo'yilgan!\nNavbat raqami: #${existing.ticketNumber}\nBemor: ${existing.patientName} (${existing.estimatedStartTimeFormatted || ''})`);
+      return;
+    }
+  }
+
   const srvList = selectedServices.length > 0 ? selectedServices : [{ name: "MRT Tekshiruvi", code: "R157", duration: 30 }];
 
   const payload = {
     patientName: name,
     patientId: id,
+    sampleNumber: sampleNumber,
     phone: phone,
     birthDate: birthDate,
     referringDoctor: doctor,
@@ -326,6 +337,7 @@ function renderQueueTable() {
         <td class="ticket-cell">${escapeHtml(p.ticketNumber)}</td>
         <td>
           <strong>${escapeHtml(p.patientName)}</strong>
+          ${p.sampleNumber ? `<div style="font-size:11px; color:#38bdf8; font-weight:700;"><i class="fa-solid fa-vial"></i> Namuna: №${escapeHtml(p.sampleNumber)}</div>` : ''}
           ${p.phone ? `<div style="font-size:11px; color:#9ca3af;">${p.phone}</div>` : ''}
         </td>
         <td>

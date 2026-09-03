@@ -843,6 +843,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     let name = "";
     let middle = "";
     let patientId = "";
+    let sampleNumber = "";
     let pinfl = "";
     let regDate = "";
 
@@ -857,6 +858,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
         else if (h.includes("ism") && !h.includes("ota") && !h.includes("sharif")) name = val;
         else if (h.includes("ota") || h.includes("sharif")) middle = val;
         else if (h.includes("bemor id") || (h.includes("id") && !patientId)) patientId = val;
+        else if (h.includes("namuna")) sampleNumber = val;
         else if (h.includes("pinfl") || h.includes("jshshir")) pinfl = val;
         else if (h.includes("ro'yxat") || h.includes("royxat") || (h.includes("sana") && !h.includes("tug"))) regDate = val;
       });
@@ -868,6 +870,16 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
       for (const val of cellTexts) {
         if (/^\d{4,8}$/.test(val)) {
           patientId = val;
+          break;
+        }
+      }
+    }
+
+    // Namuna raqami (agar ustundan olinmagan bo'lsa, 7 xonali sonni aniqlash)
+    if (!sampleNumber) {
+      for (const val of cellTexts) {
+        if (/^\d{6,8}$/.test(val) && val !== patientId && val !== "2024" && val !== "2025" && val !== "2026") {
+          sampleNumber = val;
           break;
         }
       }
@@ -1021,6 +1033,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     return {
       name: fullName,
       id: patientId,
+      sampleNumber: sampleNumber,
       pinfl: pinfl,
       groupName: groupName,
       registrationDate: regDate,
@@ -1125,6 +1138,33 @@ function autoFillQuickQueue(patientData) {
   }
   if (phoneInput && patientData.phone) {
     phoneInput.value = patientData.phone;
+  }
+
+  const sampleInput = document.getElementById("quickSampleNumber");
+  if (sampleInput) {
+    sampleInput.value = patientData.sampleNumber || "";
+  }
+
+  // 1.1 NAMUNA RAQAMI BO'YICHA TAKRORIY NAVBAT TEKSHIRUVI
+  if (patientData.sampleNumber) {
+    const cleanSample = String(patientData.sampleNumber).trim();
+    const existingInQueue = todayQueue.find(p => p.sampleNumber && String(p.sampleNumber).trim() === cleanSample && p.status !== 'cancelled');
+    if (existingInQueue) {
+      if (recBox && recTitle && recDesc) {
+        recBox.className = "smart-recommendation-box danger";
+        recTitle.innerHTML = `⚠️ BU TEKSHIRUV ALLAQACHON NAVBATGA QO'YILGAN!`;
+        recDesc.innerHTML = `Ushbu tekshiruv (<strong>Namuna №${cleanSample}</strong>) allaqachon navbatga qo'yilgan.<br>
+          Bemor: <strong>${existingInQueue.patientName}</strong> (Navbat: <strong>#${existingInQueue.ticketNumber}</strong>, Vaqti: <strong>${existingInQueue.scheduledTime || existingInQueue.timeSlot || ''}</strong>)`;
+        recBox.style.display = "block";
+      }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add("btn-disabled");
+        submitBtn.title = `Namuna №${cleanSample} allaqachon navbatda mavjud!`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Allaqachon Navbatda (#${existingInQueue.ticketNumber})`;
+      }
+      return;
+    }
   }
 
   // Ro'yxatga olingan sana indikatori
@@ -1453,9 +1493,22 @@ async function handleQuickQueueSubmit(e) {
     else targetDeviceId = isContrast ? "mrt1" : "mrt2";
   }
 
+  const sampleInput = document.getElementById("quickSampleNumber");
+  const sampleNumber = sampleInput ? sampleInput.value.trim() : "";
+
+  // Namuna raqami bo'yicha takroriylikni oldindan tekshirish
+  if (sampleNumber) {
+    const existing = todayQueue.find(p => p.sampleNumber && String(p.sampleNumber).trim() === sampleNumber && p.status !== 'cancelled');
+    if (existing) {
+      alert(`⚠️ DIQQAT!\n\nUshbu tekshiruv (Namuna №${sampleNumber}) allaqachon navbatga qo'yilgan!\nNavbat raqami: #${existing.ticketNumber}\nBemor: ${existing.patientName} (${existing.scheduledTime || existing.timeSlot || ''})`);
+      return;
+    }
+  }
+
   const payload = {
     patientName: nameInput.value.trim().toUpperCase(),
     patientId: idInput.value.trim(),
+    sampleNumber: sampleNumber,
     phone: phoneInput.value.trim(),
     deviceId: targetDeviceId,
     isContrast: isContrast,
@@ -1482,6 +1535,7 @@ async function handleQuickQueueSubmit(e) {
       // 2. Formani tozalash
       nameInput.value = "";
       idInput.value = "";
+      if (sampleInput) sampleInput.value = "";
       phoneInput.value = "";
       serviceSelect.selectedIndex = 0;
       contrastSelect.value = "no";
@@ -1770,6 +1824,11 @@ function printThermalTicket(patient) {
       <div class="patient-id-box">
         BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span>
       </div>
+      ${patient.sampleNumber ? `
+        <div class="patient-id-box" style="margin-top:-2px;">
+          NAMUNA RAQAMI: <span class="patient-id-val">${escapeHtml(patient.sampleNumber)}</span>
+        </div>
+      ` : ''}
       <hr class="divider">
 
       <!-- NAVBAT RAQAMI: 03-09-MR1-008 -->

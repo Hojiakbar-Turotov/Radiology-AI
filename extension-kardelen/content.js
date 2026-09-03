@@ -4523,6 +4523,7 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
       body: JSON.stringify({
         patientName: patientData.name,
         patientId: patientData.id,
+        sampleNumber: patientData.sampleNumber || "",
         pinfl: patientData.pinfl,
         phone: patientData.phone,
         birthDate: patientData.birthDate,
@@ -4536,6 +4537,11 @@ async function sendPatientToFirebase(patientData, device, timeSlot, targetDate =
       })
     });
     const localData = await localRes.json();
+
+    if (!localData || !localData.success) {
+      alert(localData?.error || "⚠️ Ushbu tekshiruv navbatga qo'shilmadi");
+      return;
+    }
 
     if (localData && localData.success) {
       const extDict = (typeof I18N_TRANSLATIONS !== 'undefined' && I18N_TRANSLATIONS.ext && I18N_TRANSLATIONS.ext[chosenLang]) 

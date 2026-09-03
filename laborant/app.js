@@ -172,7 +172,10 @@ function renderLaborantView() {
     sectionBadge.style.color = isCalling ? "#38bdf8" : "#34d399";
 
     document.getElementById("curTicket").innerText = activePatient.ticketNumber;
-    document.getElementById("curName").innerText = activePatient.patientName;
+    const curNameText = activePatient.sampleNumber 
+      ? `${activePatient.patientName} [Namuna №${activePatient.sampleNumber}]` 
+      : activePatient.patientName;
+    document.getElementById("curName").innerText = curNameText;
     document.getElementById("curService").innerText = activePatient.primaryService;
     document.getElementById("curDuration").innerText = activePatient.estimatedDurationMinutes || 30;
 
@@ -222,7 +225,10 @@ function renderLaborantView() {
     prepDetails.style.display = "block";
 
     document.getElementById("prepTicket").innerText = prepPatient.ticketNumber;
-    document.getElementById("prepName").innerText = prepPatient.patientName;
+    const prepNameText = prepPatient.sampleNumber 
+      ? `${prepPatient.patientName} [Namuna №${prepPatient.sampleNumber}]` 
+      : prepPatient.patientName;
+    document.getElementById("prepName").innerText = prepNameText;
     document.getElementById("prepService").innerText = prepPatient.primaryService;
 
     const badge = document.getElementById("prepContrastBadge");
@@ -233,9 +239,8 @@ function renderLaborantView() {
   }
 
   // 3. Waiting Queue List
-  const listContainer = document.getElementById("waitingCardsContainer");
-  const countBadge = document.getElementById("waitingCountBadge");
-  countBadge.innerText = `${waitingList.length} ta`;
+  const listContainer = document.getElementById("waitingQueueList");
+  document.getElementById("waitingCountBadge").innerText = `${waitingList.length} ta`;
 
   if (waitingList.length === 0) {
     listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b; font-size:12px;">Kutayotgan bemorlar yo'q</div>`;
@@ -247,7 +252,10 @@ function renderLaborantView() {
       <div class="item-left">
         <span class="item-ticket">${escapeHtml(p.ticketNumber)}</span>
         <div>
-          <div class="item-name">${escapeHtml(p.patientName)}</div>
+          <div class="item-name">
+            ${escapeHtml(p.patientName)}
+            ${p.sampleNumber ? `<span style="font-size:10.5px; color:#38bdf8; background:#0f172a; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:700; border:1px solid rgba(56,189,248,0.3);"><i class="fa-solid fa-vial"></i> №${escapeHtml(p.sampleNumber)}</span>` : ''}
+          </div>
           <div class="item-service">
             ${escapeHtml(p.primaryService)} 
             ${p.isContrast ? '<b style="color:#f87171;">[💉 Kontrast]</b>' : ''}
