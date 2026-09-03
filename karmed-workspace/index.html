@@ -512,8 +512,12 @@
                   <option value="yes">💉 Kontrastli</option>
                 </select>
               </div>
-              <div class="modal-field" style="max-width:120px;">
-                <label>Standart Vaqt (daq)*</label>
+              <div class="modal-field" style="max-width:130px;">
+                <label>Narxi (so'm)</label>
+                <input type="number" id="newSrvPrice" placeholder="424340" value="424340">
+              </div>
+              <div class="modal-field" style="max-width:110px;">
+                <label>Standart Vaqt*</label>
                 <input type="number" id="newSrvDuration" required min="5" max="120" value="25">
               </div>
             </div>
@@ -533,12 +537,13 @@
           <table class="staff-table">
             <thead>
               <tr>
-                <th style="width:70px;">Kod</th>
+                <th style="width:65px;">Kod</th>
                 <th>Tekshiruv Nomi</th>
                 <th style="width:75px;">Turi</th>
-                <th style="width:100px;">Kontrast</th>
-                <th style="width:140px;">Standart Vaqt (daq)</th>
-                <th style="width:100px;">Amallar</th>
+                <th style="width:90px;">Kontrast</th>
+                <th style="width:110px;">Narxi</th>
+                <th style="width:130px;">Standart Vaqt</th>
+                <th style="width:90px;">Amallar</th>
               </tr>
             </thead>
             <tbody id="servicesTableBody">

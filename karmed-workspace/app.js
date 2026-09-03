@@ -179,22 +179,27 @@ async function initServices() {
   try {
     const res = await fetch("/api/services");
     const data = await res.json();
-    if (data.success && Array.isArray(data.services)) {
-      allServices = data.services;
+    const list = data.catalog || data.services || [];
+    if (Array.isArray(list) && list.length > 0) {
+      allServices = list;
       const select = document.getElementById("quickServiceSelect");
       if (select) {
         select.innerHTML = '<option value="">-- Tekshiruv sohasini tanlang --</option>' +
-          allServices.map(s => `
-            <option value="${s.code}" data-contrast="${s.contrast ? 'yes' : 'no'}" data-device="${s.deviceType}">
-              [${s.code}] ${s.name} (${s.duration} daqiqa)
-            </option>
-          `).join("");
+          allServices.map(s => {
+            const priceLabel = s.priceFormatted ? ` [ ${s.priceFormatted} ]` : (s.price ? ` [ ${s.price.toLocaleString()} so'm ]` : '');
+            return `
+              <option value="${s.code}" data-contrast="${s.isContrast ? 'yes' : 'no'}" data-device="${s.type}">
+                ${s.code} - ${s.name}${priceLabel}
+              </option>
+            `;
+          }).join("");
       }
     }
   } catch (e) {
     console.error("[Workspace Services Error]:", e);
   }
 }
+window.initServiceOptions = initServices;
 
 function onServiceSelected() {
   const select = document.getElementById("quickServiceSelect");
@@ -648,6 +653,7 @@ function printThermalTicket(patient) {
       <div class="info">
         <div><b>Bemor:</b> ${patient.patientName}</div>
         <div><b>Xizmat:</b> ${servicesText}</div>
+        ${patient.services && patient.services[0] && patient.services[0].priceFormatted ? `<div><b>Narxi:</b> ${patient.services[0].priceFormatted}</div>` : ''}
         ${patient.isContrast ? '<div><b>Turi:</b> 💉 KONTRASTLI</div>' : ''}
         <div><b>Taxminiy vaqt:</b> ${patient.estimatedStartTime || '--:--'}</div>
         <div><b>Sana:</b> ${new Date().toLocaleDateString('ru-RU')} ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
@@ -1450,10 +1456,10 @@ async function fetchServicesList() {
       catalogServicesList = data.catalog;
       renderServicesTable(catalogServicesList);
     } else {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f87171; padding:16px;">❌ Yuklab bo'lmadi</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ Yuklab bo'lmadi</td></tr>`;
     }
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f87171; padding:16px;">❌ Server bilan aloqa yo'q</td></tr>`;
   }
 }
 
@@ -1462,7 +1468,7 @@ function renderServicesTable(list) {
   if (!tbody) return;
 
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#94a3b8;">Xizmatlar mavjud emas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:#94a3b8;">Xizmatlar mavjud emas</td></tr>';
     return;
   }
 
@@ -1473,6 +1479,7 @@ function renderServicesTable(list) {
         <td>${escapeHtml(s.name)}</td>
         <td><span class="badge" style="background:#1e293b; color:#cbd5e1; font-weight:700;">${escapeHtml(s.type)}</span></td>
         <td>${s.isContrast ? '<span style="color:#f87171; font-weight:700;">💉 Kontrastli</span>' : '<span style="color:#94a3b8;">Oddiy</span>'}</td>
+        <td style="color:#34d399; font-weight:700; font-size:11.5px; white-space:nowrap;">${s.priceFormatted || (s.price ? (s.price.toLocaleString() + " so'm") : '-')}</td>
         <td>
           <input type="number" id="srvDur_${escapeHtml(s.code)}" class="service-duration-inp" value="${s.duration}" min="5" max="120"> daq
         </td>
@@ -1508,6 +1515,8 @@ window.handleCreateService = async function(e) {
   const type = document.getElementById("newSrvType").value;
   const isContrast = document.getElementById("newSrvContrast").value === "yes";
   const duration = parseInt(document.getElementById("newSrvDuration").value, 10);
+  const priceInput = document.getElementById("newSrvPrice");
+  const price = priceInput ? parseInt(priceInput.value, 10) : 0;
 
   try {
     const token = localStorage.getItem("auth_token");
@@ -1517,7 +1526,7 @@ window.handleCreateService = async function(e) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ code, name, type, isContrast, duration })
+      body: JSON.stringify({ code, name, type, isContrast, duration, price })
     });
     const data = await res.json();
     if (data.success) {

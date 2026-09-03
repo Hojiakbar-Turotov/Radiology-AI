@@ -1,401 +1,1106 @@
 [
   {
-    "code": "R134",
-    "name": "Bosh Miya MSKT (Kontrast Moddasiz)",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R135",
-    "name": "Bosh Miya MSKT (Vena ichi Kontrast Bilan)",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R136",
-    "name": "Gipofiz bezining kontrast moddasiz MSKT tekshiruvi",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R137",
-    "name": "Gipofiz bezining vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R138",
-    "name": "Bosh-Bo'yin Kontrastsiz MSKT Tekshiruvi",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R139",
-    "name": "Bosh-Bo'yin Vena Ichi Kontrast Bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 35
-  },
-  {
-    "code": "R140",
-    "name": "Ko'krak qafasi organlarini kontrastsiz MSKT",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R141",
-    "name": "Ko'krak qafasi organlarini kontrast modda bilan MSKT (PER OS)",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R142",
-    "name": "Ko'krak qafasi organlarini vena ichi Kontrast Bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 35
-  },
-  {
-    "code": "R143",
-    "name": "Qorin bo'shlig'i va retroperitoneal soha kontrastsiz MSKT",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R144",
-    "name": "Qorin bo'shlig'i va retroperitoneal soha kontrast bilan MSKT (Per Os)",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 35
-  },
-  {
-    "code": "R145",
-    "name": "Qorin bo'shlig'i va retroperitoneal soha vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 40
-  },
-  {
-    "code": "R146",
-    "name": "Kichik tos a'zolarini kontrastsiz MSKT tekshiruvi",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R147",
-    "name": "Kichik tos a'zolarini kontrast bilan MSKT (Per Os)",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R148",
-    "name": "Kichik tos a'zolarini vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 35
-  },
-  {
-    "code": "R149",
-    "name": "Buyrak usti bezini kontrastsiz MSKT tekshiruvi",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R150",
-    "name": "Buyrak usti bezini vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R151",
-    "name": "Umurtqa pog'onasi (1-bo'limi) kontrastsiz MSKT",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R152",
-    "name": "Umurtqa pog'onasi (1-bo'limi) vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
-    "code": "R153",
-    "name": "Bo'g'imlar MSKT tekshiruvi (1 soha)",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R154",
-    "name": "Qo'l va oyoqlarning kontrastsiz MSKT tekshiruvi",
-    "type": "MSKT",
-    "isContrast": false,
-    "duration": 20
-  },
-  {
-    "code": "R155",
-    "name": "Qo'l va oyoqlarning vena ichi kontrast bilan MSKT",
-    "type": "MSKT",
-    "isContrast": true,
-    "duration": 30
-  },
-  {
     "code": "R157",
-    "name": "Bosh Miya MRT Kontrastsiz",
+    "name": "Bosh Miya Mrt Kontrastsiz",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R158",
-    "name": "Bosh Miya MRT Kontrast Bilan (Shprits-Injektorda)",
-    "type": "MRT",
-    "isContrast": true,
-    "duration": 40
+    "isInjector": false,
+    "duration": 25,
+    "price": 424340,
+    "priceFormatted": "424 340 so'm",
+    "updatedAt": "2026-09-03T05:28:36.228Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R159",
-    "name": "Bosh Miya MRT Kontrast Bilan",
+    "name": "Bosh Miya Mrt Kontrast Bilan",
     "type": "MRT",
     "isContrast": true,
-    "duration": 35
+    "isInjector": false,
+    "duration": 35,
+    "price": 1114260,
+    "priceFormatted": "1 114 260 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R160",
-    "name": "Bosh Miya MRT + Traktografiya Kontrastsiz",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 35
-  },
-  {
-    "code": "R161",
-    "name": "Gipofiz MRT + Kontrast",
+    "code": "R158",
+    "name": "Bosh Miya Mrt Kontrast Bilan (Shprits-Injektorda)",
     "type": "MRT",
     "isContrast": true,
-    "duration": 35
-  },
-  {
-    "code": "R162",
-    "name": "Bosh Miya Angiografiya MRT (Shprits-Injektorda)",
-    "type": "MRT",
-    "isContrast": true,
-    "duration": 35
+    "isInjector": true,
+    "duration": 45,
+    "price": 2018800,
+    "priceFormatted": "2 018 800 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R163",
-    "name": "Bosh Miya Angiografiya MRT (MPA/MPB)",
+    "name": "Bosh Miya Angiografiya Mrt MPA/MPB",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 1209320,
+    "priceFormatted": "1 209 320 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R164",
-    "name": "Ko'z va orbita MRT",
+    "code": "R162",
+    "name": "Bosh Miya Angiografiya Mrt (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2025660,
+    "priceFormatted": "2 025 660 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R160",
+    "name": "Bosh Miya Mrt + Traktografiya Kontrastsiz",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 535080,
+    "priceFormatted": "535 080 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R211",
+    "name": "Mrt bosh miya va Bosh miya yumshoq toqima T1 + Contrast",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1053500,
+    "priceFormatted": "1 053 500 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R214",
+    "name": "MRT Bosh miya+DTI",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R213",
+    "name": "MRT Bosh miya+FIESTA rejimida (neyrovaskulyar to‘qnashuvlarni aniqlash maqsadida)",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R210",
+    "name": "Bosh miyaning va bosh sohasidagi yumshoq to‘qimalarning MRTsi, T1 rejimida, tomir ichiga kontrast modda yuborilgan holda (shprits injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2018800,
+    "priceFormatted": "2 018 800 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R161",
+    "name": "Gipofiz MRT + kontrast",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1102500,
+    "priceFormatted": "1 102 500 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R165",
-    "name": "Yevstaxiy nayi va Ichki quloq MRT",
+    "name": "Yestaxeviy nay va Ichki quloq Mrt",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R164",
+    "name": "Koz va orbita MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R199",
+    "name": "Sinusit Va Burun boshliqlari MRT (Yuz-Jag Bogimlari)",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R166",
-    "name": "Bo'yin Umurtqalari MRT",
+    "name": "Boyin Umurtqalari Mrt",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 535080,
+    "priceFormatted": "535 080 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R167",
-    "name": "Ko'krak Umurtqalari MRT",
+    "code": "R200",
+    "name": "Boyin Limfa Tugunlari Mrt",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R168",
-    "name": "Bel Umurtqalari MRT",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R169",
-    "name": "Butun Umurtqa Pog'onasi MRT (3 soha)",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 50
-  },
-  {
-    "code": "R170",
-    "name": "Spinal Kanal va Orqa Miya MRT",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 30
-  },
-  {
-    "code": "R171",
-    "name": "Bo'yin Qon Tomirlari Angiografiya MRT (Injektorda)",
-    "type": "MRT",
-    "isContrast": true,
-    "duration": 35
+    "isInjector": false,
+    "duration": 25,
+    "price": 575341,
+    "priceFormatted": "575 341 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R172",
-    "name": "Bo'yin Qon Tomirlari Angiografiya MRT",
+    "name": "Boyin qon Tomirlari Angiografiya MRT MRA",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R171",
+    "name": "Boyin qon Tomirlari Angiografiya Mrt (Shprits-Injektorda)",
     "type": "MRT",
     "isContrast": true,
-    "duration": 30
+    "isInjector": true,
+    "duration": 45,
+    "price": 2025660,
+    "priceFormatted": "2 025 660 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R167",
+    "name": "Kokrak umurtqalari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R191",
+    "name": "Sut bezlari MRT kontrastsiz",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R193",
+    "name": "Sut bezlari MRT kontrast bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R192",
+    "name": "Sut bezlari MRT kontrast bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R173",
-    "name": "Yurak MRT Kontrastsiz",
+    "name": "Yurak Mrt Kontrastsiz",
     "type": "MRT",
     "isContrast": false,
-    "duration": 40
-  },
-  {
-    "code": "R174",
-    "name": "Yurak Qon Tomirlari Angiografiya MRT (Injektorda)",
-    "type": "MRT",
-    "isContrast": true,
-    "duration": 45
+    "isInjector": false,
+    "duration": 25,
+    "price": 535080,
+    "priceFormatted": "535 080 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R175",
-    "name": "Yurak Qon Tomirlari Angiografiya MRT",
+    "name": "Yurak qon Tomirlari Angiografiya Mrt",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R174",
+    "name": "Yurak qon Tomirlari Angiografiya Mrt (Shprits-Injektorda)",
     "type": "MRT",
     "isContrast": true,
-    "duration": 40
+    "isInjector": true,
+    "duration": 45,
+    "price": 2025660,
+    "priceFormatted": "2 025 660 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R177",
-    "name": "Jigar MRT Kontrastsiz",
+    "name": "Jigar Mrt Kontrastsiz",
     "type": "MRT",
     "isContrast": false,
-    "duration": 30
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R179",
+    "name": "Jigar Mrt Kontrast Bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R178",
     "name": "Jigar MRT Kontrast Bilan (Shprits-Injektorda)",
     "type": "MRT",
     "isContrast": true,
-    "duration": 45
-  },
-  {
-    "code": "R179",
-    "name": "Jigar MRT Kontrast Bilan",
-    "type": "MRT",
-    "isContrast": true,
-    "duration": 40
+    "isInjector": true,
+    "duration": 45,
+    "price": 2025660,
+    "priceFormatted": "2 025 660 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R180",
-    "name": "O't Yo'llari MR-Xolangiografiya",
+    "name": "Oshqozon Osti Bezi Mrt",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R181",
-    "name": "Oshqozon Osti Bezi MRT",
+    "name": "Buyraklar Va Siydik Chiqarish Yollari Mrt kontrast bilan",
     "type": "MRT",
-    "isContrast": false,
-    "duration": 30
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R203",
+    "name": "MRT Qorin boshligi azolari+tomir ichiga kontrast modda yuborilgan holda (shprits injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R204",
+    "name": "Mrt qorin boshligi azolari + V/V Kontrast",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1292620,
+    "priceFormatted": "1 292 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R182",
-    "name": "Buyrak va Buyrak Usti Bezlar MRT",
+    "name": "Kichik chanoq azolari MRT",
     "type": "MRT",
     "isContrast": false,
-    "duration": 30
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R183",
-    "name": "Kichik Tos A'zolari MRT (Erkaklar - Prostata)",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 35
-  },
-  {
-    "code": "R184",
-    "name": "Kichik Tos A'zolari MRT (Ayollar - Bachadon)",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 35
-  },
-  {
-    "code": "R185",
-    "name": "Kichik Tos A'zolari MRT Kontrast Bilan (Injektorda)",
+    "code": "R201",
+    "name": "Mrt kichik tos azolari + V/V Kontrastlashgan (Shprits-Injektorda)",
     "type": "MRT",
     "isContrast": true,
-    "duration": 45
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R186",
-    "name": "Tizza Bo'g'imi MRT",
+    "code": "R202",
+    "name": "Mrt kichik tos azolari + V/V Kontrastirovanie",
     "type": "MRT",
-    "isContrast": false,
-    "duration": 25
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1292620,
+    "priceFormatted": "1 292 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
-    "code": "R187",
-    "name": "Chanoq-Son Bo'g'imi MRT",
+    "code": "R4896",
+    "name": "Qorin boshligi MRT",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R188",
-    "name": "Yelka Bo'g'imi MRT",
+    "name": "Chanoq Son Bogimi MRT",
     "type": "MRT",
     "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R189",
-    "name": "Oshiq-Boldir Bo'g'imi MRT",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 25
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
   },
   {
     "code": "R190",
-    "name": "Tirsak Bo'g'imi MRT",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R191",
-    "name": "Kaft Bo'g'imi MRT",
-    "type": "MRT",
-    "isContrast": false,
-    "duration": 25
-  },
-  {
-    "code": "R192",
-    "name": "Sut Bezlar MRT Kontrast Bilan (Shprits-Injektorda)",
+    "name": "Chanoq son bogimi MRT kontrast bilan",
     "type": "MRT",
     "isContrast": true,
-    "duration": 45
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.229Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R189",
+    "name": "Chanoq Son Bogimi Mrt Kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R217",
+    "name": "MRT Son bogimlari va orqa chanoq (iliyosakral) bogimlari",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R168",
+    "name": "Bel Umurtqalari Mrt",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 535080,
+    "priceFormatted": "535 080 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R169",
+    "name": "Butun umurtqa MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 50,
+    "price": 1084860,
+    "priceFormatted": "1 084 860 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R170",
+    "name": "Spinal kanal va jigar nervlari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R206",
+    "name": "MRT Orqa miya +Traktografiya",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R219",
+    "name": "MRT Orqa miyaning yuqori uchdan bir qismi+umurtqa pogonasining (MRT)si+tomir ichiga kontrast modda yuborilgan holda",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R222",
+    "name": "MRT Orqa miyaning pastki uchdan bir qismi+umurtqa pogonasi+tomir ichiga kontrast modda yuborilgan holda (shprits injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R218",
+    "name": "MRT Orqa miyaning yuqori uchdan bir qismi+umurtqa pogonasi+tomir ichiga kontrast modda yuborilgan holda (shprits injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R221",
+    "name": "MRT Orqa miyaning orta uchdan bir qismi+umurtqa pogonasi+tomir ichiga kontrast modda yuborilgan holda",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R220",
+    "name": "MRT Orqa miyaning o‘rta uchdan bir qismi va umurtqa pog‘onasi+ tomir ichiga kontrast yuborish (shprits-injektor yordamida)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R215",
+    "name": "MRT Orqa miyaning o‘rta uchdan bir qismi+umurtqa pogonasi",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R223",
+    "name": "MRT Orqa miyaning pastki uchdan bir qismi+umurtqa pogonasi+tomir ichiga kontrast modda yuborilgan holda",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R216",
+    "name": "MRT Orqa miyaning pastki uchdan bir qismi+umurtqa pogonasi",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R183",
+    "name": "Yelka bogimi Mrt",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R186",
+    "name": "Tirsak bogimi Mrt",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R184",
+    "name": "Qol-Kaft Bogimi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R185",
+    "name": "Tizza bogimi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R187",
+    "name": "Tovon/ boldir-tovon bogimi MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R205",
+    "name": "Mrt Yumshoq toqima azolari (belgilangan qismi, tekshiruv maydoni Do 30 Sm)",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R197",
+    "name": "Ong va chap qol qon tomirlari MRT Kontrast Bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R196",
+    "name": "Ong va chap qol qon tomirlari Mrt Kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R195",
+    "name": "Ong va chap Oyoq qon tomirlari Mrt Kontrast Bilan",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 35,
+    "price": 1145620,
+    "priceFormatted": "1 145 620 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R194",
+    "name": "Ong va chap oyoq qon tomirlari Mrt kontrast Bilan (Shprits-Injektorda)",
+    "type": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "duration": 45,
+    "price": 2001160,
+    "priceFormatted": "2 001 160 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R4920",
+    "name": "Boyin yumshoq toqimalari MRT",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 546840,
+    "priceFormatted": "546 840 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R4929",
+    "name": "Bosh miya yumshoq toqima MRT/ MRT yuz qismi",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 25,
+    "price": 535080,
+    "priceFormatted": "535 080 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R198",
+    "name": "Butun tanani skrining Mrt",
+    "type": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 50,
+    "price": 988820,
+    "priceFormatted": "988 820 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R207",
+    "name": "Plyonka nusxasi, Disk va Xulosa",
+    "type": "XIZMAT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 5,
+    "price": 119560,
+    "priceFormatted": "119 560 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R208",
+    "name": "Disk nusxasi (yoki qoshimcha)",
+    "type": "XIZMAT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 5,
+    "price": 66640,
+    "priceFormatted": "66 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R156",
+    "name": "MRT Shifokori Konsultatsiyasi",
+    "type": "KONSULTATSIYA",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 15,
+    "price": 184240,
+    "priceFormatted": "184 240 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R94",
+    "name": "Shifokor Maslahati (Rentgen Tasvirni Izohlash Bilan)",
+    "type": "KONSULTATSIYA",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 15,
+    "price": 132300,
+    "priceFormatted": "132 300 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R133",
+    "name": "Kompyuter Tomografiya Shifokor Konsultatsiyasi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 184240,
+    "priceFormatted": "184 240 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R134",
+    "name": "Bosh Miya MSKT Tekshiruvi (Kontrast Moddasiz)",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R135",
+    "name": "Bosh Miya Mskt Tekshiruvi (Vena ichi Kontrast Modda Bilan)",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 880040,
+    "priceFormatted": "880 040 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R138",
+    "name": "Bosh-Boyin Kontrast Moddasiz MSKT Tekshiruvi (Burun Yon Boshligi,Ogiz-Burun-Halqum, Orbitalar, chakka Suyagi)",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 413560,
+    "priceFormatted": "413 560 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R139",
+    "name": "Bosh-Boyin Vena Ichi Kontrast Moddasi Boilan Mskt Tekshiruvi (Burun Yon Boshligi,Ogiz-Burun-Halqum,Orbitalar,Chakka Suyagi)",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R136",
+    "name": "Gipofiz bezining kontrast moddasiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R137",
+    "name": "Gipofiz bezining vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R151",
+    "name": "Umurtqa pog‘onasining (1-bo‘limi) kontrastsiz MSKT tekshiruvi Bo‘yin umurtqalari/ko‘krak umurtqalari/bel-dumg‘aza umurtqalari/dum umurtqalari/tos-chanoq suyaklari",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 415520,
+    "priceFormatted": "415 520 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R152",
+    "name": "Umurtqa Pogonasi (1-Bolimi) ni Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R140",
+    "name": "Kokrak qafasi organlarini kontrast moddasiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R142",
+    "name": "Kokrak qafasi organlarini vena ichi Kontrast Moddasi Bilan MSKT Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R141",
+    "name": "Kokrak qafasi organlarini kontrast moddasi bilan MSKT tekshiruvi PER OS",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 426300,
+    "priceFormatted": "426 300 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R143",
+    "name": "Qorin boshligi va qorin Pardaorti Azolarini Kontrast Moddasiz Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R144",
+    "name": "Qorin Boshligi Va Qorin Pardaorti Azolarini Kontrast Moddasi Bilan Mskt Tekshiruvi PER OS",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 426300,
+    "priceFormatted": "426 300 so'm",
+    "updatedAt": "2026-09-03T05:28:36.230Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R145",
+    "name": "Qorin Boshligi Va Qorin Pardaorti Azolarini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R149",
+    "name": "Buyrak Usti Bezini Kontrast Moddasiz Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R150",
+    "name": "Buyrak Usti Bezini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R146",
+    "name": "Kichik tos azolarini kontrast moddasiz MSKT tekshiruvi",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 378280,
+    "priceFormatted": "378 280 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R148",
+    "name": "Kichik Tos Azolarini Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R147",
+    "name": "Kichik Tos Azolarini Kontrast Moddasi Bilan Mskt Tekshiruvi Per Os",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 426300,
+    "priceFormatted": "426 300 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R153",
+    "name": "Bogimlar Mskt Tekshiruvi (1 Soha)",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 451780,
+    "priceFormatted": "451 780 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R154",
+    "name": "Qol Va Oyoqlarning Kontrast Moddasiz Mskt Tekshiruvi (1 Soha) (Kaft, kaft-tirsak bogimi, tirsak, tirsak bogimi, yelka suyagi, yelka bogimi, omrov suyagi, chanoq-son bogimi, tizza, son sohasi, boldir sohasi, boldir-tovon bogimi, oyoq kaft sohasi)",
+    "type": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "duration": 20,
+    "price": 451780,
+    "priceFormatted": "451 780 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
+  },
+  {
+    "code": "R155",
+    "name": "Qol Va Oyoqlarning Vena Ichi Kontrast Moddasi Bilan Mskt Tekshiruvi (1 Soha)",
+    "type": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "duration": 30,
+    "price": 850640,
+    "priceFormatted": "850 640 so'm",
+    "updatedAt": "2026-09-03T05:28:36.231Z",
+    "updatedBy": "official_catalog"
   }
 ]
