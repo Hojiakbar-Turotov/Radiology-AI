@@ -1963,6 +1963,8 @@ function applyRolePermissions(user) {
     if (clusterBadge) clusterBadge.style.display = "none";
     const btnKarmedHost = document.getElementById("btnKarmedHost");
     if (btnKarmedHost) btnKarmedHost.style.display = "none";
+    const btnAdminConsent = document.getElementById("btnAdminConsent");
+    if (btnAdminConsent) btnAdminConsent.style.display = "none";
 
     if (quickQueueDrawer) quickQueueDrawer.classList.add("collapsed");
 
@@ -2033,6 +2035,11 @@ function applyRolePermissions(user) {
   if (tabLaborant) tabLaborant.style.display = canAccessLaborant ? "inline-flex" : "none";
   if (tabStaff) tabStaff.style.display = (role === 'super_admin' || role === 'server_nazoratchisi') ? "inline-flex" : "none";
   if (tabDashboard) tabDashboard.style.display = (role === 'server_nazoratchisi') ? "inline-flex" : "none";
+
+  const btnAdminConsent = document.getElementById("btnAdminConsent");
+  if (btnAdminConsent) {
+    btnAdminConsent.style.display = (role === 'super_admin' || role === 'server_nazoratchisi' || role === 'admin') ? "inline-flex" : "none";
+  }
 }
 
 function formatRoleName(role) {
@@ -2268,7 +2275,7 @@ async function handleSaveProfile(e) {
 // -------------------------------------------------------------
 // XODIMLAR VA ROLLAR BOSHQARUVI (SUPER ADMIN & SERVER NAZORATCHISI)
 // -------------------------------------------------------------
-function openStaffModal() {
+function openStaffModal(defaultTab = 'members') {
   if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin')) {
     alert("Xodimlarni boshqarish uchun Super Admin yoki Server Nazoratchisi huquqi talab qilinadi!");
     return;
@@ -2284,7 +2291,7 @@ function openStaffModal() {
   if (optSuper) optSuper.style.display = isSupervisor ? "block" : "none";
   if (optSupervisor) optSupervisor.style.display = isSupervisor ? "block" : "none";
 
-  fetchStaffList();
+  switchStaffTab(defaultTab);
 }
 
 function closeStaffModal() {
@@ -2518,17 +2525,21 @@ window.switchStaffTab = function(tabName) {
   const btnMembers = document.getElementById("btnStaffTabMembers");
   const btnServices = document.getElementById("btnStaffTabServices");
   const btnDevices = document.getElementById("btnStaffTabDevices");
+  const btnConsent = document.getElementById("btnStaffTabConsent");
   const panelMembers = document.getElementById("panelStaffMembers");
   const panelServices = document.getElementById("panelStaffServices");
   const panelDevices = document.getElementById("panelStaffDevices");
+  const panelConsent = document.getElementById("panelStaffConsent");
 
   if (btnMembers) btnMembers.classList.toggle("active", tabName === 'members');
   if (btnServices) btnServices.classList.toggle("active", tabName === 'services');
   if (btnDevices) btnDevices.classList.toggle("active", tabName === 'devices');
+  if (btnConsent) btnConsent.classList.toggle("active", tabName === 'consent');
 
   if (panelMembers) panelMembers.style.display = (tabName === 'members') ? "block" : "none";
   if (panelServices) panelServices.style.display = (tabName === 'services') ? "block" : "none";
   if (panelDevices) panelDevices.style.display = (tabName === 'devices') ? "block" : "none";
+  if (panelConsent) panelConsent.style.display = (tabName === 'consent') ? "block" : "none";
 
   if (tabName === 'members') {
     fetchStaffList();
@@ -2536,6 +2547,8 @@ window.switchStaffTab = function(tabName) {
     fetchServicesList();
   } else if (tabName === 'devices') {
     fetchDevicesList();
+  } else if (tabName === 'consent') {
+    fetchAdminConsentQuestions();
   }
 };
 
@@ -3004,6 +3017,168 @@ window.deleteDevice = async function(devId) {
       fetchDevicesList();
     } else {
       alert("❌ Xatolik: " + (data.error || "O'chirib bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+// =============================================================
+// ADMIN & SERVER NAZORATCHISI: ROZILIK SAVOLLARI BOSHQARUVI
+// =============================================================
+let allAdminConsentQuestions = [];
+let activeAdminConsentFilter = "ALL";
+
+async function fetchAdminConsentQuestions() {
+  try {
+    const res = await fetch("/api/consent/questions");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.questions)) {
+      allAdminConsentQuestions = data.questions;
+      renderAdminConsentQuestions();
+    }
+  } catch (err) {
+    console.error("[fetchAdminConsentQuestions error]:", err);
+  }
+}
+
+window.filterAdminConsent = function(category, btnEl) {
+  activeAdminConsentFilter = category;
+  const btns = document.querySelectorAll(".cq-admin-filters .cq-tab-btn");
+  btns.forEach(b => b.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+  renderAdminConsentQuestions();
+};
+
+function renderAdminConsentQuestions() {
+  const tbody = document.getElementById("adminConsentTableBody");
+  if (!tbody) return;
+
+  const filtered = activeAdminConsentFilter === "ALL"
+    ? allAdminConsentQuestions
+    : allAdminConsentQuestions.filter(q => q.category === activeAdminConsentFilter || q.category === "ALL");
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Ushbu bo'limda savollar mavjud emas</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((q, idx) => {
+    const riskBadgeClass = q.riskLevel === 'danger' ? 'danger' : (q.riskLevel === 'warning' ? 'warning' : 'info');
+    const riskLabel = q.riskLevel === 'danger' ? '🚨 Mutlaq Qarshi Ko\'rsatma' : (q.riskLevel === 'warning' ? '⚠️ Ehtiyotkorlik' : 'ℹ️ Ma\'lumot');
+    const catLabel = q.category === 'CONTRAST' ? '💉 Kontrast' : (q.category === 'MSKT' ? '⚡ MSKT' : (q.category === 'ALL' ? '🌐 Barchasi' : '🧲 MRT'));
+    const dangerAnswerText = q.dangerAnswer === 'yes' ? '<span style="color:#f87171; font-weight:700;">"Ha"</span>' : '<span style="color:#fbbf24; font-weight:700;">"Yo\'q"</span>';
+
+    return `
+      <tr>
+        <td style="text-align:center; font-weight:bold; color:#94a3b8;">${idx + 1}</td>
+        <td><span class="role-badge" style="background:#1e293b; color:#38bdf8; border:1px solid #334155;">${catLabel}</span></td>
+        <td>
+          <div style="font-weight:600; color:#f8fafc; font-size:12.5px; line-height:1.35;">${escapeHtml(q.text)}</div>
+          ${q.description ? `<div style="font-size:11px; color:#94a3b8; margin-top:2px;"><i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i> ${escapeHtml(q.description)}</div>` : ''}
+        </td>
+        <td><span class="status-badge ${riskBadgeClass}">${riskLabel}</span></td>
+        <td style="text-align:center;">${dangerAnswerText}</td>
+        <td style="text-align:center;">
+          <button type="button" class="btn-table-action" onclick="deleteAdminConsentQuestion('${q.id}', '${escapeHtml(q.text)}')" title="Savolni o'chirish" style="color:#ef4444;">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+window.toggleAddAdminConsentForm = function(show) {
+  const box = document.getElementById("boxAddAdminConsent");
+  if (!box) return;
+  if (show === undefined) {
+    box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+  } else {
+    box.style.display = show ? "block" : "none";
+  }
+};
+
+window.handleCreateAdminConsent = async function(e) {
+  e.preventDefault();
+  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+  if (!token) {
+    alert("Iltimos, avval tizimga kiring!");
+    return;
+  }
+
+  const text = document.getElementById("adminCqText").value.trim();
+  const category = document.getElementById("adminCqCategory").value;
+  const riskLevel = document.getElementById("adminCqRisk").value;
+  const dangerAnswer = document.getElementById("adminCqDangerAnswer").value;
+  const required = document.getElementById("adminCqRequired").value === "true";
+  const description = document.getElementById("adminCqDesc").value.trim();
+
+  if (!text) {
+    alert("Iltimos, savol matnini kiriting!");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/consent/questions/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        text,
+        category,
+        riskLevel,
+        dangerAnswer,
+        required,
+        description
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ Yangi rozilik savoli muvaffaqiyatli qo'shildi!");
+      document.getElementById("adminCqText").value = "";
+      document.getElementById("adminCqDesc").value = "";
+      toggleAddAdminConsentForm(false);
+      if (data.questions) allAdminConsentQuestions = data.questions;
+      renderAdminConsentQuestions();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Savolni saqlab bo'lmadi"));
+    }
+  } catch (err) {
+    alert("❌ Server xatosi: " + err.message);
+  }
+};
+
+window.deleteAdminConsentQuestion = async function(id, text) {
+  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
+  if (!token) {
+    alert("Iltimos, avval tizimga kiring!");
+    return;
+  }
+
+  if (!confirm(`Haqiqatan ham ushbu savolni so'rovnomadan o'chirmoqchimisiz?\n\n"${text}"`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/consent/questions/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ id })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      if (data.questions) allAdminConsentQuestions = data.questions;
+      renderAdminConsentQuestions();
+    } else {
+      alert("❌ Xatolik: " + (data.error || "Savolni o'chirib bo'lmadi"));
     }
   } catch (err) {
     alert("❌ Server xatosi: " + err.message);

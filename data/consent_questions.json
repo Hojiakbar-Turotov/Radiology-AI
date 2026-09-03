@@ -1,0 +1,162 @@
+[
+  {
+    "id": "cq_mrt_pacemaker",
+    "category": "MRT",
+    "order": 1,
+    "text": "Tanangizda kardiostimulyator, sun'iy yurak klapani, neyrostimulyator yoki insulin pompasi bormi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Kuchli magnit maydoni kardiostimulyator faoliyatini to'xtatishi yoki qizib ketishiga sabab bo'lishi mumkin (Mutlaq qarshi ko'rsatma).",
+    "required": true
+  },
+  {
+    "id": "cq_mrt_clips",
+    "category": "MRT",
+    "order": 2,
+    "text": "Bosh miya qon tomirlarida metall klipslar, ko'z sohasida metall qirindi/parchalari yoki o'q/shrapnel bormi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Magnit maydonida metall parchalari siljishi va to'qimalarga jiddiy shikast yetkazishi mumkin.",
+    "required": true
+  },
+  {
+    "id": "cq_mrt_cochlear",
+    "category": "MRT",
+    "order": 3,
+    "text": "Quloq ichi implantati (koxlear implant) yoki eshitish apparati o'rnatilganmi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Elektron implant shikastlanishi va kuchli og'riq keltirib chiqarishi mumkin.",
+    "required": true
+  },
+  {
+    "id": "cq_mrt_implants",
+    "category": "MRT",
+    "order": 4,
+    "text": "Tanangizda sun'iy bo'g'im endoprotezlari, metall plastina, vint, stent yoki protezlar mavjudmi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Protezning metall tarkibi (titan, po'lat) va o'rnatilgan muddati haqida ma'lumot talab etiladi.",
+    "required": true
+  },
+  {
+    "id": "cq_mrt_claustro",
+    "category": "MRT",
+    "order": 5,
+    "text": "Sizda tor va yopiq joylardan qo'rqish (klaustrofobiya) holati bormi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Zarur bo'lsa, sedativ dori vositalari qo'llash yoki tekshiruv davomida yaqinlaridan birining birga turishi kerak.",
+    "required": false
+  },
+  {
+    "id": "cq_mrt_pregnancy",
+    "category": "MRT",
+    "order": 6,
+    "text": "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Homiladorlikning 1-trimestrida (birinchi 12 hafta) faqat hayotiy ko'rsatma bo'yicha o'tkaziladi.",
+    "required": true
+  },
+  {
+    "id": "cq_mrt_tattoo",
+    "category": "MRT",
+    "order": 7,
+    "text": "Tanangizda metall tarkibli bo'yoq bilan chizilgan tatuirovkalar bormi?",
+    "riskLevel": "info",
+    "dangerAnswer": "yes",
+    "description": "Ba'zi temir tarkibli bo'yoqlar tekshiruv vaqtida biroz qizishi mumkin.",
+    "required": false
+  },
+  {
+    "id": "cq_mrt_removables",
+    "category": "MRT",
+    "order": 8,
+    "text": "Barcha metall buyumlar: tish protezlari, soat, uzuk, sirg'a, soch to'g'nog'ichlari, telefon va kalitlar yechildimi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "no",
+    "description": "Xonaga kirishdan oldin barcha metall va magnit buyumlar mutlaqo yechilishi shart!",
+    "required": true
+  },
+  {
+    "id": "cq_mskt_pregnancy",
+    "category": "MSKT",
+    "order": 9,
+    "text": "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Rentgen nurlanishi homilaga salbiy ta'sir ko'rsatishi mumkin. Homiladorlikda MSKT qat'iyan taqiqlanadi.",
+    "required": true
+  },
+  {
+    "id": "cq_mskt_barium",
+    "category": "MSKT",
+    "order": 10,
+    "text": "Oxirgi 7 kun ichida oshqozon-ichak trakti bariy moddasi bilan rentgen qilinganmi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Qorin bo'shlig'idagi qoldiq bariy tomografik tasvirlarda kuchli artefakt keltirib chiqaradi.",
+    "required": false
+  },
+  {
+    "id": "cq_contrast_allergy",
+    "category": "CONTRAST",
+    "order": 11,
+    "text": "Oldin kontrast moddalarga, yodga, dori-darmonlarga yoki dengiz mahsulotlariga kuchli allergiya bo'lganmi?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Anafilaktik shok xavfini baholash va kerak bo'lsa oldindan antiallergik premedikatsiya o'tkazish kerak.",
+    "required": true
+  },
+  {
+    "id": "cq_contrast_kidney",
+    "category": "CONTRAST",
+    "order": 12,
+    "text": "Sizda surunkali buyrak kasalligi bormi? Qon tahlilida Kreatinin miqdori me'yordami?",
+    "riskLevel": "danger",
+    "dangerAnswer": "yes",
+    "description": "Kontrast nefropatiyasi xavfi. Kreatinin va GFR ko'rsatkichi me'yordan yuqori bo'lsa kontrast qilinmaydi.",
+    "required": true
+  },
+  {
+    "id": "cq_contrast_diabetes",
+    "category": "CONTRAST",
+    "order": 13,
+    "text": "Qandli diabet bormi va Metformin (Siofor, Glukofaj) dori vositalarini qabul qilasizmi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Kontrastli MSKT dan oldin va keyin 48 soat davomida Metformin dori vositasini to'xtatib turish shart.",
+    "required": true
+  },
+  {
+    "id": "cq_contrast_asthma",
+    "category": "CONTRAST",
+    "order": 14,
+    "text": "Bronxial astma yoki surunkali nafas qisishi kasalligi kuzatiladimi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Bronxospazm xavfi yuqori bo'lgani sababli tayyorgarlik choralari ko'rilishi zarur.",
+    "required": false
+  },
+  {
+    "id": "cq_contrast_thyroid",
+    "category": "CONTRAST",
+    "order": 15,
+    "text": "Qalqonsimon bez giperfunksiyasi (tireotoksikoz yoki zaharli buqoq) mavjudmi?",
+    "riskLevel": "warning",
+    "dangerAnswer": "yes",
+    "description": "Yod saqlovchi kontrast modda tireotoksik kriz keltirib chiqarishi mumkin.",
+    "required": false
+  },
+  {
+    "id": "cq_contrast_breastfeed",
+    "category": "CONTRAST",
+    "order": 16,
+    "text": "Emizikli davrdamisiz?",
+    "riskLevel": "info",
+    "dangerAnswer": "yes",
+    "description": "Kontrast yuborilgach, 24 soat davomida ko'krak suti bilan emizmaslik tavsiya qilinadi.",
+    "required": false
+  }
+]

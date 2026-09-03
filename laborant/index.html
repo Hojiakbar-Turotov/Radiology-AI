@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="/shared/auth-guard.js"></script>
+  <script src="/shared/theme.js"></script>
 </head>
 <body>
   <div class="mobile-container">
@@ -16,12 +17,15 @@
         <img src="/karmed-workspace/assets/logo-onko.png" alt="Logo" style="width:28px; height:28px; object-fit:contain; border-radius:6px; background:#fff; padding:1.5px; border:1px solid #38bdf8;">
         <span>Laborant Portali</span>
       </div>
-      <div class="room-selector-wrap">
+      <div class="room-selector-wrap" style="display:flex; align-items:center; gap:8px;">
         <select id="selectDevice" class="room-select">
           <option value="mrt1">🧲 1-MRT Xonasi (1.5 T)</option>
           <option value="mrt2">🧲 2-MRT Xonasi (3.0 T)</option>
           <option value="mskt1">⚡ 1-MSKT Xonasi</option>
         </select>
+        <button class="btn-head-consent" onclick="openConsentQuestionsManagerModal()" title="Rozilik savollari ro'yxati va tahrirlash">
+          <i class="fa-solid fa-list-check"></i> Savollar
+        </button>
       </div>
     </header>
 
@@ -40,6 +44,7 @@
           <div class="pat-top-meta">
             <span class="ticket-pill" id="curTicket">M-001</span>
             <span class="contrast-pill" id="curContrastPill" style="display:none;"><i class="fa-solid fa-syringe"></i> KONTRAST</span>
+            <span class="consent-status-pill" id="curConsentPill" style="display:none;" onclick="openCurrentPatientConsent()">📋 Anketasi</span>
           </div>
 
           <h2 class="pat-name" id="curName">ALIYEV VALI</h2>
@@ -51,6 +56,9 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons-grid">
+            <button class="btn btn-consent" id="btnActionConsent" onclick="openCurrentPatientConsent()" title="Bemor rozilik anketasini to'ldirish">
+              <i class="fa-solid fa-clipboard-check"></i> Rozilik Anketasi
+            </button>
             <button class="btn btn-call" id="btnActionCall" title="Ovozli chaqiruvni qayta e'lon qilish">
               <i class="fa-solid fa-bullhorn"></i> Qayta Chaqirish
             </button>
@@ -84,9 +92,14 @@
           </div>
           <div class="prep-name" id="prepName">Karimov Jasur</div>
           <div class="prep-service" id="prepService">Ko'krak qafasi MRT</div>
-          <button class="btn btn-start-prep" id="btnCallToRoom">
-            <i class="fa-solid fa-door-open"></i> Xonaga Kirishga Ruxsat Berish
-          </button>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-start-prep" id="btnCallToRoom" style="flex:1;">
+              <i class="fa-solid fa-door-open"></i> Xonaga Kirishga Ruxsat Berish
+            </button>
+            <button class="btn btn-consent" id="btnPrepConsent" onclick="openPrepPatientConsent()" title="Tayyorgarlikdagi bemor rozilik anketasi" style="padding:8px 12px; font-size:12px; background:#065f46; color:#a7f3d0; border:1px solid #10b981; border-radius:6px; cursor:pointer;">
+              <i class="fa-solid fa-clipboard-check"></i> Anketasi
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -101,6 +114,7 @@
         <!-- Dynamic Waiting List -->
       </div>
     </section>
+
   <!-- Bekor Qilish Sababi Modali -->
   <div id="modalCancelReason" class="cancel-modal-overlay" style="display:none;">
     <div class="cancel-modal-card">
@@ -143,6 +157,134 @@
       <div class="cancel-modal-actions">
         <button class="btn-cancel-modal-close" onclick="closeCancelModal()">Orqaga</button>
         <button class="btn-confirm-cancel" onclick="confirmCancelExamination()"><i class="fa-solid fa-ban"></i> Bekor qilishni tasdiqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. BEMOR ROZILIK ANKETASI MODALI -->
+  <div id="modalPatientConsent" class="consent-modal-overlay" style="display:none;">
+    <div class="consent-modal-card">
+      <div class="consent-modal-header">
+        <div class="consent-modal-title">
+          <i class="fa-solid fa-clipboard-check" style="color:#10b981; font-size:22px;"></i>
+          <div>
+            <h3 id="consentPatTitle" style="font-size:15px; font-weight:800; color:#f8fafc; margin:0;">Bemor Rozilik Anketasi</h3>
+            <span id="consentPatSubtitle" style="font-size:11.5px; color:#94a3b8;">Xabardor qilingan rozilik & xavfsizlik anketa varaqasi</span>
+          </div>
+        </div>
+        <button class="modal-close-x" onclick="closePatientConsentModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Xavfsizlik Status Paneli -->
+      <div id="consentSafetyBanner" class="consent-safety-banner safe">
+        <i class="fa-solid fa-circle-check" id="consentSafetyIcon"></i>
+        <div id="consentSafetyText">Barcha savollar bo'yicha tekshiruv xavfsiz. O'tkazishga ruxsat beriladi.</div>
+      </div>
+
+      <!-- Savollar Ro'yxati -->
+      <div class="consent-questions-scroll" id="consentQuestionsList">
+        <!-- Dinamik ravishda yuklanadi -->
+      </div>
+
+      <!-- Laborant Izohi -->
+      <div style="padding:10px 16px; background:#0f172a; border-top:1px solid #1e293b;">
+        <label style="font-size:11px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">
+          <i class="fa-solid fa-comment-medical"></i> Laborant / Shifokor xulosasi va qo'shimcha izohlari:
+        </label>
+        <input type="text" id="consentNotesInp" placeholder="Bemor holati, tahlil natijalari yoki maxsus ko'rsatmalar..." style="width:100%; padding:8px 10px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#f8fafc; font-size:12px; box-sizing:border-box;">
+      </div>
+
+      <!-- Actions -->
+      <div class="consent-modal-actions">
+        <button type="button" class="btn-consent-close" onclick="closePatientConsentModal()">Orqaga</button>
+        <button type="button" class="btn-consent-print" onclick="printPatientConsentForm()"><i class="fa-solid fa-print"></i> Chop Etish (A4/A5)</button>
+        <button type="button" class="btn-consent-save" onclick="savePatientConsentForm()"><i class="fa-solid fa-check"></i> Saqlash & Tasdiqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ROZILIK SAVOLLARINI BOSHQARISH MODALI (ADMIN & LABORANT) -->
+  <div id="modalConsentQuestionsManager" class="consent-modal-overlay" style="display:none;">
+    <div class="consent-modal-card large">
+      <div class="consent-modal-header">
+        <div class="consent-modal-title">
+          <i class="fa-solid fa-list-check" style="color:#38bdf8; font-size:22px;"></i>
+          <div>
+            <h3 style="font-size:15px; font-weight:800; color:#f8fafc; margin:0;">Rozilik Anketasi Savollari Ro'yxati</h3>
+            <span style="font-size:11.5px; color:#94a3b8;">Savollarni ko'rish, yangi savol qo'shish va olib tashlash</span>
+          </div>
+        </div>
+        <button class="modal-close-x" onclick="closeConsentQuestionsManagerModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Filter Tabs & Add Button -->
+      <div class="cq-manager-toolbar">
+        <div class="cq-filter-tabs">
+          <button class="cq-tab-btn active" onclick="filterConsentQuestions('ALL', this)">Barchasi</button>
+          <button class="cq-tab-btn" onclick="filterConsentQuestions('MRT', this)">🧲 MRT</button>
+          <button class="cq-tab-btn" onclick="filterConsentQuestions('MSKT', this)">⚡ MSKT</button>
+          <button class="cq-tab-btn" onclick="filterConsentQuestions('CONTRAST', this)">💉 Kontrast</button>
+        </div>
+        <button class="btn-add-cq" onclick="toggleAddQuestionForm()">
+          <i class="fa-solid fa-plus"></i> Yangi Savol Qo'shish
+        </button>
+      </div>
+
+      <!-- Add New Question Form (Hidden by default) -->
+      <div id="cqAddFormWrap" class="cq-add-form" style="display:none;">
+        <h4 style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:8px;">
+          <i class="fa-solid fa-circle-plus"></i> Yangi Rozilik Savoli Qo'shish
+        </h4>
+        <div class="cq-form-grid">
+          <div style="grid-column: span 2;">
+            <label>Savol Matni: <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="newCqText" placeholder="Masalan: Tanangizda metall implant yoki protez bormi?" required>
+          </div>
+          <div>
+            <label>Kategoriya:</label>
+            <select id="newCqCategory">
+              <option value="MRT">🧲 MRT</option>
+              <option value="MSKT">⚡ MSKT</option>
+              <option value="CONTRAST">💉 Kontrast</option>
+              <option value="ALL">🌐 Barchasi</option>
+            </select>
+          </div>
+          <div>
+            <label>Xavf Darajasi:</label>
+            <select id="newCqRisk">
+              <option value="danger">🚨 Xavfli (Mutlaq qarshi ko'rsatma)</option>
+              <option value="warning">⚠️ Ogohlantirish (Ehtiyotkorlik)</option>
+              <option value="info">ℹ️ Ma'lumot</option>
+            </select>
+          </div>
+          <div>
+            <label>Xavfli Javob Qaysi:</label>
+            <select id="newCqDangerAnswer">
+              <option value="yes">"Ha" javobi xavfli</option>
+              <option value="no">"Yo'q" javobi xavfli</option>
+            </select>
+          </div>
+          <div>
+            <label>Majburiymi?</label>
+            <select id="newCqRequired">
+              <option value="true">Majburiy javob talab etiladi</option>
+              <option value="false">Ixtiyoriy</option>
+            </select>
+          </div>
+          <div style="grid-column: span 2;">
+            <label>Tushuntirish / Klinik Sababi:</label>
+            <input type="text" id="newCqDesc" placeholder="Nima uchun bu savol muhimligi haqida izoh...">
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+          <button type="button" class="btn-cancel-small" onclick="toggleAddQuestionForm(false)">Bekor qilish</button>
+          <button type="button" class="btn-save-small" onclick="submitNewQuestion()"><i class="fa-solid fa-check"></i> Saqlash</button>
+        </div>
+      </div>
+
+      <!-- Questions List Table / Cards -->
+      <div class="cq-items-list" id="cqItemsList">
+        <!-- JS orqali to'ldiriladi -->
       </div>
     </div>
   </div>

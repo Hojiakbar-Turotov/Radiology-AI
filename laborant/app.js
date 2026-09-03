@@ -116,6 +116,9 @@ function connectWebSocket() {
       if (data.type === "queue_init" || data.type === "queue_updated") {
         if (data.payload.queue) currentQueue = data.payload.queue;
         renderLaborantView();
+      } else if (data.type === "consent_questions_updated") {
+        if (data.payload.questions) allConsentQuestions = data.payload.questions;
+        renderConsentQuestionsManager();
       }
     } catch (e) {}
   };
@@ -134,6 +137,18 @@ async function fetchQueue() {
       renderLaborantView();
     }
   } catch (e) {}
+}
+
+async function fetchConsentQuestions() {
+  try {
+    const res = await fetch("/api/consent/questions");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.questions)) {
+      allConsentQuestions = data.questions;
+    }
+  } catch (e) {
+    console.error("Consent questions fetch error:", e);
+  }
 }
 
 function renderLaborantView() {
@@ -163,6 +178,29 @@ function renderLaborantView() {
 
     const contrastPill = document.getElementById("curContrastPill");
     contrastPill.style.display = activePatient.isContrast ? "inline-block" : "none";
+
+    const consentPill = document.getElementById("curConsentPill");
+    if (consentPill) {
+      consentPill.style.display = "inline-block";
+      if (activePatient.consent) {
+        if (activePatient.consent.isSafe) {
+          consentPill.style.background = "rgba(16, 185, 129, 0.2)";
+          consentPill.style.color = "#6ee7b7";
+          consentPill.style.borderColor = "#10b981";
+          consentPill.innerHTML = `<i class="fa-solid fa-circle-check"></i> Rozilik: Xavfsiz`;
+        } else {
+          consentPill.style.background = "rgba(239, 68, 68, 0.25)";
+          consentPill.style.color = "#fca5a5";
+          consentPill.style.borderColor = "#ef4444";
+          consentPill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Rozilik: Qarshi ko'rsatma!`;
+        }
+      } else {
+        consentPill.style.background = "rgba(245, 158, 11, 0.2)";
+        consentPill.style.color = "#fde68a";
+        consentPill.style.borderColor = "#f59e0b";
+        consentPill.innerHTML = `<i class="fa-solid fa-clipboard-question"></i> Rozilik: Kutilmoqda`;
+      }
+    }
 
     const startTimeFormatted = activePatient.startedAt 
       ? new Date(activePatient.startedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) 
@@ -194,9 +232,10 @@ function renderLaborantView() {
     prepDetails.style.display = "none";
   }
 
-  // 3. Waiting List
-  document.getElementById("waitingCountBadge").innerText = `${waitingList.length} ta`;
+  // 3. Waiting Queue List
   const listContainer = document.getElementById("waitingCardsContainer");
+  const countBadge = document.getElementById("waitingCountBadge");
+  countBadge.innerText = `${waitingList.length} ta`;
 
   if (waitingList.length === 0) {
     listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b; font-size:12px;">Kutayotgan bemorlar yo'q</div>`;
@@ -216,6 +255,9 @@ function renderLaborantView() {
         </div>
       </div>
       <div class="item-actions">
+        <button class="btn-mini-consent" onclick="openPatientConsentById('${p.id}')" title="Rozilik anketasi" style="background:#065f46; color:#a7f3d0; border:1px solid #10b981; padding:5px 9px; border-radius:6px; font-size:11.5px; font-weight:700; cursor:pointer;">
+          <i class="fa-solid fa-clipboard-check"></i> Anketa
+        </button>
         <button class="btn-mini-prep" onclick="handleStartPrep('${p.id}')">
           <i class="fa-solid fa-syringe"></i> Tayyorlash
         </button>
@@ -257,3 +299,452 @@ function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+// =============================================================
+// ROZILIK ANKETASI (INFORMED CONSENT QUESTIONNAIRE) BOSHQARUVI
+// =============================================================
+let allConsentQuestions = [];
+let consentTargetPatient = null;
+let currentConsentAnswers = {};
+let activeCqFilter = "ALL";
+
+window.openCurrentPatientConsent = function() {
+  if (!activePatient) {
+    alert("Hozirda xonada bemor yo'q");
+    return;
+  }
+  openPatientConsent(activePatient);
+};
+
+window.openPrepPatientConsent = function() {
+  if (!prepPatient) {
+    alert("Hozirda tayyorgarlikda bemor yo'q");
+    return;
+  }
+  openPatientConsent(prepPatient);
+};
+
+window.openPatientConsentById = function(id) {
+  const p = currentQueue.find(x => x.id === id);
+  if (p) openPatientConsent(p);
+};
+
+function openPatientConsent(patient) {
+  consentTargetPatient = patient;
+  currentConsentAnswers = patient.consent ? { ...(patient.consent.answers || {}) } : {};
+
+  const titleEl = document.getElementById("consentPatTitle");
+  const subEl = document.getElementById("consentPatSubtitle");
+  const notesInp = document.getElementById("consentNotesInp");
+
+  if (titleEl) titleEl.innerText = `${patient.ticketNumber} — ${patient.patientName}`;
+  if (subEl) subEl.innerText = `${patient.primaryService} (${(patient.deviceId || '').toUpperCase()}) • Xabardor qilingan rozilik anketasi`;
+  if (notesInp) notesInp.value = patient.consent?.notes || "";
+
+  renderConsentQuestionsForPatient(patient);
+  updateConsentSafetyStatus();
+
+  const modal = document.getElementById("modalPatientConsent");
+  if (modal) modal.style.display = "flex";
+}
+
+window.closePatientConsentModal = function() {
+  const modal = document.getElementById("modalPatientConsent");
+  if (modal) modal.style.display = "none";
+  consentTargetPatient = null;
+};
+
+function renderConsentQuestionsForPatient(patient) {
+  const container = document.getElementById("consentQuestionsList");
+  if (!container) return;
+
+  const isMskt = patient.deviceType === "MSKT" || (patient.deviceId && patient.deviceId.includes("mskt")) || (patient.primaryService && patient.primaryService.includes("MSKT"));
+  const devCategory = isMskt ? "MSKT" : "MRT";
+  const isContrast = Boolean(patient.isContrast);
+
+  // Filtrlash: tegishli apparat savollari + agar kontrastli bo'lsa kontrast savollari + umumiy savollar
+  const relevantQuestions = allConsentQuestions.filter(q => {
+    if (q.category === "ALL") return true;
+    if (q.category === devCategory) return true;
+    if (q.category === "CONTRAST" && isContrast) return true;
+    return false;
+  });
+
+  if (relevantQuestions.length === 0) {
+    container.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:20px; font-size:12px;">Ushbu tekshiruv uchun savollar topilmadi.</div>`;
+    return;
+  }
+
+  container.innerHTML = relevantQuestions.map((q, idx) => {
+    // Agar javob berilmagan bo'lsa, xavfsiz default javobni olish
+    const currentAns = currentConsentAnswers[q.id] !== undefined 
+      ? currentConsentAnswers[q.id] 
+      : (q.dangerAnswer === "yes" ? "no" : "yes");
+    
+    currentConsentAnswers[q.id] = currentAns;
+
+    const isDanger = (currentAns === q.dangerAnswer);
+    const riskBadgeClass = `cq-badge ${q.riskLevel || 'warning'}`;
+    const riskLabel = q.riskLevel === 'danger' ? 'Mutlaq Qarshi Ko\'rsatma' : (q.riskLevel === 'warning' ? 'Ehtiyotkorlik' : 'Ma\'lumot');
+
+    return `
+      <div class="consent-q-item ${isDanger ? 'danger-flag' : ''}" id="cq_wrap_${q.id}">
+        <div class="consent-q-top">
+          <div class="consent-q-text">
+            <span style="color:#38bdf8; font-weight:800; margin-right:4px;">${idx + 1}.</span>
+            ${escapeHtml(q.text)}
+            <span class="${riskBadgeClass}" style="margin-left:6px; font-size:9.5px;">${riskLabel}</span>
+          </div>
+          <div class="consent-btn-group">
+            <button type="button" class="btn-answer ${currentAns === 'no' ? (q.dangerAnswer === 'no' ? 'selected-yes' : 'selected-no') : ''}" onclick="setPatientAnswer('${q.id}', 'no')">
+              Yo'q
+            </button>
+            <button type="button" class="btn-answer ${currentAns === 'yes' ? (q.dangerAnswer === 'yes' ? 'selected-yes' : 'selected-no') : ''}" onclick="setPatientAnswer('${q.id}', 'yes')">
+              Ha
+            </button>
+          </div>
+        </div>
+        ${q.description ? `<div class="consent-q-desc"><i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i> ${escapeHtml(q.description)}</div>` : ''}
+      </div>
+    `;
+  }).join("");
+}
+
+window.setPatientAnswer = function(questionId, ans) {
+  currentConsentAnswers[questionId] = ans;
+  const q = allConsentQuestions.find(x => x.id === questionId);
+  const wrap = document.getElementById(`cq_wrap_${questionId}`);
+
+  if (wrap && q) {
+    const isDanger = (ans === q.dangerAnswer);
+    if (isDanger) wrap.classList.add("danger-flag");
+    else wrap.classList.remove("danger-flag");
+
+    const noBtn = wrap.querySelector(".consent-btn-group button:nth-child(1)");
+    const yesBtn = wrap.querySelector(".consent-btn-group button:nth-child(2)");
+
+    if (noBtn && yesBtn) {
+      noBtn.className = `btn-answer ${ans === 'no' ? (q.dangerAnswer === 'no' ? 'selected-yes' : 'selected-no') : ''}`;
+      yesBtn.className = `btn-answer ${ans === 'yes' ? (q.dangerAnswer === 'yes' ? 'selected-yes' : 'selected-no') : ''}`;
+    }
+  }
+
+  updateConsentSafetyStatus();
+};
+
+function updateConsentSafetyStatus() {
+  const banner = document.getElementById("consentSafetyBanner");
+  const textEl = document.getElementById("consentSafetyText");
+  const iconEl = document.getElementById("consentSafetyIcon");
+  if (!banner || !textEl) return;
+
+  let dangerCount = 0;
+  let dangerQuestions = [];
+
+  for (const qId in currentConsentAnswers) {
+    const ans = currentConsentAnswers[qId];
+    const q = allConsentQuestions.find(x => x.id === qId);
+    if (q && ans === q.dangerAnswer) {
+      dangerCount++;
+      dangerQuestions.push(q.text);
+    }
+  }
+
+  if (dangerCount > 0) {
+    banner.className = "consent-safety-banner danger";
+    if (iconEl) iconEl.className = "fa-solid fa-triangle-exclamation";
+    textEl.innerHTML = `<strong>🚨 DIQQAT: Xavfli holat aniqlandi! (${dangerCount} ta qarshi ko'rsatma).</strong> Shifokor ko'rigi talab etiladi.`;
+  } else {
+    banner.className = "consent-safety-banner safe";
+    if (iconEl) iconEl.className = "fa-solid fa-circle-check";
+    textEl.innerHTML = `<strong>🟢 Tekshiruvga ruxsat etiladi:</strong> Qarshi ko'rsatmalar aniqlanmadi. Bemor xavfsiz.`;
+  }
+}
+
+window.savePatientConsentForm = async function() {
+  if (!consentTargetPatient) return;
+
+  const notes = document.getElementById("consentNotesInp")?.value.trim() || "";
+  let isSafe = true;
+
+  for (const qId in currentConsentAnswers) {
+    const ans = currentConsentAnswers[qId];
+    const q = allConsentQuestions.find(x => x.id === qId);
+    if (q && ans === q.dangerAnswer && q.riskLevel === "danger") {
+      isSafe = false;
+      break;
+    }
+  }
+
+  const payload = {
+    patientId: consentTargetPatient.id,
+    isSafe: isSafe,
+    answers: currentConsentAnswers,
+    notes: notes,
+    filledBy: "Laborant"
+  };
+
+  const res = await postAPI("/api/consent/submit", payload);
+  if (res && res.success) {
+    alert("✅ Bemor rozilik anketasi muvaffaqiyatli saqlandi!");
+    closePatientConsentModal();
+    fetchQueue();
+  } else {
+    alert("Xatolik: " + (res?.error || "Saqlab bo'lmadi"));
+  }
+};
+
+window.printPatientConsentForm = function() {
+  if (!consentTargetPatient) return;
+
+  const printWin = window.open("", "_blank", "width=800,height=900");
+  if (!printWin) return;
+
+  const pat = consentTargetPatient;
+  const isMskt = pat.deviceType === "MSKT" || (pat.deviceId && pat.deviceId.includes("mskt"));
+  const devCategory = isMskt ? "MSKT" : "MRT";
+  const isContrast = Boolean(pat.isContrast);
+
+  const relevantQuestions = allConsentQuestions.filter(q => {
+    if (q.category === "ALL") return true;
+    if (q.category === devCategory) return true;
+    if (q.category === "CONTRAST" && isContrast) return true;
+    return false;
+  });
+
+  const todayStr = new Date().toLocaleDateString("ru-RU");
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Rozilik Varaqasi - ${escapeHtml(pat.patientName)}</title>
+      <style>
+        @page { size: A4; margin: 15mm 12mm; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 13px; line-height: 1.35; color: #000; margin: 0; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
+        .header h3 { margin: 0 0 3px 0; font-size: 14px; text-transform: uppercase; }
+        .header h2 { margin: 0 0 3px 0; font-size: 16px; font-weight: 900; }
+        .header p { margin: 0; font-size: 12px; font-style: italic; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        .info-table td { padding: 4px 6px; border: 1px solid #777; font-size: 12.5px; }
+        .info-table td.label { width: 22%; font-weight: bold; background: #f8f8f8; }
+        .q-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        .q-table th, .q-table td { border: 1px solid #000; padding: 5px 6px; font-size: 12px; }
+        .q-table th { background: #eeeeee; text-align: center; }
+        .text-center { text-align: center; font-weight: bold; }
+        .ans-yes { color: #000; font-weight: 900; text-align: center; }
+        .ans-no { color: #000; font-weight: bold; text-align: center; }
+        .declaration { border: 1px solid #333; background: #fafafa; padding: 8px 10px; font-size: 12px; line-height: 1.35; text-align: justify; margin-bottom: 14px; }
+        .signatures { width: 100%; margin-top: 25px; border-collapse: collapse; }
+        .signatures td { vertical-align: bottom; font-size: 12.5px; padding: 6px 0; }
+        .sign-line { display: inline-block; width: 160px; border-bottom: 1px solid #000; margin-left: 6px; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h3>O'zbekiston Respublikasi Sog'liqni Saqlash Vazirligi</h3>
+        <h2>RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h2>
+        <p>Radiologik tekshiruv (${devCategory}) o'tkazishga xabardor qilingan ixtiyoriy rozilik va xavfsizlik anketasi</p>
+      </div>
+
+      <table class="info-table">
+        <tr>
+          <td class="label">Bemor F.I.Sh:</td>
+          <td><strong>${escapeHtml(pat.patientName)}</strong></td>
+          <td class="label">Bemor ID / Karta:</td>
+          <td>${escapeHtml(pat.patientId || pat.cardNo || '-')}</td>
+        </tr>
+        <tr>
+          <td class="label">Tekshiruv Sohasi:</td>
+          <td><strong>${escapeHtml(pat.primaryService)}</strong></td>
+          <td class="label">Apparat / Xona:</td>
+          <td>${(pat.deviceId || '').toUpperCase()}</td>
+        </tr>
+        <tr>
+          <td class="label">Kontrast Modda:</td>
+          <td>${pat.isContrast ? 'Ha (Vena ichiga kontrast yuboriladi)' : 'Yo\'q (Kontrastsiz)'}</td>
+          <td class="label">To'ldirilgan Sana:</td>
+          <td>${todayStr}</td>
+        </tr>
+      </table>
+
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th style="width:5%;">№</th>
+            <th style="width:75%; text-align:left;">Xavfsizlik va Tibbiy Anamnez Savoli</th>
+            <th style="width:10%;">Yo'q</th>
+            <th style="width:10%;">Ha</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${relevantQuestions.map((q, idx) => {
+            const ans = currentConsentAnswers[q.id] || "no";
+            return `
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${escapeHtml(q.text)}</td>
+                <td class="ans-no">${ans === 'no' ? 'V' : ''}</td>
+                <td class="ans-yes">${ans === 'yes' ? 'V' : ''}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+
+      <div class="declaration">
+        <strong>BEMORNING ROZILIK BAYONNOMASI:</strong><br>
+        Men, yuqorida ko'rsatilgan bemor (yoki uning qonuniy vakili), o'tkazilayotgan radiologik tekshiruvning maqsadi, tartibi, kontrast moddaning xususiyatlari va yuzaga kelishi mumkin bo'lgan holatlar haqida to'liq tushuntirish oldim. Anketa savollariga to'liq va to'g'ri javob berganimni tasdiqlayman. O'tkaziladigan tekshiruvga o'z ixtiyorim bilan rozilik bildiraman.
+      </div>
+
+      <table class="signatures">
+        <tr>
+          <td style="width:50%;">
+            Bemor (yoki vakili) imzosi: <span class="sign-line"></span>
+          </td>
+          <td style="width:50%; text-align:right;">
+            Laborant / Vrach imzosi: <span class="sign-line"></span>
+          </td>
+        </tr>
+        <tr>
+          <td>F.I.Sh: ___________________________</td>
+          <td style="text-align:right;">Sana: ${todayStr} yil</td>
+        </tr>
+      </table>
+
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      </script>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+};
+
+// =============================================================
+// ROZILIK SAVOLLARINI BOSHQARISH (QUESTIONS MANAGER MODAL)
+// =============================================================
+window.openConsentQuestionsManagerModal = function() {
+  const modal = document.getElementById("modalConsentQuestionsManager");
+  if (modal) modal.style.display = "flex";
+  renderConsentQuestionsManager();
+};
+
+window.closeConsentQuestionsManagerModal = function() {
+  const modal = document.getElementById("modalConsentQuestionsManager");
+  if (modal) modal.style.display = "none";
+  toggleAddQuestionForm(false);
+};
+
+window.filterConsentQuestions = function(category, btnEl) {
+  activeCqFilter = category;
+  const buttons = document.querySelectorAll(".cq-tab-btn");
+  buttons.forEach(b => b.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+  renderConsentQuestionsManager();
+};
+
+function renderConsentQuestionsManager() {
+  const container = document.getElementById("cqItemsList");
+  if (!container) return;
+
+  const filtered = activeCqFilter === "ALL" 
+    ? allConsentQuestions 
+    : allConsentQuestions.filter(q => q.category === activeCqFilter || q.category === "ALL");
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Ushbu bo'limda savollar mavjud emas.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((q, idx) => {
+    const riskBadgeClass = `cq-badge ${q.riskLevel || 'warning'}`;
+    const riskLabel = q.riskLevel === 'danger' ? 'Mutlaq Qarshi Ko\'rsatma' : (q.riskLevel === 'warning' ? 'Ehtiyotkorlik' : 'Ma\'lumot');
+    const catLabel = q.category === 'CONTRAST' ? '💉 Kontrast' : (q.category === 'MSKT' ? '⚡ MSKT' : (q.category === 'ALL' ? '🌐 Barchasi' : '🧲 MRT'));
+
+    return `
+      <div class="cq-item-card">
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+            <span style="font-size:11px; font-weight:700; color:#38bdf8; background:#1e293b; padding:1px 6px; border-radius:4px;">${catLabel}</span>
+            <span class="${riskBadgeClass}">${riskLabel}</span>
+            ${q.required ? '<span style="font-size:10px; color:#f87171; font-weight:700;">* Majburiy</span>' : ''}
+          </div>
+          <div style="font-size:12.5px; font-weight:600; color:#f8fafc; line-height:1.35;">
+            ${idx + 1}. ${escapeHtml(q.text)}
+          </div>
+          ${q.description ? `<div style="font-size:11px; color:#94a3b8; margin-top:2px;">${escapeHtml(q.description)}</div>` : ''}
+        </div>
+        <div>
+          <button class="cq-del-btn" onclick="deleteQuestionAction('${q.id}', '${escapeHtml(q.text)}')" title="Savolni o'chirish">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.toggleAddQuestionForm = function(show) {
+  const formWrap = document.getElementById("cqAddFormWrap");
+  if (!formWrap) return;
+  if (show === undefined) {
+    formWrap.style.display = formWrap.style.display === "none" ? "block" : "none";
+  } else {
+    formWrap.style.display = show ? "block" : "none";
+  }
+};
+
+window.submitNewQuestion = async function() {
+  const textInp = document.getElementById("newCqText");
+  const catInp = document.getElementById("newCqCategory");
+  const riskInp = document.getElementById("newCqRisk");
+  const dangerInp = document.getElementById("newCqDangerAnswer");
+  const reqInp = document.getElementById("newCqRequired");
+  const descInp = document.getElementById("newCqDesc");
+
+  const text = textInp.value.trim();
+  if (!text) {
+    alert("Iltimos, savol matnini kiriting!");
+    return;
+  }
+
+  const payload = {
+    text: text,
+    category: catInp.value,
+    riskLevel: riskInp.value,
+    dangerAnswer: dangerInp.value,
+    required: reqInp.value === "true",
+    description: descInp.value.trim()
+  };
+
+  const res = await postAPI("/api/consent/questions/save", payload);
+  if (res && res.success) {
+    alert("✅ Yangi savol muvaffaqiyatli qo'shildi!");
+    textInp.value = "";
+    descInp.value = "";
+    toggleAddQuestionForm(false);
+    if (res.questions) allConsentQuestions = res.questions;
+    renderConsentQuestionsManager();
+  } else {
+    alert("Xatolik: " + (res?.error || "Savolni qo'shib bo'lmadi"));
+  }
+};
+
+window.deleteQuestionAction = async function(id, text) {
+  if (!confirm(`Haqiqatan ham ushbu savolni so'rovnomadan o'chirmoqchimisiz?\n\n"${text}"`)) {
+    return;
+  }
+
+  const res = await postAPI("/api/consent/questions/delete", { id });
+  if (res && res.success) {
+    if (res.questions) allConsentQuestions = res.questions;
+    renderConsentQuestionsManager();
+  } else {
+    alert("Xatolik: " + (res?.error || "Savolni o'chirib bo'lmadi"));
+  }
+};

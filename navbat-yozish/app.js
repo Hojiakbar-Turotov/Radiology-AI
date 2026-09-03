@@ -331,6 +331,7 @@ function renderQueueTable() {
         <td>
           <div>${escapeHtml(p.primaryService)}</div>
           ${p.isContrast ? '<span class="srv-contrast-badge">💉 Kontrast</span>' : ''}
+          ${p.consent ? `<span class="srv-contrast-badge" style="background:${p.consent.isSafe ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.2)'}; color:${p.consent.isSafe ? '#34d399' : '#f87171'}; border:1px solid ${p.consent.isSafe ? '#10b981' : '#ef4444'};">📋 ${p.consent.isSafe ? 'Rozilik: Xavfsiz' : 'Rozilik: Xavf!'}</span>` : ''}
         </td>
         <td><span style="font-size:11.5px; font-weight:700; color:#93c5fd;">${escapeHtml(p.deviceId.toUpperCase())}</span></td>
         <td><span class="${statusClass}">${statusMap[p.status] || p.status}</span></td>

@@ -831,6 +831,76 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // 7.4 GET /api/consent/questions - Rozilik anketasi savollarini olish
+      if (req.method === 'GET' && pathname === '/api/consent/questions') {
+        const category = parsedUrl.searchParams.get('category');
+        const questions = db.getConsentQuestions(category);
+        sendJSON(res, { success: true, questions });
+        return;
+      }
+
+      // 7.5 POST /api/consent/questions/save - Savol qo'shish yoki tahrirlash (Admin & Laborant)
+      if (req.method === 'POST' && pathname === '/api/consent/questions/save') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin' && currentUser.role !== 'laborant')) {
+          return sendJSON(res, { success: false, error: "Savol qo'shish uchun ruxsat berilmagan" }, 403);
+        }
+
+        const body = await parseBody(req);
+        if (!body.text || !body.text.trim()) {
+          return sendJSON(res, { success: false, error: "Savol matni kiritilmadi" }, 400);
+        }
+
+        const saved = db.saveConsentQuestion(body);
+        wsHub.broadcast('consent_questions_updated', { questions: db.getConsentQuestions() });
+        sendJSON(res, { success: true, question: saved, questions: db.getConsentQuestions(), message: "Savol muvaffaqiyatli saqlandi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Rozilik savoli saqlandi: ${saved.text.substring(0, 40)}...`);
+        return;
+      }
+
+      // 7.6 POST /api/consent/questions/delete - Savolni o'chirish (Admin & Laborant)
+      if (req.method === 'POST' && pathname === '/api/consent/questions/delete') {
+        const currentUser = getAuthUser(req);
+        if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'server_nazoratchisi' && currentUser.role !== 'admin' && currentUser.role !== 'laborant')) {
+          return sendJSON(res, { success: false, error: "Savolni o'chirish uchun ruxsat berilmagan" }, 403);
+        }
+
+        const body = await parseBody(req);
+        if (!body.id) {
+          return sendJSON(res, { success: false, error: "Savol ID talab qilinadi" }, 400);
+        }
+
+        const removed = db.deleteConsentQuestion(body.id);
+        if (!removed) return sendJSON(res, { success: false, error: "Savol topilmadi" }, 404);
+
+        wsHub.broadcast('consent_questions_updated', { questions: db.getConsentQuestions() });
+        sendJSON(res, { success: true, removed, questions: db.getConsentQuestions(), message: "Savol muvaffaqiyatli o'chirildi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Rozilik savoli o'chirildi: ${removed.id}`);
+        return;
+      }
+
+      // 7.7 POST /api/consent/submit - Bemor rozilik anketasini saqlash
+      if (req.method === 'POST' && pathname === '/api/consent/submit') {
+        const body = await parseBody(req);
+        if (!body.patientId) {
+          return sendJSON(res, { success: false, error: "Bemor ID talab qilinadi" }, 400);
+        }
+
+        const updated = db.savePatientConsent(body.patientId, body);
+        if (!updated) return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+        wsHub.broadcast('queue_updated', {
+          action: 'consent_submitted',
+          patient: updated,
+          queue: db.getQueue(),
+          devices: db.getDevices()
+        });
+
+        sendJSON(res, { success: true, patient: updated, message: "Rozilik anketasi muvaffaqiyatli saqlandi" });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Rozilik anketasi saqlandi: ${updated.ticketNumber}`);
+        return;
+      }
+
       // 8. GET /api/server-stats - Server monitoring ko'rsatkichlari
       if (req.method === 'GET' && pathname === '/api/server-stats') {
         const mem = process.memoryUsage();

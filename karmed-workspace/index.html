@@ -79,6 +79,11 @@
           <span id="txtKarmedHost">Karmed: 213.230.91.59</span>
         </button>
 
+        <!-- Rozilik Anketasi (Admin & Nazoratchi) -->
+        <button class="action-btn" id="btnAdminConsent" onclick="openStaffModal('consent')" title="Rozilik anketasi savollari ro'yxati va tahrirlash" style="display:none; color:#10b981; border-color:rgba(16,185,129,0.4);">
+          <i class="fa-solid fa-clipboard-question"></i> Rozilik Savollari
+        </button>
+
         <!-- Theme Toggle: Kunduzgi / Tungi rejim -->
         <button class="action-btn theme-toggle-btn" id="btnThemeToggle" onclick="toggleAppTheme()" title="Kunduzgi / Tungi rejimni almashtirish">
           <i class="fa-solid fa-sun" id="themeIcon"></i>
@@ -427,6 +432,9 @@
         <button type="button" class="staff-tab-btn" id="btnStaffTabDevices" onclick="switchStaffTab('devices')">
           <i class="fa-solid fa-laptop-medical"></i> Qurilmalar (Apparatlar)
         </button>
+        <button type="button" class="staff-tab-btn" id="btnStaffTabConsent" onclick="switchStaffTab('consent')">
+          <i class="fa-solid fa-clipboard-check"></i> Rozilik Anketasi Savollari
+        </button>
       </div>
 
       <!-- PANEL 1: XODIMLAR -->
@@ -675,6 +683,103 @@
             </thead>
             <tbody id="devicesTableBody">
               <!-- Dynamically populated from /api/devices -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 4: ROZILIK ANKETASI SAVOLLARI -->
+      <div class="modal-card-body" id="panelStaffConsent" style="display:none;">
+        <div class="staff-mgmt-toolbar" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <p class="modal-sub-desc" style="margin:0;">MRT, MSKT va Kontrast tekshiruvlari uchun xabardor qilingan rozilik savollarini boshqarish.</p>
+            <div class="cq-admin-filters" style="display:flex; gap:5px; margin-left:10px;">
+              <button type="button" class="cq-tab-btn active" onclick="filterAdminConsent('ALL', this)">Barchasi</button>
+              <button type="button" class="cq-tab-btn" onclick="filterAdminConsent('MRT', this)">🧲 MRT</button>
+              <button type="button" class="cq-tab-btn" onclick="filterAdminConsent('MSKT', this)">⚡ MSKT</button>
+              <button type="button" class="cq-tab-btn" onclick="filterAdminConsent('CONTRAST', this)">💉 Kontrast</button>
+            </div>
+          </div>
+          <button class="btn-add-staff" onclick="toggleAddAdminConsentForm()" style="background:#10b981;">
+            <i class="fa-solid fa-plus"></i> + Yangi Savol Qo'shish
+          </button>
+        </div>
+
+        <!-- Add Question Box (Toggle) -->
+        <div id="boxAddAdminConsent" class="add-staff-box" style="display:none; border-color:#10b981; margin-top:10px;">
+          <h4 style="font-size:13px; color:#34d399; margin-bottom:8px;">
+            <i class="fa-solid fa-circle-plus"></i> Yangi Rozilik Savoli Qo'shish
+          </h4>
+          <form id="formAddAdminConsent" onsubmit="handleCreateAdminConsent(event)">
+            <div class="modal-field-row">
+              <div class="modal-field flex-1">
+                <label>Savol Matni*</label>
+                <input type="text" id="adminCqText" required placeholder="Masalan: Tanangizda kardiostimulyator yoki metall implant bormi?">
+              </div>
+            </div>
+            <div class="modal-field-row" style="margin-top:8px;">
+              <div class="modal-field flex-1">
+                <label>Kategoriya*</label>
+                <select id="adminCqCategory">
+                  <option value="MRT">🧲 MRT</option>
+                  <option value="MSKT">⚡ MSKT</option>
+                  <option value="CONTRAST">💉 Kontrast</option>
+                  <option value="ALL">🌐 Barchasi</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Xavf Darajasi*</label>
+                <select id="adminCqRisk">
+                  <option value="danger">🚨 Xavfli (Mutlaq qarshi ko'rsatma)</option>
+                  <option value="warning">⚠️ Ogohlantirish (Ehtiyotkorlik)</option>
+                  <option value="info">ℹ️ Ma'lumot</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Xavfli Javob Qaysi*</label>
+                <select id="adminCqDangerAnswer">
+                  <option value="yes">"Ha" javobi xavfli</option>
+                  <option value="no">"Yo'q" javobi xavfli</option>
+                </select>
+              </div>
+              <div class="modal-field flex-1">
+                <label>Majburiymi?</label>
+                <select id="adminCqRequired">
+                  <option value="true">Majburiy</option>
+                  <option value="false">Ixtiyoriy</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-field-row" style="margin-top:8px;">
+              <div class="modal-field flex-1">
+                <label>Tushuntirish / Klinik Sababi</label>
+                <input type="text" id="adminCqDesc" placeholder="Nima uchun bu savol tibbiy jihatdan muhimligi haqida izoh...">
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+              <button type="button" class="btn-modal-cancel" onclick="toggleAddAdminConsentForm(false)">Bekor qilish</button>
+              <button type="submit" class="btn-modal-primary" style="background:#10b981;">
+                <i class="fa-solid fa-check"></i> Saqlash
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="staff-table-wrap" style="max-height:380px; overflow-y:auto; margin-top:10px;">
+          <table class="staff-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">№</th>
+                <th style="width:100px;">Kategoriya</th>
+                <th>Savol Matni va Tavsifi</th>
+                <th style="width:140px;">Xavf Darajasi</th>
+                <th style="width:85px;">Xavf Qaysi</th>
+                <th style="width:65px;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="adminConsentTableBody">
+              <!-- Dynamically populated from /api/consent/questions -->
             </tbody>
           </table>
         </div>
