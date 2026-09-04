@@ -135,6 +135,7 @@ function switchView(tabKey) {
       }
     }
   }
+  triggerWorkspaceResize();
 }
 
 function capitalize(s) {
@@ -199,16 +200,57 @@ document.addEventListener("webkitfullscreenchange", handleWorkspaceFullscreenCha
 
 
 // -------------------------------------------------------------
-// TEZKOR NAVBAT DRAWER TOGGLE
+// WORKSPACE RESIZE TRIGGER (IFRAME VA ASOSIY OYNALARNI 100% GA MOSLASH)
 // -------------------------------------------------------------
-function toggleQuickQueueDrawer() {
+function triggerWorkspaceResize() {
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+    document.querySelectorAll(".view-frame").forEach(frame => {
+      try {
+        if (frame.contentWindow) {
+          frame.contentWindow.dispatchEvent(new Event("resize"));
+        }
+      } catch (e) {}
+    });
+  }, 50);
+}
+
+// -------------------------------------------------------------
+// TEZKOR NAVBAT DRAWER BOSHQARUVI (OPEN / CLOSE / TOGGLE)
+// -------------------------------------------------------------
+function openQuickQueueDrawer() {
   const drawer = document.getElementById("quickQueueDrawer");
   const btn = document.getElementById("btnToggleDrawer");
   if (!drawer) return;
 
-  const isCollapsed = drawer.classList.toggle("collapsed");
-  if (btn) {
-    btn.classList.toggle("active", !isCollapsed);
+  drawer.classList.remove("collapsed");
+  if (btn) btn.classList.add("active");
+
+  const savedWidth = localStorage.getItem("drawer_width");
+  if (savedWidth && parseInt(savedWidth, 10) >= 360) {
+    drawer.style.width = `${savedWidth}px`;
+  }
+  triggerWorkspaceResize();
+}
+
+function closeQuickQueueDrawer() {
+  const drawer = document.getElementById("quickQueueDrawer");
+  const btn = document.getElementById("btnToggleDrawer");
+  if (!drawer) return;
+
+  drawer.classList.add("collapsed");
+  if (btn) btn.classList.remove("active");
+  triggerWorkspaceResize();
+}
+
+function toggleQuickQueueDrawer() {
+  const drawer = document.getElementById("quickQueueDrawer");
+  if (!drawer) return;
+
+  if (drawer.classList.contains("collapsed")) {
+    openQuickQueueDrawer();
+  } else {
+    closeQuickQueueDrawer();
   }
 }
 
@@ -250,6 +292,7 @@ function initDrawerResizer() {
       resizer.classList.remove("resizing");
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
+      triggerWorkspaceResize();
     }
   });
 }
@@ -1160,12 +1203,7 @@ function startKarmedPatientSync(doc, clickedRow) {
   });
 
   // Drawer ochiq turishini ta'minlash:
-  const drawer = document.getElementById("quickQueueDrawer");
-  if (drawer && drawer.classList.contains("collapsed")) {
-    drawer.classList.remove("collapsed");
-    const btnToggle = document.getElementById("btnToggleDrawer");
-    if (btnToggle) btnToggle.classList.add("active");
-  }
+  openQuickQueueDrawer();
 
   // 3. 5-10 SONIYA KUTISH VA TEKSHIRUVLARNI KUZATISH (POLLING & OBSERVER)
   const loadingBox = document.getElementById("karmedSyncLoadingBox");
@@ -1487,12 +1525,7 @@ function autoFillQuickQueue(patientData) {
     }
 
     // Tezkor navbat darchasini ochish
-    const drawer = document.getElementById("quickQueueDrawer");
-    if (drawer && drawer.classList.contains("collapsed")) {
-      drawer.classList.remove("collapsed");
-      const btnToggle = document.getElementById("btnToggleDrawer");
-      if (btnToggle) btnToggle.classList.add("active");
-    }
+    openQuickQueueDrawer();
 
     return;
   }
@@ -1552,12 +1585,7 @@ function autoFillQuickQueue(patientData) {
     }
 
     // Tezkor navbat darchasini ochish
-    const drawer = document.getElementById("quickQueueDrawer");
-    if (drawer && drawer.classList.contains("collapsed")) {
-      drawer.classList.remove("collapsed");
-      const btnToggle = document.getElementById("btnToggleDrawer");
-      if (btnToggle) btnToggle.classList.add("active");
-    }
+    openQuickQueueDrawer();
 
     return;
   }
@@ -1618,12 +1646,7 @@ function autoFillQuickQueue(patientData) {
     }
 
     // Tezkor navbat darchasini ochish
-    const drawer = document.getElementById("quickQueueDrawer");
-    if (drawer && drawer.classList.contains("collapsed")) {
-      drawer.classList.remove("collapsed");
-      const btnToggle = document.getElementById("btnToggleDrawer");
-      if (btnToggle) btnToggle.classList.add("active");
-    }
+    openQuickQueueDrawer();
 
     return;
   }
@@ -1684,12 +1707,7 @@ function autoFillQuickQueue(patientData) {
   triggerSmartSlotRecalc();
 
   // 6. Tezkor navbat darchasini ochish
-  const drawer = document.getElementById("quickQueueDrawer");
-  if (drawer && drawer.classList.contains("collapsed")) {
-    drawer.classList.remove("collapsed");
-    const btnToggle = document.getElementById("btnToggleDrawer");
-    if (btnToggle) btnToggle.classList.add("active");
-  }
+  openQuickQueueDrawer();
 
   // 7. Tugmani yashil pulsatsiya bilan tayyor holga keltirish
   if (submitBtn) {
@@ -2424,7 +2442,7 @@ function applyRolePermissions(user) {
     const btnAdminConsent = document.getElementById("btnAdminConsent");
     if (btnAdminConsent) btnAdminConsent.style.display = "none";
 
-    if (quickQueueDrawer) quickQueueDrawer.classList.add("collapsed");
+    closeQuickQueueDrawer();
 
     switchView("karmed");
     return;
