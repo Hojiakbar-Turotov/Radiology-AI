@@ -9,18 +9,27 @@
     isEditMode: false,
     activeTab: 'duties',
 
-    // Check if current user is admin
+    // Check if current user is admin or high-permission user
     canEdit: function() {
       try {
-        const u = window.currentUser || (window.parent && window.parent.currentUser) || (function() {
-          const raw = localStorage.getItem('auth_user') || (window.parent && window.parent.localStorage ? window.parent.localStorage.getItem('auth_user') : null);
-          return raw ? JSON.parse(raw) : null;
-        })();
-        if (!u) return true; // Default allow in local network if unauthenticated
-        const role = String(u.role || '').toLowerCase();
-        return ['admin', 'super_admin', 'server_nazoratchisi', 'bosh_vrach'].includes(role);
+        let u = window.currentUser;
+        if (!u && window.parent && window.parent !== window) {
+          try { u = window.parent.currentUser; } catch (e) {}
+        }
+        if (!u) {
+          const raw = localStorage.getItem('auth_user') || (window.parent && window.parent !== window && window.parent.localStorage ? (function() {
+            try { return window.parent.localStorage.getItem('auth_user'); } catch (e) { return null; }
+          })() : null);
+          if (raw) {
+            try { u = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) {}
+          }
+        }
+        if (!u || !u.role) return false;
+        const role = String(u.role || '').toLowerCase().trim();
+        const allowedRoles = ['admin', 'super_admin', 'server_nazoratchisi', 'bosh_vrach'];
+        return allowedRoles.includes(role);
       } catch (e) {
-        return true;
+        return false;
       }
     },
 
@@ -77,6 +86,12 @@
 
     // Toggle edit mode
     toggleEditMode: function() {
+      if (!this.canEdit()) {
+        alert("Qo'llanmani faqat administrator yoki yuqori ruxsatli xodim tahrirlashi mumkin!");
+        this.isEditMode = false;
+        this.renderModal();
+        return;
+      }
       this.isEditMode = !this.isEditMode;
       this.renderModal();
     },
@@ -96,6 +111,9 @@
 
       const m = this.currentData || {};
       const canEdit = this.canEdit();
+      if (!canEdit) {
+        this.isEditMode = false;
+      }
       const roleText = m.roleName || "Mas'ul xodim";
       const editModeLabel = this.isEditMode ? "Ko'rish rejimi" : "Tahrirlash";
 
@@ -307,6 +325,10 @@
 
     // Save changes to backend
     saveChanges: async function() {
+      if (!this.canEdit()) {
+        alert("Qo'llanmani faqat administrator yoki yuqori ruxsatli xodim tahrirlashi mumkin!");
+        return;
+      }
       this.collectCurrentEditValues();
       const payload = {
         key: this.currentKey,

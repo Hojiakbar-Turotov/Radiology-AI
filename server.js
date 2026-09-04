@@ -1108,9 +1108,10 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && pathname === '/api/manuals/save') {
         const user = getAuthUser(req);
         // Admin yoki Super Admin ruxsatini tekshirish
-        const canEdit = !user || user.role === 'admin' || user.role === 'super_admin' || user.role === 'server_nazoratchisi' || user.role === 'bosh_vrach';
+        const allowedRoles = ['admin', 'super_admin', 'server_nazoratchisi', 'bosh_vrach'];
+        const canEdit = user && allowedRoles.includes(String(user.role || '').toLowerCase().trim());
         if (!canEdit) {
-          return sendJSON(res, { success: false, error: "Qo'llanmani faqat administrator tahrirlashi mumkin" }, 403);
+          return sendJSON(res, { success: false, error: "Qo'llanmani faqat administrator yoki yuqori ruxsatli xodim tahrirlashi mumkin" }, 403);
         }
 
         const body = await parseBody(req);

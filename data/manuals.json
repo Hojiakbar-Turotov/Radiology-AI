@@ -35,7 +35,7 @@
   },
   "laborant": {
     "key": "laborant",
-    "title": "Laborant Portali (MRT / MSKT Bo'limi)",
+    "title": "MRT va MSKT Laboranti (Rentgen-laborant)",
     "roleName": "MRT / MSKT Rentgen-laboranti",
     "icon": "fa-microscope",
     "description": "Tomografiya xonalarida bemorlarni qabul qilish, anketalarni to'ldirish, tayyorgarlik va tekshiruvlarni boshqarish.",
@@ -66,8 +66,8 @@
       "Rozilik anketasidagi qizil ogohlantirishlar (masalan, kardiostimulyator) mavjud bo'lsa, MRT skanerlash qat'iyan man etiladi.",
       "Har bir apparatda faqat navbatchi laborantlar vaqti va xizmatlari hisobga olinadi."
     ],
-    "updatedAt": "2026-09-04T04:10:39.121Z",
-    "updatedBy": "Admin"
+    "updatedAt": "2026-09-04T05:40:20.174Z",
+    "updatedBy": "Tizim Boshqaruvchisi (server_nazoratchisi)"
   },
   "registratura": {
     "key": "registratura",
