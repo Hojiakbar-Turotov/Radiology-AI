@@ -489,14 +489,12 @@ function renderConsentQuestionsForPatient(patient) {
   }
 
   container.innerHTML = relevantQuestions.map((q, idx) => {
-    // Agar javob berilmagan bo'lsa, xavfsiz default javobni olish
-    const currentAns = currentConsentAnswers[q.id] !== undefined 
+    // Standart holatda javob bo'sh (null) qoladi. Faqat elektron to'ldirilgan bo'lsa olinadi
+    const currentAns = (currentConsentAnswers && currentConsentAnswers[q.id] !== undefined) 
       ? currentConsentAnswers[q.id] 
-      : (q.dangerAnswer === "yes" ? "no" : "yes");
-    
-    currentConsentAnswers[q.id] = currentAns;
+      : null;
 
-    const isDanger = (currentAns === q.dangerAnswer);
+    const isDanger = (currentAns && currentAns === q.dangerAnswer);
     const riskBadgeClass = `cq-badge ${q.riskLevel || 'warning'}`;
     const riskLabel = q.riskLevel === 'danger' ? 'Mutlaq Qarshi Ko\'rsatma' : (q.riskLevel === 'warning' ? 'Ehtiyotkorlik' : 'Ma\'lumot');
 
@@ -524,12 +522,20 @@ function renderConsentQuestionsForPatient(patient) {
 }
 
 window.setPatientAnswer = function(questionId, ans) {
-  currentConsentAnswers[questionId] = ans;
   const q = allConsentQuestions.find(x => x.id === questionId);
   const wrap = document.getElementById(`cq_wrap_${questionId}`);
 
+  // Agar allaqachon tanlangan javob qayta bosilsa, uni bo'sh holatga qaytarish (toggle)
+  if (currentConsentAnswers[questionId] === ans) {
+    delete currentConsentAnswers[questionId];
+  } else {
+    currentConsentAnswers[questionId] = ans;
+  }
+
+  const curAns = currentConsentAnswers[questionId] || null;
+
   if (wrap && q) {
-    const isDanger = (ans === q.dangerAnswer);
+    const isDanger = (curAns && curAns === q.dangerAnswer);
     if (isDanger) wrap.classList.add("danger-flag");
     else wrap.classList.remove("danger-flag");
 
@@ -537,12 +543,20 @@ window.setPatientAnswer = function(questionId, ans) {
     const yesBtn = wrap.querySelector(".consent-btn-group button:nth-child(2)");
 
     if (noBtn && yesBtn) {
-      noBtn.className = `btn-answer ${ans === 'no' ? (q.dangerAnswer === 'no' ? 'selected-yes' : 'selected-no') : ''}`;
-      yesBtn.className = `btn-answer ${ans === 'yes' ? (q.dangerAnswer === 'yes' ? 'selected-yes' : 'selected-no') : ''}`;
+      noBtn.className = `btn-answer ${curAns === 'no' ? (q.dangerAnswer === 'no' ? 'selected-yes' : 'selected-no') : ''}`;
+      yesBtn.className = `btn-answer ${curAns === 'yes' ? (q.dangerAnswer === 'yes' ? 'selected-yes' : 'selected-no') : ''}`;
     }
   }
 
   updateConsentSafetyStatus();
+};
+
+window.clearAllPatientAnswers = function() {
+  currentConsentAnswers = {};
+  if (consentTargetPatient) {
+    renderConsentQuestionsForPatient(consentTargetPatient);
+    updateConsentSafetyStatus();
+  }
 };
 
 function updateConsentSafetyStatus() {
@@ -553,13 +567,17 @@ function updateConsentSafetyStatus() {
 
   let dangerCount = 0;
   let dangerQuestions = [];
+  let answeredCount = 0;
 
   for (const qId in currentConsentAnswers) {
     const ans = currentConsentAnswers[qId];
-    const q = allConsentQuestions.find(x => x.id === qId);
-    if (q && ans === q.dangerAnswer) {
-      dangerCount++;
-      dangerQuestions.push(q.text);
+    if (ans) {
+      answeredCount++;
+      const q = allConsentQuestions.find(x => x.id === qId);
+      if (q && ans === q.dangerAnswer) {
+        dangerCount++;
+        dangerQuestions.push(q.text);
+      }
     }
   }
 
@@ -567,10 +585,14 @@ function updateConsentSafetyStatus() {
     banner.className = "consent-safety-banner danger";
     if (iconEl) iconEl.className = "fa-solid fa-triangle-exclamation";
     textEl.innerHTML = `<strong>🚨 DIQQAT: Xavfli holat aniqlandi! (${dangerCount} ta qarshi ko'rsatma).</strong> Shifokor ko'rigi talab etiladi.`;
-  } else {
+  } else if (answeredCount > 0) {
     banner.className = "consent-safety-banner safe";
     if (iconEl) iconEl.className = "fa-solid fa-circle-check";
-    textEl.innerHTML = `<strong>🟢 Tekshiruvga ruxsat etiladi:</strong> Qarshi ko'rsatmalar aniqlanmadi. Bemor xavfsiz.`;
+    textEl.innerHTML = `<strong>🟢 Tekshiruvga ruxsat etiladi:</strong> Qarshi ko'rsatmalar aniqlanmadi (${answeredCount} ta savol elektron belgilandi).`;
+  } else {
+    banner.className = "consent-safety-banner neutral";
+    if (iconEl) iconEl.className = "fa-solid fa-file-pen";
+    textEl.innerHTML = `<strong>📝 Standart holat:</strong> Savollar belgilanmagan (bo'sh). Bemor qog'ozda o'zi qo'lda to'ldiradi yoki laborant elektron belgilashi mumkin.`;
   }
 }
 
@@ -589,12 +611,21 @@ window.savePatientConsentForm = async function() {
     }
   }
 
+  // Current staff user
+  const u = window.currentUser || (window.parent && window.parent.currentUser) || (function() {
+    try {
+      const raw = localStorage.getItem('auth_user') || (window.parent && window.parent.localStorage ? window.parent.localStorage.getItem('auth_user') : null);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  })();
+  const staffName = u ? (u.name ? `${u.name} (${u.role})` : u.login) : "Laborant";
+
   const payload = {
     patientId: consentTargetPatient.id,
     isSafe: isSafe,
     answers: currentConsentAnswers,
     notes: notes,
-    filledBy: "Laborant"
+    filledBy: staffName
   };
 
   const res = await postAPI("/api/consent/submit", payload);
@@ -641,8 +672,14 @@ window.printPatientConsentForm = function() {
         .q-table th, .q-table td { border: 1px solid #000; padding: 5px 6px; font-size: 12px; }
         .q-table th { background: #eeeeee; text-align: center; }
         .text-center { text-align: center; font-weight: bold; }
-        .ans-yes { color: #000; font-weight: 900; text-align: center; }
-        .ans-no { color: #000; font-weight: bold; text-align: center; }
+        .ans-yes, .ans-no { 
+          color: #000; 
+          font-weight: 900; 
+          font-size: 16px; 
+          text-align: center; 
+          vertical-align: middle; 
+          line-height: 1; 
+        }
         .declaration { border: 1px solid #333; background: #fafafa; padding: 8px 10px; font-size: 12px; line-height: 1.35; text-align: justify; margin-bottom: 14px; }
         .signatures { width: 100%; margin-top: 25px; border-collapse: collapse; }
         .signatures td { vertical-align: bottom; font-size: 12.5px; padding: 6px 0; }
@@ -688,13 +725,13 @@ window.printPatientConsentForm = function() {
         </thead>
         <tbody>
           ${relevantQuestions.map((q, idx) => {
-            const ans = currentConsentAnswers[q.id] || "no";
+            const ans = (currentConsentAnswers && currentConsentAnswers[q.id]) ? currentConsentAnswers[q.id] : null;
             return `
               <tr>
                 <td class="text-center">${idx + 1}</td>
                 <td>${escapeHtml(q.text)}</td>
-                <td class="ans-no">${ans === 'no' ? 'V' : ''}</td>
-                <td class="ans-yes">${ans === 'yes' ? 'V' : ''}</td>
+                <td class="ans-no">${ans === 'no' ? '+' : ''}</td>
+                <td class="ans-yes">${ans === 'yes' ? '+' : ''}</td>
               </tr>
             `;
           }).join('')}
