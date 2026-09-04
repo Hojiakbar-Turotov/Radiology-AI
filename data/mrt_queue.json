@@ -785,10 +785,11 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T03:11:40.279Z",
-    "updatedAt": "2026-09-04T09:04:05.585Z",
+    "updatedAt": "2026-09-04T09:14:22.575Z",
     "calledAt": "2026-09-04T09:03:34.361Z",
     "startedAt": "2026-09-04T09:03:24.052Z",
-    "finishedAt": "2026-09-04T09:04:05.585Z"
+    "finishedAt": "2026-09-04T09:04:05.585Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788491516385_9mekh",

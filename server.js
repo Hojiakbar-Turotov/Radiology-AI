@@ -540,6 +540,34 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // 3.1 POST /api/queue/update-presence - Bemor kutish zalida yoki hali kelmaganligini yangilash
+      if (req.method === 'POST' && pathname === '/api/queue/update-presence') {
+        const body = await parseBody(req);
+        const { id, presenceStatus } = body;
+        if (!id || !presenceStatus) {
+          return sendJSON(res, { success: false, error: "id va presenceStatus talab qilinadi" }, 400);
+        }
+
+        const updated = db.updatePatientPresence(id, presenceStatus);
+        if (!updated) {
+          return sendJSON(res, { success: false, error: "Bemor topilmadi" }, 404);
+        }
+
+        // Klasterdagi boshqa serverlarga yetkazish
+        cluster.replicate('presence_updated', { id, presenceStatus });
+
+        wsHub.broadcast('queue_updated', {
+          action: 'presence_updated',
+          patient: updated,
+          queue: db.getQueue(),
+          devices: db.getDevices()
+        });
+
+        sendJSON(res, { success: true, patient: updated });
+        logRequest(clientIp, 'POST', pathname, 200, startTime, `Bemor ${updated.ticketNumber} zal holati: ${presenceStatus}`);
+        return;
+      }
+
       // 4. POST /api/queue/call - Xonaga chaqirish (Ovozli e'lon)
       if (req.method === 'POST' && pathname === '/api/queue/call') {
         const body = await parseBody(req);

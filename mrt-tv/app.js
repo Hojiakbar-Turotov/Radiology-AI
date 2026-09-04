@@ -193,13 +193,20 @@ function renderTVGrid() {
     if (waitingList.length === 0) {
       waitingHtml = `<div style="text-align:center; padding:20px; color:#64748b; font-size:12.5px;">Kutayotganlar yo'q</div>`;
     } else {
-      waitingHtml = waitingList.slice(0, 5).map((p, idx) => `
-        <div class="waiting-item-row">
-          <span class="wait-ticket">${escapeHtml(p.ticketNumber)}</span>
-          <span class="wait-name">${escapeHtml(p.patientName)}</span>
-          <span class="wait-time">${p.estimatedStartTime ? formatTime(p.estimatedStartTime) : ''}</span>
-        </div>
-      `).join("");
+      waitingHtml = waitingList.slice(0, 5).map((p, idx) => {
+        const isNotArrived = (p.presenceStatus === 'not_arrived');
+        const timeOrStatus = isNotArrived 
+          ? `<span class="wait-time" style="color:#fbbf24; font-size:11px; background:rgba(245,158,11,0.2); padding:2px 6px; border-radius:4px; font-weight:800;">Kelmagan</span>`
+          : `<span class="wait-time">${p.estimatedStartTime ? formatTime(p.estimatedStartTime) : ''}</span>`;
+
+        return `
+          <div class="waiting-item-row" style="${isNotArrived ? 'opacity:0.75;' : ''}">
+            <span class="wait-ticket">${escapeHtml(p.ticketNumber)}</span>
+            <span class="wait-name">${escapeHtml(p.patientName)}</span>
+            ${timeOrStatus}
+          </div>
+        `;
+      }).join("");
     }
 
     return `

@@ -274,12 +274,21 @@ function renderLaborantView() {
     return;
   }
 
-  listContainer.innerHTML = waitingList.map(p => `
-    <div class="waiting-card-item">
+  listContainer.innerHTML = waitingList.map(p => {
+    const isWaitingRoom = (p.presenceStatus !== 'not_arrived');
+    const presenceBadge = isWaitingRoom 
+      ? `<button type="button" class="presence-pill-btn is-waiting-room" onclick="togglePatientPresence('${p.id}', 'waiting_room')" title="Bemor kutish zalida o'tiribdi. Bosing: 'Hali kelmagan'ga o'tkazish"><i class="fa-solid fa-circle-check"></i> <span>Kutish zalida</span></button>`
+      : `<button type="button" class="presence-pill-btn is-not-arrived" onclick="togglePatientPresence('${p.id}', 'not_arrived')" title="Bemor hali kelmagan. Bosing: 'Kutish zalida'ga o'tkazish"><i class="fa-solid fa-circle-xmark"></i> <span>Hali kelmagan</span></button>`;
+
+    return `
+    <div class="waiting-card-item ${!isWaitingRoom ? 'patient-not-arrived' : ''}">
       <div class="item-left">
         <span class="item-ticket">${escapeHtml(p.ticketNumber)}</span>
         <div class="item-info">
-          <div class="item-name">${escapeHtml(p.patientName)}</div>
+          <div class="item-name">
+            <span>${escapeHtml(p.patientName)}</span>
+            ${presenceBadge}
+          </div>
           <div class="item-service">
             <span>${escapeHtml(p.primaryService)}</span>
             ${p.isContrast ? '<span class="mini-contrast-tag"><i class="fa-solid fa-syringe"></i> Kontrast</span>' : ''}
@@ -304,16 +313,42 @@ function renderLaborantView() {
         </button>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
 }
 
+window.togglePatientPresence = async function(id, currentPresence) {
+  const newPresence = (currentPresence === 'not_arrived') ? 'waiting_room' : 'not_arrived';
+  
+  // Lokal holatda darhol yangilash (tezkor interfeys)
+  const p = currentQueue.find(x => x.id === id);
+  if (p) {
+    p.presenceStatus = newPresence;
+    renderLaborantView();
+  }
+
+  await postAPI("/api/queue/update-presence", { id, presenceStatus: newPresence });
+};
+
 window.handleStartPrep = async function(id) {
+  const p = currentQueue.find(x => x.id === id);
+  if (p && p.presenceStatus === 'not_arrived') {
+    if (!confirm(`⚠️ DIQQAT: Bemor ${p.patientName} "Hali kelmagan" deb belgilangan!\n\nBaribir tayyorgarlikka chaqirilsinmi?`)) {
+      return;
+    }
+  }
   await postAPI("/api/queue/prep", { id });
 };
 
 window.handleCallPatient = async function(id) {
+  const p = currentQueue.find(x => x.id === id);
+  if (p && p.presenceStatus === 'not_arrived') {
+    if (!confirm(`⚠️ DIQQAT: Bemor ${p.patientName} "Hali kelmagan" deb belgilangan!\n\nBaribir xonaga chaqirilsinmi?`)) {
+      return;
+    }
+  }
   await postAPI("/api/queue/call", { id });
-  await postAPI("/api/queue/update-status", { id, status: "in_progress" });
+  await postAPI("/api/queue/update-status", { id, status: "in_progress", extraData: { presenceStatus: "waiting_room" } });
 };
 
 async function postAPI(url, data) {

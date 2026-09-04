@@ -246,6 +246,8 @@ async function handleFormSubmit(e) {
   }
 
   const srvList = selectedServices.length > 0 ? selectedServices : [{ name: "MRT Tekshiruvi", code: "R157", duration: 30 }];
+  const chkInWait = document.getElementById("chkInWaitingRoom");
+  const inWaitingRoom = chkInWait ? chkInWait.checked : true;
 
   const payload = {
     patientName: name,
@@ -256,6 +258,7 @@ async function handleFormSubmit(e) {
     referringDoctor: doctor,
     deviceId: targetDev !== "auto" ? targetDev : null,
     isContrast: isContrast,
+    presenceStatus: inWaitingRoom ? 'waiting_room' : 'not_arrived',
     services: srvList,
     operatorName: window.currentUser ? window.currentUser.name : "Operator"
   };
@@ -643,8 +646,16 @@ function renderQueueTable() {
           ${p.isContrast ? '<span class="srv-contrast-badge">💉 Kontrast</span>' : ''}
           ${p.consent ? `<span class="srv-contrast-badge" style="background:${p.consent.isSafe ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.2)'}; color:${p.consent.isSafe ? '#34d399' : '#f87171'}; border:1px solid ${p.consent.isSafe ? '#10b981' : '#ef4444'};">📋 ${p.consent.isSafe ? 'Rozilik: Xavfsiz' : 'Rozilik: Xavf!'}</span>` : ''}
         </td>
-        <td><span style="font-size:11.5px; font-weight:700; color:#93c5fd;">${escapeHtml(p.deviceId.toUpperCase())}</span></td>
-        <td><span class="${statusClass}">${statusMap[p.status] || p.status}</span></td>
+        <td>
+          <span class="${statusClass}">${statusMap[p.status] || p.status}</span>
+          ${p.status === 'waiting' ? `
+            <div style="margin-top:4px;">
+              ${p.presenceStatus === 'not_arrived' 
+                ? `<span style="font-size:10.5px; font-weight:800; background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; cursor:pointer;" onclick="togglePresenceFromTable('${p.id}', 'not_arrived')" title="Bemor hali kelmagan. Bosing: Kutish zalida ga o'tkazish"><i class="fa-solid fa-circle-xmark"></i> Hali kelmagan</span>` 
+                : `<span style="font-size:10.5px; font-weight:800; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; cursor:pointer;" onclick="togglePresenceFromTable('${p.id}', 'waiting_room')" title="Bemor kutish zalida. Bosing: Hali kelmagan ga o'tkazish"><i class="fa-solid fa-circle-check"></i> Kutish zalida</span>`}
+            </div>
+          ` : ''}
+        </td>
         <td style="white-space:nowrap;">${formatQueueSlotTime(p)}</td>
         <td style="text-align:right; white-space:nowrap;">
           <button class="btn-icon" onclick="callPatientAction('${p.id}')" title="Chaqirish"><i class="fa-solid fa-bullhorn"></i></button>
@@ -659,6 +670,18 @@ function renderQueueTable() {
     `;
   }).join("");
 }
+
+window.togglePresenceFromTable = async function(id, currentPresence) {
+  const newPresence = (currentPresence === 'not_arrived') ? 'waiting_room' : 'not_arrived';
+  try {
+    await fetch("/api/queue/update-presence", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, presenceStatus: newPresence })
+    });
+    fetchQueue();
+  } catch (e) {}
+};
 
 window.callPatientAction = async function(id) {
   try {

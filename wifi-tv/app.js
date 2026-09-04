@@ -235,13 +235,20 @@ function renderDevicesGrid() {
     if (waitingList.length === 0) {
       waitingHtml = `<div class="waiting-empty-state"><i class="fa-regular fa-circle-check"></i> Kutayotgan bemorlar yo'q</div>`;
     } else {
-      waitingHtml = waitingList.slice(0, 6).map(p => `
-        <div class="waiting-row">
-          <span class="w-ticket-tag">${escapeHtml(p.ticketNumber)}</span>
-          <span class="w-name-text">${escapeHtml(p.patientName)}</span>
-          <span class="w-time-tag">${p.estimatedStartTime ? formatTime(p.estimatedStartTime) : ''}</span>
-        </div>
-      `).join("");
+      waitingHtml = waitingList.slice(0, 6).map(p => {
+        const isNotArrived = (p.presenceStatus === 'not_arrived');
+        const statusTag = isNotArrived
+          ? `<span class="w-time-tag" style="color:#b45309; font-size:11px; background:#fef3c7; padding:2px 6px; border-radius:5px; font-weight:800;" title="Bemor hali kutish zaliga kelmagan">Hali kelmagan</span>`
+          : `<span class="w-time-tag">${p.estimatedStartTime ? formatTime(p.estimatedStartTime) : ''}</span>`;
+
+        return `
+          <div class="waiting-row" style="${isNotArrived ? 'opacity:0.7;' : ''}">
+            <span class="w-ticket-tag">${escapeHtml(p.ticketNumber)}</span>
+            <span class="w-name-text">${escapeHtml(p.patientName)}</span>
+            ${statusTag}
+          </div>
+        `;
+      }).join("");
     }
 
     // Apparat ikonkasini aniqlash
