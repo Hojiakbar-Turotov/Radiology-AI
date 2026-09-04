@@ -836,7 +836,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T03:11:56.385Z",
-    "updatedAt": "2026-09-04T03:11:56.385Z"
+    "updatedAt": "2026-09-04T09:15:13.301Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788499747529_hjdjb",
@@ -932,7 +933,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:18.776Z",
-    "updatedAt": "2026-09-04T05:30:18.776Z"
+    "updatedAt": "2026-09-04T09:15:45.776Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788499826128_icbmb",
@@ -1029,7 +1031,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:30.048Z",
-    "updatedAt": "2026-09-04T05:30:30.048Z"
+    "updatedAt": "2026-09-04T09:15:44.854Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788499834155_wlmx1",
@@ -1123,7 +1126,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:40.906Z",
-    "updatedAt": "2026-09-04T05:30:40.906Z"
+    "updatedAt": "2026-09-04T09:15:43.863Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788499845170_tp1sq",
@@ -1183,7 +1187,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:45.170Z",
-    "updatedAt": "2026-09-04T05:30:45.170Z"
+    "updatedAt": "2026-09-04T09:15:35.823Z",
+    "presenceStatus": "waiting_room"
   },
   {
     "id": "p_1788499855891_ahsoo",
@@ -1397,7 +1402,8 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:33:22.610Z",
-    "updatedAt": "2026-09-04T05:33:22.610Z"
+    "updatedAt": "2026-09-04T09:15:15.581Z",
+    "presenceStatus": "not_arrived"
   },
   {
     "id": "p_1788500006905_fer2k",
