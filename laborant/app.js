@@ -202,19 +202,16 @@ function renderLaborantView() {
     sectionBadge.style.color = isCalling ? "#38bdf8" : "#34d399";
 
     document.getElementById("curTicket").innerText = activePatient.ticketNumber;
-    const curNameText = activePatient.sampleNumber 
-      ? `${activePatient.patientName} [Namuna №${activePatient.sampleNumber}]` 
-      : activePatient.patientName;
-    document.getElementById("curName").innerText = curNameText;
+    document.getElementById("curName").innerText = activePatient.patientName;
     document.getElementById("curService").innerText = activePatient.primaryService;
     document.getElementById("curDuration").innerText = activePatient.estimatedDurationMinutes || 30;
 
     const contrastPill = document.getElementById("curContrastPill");
-    contrastPill.style.display = activePatient.isContrast ? "inline-block" : "none";
+    contrastPill.style.display = activePatient.isContrast ? "inline-flex" : "none";
 
     const consentPill = document.getElementById("curConsentPill");
     if (consentPill) {
-      consentPill.style.display = "inline-block";
+      consentPill.style.display = "inline-flex";
       if (activePatient.consent) {
         if (activePatient.consent.isSafe) {
           consentPill.style.background = "rgba(16, 185, 129, 0.2)";
@@ -225,7 +222,7 @@ function renderLaborantView() {
           consentPill.style.background = "rgba(239, 68, 68, 0.25)";
           consentPill.style.color = "#fca5a5";
           consentPill.style.borderColor = "#ef4444";
-          consentPill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Rozilik: Qarshi ko'rsatma!`;
+          consentPill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Rozilik: Xavf bor!`;
         }
       } else {
         consentPill.style.background = "rgba(245, 158, 11, 0.2)";
@@ -238,11 +235,11 @@ function renderLaborantView() {
     const startTimeFormatted = activePatient.startedAt 
       ? new Date(activePatient.startedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) 
       : "--:--";
-    document.getElementById("curStartTime").innerText = `Boshlandi: ${startTimeFormatted}`;
+    document.getElementById("curStartTime").innerHTML = `<i class="fa-solid fa-circle-play" style="color:#10b981;"></i> Boshlandi: ${startTimeFormatted}`;
   } else {
     emptyBox.style.display = "block";
     detailsBox.style.display = "none";
-    sectionBadge.innerHTML = "⚪ Xona Bo'sh";
+    sectionBadge.innerHTML = "⚪ XONA BO'SH";
     sectionBadge.style.color = "#94a3b8";
   }
 
@@ -255,25 +252,25 @@ function renderLaborantView() {
     prepDetails.style.display = "block";
 
     document.getElementById("prepTicket").innerText = prepPatient.ticketNumber;
-    const prepNameText = prepPatient.sampleNumber 
-      ? `${prepPatient.patientName} [Namuna №${prepPatient.sampleNumber}]` 
-      : prepPatient.patientName;
-    document.getElementById("prepName").innerText = prepNameText;
+    document.getElementById("prepName").innerText = prepPatient.patientName;
     document.getElementById("prepService").innerText = prepPatient.primaryService;
 
     const badge = document.getElementById("prepContrastBadge");
-    badge.style.display = prepPatient.isContrast ? "inline-block" : "none";
+    badge.style.display = prepPatient.isContrast ? "inline-flex" : "none";
   } else {
-    emptyPrep.style.display = "block";
+    emptyPrep.style.display = "flex";
     prepDetails.style.display = "none";
   }
 
   // 3. Waiting Queue List
-  const listContainer = document.getElementById("waitingQueueList");
-  document.getElementById("waitingCountBadge").innerText = `${waitingList.length} ta`;
+  const listContainer = document.getElementById("waitingQueueList") || document.getElementById("waitingCardsContainer");
+  const badgeEl = document.getElementById("waitingCountBadge");
+  if (badgeEl) badgeEl.innerText = `${waitingList.length} ta`;
+
+  if (!listContainer) return;
 
   if (waitingList.length === 0) {
-    listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b; font-size:12px;">Kutayotgan bemorlar yo'q</div>`;
+    listContainer.innerHTML = `<div style="text-align:center; padding:32px 16px; color:#64748b; font-size:13.5px; font-weight:600;"><i class="fa-solid fa-user-check" style="font-size:28px; opacity:0.4; display:block; margin-bottom:8px;"></i>Hozirda kutayotgan bemorlar yo'q</div>`;
     return;
   }
 
@@ -281,32 +278,29 @@ function renderLaborantView() {
     <div class="waiting-card-item">
       <div class="item-left">
         <span class="item-ticket">${escapeHtml(p.ticketNumber)}</span>
-        <div>
-          <div class="item-name">
-            ${escapeHtml(p.patientName)}
-            ${p.sampleNumber ? `<span style="font-size:10.5px; color:#38bdf8; background:#0f172a; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:700; border:1px solid rgba(56,189,248,0.3);"><i class="fa-solid fa-vial"></i> №${escapeHtml(p.sampleNumber)}</span>` : ''}
-          </div>
+        <div class="item-info">
+          <div class="item-name">${escapeHtml(p.patientName)}</div>
           <div class="item-service">
-            ${escapeHtml(p.primaryService)} 
-            ${p.isContrast ? '<b style="color:#f87171;">[💉 Kontrast]</b>' : ''}
+            <span>${escapeHtml(p.primaryService)}</span>
+            ${p.isContrast ? '<span class="mini-contrast-tag"><i class="fa-solid fa-syringe"></i> Kontrast</span>' : ''}
           </div>
-          <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
-            <span style="font-size:12px; font-weight:800; color:#38bdf8; font-family:monospace;">
+          <div class="item-time-row">
+            <span class="item-time-main">
               <i class="fa-regular fa-clock"></i> ${p.scheduledTime || (p.estimatedStartTime && p.estimatedStartTime.includes(':') ? (p.estimatedStartTime.match(/\d{1,2}:\d{2}/) || [''])[0] : '') || '--:--'}${p.finishTime ? ` – ${p.finishTime}` : ''}
             </span>
-            ${p.prepCallTime ? `<span style="font-size:10.5px; color:#fbbf24; font-weight:700;"><i class="fa-solid fa-hourglass-start"></i> Tayyorgarlik: ${new Date(p.prepCallTime).toTimeString().substring(0, 5)}</span>` : ''}
+            ${p.prepCallTime ? `<span class="item-time-prep"><i class="fa-solid fa-hourglass-start"></i> Tayyorgarlik: ${new Date(p.prepCallTime).toTimeString().substring(0, 5)}</span>` : ''}
           </div>
         </div>
       </div>
       <div class="item-actions">
-        <button class="btn-mini-consent" onclick="openPatientConsentById('${p.id}')" title="Rozilik anketasi" style="background:#065f46; color:#a7f3d0; border:1px solid #10b981; padding:5px 9px; border-radius:6px; font-size:11.5px; font-weight:700; cursor:pointer;">
-          <i class="fa-solid fa-clipboard-check"></i> Anketa
+        <button class="btn-mini-consent" onclick="openPatientConsentById('${p.id}')" title="Bemor rozilik anketasi">
+          <i class="fa-solid fa-clipboard-check"></i> <span>Anketa</span>
         </button>
-        <button class="btn-mini-prep" onclick="handleStartPrep('${p.id}')">
-          <i class="fa-solid fa-syringe"></i> Tayyorlash
+        <button class="btn-mini-prep" onclick="handleStartPrep('${p.id}')" title="Tayyorgarlikka chaqirish">
+          <i class="fa-solid fa-syringe"></i> <span>Tayyorlash</span>
         </button>
-        <button class="btn-mini-call" onclick="handleCallPatient('${p.id}')">
-          <i class="fa-solid fa-door-open"></i> Chaqirish
+        <button class="btn-mini-call" onclick="handleCallPatient('${p.id}')" title="Tekshiruv xonasiga chaqirish">
+          <i class="fa-solid fa-door-open"></i> <span>Chaqirish</span>
         </button>
       </div>
     </div>

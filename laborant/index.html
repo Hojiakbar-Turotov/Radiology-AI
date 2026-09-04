@@ -12,119 +12,139 @@
   <script src="/shared/theme.js"></script>
 </head>
 <body>
-  <div class="mobile-container">
+  <div class="lab-container mobile-container">
     <!-- Header -->
     <header class="lab-header">
-      <div class="lab-title" style="display:flex; align-items:center; gap:8px;">
-        <img src="/karmed-workspace/assets/logo-onko.png" alt="Logo" style="width:28px; height:28px; object-fit:contain; border-radius:6px; background:#fff; padding:1.5px; border:1px solid #38bdf8;">
-        <span>Laborant Portali</span>
+      <div class="lab-header-left">
+        <div class="lab-brand">
+          <img src="/karmed-workspace/assets/logo-onko.png" alt="Logo" class="lab-logo">
+          <div class="lab-brand-info">
+            <h1 class="lab-brand-title">Laborant Portali</h1>
+            <span class="lab-brand-sub">MRT & MSKT Nazorati</span>
+          </div>
+        </div>
+        <div class="room-selector-wrap">
+          <select id="selectDevice" class="room-select" title="Qurilma / Xonani tanlash">
+            <option value="mrt1">🧲 1-MRT Xonasi (1.5 T)</option>
+            <option value="mrt2">🧲 2-MRT Xonasi (3.0 T)</option>
+            <option value="mskt1">⚡ 1-MSKT Xonasi</option>
+          </select>
+        </div>
       </div>
-      <div class="room-selector-wrap" style="display:flex; align-items:center; gap:8px;">
-        <select id="selectDevice" class="room-select">
-          <option value="mrt1">🧲 1-MRT Xonasi (1.5 T)</option>
-          <option value="mrt2">🧲 2-MRT Xonasi (3.0 T)</option>
-          <option value="mskt1">⚡ 1-MSKT Xonasi</option>
-        </select>
-        <button class="btn-head-consent" onclick="openLaborantScheduleModal()" title="Ish kunlari, oylik/yillik taqvim va smenalarni belgilash">
-          <i class="fa-solid fa-calendar-days"></i> Ish Grafigi
+
+      <div class="lab-header-actions">
+        <button class="btn-head-consent btn-sched" onclick="openLaborantScheduleModal()" title="Ish kunlari, oylik/yillik taqvim va smenalarni belgilash">
+          <i class="fa-solid fa-calendar-days"></i> <span>Ish Grafigi</span>
         </button>
-        <button class="btn-head-consent" onclick="openServicesConfigModal()" title="Har bir tekshiruv vaqtlari, tayyorgarligi va rozilik savollari">
-          <i class="fa-solid fa-sliders"></i> Tekshiruvlar
+        <button class="btn-head-consent btn-services" onclick="openServicesConfigModal()" title="Har bir tekshiruv vaqtlari, tayyorgarligi va rozilik savollari">
+          <i class="fa-solid fa-sliders"></i> <span>Tekshiruvlar</span>
         </button>
-        <button class="btn-head-consent" onclick="openConsentQuestionsManagerModal()" title="Rozilik savollari ro'yxati va tahrirlash">
-          <i class="fa-solid fa-list-check"></i> Savollar
+        <button class="btn-head-consent btn-questions" onclick="openConsentQuestionsManagerModal()" title="Rozilik savollari ro'yxati va tahrirlash">
+          <i class="fa-solid fa-list-check"></i> <span>Savollar</span>
         </button>
-        <button class="btn-head-consent" onclick="openDepartmentManual('laborant')" title="Laborant o'quv qo'llanmasi" style="background:#0284c7; border-color:#38bdf8;">
-          <i class="fa-solid fa-book-open"></i> Qo'llanma
+        <button class="btn-head-consent btn-manual" onclick="openDepartmentManual('laborant')" title="Laborant o'quv qo'llanmasi">
+          <i class="fa-solid fa-book-open"></i> <span>Qo'llanma</span>
         </button>
       </div>
     </header>
 
-    <!-- Active Patient Card (Xonadagi yoki Chaqirilayotgan Bemor) -->
-    <section class="current-patient-section" id="currentPatientSection">
-      <div class="section-badge" id="currentSectionBadge">🟢 Xonadagi Bemor</div>
-      
-      <div class="patient-main-card" id="currentPatientCard">
-        <div class="empty-patient-box" id="emptyPatientBox">
-          <i class="fa-solid fa-bed-pulse"></i>
-          <p>Hozirda xonada bemor yo'q</p>
-          <small>Quyidagi navbatdan keyingi bemorni chaqiring</small>
-        </div>
+    <!-- Dashboard Main Grid (Desktop: 2 Columns, Mobile: 1 Column) -->
+    <div class="lab-dashboard-grid">
+      <!-- Left Column: Current Patient & Preparing Patient -->
+      <div class="lab-main-col">
+        <!-- Active Patient Card (Xonadagi yoki Chaqirilayotgan Bemor) -->
+        <section class="current-patient-section" id="currentPatientSection">
+          <div class="section-badge" id="currentSectionBadge">🟢 Xonadagi Bemor</div>
+          
+          <div class="patient-main-card" id="currentPatientCard">
+            <div class="empty-patient-box" id="emptyPatientBox">
+              <i class="fa-solid fa-bed-pulse"></i>
+              <p>Hozirda xonada bemor yo'q</p>
+              <small>Quyidagi navbatdan keyingi bemorni chaqiring</small>
+            </div>
 
-        <div class="active-patient-details" id="activePatientDetails" style="display:none;">
-          <div class="pat-top-meta">
-            <span class="ticket-pill" id="curTicket">M-001</span>
-            <span class="contrast-pill" id="curContrastPill" style="display:none;"><i class="fa-solid fa-syringe"></i> KONTRAST</span>
-            <span class="consent-status-pill" id="curConsentPill" style="display:none;" onclick="openCurrentPatientConsent()">📋 Anketasi</span>
-          </div>
+            <div class="active-patient-details" id="activePatientDetails" style="display:none;">
+              <div class="pat-top-meta">
+                <span class="ticket-pill" id="curTicket">M-001</span>
+                <div class="pat-status-pills">
+                  <span class="contrast-pill" id="curContrastPill" style="display:none;"><i class="fa-solid fa-syringe"></i> KONTRAST</span>
+                  <span class="consent-status-pill" id="curConsentPill" style="display:none;" onclick="openCurrentPatientConsent()">📋 Anketasi</span>
+                </div>
+              </div>
 
-          <h2 class="pat-name" id="curName">ALIYEV VALI</h2>
-          <p class="pat-service" id="curService">Bosh Miya MRT Tekshiruvi</p>
-          <div class="pat-info-line">
-            <span><i class="fa-regular fa-clock"></i> <strong id="curDuration">30</strong> daqiqa</span>
-            <span id="curStartTime">Boshlandi: --:--</span>
-          </div>
+              <h2 class="pat-name" id="curName">ALIYEV VALI</h2>
+              <p class="pat-service" id="curService">Bosh Miya MRT Tekshiruvi</p>
+              <div class="pat-info-line">
+                <span><i class="fa-regular fa-clock"></i> Rejali vaqt: <strong id="curDuration">30</strong> daqiqa</span>
+                <span id="curStartTime"><i class="fa-solid fa-circle-play" style="color:#10b981;"></i> Boshlandi: --:--</span>
+              </div>
 
-          <!-- Action Buttons -->
-          <div class="action-buttons-grid">
-            <button class="btn btn-consent" id="btnActionConsent" onclick="openCurrentPatientConsent()" title="Bemor rozilik anketasini to'ldirish">
-              <i class="fa-solid fa-clipboard-check"></i> Rozilik Anketasi
-            </button>
-            <button class="btn btn-call" id="btnActionCall" title="Ovozli chaqiruvni qayta e'lon qilish">
-              <i class="fa-solid fa-bullhorn"></i> Qayta Chaqirish
-            </button>
-            <button class="btn btn-complete" id="btnActionComplete" title="Tekshiruv muvaffaqiyatli tugadi">
-              <i class="fa-solid fa-check-double"></i> Tugatish
-            </button>
-            <button class="btn btn-cancel" id="btnActionCancel" title="Tekshiruvni sabab bilan bekor qilish">
-              <i class="fa-solid fa-ban"></i> Bekor Qilish
-            </button>
-            <button class="btn btn-requeue" id="btnActionRequeue" title="Bemorni kutish navbatiga qaytarish">
-              <i class="fa-solid fa-rotate-left"></i> Qayta Navbat
-            </button>
+              <!-- Action Buttons -->
+              <div class="action-buttons-grid">
+                <button class="btn btn-complete" id="btnActionComplete" title="Tekshiruv muvaffaqiyatli tugadi">
+                  <i class="fa-solid fa-check-double"></i> Tekshiruvni Tugatish
+                </button>
+                <button class="btn btn-call" id="btnActionCall" title="Ovozli chaqiruvni qayta e'lon qilish">
+                  <i class="fa-solid fa-bullhorn"></i> Qayta Chaqirish
+                </button>
+                <button class="btn btn-consent" id="btnActionConsent" onclick="openCurrentPatientConsent()" title="Bemor rozilik anketasini to'ldirish">
+                  <i class="fa-solid fa-clipboard-check"></i> Rozilik Anketasi
+                </button>
+                <button class="btn btn-requeue" id="btnActionRequeue" title="Bemorni kutish navbatiga qaytarish">
+                  <i class="fa-solid fa-rotate-left"></i> Qayta Navbat
+                </button>
+                <button class="btn btn-cancel" id="btnActionCancel" title="Tekshiruvni sabab bilan bekor qilish">
+                  <i class="fa-solid fa-ban"></i> Bekor Qilish
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Preparing Patient Card (Navbatdagi / Kateter qo'yiladigan) -->
-    <section class="prep-section">
-      <div class="section-title">
-        <span>🟡 Tayyorgarlikdagi Bemor (Navbatdagi)</span>
-      </div>
-      <div class="prep-card" id="prepPatientCard">
-        <div id="emptyPrepBox" style="color:#64748b; font-size:12px; text-align:center; padding:10px;">
-          Hozirda tayyorgarlikda bemor yo'q
-        </div>
-        <div id="prepDetailsBox" style="display:none;">
-          <div class="prep-top">
-            <strong id="prepTicket" style="color:#fbbf24; font-family:monospace; font-size:16px;">M-002</strong>
-            <span id="prepContrastBadge" class="mini-contrast-badge" style="display:none;">💉 Kateter qo'yish!</span>
+        <!-- Preparing Patient Card (Navbatdagi / Kateter qo'yiladigan) -->
+        <section class="prep-section">
+          <div class="section-title">
+            <span><i class="fa-solid fa-hourglass-half" style="color:#fbbf24;"></i> Tayyorgarlikdagi Bemor (Navbatdagi)</span>
           </div>
-          <div class="prep-name" id="prepName">Karimov Jasur</div>
-          <div class="prep-service" id="prepService">Ko'krak qafasi MRT</div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="btn btn-start-prep" id="btnCallToRoom" style="flex:1;">
-              <i class="fa-solid fa-door-open"></i> Xonaga Kirishga Ruxsat Berish
-            </button>
-            <button class="btn btn-consent" id="btnPrepConsent" onclick="openPrepPatientConsent()" title="Tayyorgarlikdagi bemor rozilik anketasi" style="padding:8px 12px; font-size:12px; background:#065f46; color:#a7f3d0; border:1px solid #10b981; border-radius:6px; cursor:pointer;">
-              <i class="fa-solid fa-clipboard-check"></i> Anketasi
-            </button>
+          <div class="prep-card" id="prepPatientCard">
+            <div id="emptyPrepBox" class="empty-prep-box">
+              <i class="fa-solid fa-clipboard-user"></i>
+              <span>Hozirda tayyorgarlikda bemor yo'q</span>
+            </div>
+            <div id="prepDetailsBox" style="display:none;">
+              <div class="prep-top">
+                <strong id="prepTicket" class="prep-ticket-num">M-002</strong>
+                <span id="prepContrastBadge" class="mini-contrast-badge" style="display:none;"><i class="fa-solid fa-syringe"></i> Kateter qo'yish shart!</span>
+              </div>
+              <div class="prep-name" id="prepName">Karimov Jasur</div>
+              <div class="prep-service" id="prepService">Ko'krak qafasi MRT</div>
+              <div class="prep-actions">
+                <button class="btn btn-start-prep" id="btnCallToRoom">
+                  <i class="fa-solid fa-door-open"></i> Xonaga Kirishga Ruxsat Berish
+                </button>
+                <button class="btn btn-consent" id="btnPrepConsent" onclick="openPrepPatientConsent()" title="Tayyorgarlikdagi bemor rozilik anketasi">
+                  <i class="fa-solid fa-clipboard-check"></i> Anketasi
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
-    </section>
 
-    <!-- Waiting Queue List -->
-    <section class="queue-list-section">
-      <div class="section-title">
-        <span>🔵 Kutayotgan Bemorlar Ro'yxati</span>
-        <span class="badge" id="waitingCountBadge">0 ta</span>
+      <!-- Right Column: Waiting Queue List -->
+      <div class="lab-queue-col">
+        <section class="queue-list-section">
+          <div class="section-title">
+            <span><i class="fa-solid fa-users-line" style="color:#38bdf8;"></i> Kutayotgan Bemorlar Ro'yxati</span>
+            <span class="badge" id="waitingCountBadge">0 ta</span>
+          </div>
+          <div class="waiting-cards-wrap" id="waitingQueueList">
+            <!-- Dynamic Waiting List -->
+          </div>
+        </section>
       </div>
-      <div class="waiting-cards-wrap" id="waitingCardsContainer">
-        <!-- Dynamic Waiting List -->
-      </div>
-    </section>
+    </div>
+  </div>
 
   <!-- Bekor Qilish Sababi Modali -->
   <div id="modalCancelReason" class="cancel-modal-overlay" style="display:none;">
