@@ -430,6 +430,128 @@
     </div>
   </div>
 
+  <!-- KUNLIK ISH GRAFIGI VA SOATLARINI TAHRIRLASH MODALI -->
+  <div id="modalDayScheduleEditor" class="consent-modal-overlay" style="display:none; z-index:10005;">
+    <div class="consent-modal-card" style="max-width:500px;">
+      <div class="consent-modal-header">
+        <div class="consent-modal-title">
+          <i class="fa-solid fa-calendar-day" style="color:#38bdf8; font-size:22px;"></i>
+          <div>
+            <h3 id="dayModalDateTitle" style="font-size:16px; font-weight:800; color:#f8fafc; margin:0;">5-Sentyabr, 2026</h3>
+            <span id="dayModalWeekday" style="font-size:12px; color:#94a3b8;">Shanba kuni ish grafigi</span>
+          </div>
+        </div>
+        <button class="modal-close-x" onclick="closeDayScheduleModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="padding:18px 20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px;">
+        <!-- 1. Kun holatini tanlash -->
+        <div>
+          <label style="font-size:12.5px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:8px;">
+            <i class="fa-solid fa-tag" style="color:#38bdf8;"></i> Kun holatini tanlang:
+          </label>
+          <div class="day-status-options-grid">
+            <label class="day-status-radio-card work" id="optDayWork">
+              <input type="radio" name="radDayStatus" value="work" onchange="onDayStatusChange()">
+              <span class="status-indicator"></span>
+              <div class="status-info">
+                <strong>🟢 Ish Kuni</strong>
+                <small>Navbat qabul qilinadi</small>
+              </div>
+            </label>
+
+            <label class="day-status-radio-card duty" id="optDayDuty">
+              <input type="radio" name="radDayStatus" value="duty" onchange="onDayStatusChange()">
+              <span class="status-indicator"></span>
+              <div class="status-info">
+                <strong>🔵 Navbatchilik</strong>
+                <small>Qo'shimcha smena</small>
+              </div>
+            </label>
+
+            <label class="day-status-radio-card off" id="optDayOff">
+              <input type="radio" name="radDayStatus" value="off" onchange="onDayStatusChange()">
+              <span class="status-indicator"></span>
+              <div class="status-info">
+                <strong>🔴 Dam Olish Kuni</strong>
+                <small>Ushbu kunda ishlanmaydi</small>
+              </div>
+            </label>
+
+            <label class="day-status-radio-card default" id="optDayDefault">
+              <input type="radio" name="radDayStatus" value="default" onchange="onDayStatusChange()">
+              <span class="status-indicator"></span>
+              <div class="status-info">
+                <strong>⚪ Standart Grafik</strong>
+                <small>Haftalik odatiy rejim</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Ish soatlari bo'limi -->
+        <div id="dayHoursSection" style="background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="font-size:12.5px; font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+              <i class="fa-regular fa-clock"></i> Ushbu kun uchun ish soatlari:
+            </label>
+          </div>
+
+          <!-- Tezkor shablon tugmalari -->
+          <div class="day-quick-hours-chips">
+            <button type="button" class="btn-quick-hours" onclick="setDayPresetHours('08:00', '17:00', '12:00', '13:00')">
+              08:00 - 17:00 (Standart)
+            </button>
+            <button type="button" class="btn-quick-hours" onclick="setDayPresetHours('08:00', '14:00', '11:30', '12:00')">
+              08:00 - 14:00 (Yarim kun)
+            </button>
+            <button type="button" class="btn-quick-hours" onclick="setDayPresetHours('08:00', '20:00', '13:00', '14:00')">
+              08:00 - 20:00 (Navbatchilik)
+            </button>
+            <button type="button" class="btn-quick-hours" onclick="setDayPresetHours('13:00', '20:00', '16:00', '16:30')">
+              13:00 - 20:00 (Kechki)
+            </button>
+          </div>
+
+          <!-- Soat inputlari -->
+          <div class="day-hours-inputs-grid">
+            <div class="sched-field">
+              <label><i class="fa-regular fa-clock"></i> Ish boshlanishi:</label>
+              <input type="time" id="inpDayStart" value="08:00">
+            </div>
+            <div class="sched-field">
+              <label><i class="fa-regular fa-clock"></i> Ish tugashi:</label>
+              <input type="time" id="inpDayEnd" value="17:00">
+            </div>
+            <div class="sched-field">
+              <label><i class="fa-solid fa-utensils"></i> Tushlik boshlanishi:</label>
+              <input type="time" id="inpDayLunchStart" value="12:00">
+            </div>
+            <div class="sched-field">
+              <label><i class="fa-solid fa-utensils"></i> Tushlik tugashi:</label>
+              <input type="time" id="inpDayLunchEnd" value="13:00">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dam olish kuni xabari -->
+        <div id="dayOffNoticeBox" style="display:none; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:10px; padding:12px 14px; color:#fca5a5; font-size:12.5px;">
+          <i class="fa-solid fa-circle-exclamation"></i> <strong>Dam olish kuni:</strong> Ushbu kunda laborant ishda bo'lmaydi va tizim bemorlarni avtomatik ravishda boshqa ish kunlariga taqsimlaydi.
+        </div>
+
+        <!-- Standart rejim xabari -->
+        <div id="dayDefaultNoticeBox" style="display:none; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:10px; padding:12px 14px; color:#bae6fd; font-size:12.5px;">
+          <i class="fa-solid fa-circle-info"></i> <strong>Standart rejim:</strong> Ushbu kunga maxsus grafik o'rnatilmaydi, haftalik standart ish soatlari amal qiladi.
+        </div>
+      </div>
+
+      <div class="consent-modal-footer">
+        <button type="button" class="btn-consent-close" onclick="closeDayScheduleModal()">Bekor qilish</button>
+        <button type="button" class="btn-consent-save" onclick="saveCurrentDaySchedule()"><i class="fa-solid fa-check"></i> Saqlash</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 4. TEKSHIRUVLAR SOZLAMALARI (VAQTLAR, TAYYORGARLIK, QARSHI KO'RSATMA, SAVOLLAR) MODALI -->
   <div id="modalServicesConfig" class="consent-modal-overlay" style="display:none;">
     <div class="consent-modal-card large" style="max-width:960px;">

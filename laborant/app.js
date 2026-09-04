@@ -1005,11 +1005,19 @@ window.renderCalendar = function() {
 
     let status = "work";
     let statusLabel = "Ish";
+    let customHours = null;
 
     // Agar shaxsiy taqvimda sana belgilangan bo'lsa
     if (laborantWorkSchedule.customDates && laborantWorkSchedule.customDates[dateStr]) {
       const cd = laborantWorkSchedule.customDates[dateStr];
-      status = cd.type; // 'work' | 'duty' | 'off'
+      if (typeof cd === 'string') {
+        status = cd;
+      } else if (typeof cd === 'object' && cd !== null) {
+        status = cd.type || (cd.isWorkDay === false ? 'off' : 'work');
+        if (cd.start && cd.end && status !== 'off') {
+          customHours = `${cd.start}-${cd.end}`;
+        }
+      }
     } else {
       // Standart haftalik kunlar asosida
       if (standardDays.includes(dayOfWeekShort)) {
@@ -1024,52 +1032,168 @@ window.renderCalendar = function() {
     else if (status === "off") statusLabel = "Dam";
 
     const cell = document.createElement("div");
-    cell.className = `cal-day-cell ${status} ${isToday ? "today" : ""}`;
-    cell.title = `${dateStr} (${dayOfWeekShort}): Bosib holatini o'zgartiring`;
-    cell.onclick = () => toggleDayCustomStatus(dateStr);
+    cell.className = `cal-day-cell ${status} ${isToday ? "today" : ""} ${customHours ? "has-custom-hours" : ""}`;
+    const hoursTooltip = customHours ? ` | Ish soati: ${customHours}` : (status === 'off' ? ' | Dam olish kuni' : '');
+    cell.title = `${dateStr} (${dayOfWeekShort}): ${statusLabel}${hoursTooltip} - Bosib o'zgartirish`;
+    cell.onclick = () => openDayScheduleModal(dateStr);
 
     cell.innerHTML = `
-      <span class="cal-day-num">${d}</span>
-      <span class="cal-day-badge">${statusLabel}</span>
+      <div class="cal-cell-top">
+        <span class="cal-day-num">${d}</span>
+        <span class="cal-day-badge">${statusLabel}</span>
+      </div>
+      ${customHours ? `<span class="cal-day-hours">${customHours}</span>` : `<span class="cal-day-hours-empty"></span>`}
     `;
 
     grid.appendChild(cell);
   }
 };
 
-window.toggleDayCustomStatus = function(dateStr) {
+let currentEditingDateStr = null;
+const DAY_NAMES_FULL_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+
+window.openDayScheduleModal = function(dateStr) {
+  currentEditingDateStr = dateStr;
+  const modal = document.getElementById("modalDayScheduleEditor");
+  if (!modal) return;
+
+  const d = new Date(dateStr + "T00:00:00");
+  const dayName = DAY_NAMES_FULL_UZ[d.getDay()];
+  const monthName = MONTH_NAMES_UZ[d.getMonth()];
+  const formattedTitle = `${d.getDate()}-${monthName}, ${d.getFullYear()}`;
+
+  const titleEl = document.getElementById("dayModalDateTitle");
+  const weekdayEl = document.getElementById("dayModalWeekday");
+  if (titleEl) titleEl.innerText = formattedTitle;
+  if (weekdayEl) weekdayEl.innerText = `${dayName} kuni uchun grafik`;
+
+  // Mavjud custom holat yoki standartni aniqlash
+  let customConfig = null;
+  if (laborantWorkSchedule.customDates && laborantWorkSchedule.customDates[dateStr]) {
+    customConfig = laborantWorkSchedule.customDates[dateStr];
+  }
+
+  let selectedType = "default";
+  let startTime = laborantWorkSchedule.start || "08:00";
+  let endTime = laborantWorkSchedule.end || "17:00";
+  let lunchStart = laborantWorkSchedule.lunchStart || "12:00";
+  let lunchEnd = laborantWorkSchedule.lunchEnd || "13:00";
+
+  if (customConfig) {
+    if (typeof customConfig === "string") {
+      selectedType = customConfig;
+    } else if (typeof customConfig === "object") {
+      selectedType = customConfig.type || (customConfig.isWorkDay === false ? "off" : "work");
+      if (customConfig.start) startTime = customConfig.start;
+      if (customConfig.end) endTime = customConfig.end;
+      if (customConfig.lunchStart) lunchStart = customConfig.lunchStart;
+      if (customConfig.lunchEnd) lunchEnd = customConfig.lunchEnd;
+    }
+  } else {
+    // Standart kunlar
+    const dayOfWeekShort = DAY_SHORT_UZ[d.getDay()];
+    const standardDays = laborantWorkSchedule.days || ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+    selectedType = standardDays.includes(dayOfWeekShort) ? "work" : "off";
+  }
+
+  // Radio buttonni tanlash
+  const rads = document.querySelectorAll("input[name='radDayStatus']");
+  rads.forEach(rad => {
+    rad.checked = (rad.value === selectedType);
+  });
+
+  // Soatlarni kiritish
+  const inpS = document.getElementById("inpDayStart");
+  const inpE = document.getElementById("inpDayEnd");
+  const inpLS = document.getElementById("inpDayLunchStart");
+  const inpLE = document.getElementById("inpDayLunchEnd");
+
+  if (inpS) inpS.value = startTime;
+  if (inpE) inpE.value = endTime;
+  if (inpLS) inpLS.value = lunchStart;
+  if (inpLE) inpLE.value = lunchEnd;
+
+  onDayStatusChange();
+  modal.style.display = "flex";
+};
+
+window.closeDayScheduleModal = function() {
+  const modal = document.getElementById("modalDayScheduleEditor");
+  if (modal) modal.style.display = "none";
+  currentEditingDateStr = null;
+};
+
+window.onDayStatusChange = function() {
+  const selectedRad = document.querySelector("input[name='radDayStatus']:checked");
+  const val = selectedRad ? selectedRad.value : "work";
+
+  const hoursSec = document.getElementById("dayHoursSection");
+  const offNotice = document.getElementById("dayOffNoticeBox");
+  const defNotice = document.getElementById("dayDefaultNoticeBox");
+
+  if (val === "off") {
+    if (hoursSec) hoursSec.style.display = "none";
+    if (offNotice) offNotice.style.display = "block";
+    if (defNotice) defNotice.style.display = "none";
+  } else if (val === "default") {
+    if (hoursSec) hoursSec.style.display = "none";
+    if (offNotice) offNotice.style.display = "none";
+    if (defNotice) defNotice.style.display = "block";
+  } else {
+    if (hoursSec) hoursSec.style.display = "block";
+    if (offNotice) offNotice.style.display = "none";
+    if (defNotice) defNotice.style.display = "none";
+  }
+};
+
+window.setDayPresetHours = function(start, end, lunchStart, lunchEnd) {
+  const inpS = document.getElementById("inpDayStart");
+  const inpE = document.getElementById("inpDayEnd");
+  const inpLS = document.getElementById("inpDayLunchStart");
+  const inpLE = document.getElementById("inpDayLunchEnd");
+
+  if (inpS) inpS.value = start;
+  if (inpE) inpE.value = end;
+  if (inpLS) inpLS.value = lunchStart;
+  if (inpLE) inpLE.value = lunchEnd;
+};
+
+window.saveCurrentDaySchedule = function() {
+  if (!currentEditingDateStr) return;
   if (!laborantWorkSchedule.customDates) laborantWorkSchedule.customDates = {};
 
-  const cur = laborantWorkSchedule.customDates[dateStr];
-  let currentType = cur ? cur.type : null;
+  const selectedRad = document.querySelector("input[name='radDayStatus']:checked");
+  const val = selectedRad ? selectedRad.value : "work";
 
-  // Agar custom mavjud bo'lmasa, standartini aniqlaymiz
-  if (!currentType) {
-    const d = new Date(dateStr);
-    const dayShort = DAY_SHORT_UZ[d.getDay()];
-    const standardDays = laborantWorkSchedule.days || ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
-    currentType = standardDays.includes(dayShort) ? "work" : "off";
-  }
-
-  // Aylantirish zanjiri: work -> duty -> off -> standartga qaytarish (null)
-  let nextType = null;
-  if (currentType === "work") nextType = "duty";
-  else if (currentType === "duty") nextType = "off";
-  else if (currentType === "off") nextType = null;
-
-  if (nextType) {
-    laborantWorkSchedule.customDates[dateStr] = {
-      type: nextType,
-      start: laborantWorkSchedule.start || "08:00",
-      end: laborantWorkSchedule.end || "17:00",
-      lunchStart: laborantWorkSchedule.lunchStart || "12:00",
-      lunchEnd: laborantWorkSchedule.lunchEnd || "13:00"
+  if (val === "default") {
+    delete laborantWorkSchedule.customDates[currentEditingDateStr];
+  } else if (val === "off") {
+    laborantWorkSchedule.customDates[currentEditingDateStr] = {
+      type: "off",
+      isWorkDay: false
     };
   } else {
-    delete laborantWorkSchedule.customDates[dateStr];
+    const start = document.getElementById("inpDayStart")?.value || "08:00";
+    const end = document.getElementById("inpDayEnd")?.value || "17:00";
+    const lunchStart = document.getElementById("inpDayLunchStart")?.value || "12:00";
+    const lunchEnd = document.getElementById("inpDayLunchEnd")?.value || "13:00";
+
+    laborantWorkSchedule.customDates[currentEditingDateStr] = {
+      type: val, // 'work' | 'duty'
+      isWorkDay: true,
+      start,
+      end,
+      lunchStart,
+      lunchEnd
+    };
   }
 
+  closeDayScheduleModal();
   renderCalendar();
+};
+
+window.toggleDayCustomStatus = function(dateStr) {
+  openDayScheduleModal(dateStr);
 };
 
 window.applyShiftPattern = function(pattern) {
