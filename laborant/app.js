@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initActionButtons();
   connectWebSocket();
   fetchQueue();
+  fetchConsentQuestions();
+  fetchServices();
 });
 
 function initActionButtons() {
@@ -119,6 +121,15 @@ function connectWebSocket() {
       } else if (data.type === "consent_questions_updated") {
         if (data.payload.questions) allConsentQuestions = data.payload.questions;
         renderConsentQuestionsManager();
+      } else if (data.type === "laborant_schedule_updated") {
+        if (document.getElementById("modalLaborantSchedule")?.style.display !== "none") {
+          fetchLaborantScheduleData();
+        }
+      } else if (data.type === "services_updated" || data.type === "laborant_services_configured") {
+        fetchServices();
+        if (document.getElementById("modalServicesConfig")?.style.display !== "none") {
+          fetchServicesConfigData();
+        }
       }
     } catch (e) {}
   };
@@ -148,6 +159,25 @@ async function fetchConsentQuestions() {
     }
   } catch (e) {
     console.error("Consent questions fetch error:", e);
+  }
+}
+
+let cachedServicesCatalog = [];
+let laborantPreferences = {};
+
+async function fetchServices() {
+  try {
+    const res = await fetch("/api/services");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.catalog)) {
+      cachedServicesCatalog = data.catalog;
+      window.servicesCatalogMap = {};
+      cachedServicesCatalog.forEach(s => {
+        window.servicesCatalogMap[s.code] = s;
+      });
+    }
+  } catch (e) {
+    console.error("Services fetch error:", e);
   }
 }
 
@@ -303,6 +333,20 @@ async function postAPI(url, data) {
   }
 }
 
+async function getAPI(url) {
+  try {
+    const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token") || "";
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(url, { headers });
+    return await res.json();
+  } catch (e) {
+    console.error("GET API xatosi:", e);
+    return { success: false, error: e.message };
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -387,8 +431,28 @@ function getDeduplicatedRelevantQuestions(patient) {
 
   if (!isMrt && !isMskt) isMrt = true;
 
-  // Filtrlash: tegishli apparat savollari + agar kontrastli bo'lsa kontrast savollari + umumiy (ALL) savollar
+  const serviceSpecificQuestionIds = new Set();
+  services.forEach(s => {
+    if (Array.isArray(s.consentQuestionIds)) {
+      s.consentQuestionIds.forEach(id => serviceSpecificQuestionIds.add(id));
+    }
+    const sCode = (s.code || s.serviceCode || '').toUpperCase().trim();
+    if (sCode) {
+      if (laborantPreferences.serviceConsentQuestions && Array.isArray(laborantPreferences.serviceConsentQuestions[sCode])) {
+        laborantPreferences.serviceConsentQuestions[sCode].forEach(id => serviceSpecificQuestionIds.add(id));
+      }
+      if (Array.isArray(cachedServicesCatalog)) {
+        const catItem = cachedServicesCatalog.find(c => c.code === sCode);
+        if (catItem && Array.isArray(catItem.consentQuestionIds)) {
+          catItem.consentQuestionIds.forEach(id => serviceSpecificQuestionIds.add(id));
+        }
+      }
+    }
+  });
+
+  // Filtrlash: maxsus tekshiruv savollari + tegishli apparat savollari + kontrast savollari + umumiy (ALL) savollar
   const rawRelevant = allConsentQuestions.filter(q => {
+    if (serviceSpecificQuestionIds.has(q.id)) return true;
     if (q.category === "ALL") return true;
     if (q.category === "MRT" && isMrt) return true;
     if (q.category === "MSKT" && isMskt) return true;
@@ -803,4 +867,521 @@ window.deleteQuestionAction = async function(id, text) {
   } else {
     alert("Xatolik: " + (res?.error || "Savolni o'chirib bo'lmadi"));
   }
+};
+
+// =============================================================
+// LABORANT ISH GRAFIGI VA TAQVIM (MONTHLY/YEARLY SCHEDULE)
+// =============================================================
+let laborantWorkSchedule = {
+  start: "08:00",
+  end: "17:00",
+  lunchStart: "12:00",
+  lunchEnd: "13:00",
+  days: ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"],
+  customDates: {},
+  shiftPattern: "standard"
+};
+let currentCalDate = new Date();
+
+window.openLaborantScheduleModal = async function() {
+  const modal = document.getElementById("modalLaborantSchedule");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  await fetchLaborantScheduleData();
+};
+
+window.closeLaborantScheduleModal = function() {
+  const modal = document.getElementById("modalLaborantSchedule");
+  if (modal) modal.style.display = "none";
+};
+
+window.switchScheduleTab = function(tab, btn) {
+  const tabCal = document.getElementById("schedTabCalendar");
+  const tabHours = document.getElementById("schedTabHours");
+  const btnCal = document.getElementById("tabBtnSchedCalendar");
+  const btnHours = document.getElementById("tabBtnSchedHours");
+
+  if (tab === 'calendar') {
+    if (tabCal) tabCal.style.display = "block";
+    if (tabHours) tabHours.style.display = "none";
+    if (btnCal) btnCal.classList.add("active");
+    if (btnHours) btnHours.classList.remove("active");
+    renderCalendar();
+  } else {
+    if (tabCal) tabCal.style.display = "none";
+    if (tabHours) tabHours.style.display = "block";
+    if (btnCal) btnCal.classList.remove("active");
+    if (btnHours) btnHours.classList.add("active");
+  }
+};
+
+async function fetchLaborantScheduleData() {
+  const res = await getAPI("/api/laborant/my-schedule");
+  if (res && res.success) {
+    if (res.workSchedule) {
+      laborantWorkSchedule = {
+        ...laborantWorkSchedule,
+        ...res.workSchedule,
+        customDates: res.workSchedule.customDates || {}
+      };
+    }
+    if (res.preferences) {
+      laborantPreferences = res.preferences;
+    }
+
+    // Soatlar inputlarini to'ldirish
+    const inpStart = document.getElementById("inpSchedWorkStart");
+    const inpEnd = document.getElementById("inpSchedWorkEnd");
+    const inpLStart = document.getElementById("inpSchedLunchStart");
+    const inpLEnd = document.getElementById("inpSchedLunchEnd");
+
+    if (inpStart) inpStart.value = laborantWorkSchedule.start || "08:00";
+    if (inpEnd) inpEnd.value = laborantWorkSchedule.end || "17:00";
+    if (inpLStart) inpLStart.value = laborantWorkSchedule.lunchStart || "12:00";
+    if (inpLEnd) inpLEnd.value = laborantWorkSchedule.lunchEnd || "13:00";
+
+    // Haftaning standart kunlari
+    const activeDays = laborantWorkSchedule.days || ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+    const checkboxes = document.querySelectorAll("#schedWeekdaysWrap input[type='checkbox']");
+    checkboxes.forEach(chk => {
+      chk.checked = activeDays.includes(chk.value);
+    });
+
+    renderCalendar();
+  }
+}
+
+window.changeCalMonth = function(offset) {
+  currentCalDate = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth() + offset, 1);
+  renderCalendar();
+};
+
+const MONTH_NAMES_UZ = [
+  "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+  "Iyul", "Avgust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
+];
+const DAY_SHORT_UZ = ["Yak", "Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+
+window.renderCalendar = function() {
+  const grid = document.getElementById("calDaysGrid");
+  const titleEl = document.getElementById("calMonthYearTitle");
+  if (!grid || !titleEl) return;
+
+  const year = currentCalDate.getFullYear();
+  const month = currentCalDate.getMonth();
+
+  titleEl.textContent = `${MONTH_NAMES_UZ[month]} ${year}`;
+
+  grid.innerHTML = "";
+
+  // Oyning birinchi kuni haftaning qaysi kuniga to'g'ri keladi (1 = Du, ..., 7 = Ya)
+  const firstDay = new Date(year, month, 1);
+  let startDayOfWeek = firstDay.getDay(); // 0 = Ya, 1 = Du
+  if (startDayOfWeek === 0) startDayOfWeek = 7; // Du = 1, Ya = 7
+
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // O'tgan oydan qolgan bo'sh kataklar
+  for (let i = 1; i < startDayOfWeek; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "cal-day-cell other-month";
+    grid.appendChild(emptyCell);
+  }
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const standardDays = laborantWorkSchedule.days || ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    const curDate = new Date(year, month, d);
+    const yyyy = curDate.getFullYear();
+    const mm = String(curDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    const isToday = (dateStr === todayStr);
+    const dayOfWeekShort = DAY_SHORT_UZ[curDate.getDay()];
+
+    let status = "work";
+    let statusLabel = "Ish";
+
+    // Agar shaxsiy taqvimda sana belgilangan bo'lsa
+    if (laborantWorkSchedule.customDates && laborantWorkSchedule.customDates[dateStr]) {
+      const cd = laborantWorkSchedule.customDates[dateStr];
+      status = cd.type; // 'work' | 'duty' | 'off'
+    } else {
+      // Standart haftalik kunlar asosida
+      if (standardDays.includes(dayOfWeekShort)) {
+        status = "work";
+      } else {
+        status = "off";
+      }
+    }
+
+    if (status === "work") statusLabel = "Ish";
+    else if (status === "duty") statusLabel = "Navbt";
+    else if (status === "off") statusLabel = "Dam";
+
+    const cell = document.createElement("div");
+    cell.className = `cal-day-cell ${status} ${isToday ? "today" : ""}`;
+    cell.title = `${dateStr} (${dayOfWeekShort}): Bosib holatini o'zgartiring`;
+    cell.onclick = () => toggleDayCustomStatus(dateStr);
+
+    cell.innerHTML = `
+      <span class="cal-day-num">${d}</span>
+      <span class="cal-day-badge">${statusLabel}</span>
+    `;
+
+    grid.appendChild(cell);
+  }
+};
+
+window.toggleDayCustomStatus = function(dateStr) {
+  if (!laborantWorkSchedule.customDates) laborantWorkSchedule.customDates = {};
+
+  const cur = laborantWorkSchedule.customDates[dateStr];
+  let currentType = cur ? cur.type : null;
+
+  // Agar custom mavjud bo'lmasa, standartini aniqlaymiz
+  if (!currentType) {
+    const d = new Date(dateStr);
+    const dayShort = DAY_SHORT_UZ[d.getDay()];
+    const standardDays = laborantWorkSchedule.days || ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+    currentType = standardDays.includes(dayShort) ? "work" : "off";
+  }
+
+  // Aylantirish zanjiri: work -> duty -> off -> standartga qaytarish (null)
+  let nextType = null;
+  if (currentType === "work") nextType = "duty";
+  else if (currentType === "duty") nextType = "off";
+  else if (currentType === "off") nextType = null;
+
+  if (nextType) {
+    laborantWorkSchedule.customDates[dateStr] = {
+      type: nextType,
+      start: laborantWorkSchedule.start || "08:00",
+      end: laborantWorkSchedule.end || "17:00",
+      lunchStart: laborantWorkSchedule.lunchStart || "12:00",
+      lunchEnd: laborantWorkSchedule.lunchEnd || "13:00"
+    };
+  } else {
+    delete laborantWorkSchedule.customDates[dateStr];
+  }
+
+  renderCalendar();
+};
+
+window.applyShiftPattern = function(pattern) {
+  if (!laborantWorkSchedule.customDates) laborantWorkSchedule.customDates = {};
+
+  const year = currentCalDate.getFullYear();
+  const month = currentCalDate.getMonth();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  for (let d = 1; d <= totalDays; d++) {
+    const curDate = new Date(year, month, d);
+    const yyyy = curDate.getFullYear();
+    const mm = String(curDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    const dayOfWeek = curDate.getDay(); // 0 = Ya
+
+    let type = "work";
+
+    if (pattern === "standard") {
+      type = (dayOfWeek !== 0) ? "work" : "off";
+    } else if (pattern === "alternate_1_1") {
+      type = (d % 2 === 1) ? "work" : "off";
+    } else if (pattern === "shift_2_2") {
+      type = (Math.floor((d - 1) / 2) % 2 === 0) ? "work" : "off";
+    } else if (pattern === "odd_days") {
+      type = (d % 2 === 1) ? "work" : "off";
+    } else if (pattern === "even_days") {
+      type = (d % 2 === 0) ? "work" : "off";
+    }
+
+    laborantWorkSchedule.customDates[dateStr] = {
+      type,
+      start: laborantWorkSchedule.start || "08:00",
+      end: laborantWorkSchedule.end || "17:00",
+      lunchStart: laborantWorkSchedule.lunchStart || "12:00",
+      lunchEnd: laborantWorkSchedule.lunchEnd || "13:00"
+    };
+  }
+
+  laborantWorkSchedule.shiftPattern = pattern;
+  renderCalendar();
+};
+
+window.resetCalendarCustomDates = function() {
+  if (!confirm("Ushbu oy uchun kiritilgan maxsus kunlar tozalanib, standart jadvalga qaytarilsinmi?")) return;
+
+  const year = currentCalDate.getFullYear();
+  const month = currentCalDate.getMonth();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  for (let d = 1; d <= totalDays; d++) {
+    const yyyy = year;
+    const mm = String(month + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    if (laborantWorkSchedule.customDates) {
+      delete laborantWorkSchedule.customDates[dateStr];
+    }
+  }
+
+  renderCalendar();
+};
+
+window.saveLaborantSchedule = async function() {
+  const inpStart = document.getElementById("inpSchedWorkStart")?.value || "08:00";
+  const inpEnd = document.getElementById("inpSchedWorkEnd")?.value || "17:00";
+  const inpLStart = document.getElementById("inpSchedLunchStart")?.value || "12:00";
+  const inpLEnd = document.getElementById("inpSchedLunchEnd")?.value || "13:00";
+
+  const checkedDays = Array.from(document.querySelectorAll("#schedWeekdaysWrap input[type='checkbox']:checked"))
+    .map(chk => chk.value);
+
+  laborantWorkSchedule.start = inpStart;
+  laborantWorkSchedule.end = inpEnd;
+  laborantWorkSchedule.lunchStart = inpLStart;
+  laborantWorkSchedule.lunchEnd = inpLEnd;
+  laborantWorkSchedule.days = checkedDays.length > 0 ? checkedDays : ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+
+  const res = await postAPI("/api/laborant/my-schedule", {
+    workSchedule: laborantWorkSchedule
+  });
+
+  if (res && res.success) {
+    alert("✅ Ish grafigi va taqvim muvaffaqiyatli saqlandi!");
+    closeLaborantScheduleModal();
+  } else {
+    alert("Xatolik: " + (res?.error || "Jadvalni saqlab bo'lmadi"));
+  }
+};
+
+// =============================================================
+// TEKSHIRUVLAR SOZLAMALARI (VAQTLAR, TAYYORGARLIK, QARSHI KO'RSATMA, SAVOLLAR)
+// =============================================================
+let activeScFilter = "ALL";
+let selectedQuestionsMap = {}; // code -> Set of question ids
+
+window.openServicesConfigModal = async function() {
+  const modal = document.getElementById("modalServicesConfig");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  await fetchServicesConfigData();
+};
+
+window.closeServicesConfigModal = function() {
+  const modal = document.getElementById("modalServicesConfig");
+  if (modal) modal.style.display = "none";
+};
+
+window.filterServicesConfig = function(filter, btn) {
+  activeScFilter = filter;
+  const buttons = document.querySelectorAll(".sc-filter-tabs .sc-tab-btn");
+  buttons.forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderServicesConfigList();
+};
+
+async function fetchServicesConfigData() {
+  const res = await getAPI("/api/laborant/services-config");
+  if (res && res.success) {
+    cachedServicesCatalog = res.catalog || [];
+    window.servicesCatalogMap = {};
+    cachedServicesCatalog.forEach(s => {
+      window.servicesCatalogMap[s.code] = s;
+    });
+
+    if (Array.isArray(res.consentQuestions)) {
+      allConsentQuestions = res.consentQuestions;
+    }
+    if (res.userPreferences) {
+      laborantPreferences = res.userPreferences;
+    }
+
+    // Initialize selectedQuestionsMap
+    selectedQuestionsMap = {};
+    cachedServicesCatalog.forEach(s => {
+      const qIds = laborantPreferences.serviceConsentQuestions?.[s.code] || s.consentQuestionIds || [];
+      selectedQuestionsMap[s.code] = new Set(qIds);
+    });
+
+    renderServicesConfigList();
+  }
+}
+
+window.renderServicesConfigList = function() {
+  const container = document.getElementById("scListContainer");
+  if (!container) return;
+
+  const searchVal = document.getElementById("inpScSearch")?.value.toLowerCase().trim() || "";
+
+  const filtered = cachedServicesCatalog.filter(s => {
+    // Type filter
+    if (activeScFilter === "MRT" && s.type !== "MRT") return false;
+    if (activeScFilter === "MSKT" && s.type !== "MSKT") return false;
+    if (activeScFilter === "CONTRAST" && !s.isContrast) return false;
+
+    // Search filter
+    if (searchVal) {
+      const name = (s.name || "").toLowerCase();
+      const code = (s.code || "").toLowerCase();
+      if (!name.includes(searchVal) && !code.includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:30px; font-size:13px;">Mos keluvchi tekshiruv topilmadi.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(s => {
+    const customDur = laborantPreferences.testDurations?.[s.code] ?? s.duration ?? 25;
+    const customPrep = laborantPreferences.servicePreparations?.[s.code] ?? s.preparation ?? "";
+    const customContra = laborantPreferences.serviceContraindications?.[s.code] ?? s.contraindications ?? "";
+    const chosenQSet = selectedQuestionsMap[s.code] || new Set();
+
+    const typeBadgeClass = s.type === "MSKT" ? "mskt" : "mrt";
+
+    // Build question chips (all available questions)
+    const chipsHtml = allConsentQuestions.map(q => {
+      const isSelected = chosenQSet.has(q.id);
+      return `
+        <span class="sc-q-chip ${isSelected ? 'selected' : ''}" onclick="toggleServiceQuestion('${s.code}', '${q.id}', this)" title="${escapeHtml(q.text)}">
+          <i class="fa-solid ${isSelected ? 'fa-check-circle' : 'fa-circle-plus'}"></i>
+          ${escapeHtml(q.text.length > 38 ? q.text.substring(0, 38) + '...' : q.text)}
+        </span>
+      `;
+    }).join("");
+
+    return `
+      <div class="sc-item-card" id="sc_card_${s.code}">
+        <div class="sc-card-top">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="sc-code-badge">${escapeHtml(s.code)}</span>
+            <strong style="font-size:13.5px; color:#f8fafc;">${escapeHtml(s.name)}</strong>
+            <span class="sc-type-badge ${typeBadgeClass}">${s.type || 'MRT'}</span>
+            ${s.isContrast ? '<span class="mini-contrast-badge" style="font-size:10px;">💉 Kontrast</span>' : ''}
+          </div>
+          <small style="color:#94a3b8; font-size:11px;">Standart: <strong>${s.duration || 25}</strong> daq</small>
+        </div>
+
+        <div class="sc-grid-fields">
+          <div class="sc-field-box">
+            <label><i class="fa-solid fa-stopwatch"></i> Laborant Vaqti (daq):</label>
+            <input type="number" min="5" max="180" id="sc_dur_${s.code}" value="${customDur}">
+          </div>
+
+          <div class="sc-field-box">
+            <label><i class="fa-solid fa-list-ul"></i> Tayyorgarlik Qoidasi:</label>
+            <textarea id="sc_prep_${s.code}" rows="2" placeholder="Masalan: 4 soat och qolish, qon tahlili...">${escapeHtml(customPrep)}</textarea>
+          </div>
+
+          <div class="sc-field-box">
+            <label><i class="fa-solid fa-ban"></i> Qarshi Ko'rsatmalar:</label>
+            <textarea id="sc_contra_${s.code}" rows="2" placeholder="Masalan: Kardiostimulyator, buyrak yetishmovchiligi...">${escapeHtml(customContra)}</textarea>
+          </div>
+        </div>
+
+        <div class="sc-field-box" style="margin-top:2px;">
+          <label><i class="fa-solid fa-clipboard-question"></i> Rozilik Anketasiga Alohida Bog'lanadigan Savollar (${chosenQSet.size} ta tanlangan):</label>
+          <div class="sc-q-chips-wrap">
+            ${chipsHtml}
+          </div>
+        </div>
+
+        <div class="sc-card-actions">
+          <span style="margin-right:auto; font-size:11px; color:#64748b;">
+            <i class="fa-solid fa-circle-check" style="color:#10b981;"></i> Boshqa tekshiruvlar bilan birlashganda takrorlanmaydi
+          </span>
+          <button type="button" class="btn-sc-save-single" onclick="saveSingleServiceConfig('${s.code}')">
+            <i class="fa-solid fa-check"></i> Saqlash
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+};
+
+window.toggleServiceQuestion = function(serviceCode, questionId, chipEl) {
+  if (!selectedQuestionsMap[serviceCode]) selectedQuestionsMap[serviceCode] = new Set();
+  const qSet = selectedQuestionsMap[serviceCode];
+
+  if (qSet.has(questionId)) {
+    qSet.delete(questionId);
+    if (chipEl) {
+      chipEl.classList.remove("selected");
+      const icon = chipEl.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-circle-plus";
+    }
+  } else {
+    qSet.add(questionId);
+    if (chipEl) {
+      chipEl.classList.add("selected");
+      const icon = chipEl.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-check-circle";
+    }
+  }
+};
+
+window.saveSingleServiceConfig = async function(serviceCode) {
+  const durVal = document.getElementById("sc_dur_" + serviceCode)?.value;
+  const prepVal = document.getElementById("sc_prep_" + serviceCode)?.value;
+  const contraVal = document.getElementById("sc_contra_" + serviceCode)?.value;
+  const qIds = Array.from(selectedQuestionsMap[serviceCode] || []);
+
+  const payload = {
+    serviceCode: serviceCode,
+    duration: durVal ? parseInt(durVal, 10) : undefined,
+    preparation: prepVal !== undefined ? prepVal.trim() : "",
+    contraindications: contraVal !== undefined ? contraVal.trim() : "",
+    consentQuestionIds: qIds,
+    updateCatalog: true
+  };
+
+  const res = await postAPI("/api/laborant/services-config", payload);
+  if (res && res.success) {
+    if (res.userPreferences) laborantPreferences = res.userPreferences;
+    alert(`✅ [${serviceCode}] tekshiruvi sozlamalari muvaffaqiyatli saqlandi!`);
+  } else {
+    alert("Xatolik: " + (res?.error || "Saqlab bo'lmadi"));
+  }
+};
+
+window.saveAllPendingServices = async function() {
+  const cards = document.querySelectorAll(".sc-item-card");
+  if (cards.length === 0) return;
+
+  let savedCount = 0;
+  for (const card of cards) {
+    const code = card.id.replace("sc_card_", "");
+    const durVal = document.getElementById("sc_dur_" + code)?.value;
+    const prepVal = document.getElementById("sc_prep_" + code)?.value;
+    const contraVal = document.getElementById("sc_contra_" + code)?.value;
+    const qIds = Array.from(selectedQuestionsMap[code] || []);
+
+    const payload = {
+      serviceCode: code,
+      duration: durVal ? parseInt(durVal, 10) : undefined,
+      preparation: prepVal !== undefined ? prepVal.trim() : "",
+      contraindications: contraVal !== undefined ? contraVal.trim() : "",
+      consentQuestionIds: qIds,
+      updateCatalog: true
+    };
+
+    const res = await postAPI("/api/laborant/services-config", payload);
+    if (res && res.success) {
+      savedCount++;
+      if (res.userPreferences) laborantPreferences = res.userPreferences;
+    }
+  }
+
+  alert(`✅ Barcha ${savedCount} ta tekshiruv sozlamalari muvaffaqiyatli saqlandi!`);
+  closeServicesConfigModal();
 };

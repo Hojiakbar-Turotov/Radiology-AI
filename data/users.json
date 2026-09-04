@@ -185,8 +185,8 @@
     "phone": "",
     "room": "MRT 2 Xonasi",
     "workSchedule": {
-      "start": "08:00",
-      "end": "17:00",
+      "start": "08:30",
+      "end": "17:30",
       "lunchStart": "12:00",
       "lunchEnd": "13:00",
       "days": [
@@ -196,15 +196,54 @@
         "Pay",
         "Jum",
         "Shan"
-      ]
+      ],
+      "customDates": {
+        "2026-09-10": {
+          "type": "work",
+          "start": "08:00",
+          "end": "17:00",
+          "lunchStart": "12:00",
+          "lunchEnd": "13:00"
+        },
+        "2026-09-11": {
+          "type": "off"
+        },
+        "2026-09-15": {
+          "type": "work"
+        },
+        "2026-09-16": {
+          "type": "off"
+        }
+      },
+      "shiftPattern": "alternate_1_1"
     },
     "preferences": {
       "testDurations": {
         "MRT_ODDIY": 15,
         "MRT_KONTRAST": 25,
-        "MSKT": 10
+        "MSKT": 10,
+        "R157": 20,
+        "R158": 22
       },
-      "notes": "Laborant"
+      "notes": "Laborant",
+      "servicePreparations": {
+        "R157": "Metall buyumlarni qoldirish.",
+        "R158": "Bo'yin sohasidagi barcha zanjir va taqinchoqlarni yechish."
+      },
+      "serviceContraindications": {
+        "R157": "Kardiostimulyator.",
+        "R158": "Kardiostimulyator, bo'yin umurtqasidagi metall fiksatorlar."
+      },
+      "serviceConsentQuestions": {
+        "R157": [
+          "q_mrt_metal",
+          "q_mrt_pacemaker"
+        ],
+        "R158": [
+          "q_mrt_pacemaker",
+          "q_mrt_claustro"
+        ]
+      }
     },
     "createdAt": "2026-09-03"
   },

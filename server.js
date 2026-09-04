@@ -923,6 +923,156 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // 7.8 GET /api/laborant/my-schedule - Laborant ish grafigi va shaxsiy taqvimi
+      if (req.method === 'GET' && pathname === '/api/laborant/my-schedule') {
+        const user = getAuthUser(req);
+        if (!user) return sendJSON(res, { success: false, error: "Avtorizatsiya talab qilinadi" }, 401);
+
+        const freshUser = auth.getUser(user.login) || user;
+        const sanitized = auth.sanitizeUser(freshUser);
+        return sendJSON(res, {
+          success: true,
+          workSchedule: sanitized.workSchedule || {},
+          preferences: sanitized.preferences || {},
+          user: sanitized
+        });
+      }
+
+      // 7.9 POST /api/laborant/my-schedule - Laborant ish kunlari, soatlari va oylik/yillik taqvimini saqlash
+      if (req.method === 'POST' && pathname === '/api/laborant/my-schedule') {
+        const user = getAuthUser(req);
+        if (!user) return sendJSON(res, { success: false, error: "Avtorizatsiya talab qilinadi" }, 401);
+
+        const body = await parseBody(req);
+        try {
+          const updates = {};
+          if (body.workSchedule) updates.workSchedule = body.workSchedule;
+          if (body.preferences) updates.preferences = body.preferences;
+          if (body.room) updates.room = body.room;
+
+          const updated = auth.updateProfile(user.login, updates);
+          wsHub.broadcast('laborant_schedule_updated', {
+            login: user.login,
+            workSchedule: updated.workSchedule,
+            preferences: updated.preferences
+          });
+
+          sendJSON(res, { success: true, user: updated, message: "Ish grafigi muvaffaqiyatli saqlandi" });
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Laborant grafigi saqlandi: ${user.login}`);
+          return;
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
+      // 7.10 GET /api/laborant/services-config - Xizmatlar ro'yxati, tayyorgarlik, qarshi ko'rsatma va savollari
+      if (req.method === 'GET' && pathname === '/api/laborant/services-config') {
+        const user = getAuthUser(req);
+        const catalog = scheduler.getServicesCatalog();
+        const consentQuestions = db.getConsentQuestions();
+
+        let userPreferences = {};
+        if (user) {
+          const freshUser = auth.getUser(user.login) || user;
+          userPreferences = (freshUser.preferences) || {};
+        }
+
+        return sendJSON(res, {
+          success: true,
+          catalog,
+          consentQuestions,
+          userPreferences
+        });
+      }
+
+      // 7.11 POST /api/laborant/services-config - Tekshiruv vaqti, tayyorgarligi, qarshi ko'rsatmasi va rozilik savollarini saqlash
+      if (req.method === 'POST' && pathname === '/api/laborant/services-config') {
+        const user = getAuthUser(req);
+        if (!user) return sendJSON(res, { success: false, error: "Avtorizatsiya talab qilinadi" }, 401);
+
+        const body = await parseBody(req);
+        const serviceCode = (body.serviceCode || body.code || "").toUpperCase().trim();
+        if (!serviceCode) {
+          return sendJSON(res, { success: false, error: "Tekshiruv kodi ko'rsatilmadi" }, 400);
+        }
+
+        try {
+          // 1. Shaxsiy profil (laborant preferences) ga saqlash
+          const freshUser = auth.getUser(user.login) || user;
+          const prefs = freshUser.preferences || {};
+          const testDurations = { ...(prefs.testDurations || {}) };
+          const servicePreparations = { ...(prefs.servicePreparations || {}) };
+          const serviceContraindications = { ...(prefs.serviceContraindications || {}) };
+          const serviceConsentQuestions = { ...(prefs.serviceConsentQuestions || {}) };
+
+          if (body.duration !== undefined && body.duration !== null) {
+            const durNum = parseInt(body.duration, 10);
+            if (!isNaN(durNum) && durNum >= 5) {
+              testDurations[serviceCode] = durNum;
+            }
+          }
+
+          if (body.preparation !== undefined) {
+            servicePreparations[serviceCode] = String(body.preparation).trim();
+          }
+
+          if (body.contraindications !== undefined) {
+            serviceContraindications[serviceCode] = String(body.contraindications).trim();
+          }
+
+          if (Array.isArray(body.consentQuestionIds)) {
+            serviceConsentQuestions[serviceCode] = body.consentQuestionIds;
+          }
+
+          const updatedUser = auth.updateProfile(user.login, {
+            preferences: {
+              ...prefs,
+              testDurations,
+              servicePreparations,
+              serviceContraindications,
+              serviceConsentQuestions
+            }
+          });
+
+          // 2. Katalog ma'lumotlarini ham sinxronlashtirish
+          let updatedCatalogService = null;
+          if (body.updateCatalog !== false) {
+            const catPayload = {
+              code: serviceCode,
+              duration: body.duration !== undefined ? parseInt(body.duration, 10) : undefined,
+              preparation: body.preparation,
+              contraindications: body.contraindications,
+              consentQuestionIds: body.consentQuestionIds
+            };
+            if (body.name) catPayload.name = body.name;
+            if (body.type) catPayload.type = body.type;
+            if (body.isContrast !== undefined) catPayload.isContrast = body.isContrast;
+
+            updatedCatalogService = scheduler.upsertService(catPayload, user);
+            cluster.replicate('services_updated', { services: scheduler.getServicesCatalog() });
+            wsHub.broadcast('services_updated', { services: scheduler.getServicesCatalog() });
+          }
+
+          wsHub.broadcast('laborant_services_configured', {
+            login: user.login,
+            serviceCode,
+            service: updatedCatalogService,
+            preferences: updatedUser.preferences
+          });
+
+          sendJSON(res, {
+            success: true,
+            service: updatedCatalogService,
+            userPreferences: updatedUser.preferences,
+            message: "Tekshiruv sozlamalari muvaffaqiyatli saqlandi"
+          });
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `Tekshiruv sozlandi (${user.login}): ${serviceCode}`);
+          return;
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
       // 8. GET /api/server-stats - Server monitoring ko'rsatkichlari
       if (req.method === 'GET' && pathname === '/api/server-stats') {
         const mem = process.memoryUsage();

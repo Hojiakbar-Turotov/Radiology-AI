@@ -24,6 +24,12 @@
           <option value="mrt2">🧲 2-MRT Xonasi (3.0 T)</option>
           <option value="mskt1">⚡ 1-MSKT Xonasi</option>
         </select>
+        <button class="btn-head-consent" onclick="openLaborantScheduleModal()" title="Ish kunlari, oylik/yillik taqvim va smenalarni belgilash">
+          <i class="fa-solid fa-calendar-days"></i> Ish Grafigi
+        </button>
+        <button class="btn-head-consent" onclick="openServicesConfigModal()" title="Har bir tekshiruv vaqtlari, tayyorgarligi va rozilik savollari">
+          <i class="fa-solid fa-sliders"></i> Tekshiruvlar
+        </button>
         <button class="btn-head-consent" onclick="openConsentQuestionsManagerModal()" title="Rozilik savollari ro'yxati va tahrirlash">
           <i class="fa-solid fa-list-check"></i> Savollar
         </button>
@@ -286,6 +292,161 @@
       <!-- Questions List Table / Cards -->
       <div class="cq-items-list" id="cqItemsList">
         <!-- JS orqali to'ldiriladi -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. LABORANT ISH GRAFIGI VA OYLIK/YILLIK TAQVIMI MODALI -->
+  <div id="modalLaborantSchedule" class="consent-modal-overlay" style="display:none;">
+    <div class="consent-modal-card large">
+      <div class="consent-modal-header">
+        <div class="consent-modal-title">
+          <i class="fa-solid fa-calendar-days" style="color:#38bdf8; font-size:22px;"></i>
+          <div>
+            <h3 style="font-size:15px; font-weight:800; color:#f8fafc; margin:0;">Laborant Ish Grafigi va Taqvimi</h3>
+            <span style="font-size:11.5px; color:#94a3b8;">Oylik/yillik ish kunlari, soatlari va smenalarni belgilash</span>
+          </div>
+        </div>
+        <button class="modal-close-x" onclick="closeLaborantScheduleModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="cq-manager-toolbar" style="padding:10px 18px 6px;">
+        <div class="cq-filter-tabs">
+          <button id="tabBtnSchedCalendar" class="cq-tab-btn active" onclick="switchScheduleTab('calendar', this)">
+            <i class="fa-solid fa-calendar-alt"></i> Taqvim & Smenalar
+          </button>
+          <button id="tabBtnSchedHours" class="cq-tab-btn" onclick="switchScheduleTab('hours', this)">
+            <i class="fa-solid fa-clock"></i> Kunlik Ish Soatlari
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Interactive Calendar & Shift Patterns -->
+      <div id="schedTabCalendar" class="sched-tab-content" style="padding:12px 18px; overflow-y:auto; max-height:calc(90vh - 140px);">
+        <!-- Shift Templates -->
+        <div class="sched-pattern-box">
+          <span style="font-size:12px; font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Tezkor Smena Shablonlari (Joriy oy uchun):
+          </span>
+          <div class="sched-pattern-btns">
+            <button type="button" class="btn-pattern" onclick="applyShiftPattern('standard')">Dush - Shan</button>
+            <button type="button" class="btn-pattern" onclick="applyShiftPattern('alternate_1_1')">Kunora 1 / 1</button>
+            <button type="button" class="btn-pattern" onclick="applyShiftPattern('shift_2_2')">Smena 2 / 2</button>
+            <button type="button" class="btn-pattern" onclick="applyShiftPattern('odd_days')">Toq kunlar</button>
+            <button type="button" class="btn-pattern" onclick="applyShiftPattern('even_days')">Juft kunlar</button>
+            <button type="button" class="btn-pattern reset" onclick="resetCalendarCustomDates()">Tozalash</button>
+          </div>
+        </div>
+
+        <!-- Month Navigation -->
+        <div class="cal-nav-bar">
+          <button type="button" class="cal-nav-btn" onclick="changeCalMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="cal-month-title" id="calMonthYearTitle">Sentyabr 2026</div>
+          <button type="button" class="cal-nav-btn" onclick="changeCalMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="cal-weekdays-header">
+          <span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sh</span><span>Ya</span>
+        </div>
+        <div class="cal-days-grid" id="calDaysGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Calendar Legend & Help -->
+        <div class="cal-legend">
+          <span><span class="dot-legend dot-work"></span> Ish kuni (Yashil)</span>
+          <span><span class="dot-legend dot-duty"></span> Navbatchilik (Moviy)</span>
+          <span><span class="dot-legend dot-off"></span> Dam olish (Qizil)</span>
+          <small style="margin-left:auto; color:#94a3b8; font-size:11px;">* Sanani bosib holatini o'zgartiring</small>
+        </div>
+      </div>
+
+      <!-- Tab 2: Daily Hours & Days of Week -->
+      <div id="schedTabHours" class="sched-tab-content" style="display:none; padding:16px 20px; overflow-y:auto;">
+        <div class="sched-hours-grid">
+          <div class="sched-field">
+            <label><i class="fa-regular fa-clock"></i> Ish boshlanish vaqti:</label>
+            <input type="time" id="inpSchedWorkStart" value="08:00">
+          </div>
+          <div class="sched-field">
+            <label><i class="fa-regular fa-clock"></i> Ish tugash vaqti:</label>
+            <input type="time" id="inpSchedWorkEnd" value="17:00">
+          </div>
+          <div class="sched-field">
+            <label><i class="fa-solid fa-utensils"></i> Tushlik boshlanishi:</label>
+            <input type="time" id="inpSchedLunchStart" value="12:00">
+          </div>
+          <div class="sched-field">
+            <label><i class="fa-solid fa-utensils"></i> Tushlik tugashi:</label>
+            <input type="time" id="inpSchedLunchEnd" value="13:00">
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <label style="font-size:12.5px; font-weight:700; color:#e2e8f0; display:block; margin-bottom:8px;">
+            <i class="fa-solid fa-calendar-check"></i> Haftaning Standart Ish Kunlari:
+          </label>
+          <div class="sched-weekdays-checkboxes" id="schedWeekdaysWrap">
+            <label class="chk-day-label"><input type="checkbox" value="Dush" checked> Dushanba</label>
+            <label class="chk-day-label"><input type="checkbox" value="Sesh" checked> Seshanba</label>
+            <label class="chk-day-label"><input type="checkbox" value="Chor" checked> Chorshanba</label>
+            <label class="chk-day-label"><input type="checkbox" value="Pay" checked> Payshanba</label>
+            <label class="chk-day-label"><input type="checkbox" value="Jum" checked> Juma</label>
+            <label class="chk-day-label"><input type="checkbox" value="Shan" checked> Shanba</label>
+            <label class="chk-day-label"><input type="checkbox" value="Yak"> Yakshanba</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="consent-modal-footer">
+        <button type="button" class="btn-consent-close" onclick="closeLaborantScheduleModal()">Bekor qilish</button>
+        <button type="button" class="btn-consent-save" onclick="saveLaborantSchedule()"><i class="fa-solid fa-check"></i> Grafigini Saqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. TEKSHIRUVLAR SOZLAMALARI (VAQTLAR, TAYYORGARLIK, QARSHI KO'RSATMA, SAVOLLAR) MODALI -->
+  <div id="modalServicesConfig" class="consent-modal-overlay" style="display:none;">
+    <div class="consent-modal-card large" style="max-width:960px;">
+      <div class="consent-modal-header">
+        <div class="consent-modal-title">
+          <i class="fa-solid fa-sliders" style="color:#38bdf8; font-size:22px;"></i>
+          <div>
+            <h3 style="font-size:15px; font-weight:800; color:#f8fafc; margin:0;">Tekshiruvlar Sozlamalari (Laborant)</h3>
+            <span style="font-size:11.5px; color:#94a3b8;">Har bir tekshiruv uchun shaxsiy vaqt, tayyorgarlik, qarshi ko'rsatma va rozilik savollarini belgilash</span>
+          </div>
+        </div>
+        <button class="modal-close-x" onclick="closeServicesConfigModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Toolbar: Search, Filters & Stats -->
+      <div class="sc-toolbar">
+        <div class="sc-search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="inpScSearch" placeholder="Tekshiruv nomi yoki kodi (masalan, Bosh miya, R157)..." oninput="renderServicesConfigList()">
+        </div>
+        <div class="sc-filter-tabs">
+          <button class="sc-tab-btn active" onclick="filterServicesConfig('ALL', this)">Barchasi</button>
+          <button class="sc-tab-btn" onclick="filterServicesConfig('MRT', this)">🧲 MRT</button>
+          <button class="sc-tab-btn" onclick="filterServicesConfig('MSKT', this)">⚡ MSKT</button>
+          <button class="sc-tab-btn" onclick="filterServicesConfig('CONTRAST', this)">💉 Kontrastli</button>
+        </div>
+      </div>
+
+      <div class="sc-dedup-badge-note">
+        <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+        <span><strong>Aqlli birlashtirish kafolati:</strong> Bir nechta tekshiruv bir vaqtda navbatga qo'yilganda, siz kiritgan tayyorgarlik, qarshi ko'rsatma va rozilik savollari avtomatik tahlil qilinadi va hech bir band takrorlanmasdan birlashtiriladi!</span>
+      </div>
+
+      <!-- Services List Container -->
+      <div class="sc-list-container" id="scListContainer">
+        <!-- JS dynamically renders each service card -->
+      </div>
+
+      <div class="consent-modal-footer">
+        <button type="button" class="btn-consent-close" onclick="closeServicesConfigModal()">Yopish</button>
+        <button type="button" class="btn-consent-save" onclick="saveAllPendingServices()"><i class="fa-solid fa-floppy-disk"></i> Barcha O'zgarishlarni Saqlash</button>
       </div>
     </div>
   </div>

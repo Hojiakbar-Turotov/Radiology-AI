@@ -897,4 +897,491 @@ body {
   color: #f87171;
 }
 
+/* ============================================================ */
+/* LABORANT ISH GRAFIGI VA TAQVIM STILLARI                     */
+/* ============================================================ */
+.sched-pattern-box {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sched-pattern-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-pattern {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-pattern:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #fff;
+}
+
+.btn-pattern.reset {
+  margin-left: auto;
+  border-color: #ef4444;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-pattern.reset:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.cal-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.cal-month-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.cal-nav-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cal-nav-btn:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.cal-weekdays-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.cal-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day-cell {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  min-height: 52px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cal-day-cell:hover {
+  transform: translateY(-1px);
+  border-color: #38bdf8;
+}
+
+.cal-day-cell.other-month {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.cal-day-cell.today {
+  border: 1.5px solid #38bdf8;
+  box-shadow: inset 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.cal-day-badge {
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 4px;
+  padding: 2px 4px;
+  text-align: center;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+/* Status variants */
+.cal-day-cell.work {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #059669;
+}
+.cal-day-cell.work .cal-day-badge {
+  background: #059669;
+  color: #ecfdf5;
+}
+
+.cal-day-cell.duty {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: #0284c7;
+}
+.cal-day-cell.duty .cal-day-badge {
+  background: #0284c7;
+  color: #f0f9ff;
+}
+
+.cal-day-cell.off {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+.cal-day-cell.off .cal-day-badge {
+  background: #dc2626;
+  color: #fef2f2;
+}
+
+.cal-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: #cbd5e1;
+  padding: 8px 6px;
+  border-top: 1px solid #1f2937;
+}
+
+.dot-legend {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.dot-work { background: #10b981; }
+.dot-duty { background: #38bdf8; }
+.dot-off { background: #ef4444; }
+
+.sched-hours-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sched-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sched-field label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.sched-field input[type="time"] {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sched-weekdays-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.chk-day-label {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chk-day-label input[type="checkbox"] {
+  accent-color: #38bdf8;
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================================ */
+/* TEKSHIRUVLAR SOZLAMALARI STILLARI                           */
+/* ============================================================ */
+.sc-toolbar {
+  padding: 10px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+}
+
+.sc-search-wrap {
+  flex: 1;
+  min-width: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sc-search-wrap i {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.sc-search-wrap input {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 6px 10px 6px 30px;
+  color: #f8fafc;
+  font-size: 12px;
+  outline: none;
+}
+
+.sc-search-wrap input:focus {
+  border-color: #38bdf8;
+}
+
+.sc-filter-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.sc-tab-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sc-tab-btn.active, .sc-tab-btn:hover {
+  background: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+}
+
+.sc-dedup-badge-note {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10b981;
+  padding: 8px 14px;
+  margin: 10px 18px 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: #a7f3d0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sc-list-container {
+  padding: 12px 18px;
+  overflow-y: auto;
+  max-height: calc(88vh - 180px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sc-item-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s;
+}
+
+.sc-item-card:hover {
+  border-color: #334155;
+}
+
+.sc-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sc-code-badge {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 12px;
+  background: #1e293b;
+  color: #38bdf8;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.sc-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.sc-type-badge.mrt { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid #0284c7; }
+.sc-type-badge.mskt { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid #d97706; }
+
+.sc-grid-fields {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .sc-grid-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sc-field-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sc-field-box label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sc-field-box input, .sc-field-box textarea {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #f8fafc;
+  outline: none;
+}
+
+.sc-field-box textarea {
+  resize: vertical;
+  min-height: 54px;
+  line-height: 1.35;
+}
+
+.sc-field-box input:focus, .sc-field-box textarea:focus {
+  border-color: #38bdf8;
+}
+
+.sc-q-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  max-height: 90px;
+  overflow-y: auto;
+  background: #090d16;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #1f2937;
+}
+
+.sc-q-chip {
+  font-size: 10.5px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sc-q-chip.selected {
+  background: rgba(14, 165, 233, 0.25);
+  border-color: #38bdf8;
+  color: #bae6fd;
+  font-weight: 700;
+}
+
+.sc-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #1e2937;
+  padding-top: 8px;
+}
+
+.btn-sc-save-single {
+  background: #0284c7;
+  border: none;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-sc-save-single:hover {
+  background: #0369a1;
+}
+
 

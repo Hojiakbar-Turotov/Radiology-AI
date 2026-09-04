@@ -5,13 +5,17 @@
     "type": "MRT",
     "isContrast": false,
     "isInjector": false,
-    "duration": 30,
+    "duration": 20,
     "price": 424340,
     "priceFormatted": "424 340 so'm",
-    "updatedAt": "2026-09-03T08:41:56.477Z",
-    "updatedBy": "ai_medical_standard",
-    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
-    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish)."
+    "updatedAt": "2026-09-04T03:51:47.998Z",
+    "updatedBy": "Dilmurod",
+    "preparation": "Metall buyumlarni qoldirish.",
+    "contraindications": "Kardiostimulyator.",
+    "consentQuestionIds": [
+      "q_mrt_metal",
+      "q_mrt_pacemaker"
+    ]
   },
   {
     "code": "R159",
