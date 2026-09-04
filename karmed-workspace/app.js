@@ -1530,17 +1530,29 @@ async function handleQuickQueueSubmit(e) {
 
     if (data.success && data.patient) {
       // 1. Chiptani chop etish
-      printThermalTicket(data.patient);
+      try {
+        printThermalTicket(data.patient);
+      } catch (printErr) {
+        console.error("Chipta chop etish xatosi:", printErr);
+      }
 
       // 2. Formani tozalash
-      nameInput.value = "";
-      idInput.value = "";
+      if (nameInput) nameInput.value = "";
+      if (idInput) idInput.value = "";
       if (sampleInput) sampleInput.value = "";
-      phoneInput.value = "";
-      serviceSelect.selectedIndex = 0;
-      contrastSelect.value = "no";
-      deviceSelect.value = "auto";
-      submitBtn.classList.remove("ready-pulse");
+      if (phoneInput) phoneInput.value = "";
+      const serviceSelect = document.getElementById("quickServiceSelect");
+      if (serviceSelect) serviceSelect.selectedIndex = 0;
+      if (contrastSelect) contrastSelect.value = "no";
+      if (deviceSelect) deviceSelect.value = "auto";
+      if (dateInput) dateInput.value = "";
+      if (timeInput) timeInput.value = "";
+      currentSelectedServices = [];
+      renderSelectedServicesList();
+      if (submitBtn) {
+        submitBtn.classList.remove("ready-pulse");
+        submitBtn.innerHTML = '<i class="fa-solid fa-print"></i> Navbatga Qo\'shish & Chipta';
+      }
       const recBox = document.getElementById("smartRecommendationBox");
       if (recBox) recBox.style.display = "none";
 
@@ -1552,8 +1564,10 @@ async function handleQuickQueueSubmit(e) {
   } catch (err) {
     alert("Server bilan aloqa xatosi: " + err.message);
   } finally {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fa-solid fa-print"></i> Navbatga Qo\'shish & Chipta';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-print"></i> Navbatga Qo\'shish & Chipta';
+    }
   }
 }
 
@@ -1620,10 +1634,15 @@ function printThermalTicket(patient) {
   // Format: 03-09-MR1-008 (Kun va oy raqami, qurilma nomi, o'sha kun uchun navbat raqami)
   const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
 
-  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, soat 14:20)
+  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, soat 14:20 – 14:45)
   let formattedTimeStr = "";
   if (patient.scheduledTime) {
     formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${patient.scheduledTime}`;
+    if (patient.finishTime && !formattedTimeStr.includes("–")) {
+      formattedTimeStr += ` – ${patient.finishTime}`;
+    }
+  } else if (patient.estimatedStartTimeFormatted) {
+    formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTimeFormatted}`;
   } else if (patient.estimatedStartTime) {
     if (patient.estimatedStartTime.includes(" ")) {
       const parts = patient.estimatedStartTime.split(" ");
@@ -1637,6 +1656,9 @@ function printThermalTicket(patient) {
       } else {
         formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTime}`;
       }
+    }
+    if (patient.finishTime && !formattedTimeStr.includes("–")) {
+      formattedTimeStr += ` – ${patient.finishTime}`;
     }
   } else {
     formattedTimeStr = `${dd}.${mm}.${yyyy}`;

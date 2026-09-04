@@ -7,6 +7,7 @@
   <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <!-- Auth Guard & Failover & Theme -->
   <script src="/shared/auth-guard.js"></script>
   <script src="/shared/failover.js"></script>
@@ -49,6 +50,11 @@
 
       <!-- Right: Action Tools & Cluster Status -->
       <div class="menu-actions">
+        <!-- O'quv Qo'llanma -->
+        <button type="button" class="btn-nav-manual" onclick="openDepartmentManual('navbat_yozish')" title="Bo'lim o'quv qo'llanmasi" style="padding:5px 12px; font-size:12px;">
+          <i class="fa-solid fa-book-open"></i> Qo'llanma
+        </button>
+
         <!-- Auth: Login button (Agar tizimga kirmagan bo'lsa) -->
         <button class="action-btn btn-auth-login" id="btnOpenLogin" onclick="openLoginModal()" title="Tizimga kirish">
           <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
@@ -795,6 +801,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
