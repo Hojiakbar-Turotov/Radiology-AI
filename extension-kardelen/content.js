@@ -838,8 +838,8 @@ function handlePassiveRowClick(e) {
       const servicesList = findAllCurrentServicesPassively();
       applyServicesToPatient(patient, servicesList);
 
-      // Kardelen pastki jadvalni AJAX orqali kechroq yuklaganda avtomatik yangilash:
-      [150, 300, 600, 1000, 1500].forEach(delay => {
+      // Kardelen pastki jadvalni AJAX orqali kechroq yuklaganda avtomatik yangilash (5-10 soniya kutish):
+      [300, 700, 1500, 2500, 4000, 6000, 8000, 10000].forEach(delay => {
         setTimeout(() => {
           if (lastPatientInfo && lastPatientInfo.id === patient.id && (!selectedPatient || !selectedPatient.userSelectedSpecific)) {
             const freshServices = findAllCurrentServicesPassively();
@@ -1140,10 +1140,12 @@ async function updateFloatingBarPatientDisplay() {
         patient: {
           name: selectedPatient.name,
           id: selectedPatient.id,
+          sampleNumber: selectedPatient.sampleNumber || '',
           phone: selectedPatient.phone || '',
           pinfl: selectedPatient.pinfl || '',
           service: selectedPatient.service || '',
           serviceCode: selectedPatient.serviceCode || '',
+          services: selectedPatient.services || [],
           isContrast: Boolean(selectedPatient.isContrast),
           isAlreadyCompleted: Boolean(selectedPatient.isGreen),
           registrationDate: selectedPatient.rowDate || '',

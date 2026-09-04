@@ -762,6 +762,30 @@ function onServiceSelected() {
 // -------------------------------------------------------------
 // KARMED IFRAME INTEGRATSIYASI VA AQLLI NAVBATGA OLISH
 // -------------------------------------------------------------
+// -------------------------------------------------------------
+// KARMED IFRAME INTEGRATSIYASI VA AQLLI NAVBATGA OLISH (5-10 SONIYA KUTISH BILAN)
+// -------------------------------------------------------------
+let syncSessionId = 0;
+let syncCountdownTimer = null;
+let syncPollingTimers = [];
+let syncMutationObserver = null;
+let currentSyncPatient = null;
+
+function clearKarmedSyncTimers() {
+  if (syncCountdownTimer) {
+    clearInterval(syncCountdownTimer);
+    syncCountdownTimer = null;
+  }
+  if (syncPollingTimers && syncPollingTimers.length > 0) {
+    syncPollingTimers.forEach(t => clearTimeout(t));
+    syncPollingTimers = [];
+  }
+  if (syncMutationObserver) {
+    try { syncMutationObserver.disconnect(); } catch (e) {}
+    syncMutationObserver = null;
+  }
+}
+
 function setupKarmedIframeBridge() {
   const frame = document.getElementById("frameKarmed");
   if (!frame) return;
@@ -771,7 +795,7 @@ function setupKarmedIframeBridge() {
       const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
       if (!doc || !doc.body) return;
 
-      // Karmed jadvalidagi qator bosilganda darhol ma'lumotlarni o'qib olish
+      // Karmed jadvalidagi qator bosilganda 5-10 soniyalik aqlli sinxronizatsiyani boshlash
       doc.body.addEventListener("click", (e) => {
         const row = e.target.closest("tr");
         if (!row) return;
@@ -779,21 +803,7 @@ function setupKarmedIframeBridge() {
         // Header, Pager, Filter qatorlarini tashlab ketish
         if (row.querySelector("th") || (row.className && (row.className.includes("Filter") || row.className.includes("Pager")))) return;
 
-        // Karmed pastki jadvalini yangilashi uchun 120ms kutish
-        setTimeout(() => {
-          const patient = extractPatientFromKarmedDoc(doc, row);
-          if (patient && (patient.name || patient.id)) {
-            autoFillQuickQueue(patient);
-          }
-        }, 120);
-
-        // Agar pastki tekshiruvlar jadvali biroz kechikib yangilansa:
-        setTimeout(() => {
-          const patient = extractPatientFromKarmedDoc(doc, row);
-          if (patient && patient.service) {
-            autoFillQuickQueue(patient);
-          }
-        }, 500);
+        startKarmedPatientSync(doc, row);
       }, true);
 
       console.log("[Karmed Workspace] Iframe DOM tinglovchisi ulandi!");
@@ -811,22 +821,67 @@ window.addEventListener("message", (event) => {
   if (event.data && event.data.type === 'KARMED_PATIENT_SELECTED' && event.data.patient) {
     console.log("[Karmed Workspace] Kengaytmadan bemor qabul qilindi:", event.data.patient);
     autoFillQuickQueue(event.data.patient);
+    const loadingBox = document.getElementById("karmedSyncLoadingBox");
+    if (loadingBox) loadingBox.style.display = "none";
   }
 });
+
+// Pastki jadvaldan barcha tibbiy xizmatlarni qidirib topish
+function extractCandidateServicesFromDoc(doc) {
+  if (!doc) return [];
+  const candidateServices = [];
+  const allDocRows = doc.querySelectorAll("tr");
+  for (const r of allDocRows) {
+    const rowCells = Array.from(r.querySelectorAll("td"));
+    if (rowCells.length < 2) continue;
+    const texts = rowCells.map(c => (c.innerText || "").trim());
+
+    // R kodini qidirish (R157, R184, R78, R143, R139, R140 va h.k.)
+    const codeCellIdx = texts.findIndex(t => /^R\s*\d{2,5}$/i.test(t));
+    if (codeCellIdx !== -1) {
+      const code = texts[codeCellIdx].toUpperCase().replace(/\s+/g, "");
+      let sName = "";
+      if (texts[codeCellIdx + 1] && texts[codeCellIdx + 1].length > 2) {
+        sName = texts[codeCellIdx + 1];
+      } else if (codeCellIdx > 0 && texts[codeCellIdx - 1].length > 2) {
+        sName = texts[codeCellIdx - 1];
+      }
+      const isServiceRowGreen = isRowGreenOrCompleted(r, doc);
+      if (sName && !candidateServices.some(cs => cs.code === code)) {
+        candidateServices.push({ code, name: sName, isGreen: isServiceRowGreen });
+      }
+    }
+  }
+  return candidateServices;
+}
 
 function extractPatientFromKarmedDoc(doc, clickedRow) {
   try {
     if (!doc) return null;
 
-    // 1. Tanlangan bemor qatori (Focused / Magenta yoki bosilgan qator)
-    let focusedRow = doc.querySelector(".dxgvFocusedRow_DevEx, .dxgvSelectedRow_DevEx") || clickedRow;
+    // 1. Tanlangan bemor qatori (Top grid)
+    let focusedRow = null;
+    if (clickedRow && clickedRow.querySelectorAll && clickedRow.querySelectorAll("td").length >= 3) {
+      const isBottom = Boolean(clickedRow.closest("table") && (
+        clickedRow.closest("table").innerText.includes("Xizmatlar Nomi") ||
+        clickedRow.closest("table").innerText.includes("Tranzaksiya") ||
+        clickedRow.closest("table").innerText.includes("Tashxislar")
+      ));
+      if (!isBottom) {
+        focusedRow = clickedRow;
+      }
+    }
+
     if (!focusedRow) {
-      const allRows = doc.querySelectorAll("tr");
-      for (const r of allRows) {
-        const bg = (r.style.backgroundColor || "").toLowerCase();
-        if (bg.includes("magenta") || bg.includes("rgb(255, 0, 255)") || bg.includes("#ff00ff") || bg.includes("rgb(255, 105, 180)") || bg.includes("pink")) {
-          focusedRow = r;
-          break;
+      focusedRow = doc.querySelector(".dxgvFocusedRow_DevEx, .dxgvSelectedRow_DevEx");
+      if (!focusedRow) {
+        const allRows = doc.querySelectorAll("tr");
+        for (const r of allRows) {
+          const bg = (r.style.backgroundColor || "").toLowerCase();
+          if (bg.includes("magenta") || bg.includes("rgb(255, 0, 255)") || bg.includes("#ff00ff") || bg.includes("rgb(255, 105, 180)") || bg.includes("pink")) {
+            focusedRow = r;
+            break;
+          }
         }
       }
     }
@@ -866,6 +921,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
 
     if (!surname && cellTexts[0] && isNaN(cellTexts[0])) surname = cellTexts[0];
     if (!name && cellTexts[1] && isNaN(cellTexts[1])) name = cellTexts[1];
+
     // Namuna raqami (agar ustundan olinmagan bo'lsa, 7 xonali sonni aniqlash)
     if (!sampleNumber) {
       for (const val of cellTexts) {
@@ -914,29 +970,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     const isTopRowGreen = isRowGreenOrCompleted(focusedRow, doc) || isRowGreenOrCompleted(clickedRow, doc);
 
     // 2. Pastki jadvaldan barcha xizmat nomlari va kodlarini yig'ish
-    const candidateServices = [];
-    const allDocRows = doc.querySelectorAll("tr");
-    for (const r of allDocRows) {
-      const rowCells = Array.from(r.querySelectorAll("td"));
-      if (rowCells.length < 2) continue;
-      const texts = rowCells.map(c => (c.innerText || "").trim());
-
-      // R kodini qidirish (R157, R184, R78, R143 va h.k.)
-      const codeCellIdx = texts.findIndex(t => /^R\s*\d{2,5}$/i.test(t));
-      if (codeCellIdx !== -1) {
-        const code = texts[codeCellIdx].toUpperCase().replace(/\s+/g, "");
-        let sName = "";
-        if (texts[codeCellIdx + 1] && texts[codeCellIdx + 1].length > 2) {
-          sName = texts[codeCellIdx + 1];
-        } else if (codeCellIdx > 0 && texts[codeCellIdx - 1].length > 2) {
-          sName = texts[codeCellIdx - 1];
-        }
-        const isServiceRowGreen = isRowGreenOrCompleted(r, doc);
-        if (sName && !candidateServices.some(cs => cs.code === code)) {
-          candidateServices.push({ code, name: sName, isGreen: isServiceRowGreen });
-        }
-      }
-    }
+    const candidateServices = extractCandidateServicesFromDoc(doc);
 
     // Bemorning barcha xizmatlarini to'plash
     const allowedMrtMsktServices = [];
@@ -991,6 +1025,7 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
 
     // 3-ustuvorlik: Agar pastki jadvalda kodlar topilmagan bo'lsa, qatordagi matndan qidirish
     if (!chosenService) {
+      const allDocRows = doc.querySelectorAll("tr");
       for (const r of allDocRows) {
         const text = (r.innerText || "").trim();
         if ((text.includes("Mrt") || text.includes("MRT") || text.includes("Mskt") || text.includes("MSKT")) && text.length < 80 && !text.includes("Qidiruv") && !text.includes("Markazi")) {
@@ -1051,6 +1086,183 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
     console.warn("[extractPatientFromKarmedDoc Error]:", err);
     return null;
   }
+}
+
+// -------------------------------------------------------------
+// BEMOR VA TEKSHIRUVLARNI 5-10 SONIYA KUTISH BILAN TO'LIQ OLISH
+// -------------------------------------------------------------
+function startKarmedPatientSync(doc, clickedRow) {
+  clearKarmedSyncTimers();
+  const thisSessionId = ++syncSessionId;
+
+  if (!doc) return;
+
+  // Agar foydalanuvchi pastki jadvaldagi (services) alohida xizmat qatoriga bosgan bo'lsa:
+  const isBottomTable = Boolean(clickedRow && clickedRow.closest("table") && (
+    clickedRow.closest("table").innerText.includes("Xizmatlar Nomi") ||
+    clickedRow.closest("table").innerText.includes("Tranzaksiya") ||
+    clickedRow.closest("table").innerText.includes("Tashxislar")
+  ));
+
+  if (isBottomTable && clickedRow) {
+    const cells = Array.from(clickedRow.querySelectorAll("td")).map(c => (c.innerText || "").trim());
+    const codeIdx = cells.findIndex(t => /^R\s*\d{2,5}$/i.test(t));
+    if (codeIdx !== -1) {
+      const code = cells[codeIdx].toUpperCase().replace(/\s+/g, "");
+      const name = cells[codeIdx + 1] || cells[codeIdx - 1] || "MRT Tekshiruvi";
+      const cat = allServices.find(s => s.code === code);
+      const isContrast = /(kontrast|bilan)/i.test(name);
+      const examType = /(mskt|kt)/i.test(name) ? 'MSKT' : 'MRT';
+      const newService = {
+        code: code,
+        name: name,
+        duration: cat ? cat.duration : 25,
+        isContrast: isContrast,
+        examType: examType,
+        preparation: cat ? cat.preparation : "",
+        contraindications: cat ? cat.contraindications : ""
+      };
+      if (!currentSelectedServices.some(s => s.code === code)) {
+        currentSelectedServices.push(newService);
+        renderSelectedServicesList();
+        triggerSmartSlotRecalc();
+      }
+      return;
+    }
+  }
+
+  // 1. Yuqori jadvaldagi bemor ma'lumotlarini darhol bosilgan qatordan o'qib olish:
+  const patient = extractPatientFromKarmedDoc(doc, clickedRow);
+  if (!patient || (!patient.name && !patient.id)) return;
+
+  currentSyncPatient = patient;
+
+  // 1.1 Agar tekshiruv o'tkazilib bo'lgan bo'lsa (Yashil qator) -> Ogohlantirish va to'xtash
+  if (patient.isAlreadyCompleted) {
+    autoFillQuickQueue(patient);
+    return;
+  }
+
+  // 1.2 Agar namuna raqami bo'yicha allaqachon navbatda mavjud bo'lsa -> Ogohlantirish va to'xtash
+  if (patient.sampleNumber) {
+    const cleanSample = String(patient.sampleNumber).trim();
+    const existingInQueue = todayQueue.find(p => p.sampleNumber && String(p.sampleNumber).trim() === cleanSample && p.status !== 'cancelled');
+    if (existingInQueue) {
+      autoFillQuickQueue(patient);
+      return;
+    }
+  }
+
+  // 2. DARHOL Yangi bemorning F.I.Sh, ID, Telefonini formaga to'ldirish (Eski bemor darhol ketishi uchun!)
+  autoFillQuickQueue({
+    ...patient,
+    _isLoadingServices: true
+  });
+
+  // Drawer ochiq turishini ta'minlash:
+  const drawer = document.getElementById("quickQueueDrawer");
+  if (drawer && drawer.classList.contains("collapsed")) {
+    drawer.classList.remove("collapsed");
+    const btnToggle = document.getElementById("btnToggleDrawer");
+    if (btnToggle) btnToggle.classList.add("active");
+  }
+
+  // 3. 5-10 SONIYA KUTISH VA TEKSHIRUVLARNI KUZATISH (POLLING & OBSERVER)
+  const loadingBox = document.getElementById("karmedSyncLoadingBox");
+  const countdownEl = document.getElementById("karmedSyncCountdown");
+  if (loadingBox) loadingBox.style.display = "block";
+
+  let remainingSeconds = 8;
+  if (countdownEl) countdownEl.innerText = remainingSeconds + 's';
+
+  syncCountdownTimer = setInterval(() => {
+    if (thisSessionId !== syncSessionId) return;
+    remainingSeconds--;
+    if (remainingSeconds > 0) {
+      if (countdownEl) countdownEl.innerText = remainingSeconds + 's';
+      const submitBtn = document.getElementById("btnQuickSubmit");
+      if (submitBtn && submitBtn.disabled) {
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Tekshiruvlar kutilmoqda (${remainingSeconds}s)...`;
+      }
+    } else {
+      finishSync(false);
+    }
+  }, 1000);
+
+  function checkServicesArrival() {
+    if (thisSessionId !== syncSessionId) return false;
+    try {
+      // DevExpress yuklanish paneli bor-yo'qligini tekshirish
+      const isLoading = Boolean(doc.querySelector("[class*='LoadingPanel'], [id*='LoadingPanel'], .dxlpLoadingPanel, .dxgvLoadingPanel, .dxgvLPD_DevEx"));
+      if (isLoading) return false;
+
+      // Pastki jadvaldagi yangi xizmatlarni o'qish:
+      const updatedPatient = extractPatientFromKarmedDoc(doc, clickedRow);
+      if (updatedPatient && updatedPatient.services && updatedPatient.services.length > 0) {
+        // Xizmatlar to'liq olindi!
+        currentSyncPatient = updatedPatient;
+        autoFillQuickQueue(updatedPatient);
+        finishSync(true);
+        return true;
+      }
+    } catch (e) {
+      console.warn("checkServicesArrival error:", e);
+    }
+    return false;
+  }
+
+  function finishSync(isSuccess) {
+    clearKarmedSyncTimers();
+    if (loadingBox) loadingBox.style.display = "none";
+    if (!isSuccess && currentSyncPatient) {
+      // Agar 8 soniya ichida pastki jadvalda xizmatlar avtomatik chiqmasa:
+      autoFillQuickQueue({
+        ...currentSyncPatient,
+        _isLoadingServices: false
+      });
+      const recBox = document.getElementById("smartRecommendationBox");
+      const recDesc = document.getElementById("smartBoxDesc");
+      if (recBox && recDesc) {
+        recBox.style.display = "flex";
+        recDesc.innerHTML = `<span style="color:#fbbf24;">ℹ️ Karmed'dan tekshiruvlar avtomatik topilmadi. Pastdagi ro'yxatdan kerakli tekshiruvni tanlashingiz mumkin.</span>`;
+      }
+      const submitBtn = document.getElementById("btnQuickSubmit");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-plus"></i> Tekshiruvni tanlang`;
+      }
+    }
+  }
+
+  // 4. Qadamli tekshirishlar (400ms, 900ms, 1600ms, 2500ms, 3800ms, 5200ms, 6800ms, 8000ms):
+  const delays = [400, 900, 1600, 2500, 3800, 5200, 6800, 8000];
+  delays.forEach(d => {
+    const t = setTimeout(() => {
+      if (thisSessionId === syncSessionId) {
+        checkServicesArrival();
+      }
+    }, d);
+    syncPollingTimers.push(t);
+  });
+
+  // 5. DOM MutationObserver orqali Karmed jadvali yangilangani zahoti ilib olish:
+  try {
+    syncMutationObserver = new MutationObserver(() => {
+      if (thisSessionId === syncSessionId) {
+        checkServicesArrival();
+      }
+    });
+    syncMutationObserver.observe(doc.body, { childList: true, subtree: true });
+  } catch (e) {}
+}
+
+function forceSyncFromKarmed() {
+  const frame = document.getElementById("frameKarmed");
+  if (!frame) return;
+  const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+  if (!doc) return;
+  const row = doc.querySelector(".dxgvFocusedRow_DevEx, .dxgvSelectedRow_DevEx");
+  startKarmedPatientSync(doc, row || doc.body);
 }
 
 // -------------------------------------------------------------
@@ -1153,18 +1365,47 @@ function autoFillQuickQueue(patientData) {
       if (recBox && recTitle && recDesc) {
         recBox.className = "smart-recommendation-box danger";
         recTitle.innerHTML = `⚠️ BU TEKSHIRUV ALLAQACHON NAVBATGA QO'YILGAN!`;
-        recDesc.innerHTML = `Ushbu tekshiruv (<strong>Namuna №${cleanSample}</strong>) allaqachon navbatga qo'yilgan.<br>
+        recDesc.innerHTML = `Ushbu tekshiruv allaqachon navbatga qo'yilgan.<br>
           Bemor: <strong>${existingInQueue.patientName}</strong> (Navbat: <strong>#${existingInQueue.ticketNumber}</strong>, Vaqti: <strong>${existingInQueue.scheduledTime || existingInQueue.timeSlot || ''}</strong>)`;
         recBox.style.display = "block";
       }
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.classList.add("btn-disabled");
-        submitBtn.title = `Namuna №${cleanSample} allaqachon navbatda mavjud!`;
+        submitBtn.title = `Ushbu tekshiruv allaqachon navbatda mavjud!`;
         submitBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Allaqachon Navbatda (#${existingInQueue.ticketNumber})`;
       }
       return;
     }
+  }
+
+  // 1.2 Bemor tekshiruvlari hali Karmed'dan yuklanayotgan bo'lsa (5-10 soniya kutish holati):
+  if (patientData._isLoadingServices) {
+    currentSelectedServices = [];
+    renderSelectedServicesList();
+    const listEl = document.getElementById("quickSelectedServicesList");
+    if (listEl) {
+      listEl.innerHTML = `
+        <div style="padding:14px; text-align:center; color:#38bdf8; font-size:12px; font-weight:700; background:#0f172a; border-radius:8px; border:1px dashed #0284c7;">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size:16px; margin-bottom:5px; display:block;"></i>
+          Karmed tizimidan tekshiruvlar olinmoqda... (Iltimos, kuting)
+        </div>
+      `;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("ready-pulse");
+      submitBtn.classList.add("btn-disabled");
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Tekshiruvlar kutilmoqda (8s)...`;
+      submitBtn.title = "Karmed'dan tekshiruvlar to'liq olinmoqda, iltimos kuting.";
+    }
+    if (recBox && recTitle && recDesc) {
+      recBox.className = "smart-recommendation-box";
+      recBox.style.display = "flex";
+      recTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MA'LUMOTLAR YANGILANMOQDA`;
+      recDesc.innerHTML = `Yangi bemor tanlandi. Tekshiruvlar Karmed'dan to'liq yuklanmoqda...`;
+    }
+    return;
   }
 
   // Ro'yxatga olingan sana indikatori
