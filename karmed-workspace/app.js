@@ -1365,7 +1365,7 @@ function determineSmartDevice(patientData) {
     return {
       isAllowed: true,
       deviceId: "mrt2",
-      deviceName: "MRT 2 (3.0T)",
+      deviceName: "MRT 2 (1.5T)",
       badgeText: `⚡ <strong>MRT 2</strong> (Optimal tezkor navbat | Navbatda: <strong>${mrt2Waiting}</strong> ta bemor)`
     };
   } else {

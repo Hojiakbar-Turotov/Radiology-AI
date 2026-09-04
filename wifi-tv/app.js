@@ -295,19 +295,21 @@ function handleVoiceAnnouncement(payload) {
   playChime();
 
   setTimeout(() => {
-    let text = "";
-    if (payload.type === "call_room" || payload.status === "calling") {
-      text = `${payload.ticketNumber || ""} raqamli bemor ${payload.patientName || ""}, ${payload.room || "xonaga"} kiring.`;
-    } else if (payload.type === "call_prep") {
-      text = `${payload.ticketNumber || ""} raqamli bemor ${payload.patientName || ""}, ${payload.room || ""}ga tayyorgarlik uchun murojaat qiling.`;
+    let patientName = (payload.patientName || "").trim();
+    if (!patientName && payload.patient && payload.patient.patientName) {
+      patientName = payload.patient.patientName.trim();
     }
+    if (!patientName) return;
+
+    // Foydalanuvchi talabi: bemor chaqirishda navbat raqami va xona nomi o'qilmasin. Faqat: FISH postga keling.
+    const text = `${patientName} postga keling.`;
 
     if (text && "speechSynthesis" in window) {
       try {
         window.speechSynthesis.cancel(); // oldingi gapni to'xtatish
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "uz-UZ";
-        utterance.rate = 0.9;
+        utterance.rate = 0.85;
         utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
       } catch (e) {}

@@ -528,8 +528,7 @@ function speakMultilingualAnnouncement(data, lang) {
       window.speechSynthesis.cancel();
 
       const patientName = (data.patientName || "Bemor").trim();
-      const roomSpeech = dict.formatRoomSpeech ? dict.formatRoomSpeech(data.room || data.doctorName) : (data.room || "xona");
-      const speechText = dict.formatSpeech(patientName, roomSpeech);
+      const speechText = `${patientName} postga keling.`;
 
       const utterance = new SpeechSynthesisUtterance(speechText);
       utterance.lang = dict.langVoice || "uz-UZ";

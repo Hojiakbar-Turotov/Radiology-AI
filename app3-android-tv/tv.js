@@ -466,15 +466,7 @@ function formatRoomUzbek(roomStr) {
 
 function buildUzbekAnnouncement(data) {
   const patientName = data.patientName ? data.patientName.trim() : "Bemor";
-  const roomText = formatRoomUzbek(data.room || data.doctorName);
-  
-  let laborantText = "";
-  if (data.laborantName) {
-    const labName = data.laborantName.trim();
-    laborantText = ` Laborant ${labName}.`;
-  }
-
-  return `Diqqat! Bemor ${patientName}, ${roomText} oldiga keling.${laborantText}`;
+  return `${patientName} postga keling.`;
 }
 
 // 8. OVOZLI CHAQIRUV (To'liq O'zbek tilida Text-to-Speech)

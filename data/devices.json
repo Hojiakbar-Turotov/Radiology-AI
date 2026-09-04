@@ -12,14 +12,14 @@
   },
   {
     "id": "mrt2",
-    "name": "MRT 2 (Barcha MRT 1,5T)",
+    "name": "MRT 2 (1.5 Tesla)",
     "room": "2-MRT Xonasi",
     "type": "MRT",
     "specialty": "Tomografiya (MRT)",
     "hasInjector": false,
     "supportsContrast": false,
     "status": "active",
-    "currentPatientId": "p_1788421353988_d9xr4"
+    "currentPatientId": null
   },
   {
     "id": "mskt1",

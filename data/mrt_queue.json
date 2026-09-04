@@ -773,7 +773,7 @@
     "totalPrice": 0,
     "deviceId": "mrt2",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "completed",
     "estimatedDurationMinutes": 55,
     "estimatedStartTime": "2026-09-04 08:20",
     "estimatedFinishTime": "2026-09-04 09:15",
@@ -785,7 +785,10 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T03:11:40.279Z",
-    "updatedAt": "2026-09-04T03:11:40.279Z"
+    "updatedAt": "2026-09-04T09:04:05.585Z",
+    "calledAt": "2026-09-04T09:03:34.361Z",
+    "startedAt": "2026-09-04T09:03:24.052Z",
+    "finishedAt": "2026-09-04T09:04:05.585Z"
   },
   {
     "id": "p_1788491516385_9mekh",
@@ -867,7 +870,7 @@
     "totalPrice": 0,
     "deviceId": "mrt2",
     "deviceType": "MRT",
-    "status": "preparing",
+    "status": "completed",
     "estimatedDurationMinutes": 15,
     "estimatedStartTime": "2026-09-04 10:35",
     "estimatedFinishTime": "2026-09-04 10:50",
@@ -879,7 +882,9 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:29:07.529Z",
-    "updatedAt": "2026-09-04T06:17:50.095Z"
+    "updatedAt": "2026-09-04T09:04:11.712Z",
+    "calledAt": "2026-09-04T09:03:56.080Z",
+    "finishedAt": "2026-09-04T09:04:11.712Z"
   },
   {
     "id": "p_1788499818776_zhpya",
@@ -961,7 +966,7 @@
     "totalPrice": 0,
     "deviceId": "mrt2",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "completed",
     "estimatedDurationMinutes": 15,
     "estimatedStartTime": "2026-09-04 10:50",
     "estimatedFinishTime": "2026-09-04 11:05",
@@ -973,7 +978,10 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:26.128Z",
-    "updatedAt": "2026-09-04T05:30:26.128Z"
+    "updatedAt": "2026-09-04T09:04:55.213Z",
+    "calledAt": "2026-09-04T09:04:49.049Z",
+    "startedAt": "2026-09-04T09:04:14.598Z",
+    "finishedAt": "2026-09-04T09:04:55.213Z"
   },
   {
     "id": "p_1788499830048_vfwe0",

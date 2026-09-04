@@ -165,7 +165,7 @@ function updateCalculationsPreview() {
   const devEl = document.getElementById("prevDevice");
   let fallbackDevName = "Aqlli Taqsimlash";
   if (targetDevVal === "mrt1" || (targetDevVal === "auto" && hasContrast)) fallbackDevName = "1-MRT (1.5 T)";
-  else if (targetDevVal === "mrt2") fallbackDevName = "2-MRT (3.0 T)";
+  else if (targetDevVal === "mrt2") fallbackDevName = "2-MRT (1.5 T)";
   else if (targetDevVal === "mskt1") fallbackDevName = "1-MSKT";
   if (devEl) devEl.innerText = fallbackDevName;
 
@@ -189,7 +189,7 @@ function updateCalculationsPreview() {
 
         if (durEl) durEl.innerText = `${slot.durationMinutes} daqiqa`;
         if (devEl) {
-          const devMap = { mrt1: "1-MRT (1.5 T)", mrt2: "2-MRT (3.0 T)", mskt1: "1-MSKT" };
+          const devMap = { mrt1: "1-MRT (1.5 T)", mrt2: "2-MRT (1.5 T)", mskt1: "1-MSKT" };
           devEl.innerText = devMap[slot.deviceId] || slot.deviceId.toUpperCase();
         }
 

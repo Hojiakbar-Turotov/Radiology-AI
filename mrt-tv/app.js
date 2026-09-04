@@ -237,19 +237,24 @@ function handleVoiceAnnouncement(payload) {
   playChime();
 
   setTimeout(() => {
-    let speechText = "";
-    if (payload.type === "call_room") {
-      speechText = `${payload.ticketNumber} raqamli bemor ${payload.patientName}, ${payload.room}ga kiring.`;
-    } else if (payload.type === "call_prep") {
-      speechText = `${payload.ticketNumber} raqamli bemor ${payload.patientName}, ${payload.room}ga tayyorgarlik uchun murojaat qiling.`;
+    let patientName = (payload.patientName || "").trim();
+    if (!patientName && payload.patient && payload.patient.patientName) {
+      patientName = payload.patient.patientName.trim();
     }
+    if (!patientName) return;
+
+    // Foydalanuvchi talabi: bemor chaqirishda navbat raqami va xona nomi o'qilmasin. Faqat: FISH postga keling.
+    const speechText = `${patientName} postga keling.`;
 
     if (speechText && "speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(speechText);
-      utterance.lang = "uz-UZ";
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.lang = "uz-UZ";
+        utterance.rate = 0.85;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {}
     }
   }, 900);
 }
