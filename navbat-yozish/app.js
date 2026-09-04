@@ -254,28 +254,95 @@ async function handleFormSubmit(e) {
 // -------------------------------------------------------------
 function printTicket(patient) {
   if (!patient) return;
-
-  document.getElementById("ttTicketNum").innerText = patient.ticketNumber;
-  document.getElementById("ttPatientName").innerText = patient.patientName;
-  document.getElementById("ttServiceName").innerText = patient.primaryService;
-  document.getElementById("ttDate").innerText = patient.date || new Date().toLocaleDateString("ru-RU");
-  document.getElementById("ttTime").innerText = patient.estimatedStartTimeFormatted || new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-
-  const roomText = patient.deviceId === "mrt1" ? "1-MRT XONASI (1.5 Tesla)" 
-                 : patient.deviceId === "mrt2" ? "2-MRT XONASI (3.0 Tesla)" 
-                 : "1-MSKT XONASI";
-  document.getElementById("ttRoomName").innerText = roomText;
-
-  const prepNote = document.getElementById("ttPrepNote");
-  if (patient.isContrast) {
-    prepNote.style.display = "block";
-    prepNote.innerText = "💉 DIQQAT: Vena ichi kontrast moddasi talab qilinadi. 15 daqiqa oldin xonaga uchrashing!";
-  } else {
-    prepNote.style.display = "block";
-    prepNote.innerText = "⚠️ Iltimos, tekshiruvdan 10 daqiqa oldin xona oldida hozir bo'ling.";
+  if (window.parent && typeof window.parent.printThermalTicket === 'function') {
+    window.parent.printThermalTicket(patient);
+    return;
   }
+  const printWindow = window.open('', '_blank', 'width=380,height=640');
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '-').trim();
+  const dateStr = patient.date || new Date().toISOString().split('T')[0];
+  const parts = dateStr.split('-');
+  const dd = parts[2] ? parts[2].padStart(2, '0') : String(new Date().getDate()).padStart(2, '0');
+  const mm = parts[1] ? parts[1].padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+  const yyyy = parts[0] || new Date().getFullYear();
 
-  window.print();
+  let devCode = "MR1";
+  const devId = String(patient.deviceId || "").toLowerCase();
+  if (devId.includes("mrt2") || devId.includes("mr2")) devCode = "MR2";
+  else if (devId.includes("mskt") || devId.includes("kt") || patient.deviceType === "MSKT") devCode = "KT1";
+
+  const rawNum = String(patient.ticketNumber || '001').replace(/[^0-9]/g, '');
+  const seqStr = (rawNum || '1').padStart(3, '0');
+  const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
+
+  const timeStr = patient.scheduledTime || patient.estimatedStartTimeFormatted || '--:--';
+  const formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${timeStr}`;
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Chipta #${fullTicketNumber}</title>
+      <style>
+        @page { size: 80mm auto; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+        body {
+          font-family: 'Arial', 'Helvetica', 'Segoe UI', sans-serif;
+          width: 72mm; margin: 0 auto; padding: 2mm 1mm 4mm 1mm;
+          color: #000000 !important; background: #ffffff !important;
+          font-size: 12.5px; line-height: 1.35; font-weight: 800;
+        }
+        .header { text-align: center; font-weight: 900; font-size: 14px; line-height: 1.25; color: #000000 !important; text-transform: uppercase; margin-bottom: 4px; }
+        .divider { border: none; border-top: 2.5px dashed #000000; margin: 5px 0; }
+        .patient-id-box { text-align: center; font-size: 14px; font-weight: 900; color: #000000 !important; margin: 4px 0; letter-spacing: 0.5px; }
+        .patient-id-val { font-size: 17px; font-weight: 900; color: #000000 !important; }
+        .ticket-center { text-align: center; margin: 5px 0; }
+        .ticket-title { font-size: 14.5px; font-weight: 900; letter-spacing: 1px; color: #000000 !important; }
+        .ticket-num { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #000000 !important; margin: 3px 0; }
+        .info-row { margin: 4px 0; font-size: 13px; color: #000000 !important; font-weight: 800; }
+        .info-row b { font-weight: 900; color: #000000 !important; }
+        .time-box { border: 2.5px solid #000000; border-radius: 6px; padding: 6px 4px; margin: 7px 0; text-align: center; background: #ffffff; }
+        .time-label { font-size: 13px; font-weight: 900; letter-spacing: 0.8px; color: #000000 !important; text-transform: uppercase; }
+        .time-val { font-size: 19px; font-weight: 900; color: #000000 !important; margin-top: 2px; letter-spacing: 0.5px; }
+        .footer-contacts { text-align: center; font-size: 12.5px; margin: 6px 0; line-height: 1.35; color: #000000 !important; font-weight: 800; }
+        .footer-notice { text-align: center; font-size: 13px; font-weight: 900; line-height: 1.35; margin-top: 6px; color: #000000 !important; text-transform: uppercase; }
+      </style>
+    </head>
+    <body>
+      <div class="header">RESPUBLIKA RADIOLOGIYA VA<br>ONKOLOGIYA MARKAZI</div>
+      <hr class="divider">
+      <div class="patient-id-box">BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span></div>
+      <hr class="divider">
+      <div class="ticket-center">
+        <div class="ticket-title">NAVBAT RAQAMI:</div>
+        <div class="ticket-num">${fullTicketNumber}</div>
+      </div>
+      <hr class="divider">
+      <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
+      <div class="info-row"><b>Xizmat:</b> ${escapeHtml(patient.primaryService || 'MRT Tekshiruvi')}</div>
+      <div class="time-box">
+        <div class="time-label">QABUL VAQTI:</div>
+        <div class="time-val">${escapeHtml(formattedTimeStr)}</div>
+      </div>
+      ${patient.isContrast ? '<div class="info-row" style="color:#000000; font-weight:900;">💉 DIQQAT: Vena ichi kontrast moddasi talab qilinadi. 15 daqiqa oldin xonaga uchrashing!</div>' : ''}
+      <hr class="divider">
+      <div class="footer-contacts">
+        <b>Savol va takliflar uchun:</b><br>Tel: 1303<br>Telegram: @rons_2026
+      </div>
+      <hr class="divider">
+      <div class="footer-notice">ILTIMOS, NAVBAT VAQTIDAN<br>30-40 MINUT OLDIN KELING!</div>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 300);
 }
 
 // -------------------------------------------------------------

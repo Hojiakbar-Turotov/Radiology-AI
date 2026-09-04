@@ -564,18 +564,18 @@
     "createdAt": "2026-09-03T09:46:53.093Z",
     "expiresAt": "2026-10-03T09:46:53.093Z"
   },
-  "tok_1788491231547_9b4780c0036a3d7bf3c66ad174413ef3": {
-    "token": "tok_1788491231547_9b4780c0036a3d7bf3c66ad174413ef3",
+  "tok_1788491783863_44aee582f52996457114a1d5b8e5d744": {
+    "token": "tok_1788491783863_44aee582f52996457114a1d5b8e5d744",
     "user": {
-      "login": "T4",
-      "name": "Hojiakbar",
-      "role": "server_nazoratchisi",
+      "login": "L6",
+      "name": "Shariat",
+      "role": "laborant",
       "status": "active",
       "phone": "",
-      "room": "Server & Radiologiya",
+      "room": "MRT Xonasi",
       "workSchedule": {
         "start": "08:00",
-        "end": "18:00",
+        "end": "17:00",
         "lunchStart": "12:00",
         "lunchEnd": "13:00",
         "days": [
@@ -593,11 +593,11 @@
           "MRT_KONTRAST": 25,
           "MSKT": 10
         },
-        "notes": "Server nazoratchisi, Super Admin va Laborant"
+        "notes": "Laborant"
       },
       "createdAt": "2026-09-03"
     },
-    "createdAt": "2026-09-04T03:07:11.547Z",
-    "expiresAt": "2026-10-04T03:07:11.547Z"
+    "createdAt": "2026-09-04T03:16:23.863Z",
+    "expiresAt": "2026-10-04T03:16:23.863Z"
   }
 }

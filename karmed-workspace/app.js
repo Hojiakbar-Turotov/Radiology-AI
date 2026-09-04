@@ -1570,7 +1570,7 @@ function printThermalTicket(patient) {
     ? `
       <div class="info-row"><b>Tekshiruvlar (${servicesList.length} ta):</b></div>
       <div style="padding-left:3px; margin:2px 0 4px 0;">
-        ${servicesList.map((s, idx) => `<div style="font-size:12px; font-weight:700; color:#000000; margin:2px 0;">${idx + 1}. ${escapeHtml(s.name)}</div>`).join('')}
+        ${servicesList.map((s, idx) => `<div style="font-size:12.5px; font-weight:800; color:#000000; margin:2px 0;">${idx + 1}. ${escapeHtml(s.name)}</div>`).join('')}
       </div>
     `
     : `<div class="info-row"><b>Xizmat:</b> ${escapeHtml(servicesText)}</div>`;
@@ -1698,18 +1698,18 @@ function printThermalTicket(patient) {
 
   const prepHtml = prepItems.length > 0 ? `
     <div style="margin-top:7px;">
-      <div style="font-weight:900; font-size:12px; color:#000000; text-decoration:underline; margin-bottom:3px;">Ko'rilishi kerak tayyorgarlik:</div>
+      <div style="font-weight:900; font-size:12.5px; color:#000000; text-decoration:underline; margin-bottom:3px;">Ko'rilishi kerak tayyorgarlik:</div>
       <div style="padding-left:2px;">
-        ${prepItems.map(item => `<div style="margin:2px 0; font-size:11.5px; line-height:1.3; font-weight:700; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
+        ${prepItems.map(item => `<div style="margin:2px 0; font-size:12px; line-height:1.3; font-weight:800; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
       </div>
     </div>
   ` : '';
 
   const contraHtml = contraItems.length > 0 ? `
     <div style="margin-top:7px;">
-      <div style="font-weight:900; font-size:12px; color:#000000; text-decoration:underline; margin-bottom:3px;">Qarshi ko'rsatmalar:</div>
+      <div style="font-weight:900; font-size:12.5px; color:#000000; text-decoration:underline; margin-bottom:3px;">Qarshi ko'rsatmalar:</div>
       <div style="padding-left:2px;">
-        ${contraItems.map(item => `<div style="margin:2px 0; font-size:11.5px; line-height:1.3; font-weight:700; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
+        ${contraItems.map(item => `<div style="margin:2px 0; font-size:12px; line-height:1.3; font-weight:800; color:#000000;">• ${escapeHtml(item)}</div>`).join('')}
       </div>
     </div>
   ` : '';
@@ -1728,6 +1728,7 @@ function printThermalTicket(patient) {
           box-sizing: border-box;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
+          font-weight: 800;
         }
         body {
           font-family: 'Arial', 'Helvetica', 'Segoe UI', sans-serif;
@@ -1736,14 +1737,14 @@ function printThermalTicket(patient) {
           padding: 2mm 1mm 4mm 1mm;
           color: #000000 !important;
           background: #ffffff !important;
-          font-size: 12px;
+          font-size: 12.5px;
           line-height: 1.35;
-          font-weight: 700;
+          font-weight: 800;
         }
         .header {
           text-align: center;
           font-weight: 900;
-          font-size: 13.5px;
+          font-size: 14px;
           line-height: 1.25;
           color: #000000 !important;
           text-transform: uppercase;
@@ -1751,19 +1752,19 @@ function printThermalTicket(patient) {
         }
         .divider {
           border: none;
-          border-top: 2px dashed #000000;
+          border-top: 2.5px dashed #000000;
           margin: 5px 0;
         }
         .patient-id-box {
           text-align: center;
-          font-size: 13.5px;
+          font-size: 14px;
           font-weight: 900;
           color: #000000 !important;
           margin: 4px 0;
           letter-spacing: 0.5px;
         }
         .patient-id-val {
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 900;
           color: #000000 !important;
         }
@@ -1772,13 +1773,13 @@ function printThermalTicket(patient) {
           margin: 5px 0;
         }
         .ticket-title {
-          font-size: 14px;
+          font-size: 14.5px;
           font-weight: 900;
           letter-spacing: 1px;
           color: #000000 !important;
         }
         .ticket-num {
-          font-size: 26px;
+          font-size: 28px;
           font-weight: 900;
           letter-spacing: 2px;
           color: #000000 !important;
@@ -1786,17 +1787,39 @@ function printThermalTicket(patient) {
         }
         .info-row {
           margin: 4px 0;
-          font-size: 12px;
+          font-size: 13px;
           color: #000000 !important;
-          font-weight: 700;
+          font-weight: 800;
         }
         .info-row b {
           font-weight: 900;
           color: #000000 !important;
         }
+        .time-box {
+          border: 2.5px solid #000000;
+          border-radius: 6px;
+          padding: 6px 4px;
+          margin: 7px 0;
+          text-align: center;
+          background: #ffffff;
+        }
+        .time-label {
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 0.8px;
+          color: #000000 !important;
+          text-transform: uppercase;
+        }
+        .time-val {
+          font-size: 19px;
+          font-weight: 900;
+          color: #000000 !important;
+          margin-top: 2px;
+          letter-spacing: 0.5px;
+        }
         .footer-contacts {
           text-align: center;
-          font-size: 12px;
+          font-size: 12.5px;
           margin: 6px 0;
           line-height: 1.35;
           color: #000000 !important;
@@ -1804,7 +1827,7 @@ function printThermalTicket(patient) {
         }
         .footer-notice {
           text-align: center;
-          font-size: 12.5px;
+          font-size: 13px;
           font-weight: 900;
           line-height: 1.35;
           margin-top: 6px;
@@ -1824,11 +1847,6 @@ function printThermalTicket(patient) {
       <div class="patient-id-box">
         BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span>
       </div>
-      ${patient.sampleNumber ? `
-        <div class="patient-id-box" style="margin-top:-2px;">
-          NAMUNA RAQAMI: <span class="patient-id-val">${escapeHtml(patient.sampleNumber)}</span>
-        </div>
-      ` : ''}
       <hr class="divider">
 
       <!-- NAVBAT RAQAMI: 03-09-MR1-008 -->
@@ -1840,7 +1858,12 @@ function printThermalTicket(patient) {
 
       <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
       ${servicesHtml}
-      <div class="info-row"><b>Qabul vaqti:</b> ${escapeHtml(formattedTimeStr)}</div>
+
+      <!-- QABUL VAQTI (KATTA VA ANIQ) -->
+      <div class="time-box">
+        <div class="time-label">QABUL VAQTI:</div>
+        <div class="time-val">${escapeHtml(formattedTimeStr)}</div>
+      </div>
 
       ${prepHtml}
 
@@ -1857,8 +1880,8 @@ function printThermalTicket(patient) {
       <hr class="divider">
 
       <div class="footer-notice">
-        Iltimos, navbat vaqtidan<br>
-        30-40 minut oldin keling!
+        ILTIMOS, NAVBAT VAQTIDAN<br>
+        30-40 MINUT OLDIN KELING!
       </div>
     </body>
     </html>
