@@ -453,23 +453,21 @@ const server = http.createServer(async (req, res) => {
 
         // Namuna raqami (sampleNumber) takrorlanmasligini qat'iy tekshirish
         const rawSample = body.sampleNumber || body.sampleNo || body.sample;
-        if (rawSample) {
-          const cleanSample = String(rawSample).trim();
-          if (cleanSample) {
-            const existingDuplicate = db.getAllQueue().find(p => 
-              p.sampleNumber && 
-              String(p.sampleNumber).trim() === cleanSample && 
-              p.status !== 'cancelled'
-            );
-            if (existingDuplicate) {
-              return sendJSON(res, {
-                success: false,
-                isDuplicateSample: true,
-                duplicateTicket: existingDuplicate.ticketNumber,
-                duplicatePatient: existingDuplicate.patientName,
-                error: `⚠️ DIQQAT: Ushbu tekshiruv (Namuna №${cleanSample}) allaqachon navbatga qo'yilgan!\nNavbat raqami: #${existingDuplicate.ticketNumber} • Bemor: ${existingDuplicate.patientName} (${existingDuplicate.scheduledTime || existingDuplicate.timeSlot || ''})`
-              }, 400);
-            }
+        const cleanSample = rawSample ? String(rawSample).trim() : '';
+        if (cleanSample) {
+          const existingDuplicate = db.getAllQueue().find(p => 
+            p.sampleNumber && 
+            String(p.sampleNumber).trim() === cleanSample && 
+            p.status !== 'cancelled'
+          );
+          if (existingDuplicate) {
+            return sendJSON(res, {
+              success: false,
+              isDuplicateSample: true,
+              duplicateTicket: existingDuplicate.ticketNumber,
+              duplicatePatient: existingDuplicate.patientName,
+              error: `⚠️ DIQQAT: Ushbu tekshiruv (Namuna №${cleanSample}) allaqachon navbatga qo'yilgan!\nNavbat raqami: #${existingDuplicate.ticketNumber} • Bemor: ${existingDuplicate.patientName} (${existingDuplicate.scheduledTime || existingDuplicate.timeSlot || ''})`
+            }, 400);
           }
         }
 
@@ -477,6 +475,8 @@ const server = http.createServer(async (req, res) => {
         const slotAllocation = scheduler.findNextAvailableSlot(body);
         const patientData = {
           ...body,
+          sampleNumber: cleanSample || String(body.sampleNumber || body.sampleNo || body.sample || '').trim(),
+          patientId: String(body.patientId || body.cardNo || body.id || '').trim(),
           ...slotAllocation,
           scheduledDate: slotAllocation.scheduledDate,
           scheduledTime: slotAllocation.startTime,

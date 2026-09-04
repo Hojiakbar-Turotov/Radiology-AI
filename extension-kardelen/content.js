@@ -4719,6 +4719,13 @@ function printThermalTicketDirect(payload, lang) {
 
         <div class="center ticket-id">${escapeHtml(payload.ticketId)}</div>
 
+        ${payload.patientId || payload.id ? `
+        <div style="border: 2px solid #000; border-radius: 6px; padding: 4px 6px; margin: 6px 0; text-align: center; background: #ffffff;">
+          <div style="font-size: 11.5px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">BEMOR ID:</div>
+          <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px; font-family: monospace; margin-top: 2px;">${escapeHtml(payload.patientId || payload.id)}</div>
+        </div>
+        ` : ''}
+
         <div class="row">
           <span class="label">${escapeHtml(cleanLbl(lblPatient))}</span>
           <span class="val" style="font-size:15px;">${escapeHtml(payload.name)}</span>
@@ -4754,13 +4761,13 @@ function printThermalTicketDirect(payload, lang) {
         </div>
 
         <div class="slot-box">
-          <div class="slot-title">${escapeHtml(cleanLbl(lblBookedTime))}</div>
-          <div class="slot-time">${escapeHtml(payload.timeSlot || payload.scheduledTime)}</div>
-        </div>
-
-        <div class="row">
-          <span class="label">${escapeHtml(cleanLbl(lblAppDate))}</span>
-          <span class="val" style="color:#000; font-weight:900; font-size:14px;">${escapeHtml(payload.appointmentDate || '')}</span>
+          <div class="slot-title" style="border-bottom: 1.5px dashed #000; padding-bottom: 2px; margin-bottom: 4px;">${escapeHtml(cleanLbl(lblBookedTime))}</div>
+          ${payload.appointmentDate ? `
+            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">📅 SANA:</div>
+            <div style="font-size: 19px; font-weight: 900; margin-bottom: 4px;">${escapeHtml(payload.appointmentDate)}</div>
+          ` : ''}
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">🕐 SOAT:</div>
+          <div class="slot-time" style="font-size: 24px; font-weight: 900; letter-spacing: 1px;">${escapeHtml(payload.timeSlot || payload.scheduledTime)}</div>
         </div>
 
         <div class="row">

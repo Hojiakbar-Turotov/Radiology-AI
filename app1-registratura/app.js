@@ -1932,6 +1932,19 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   if (document.getElementById("ticketPrintLblOnlineResults") && dict) document.getElementById("ticketPrintLblOnlineResults").innerText = dict.onlineResults || "📱 JAVOBLARNI ONLAYN OLISH:";
 
   document.getElementById("ticketPrintNum").innerText = patient.ticketId || "ID";
+
+  const pId = patient.patientId || patient.cardNo || patient.id;
+  const pIdBox = document.getElementById("ticketPrintPatientIdBox");
+  const pIdEl = document.getElementById("ticketPrintPatientId");
+  if (pIdBox && pIdEl) {
+    if (pId) {
+      pIdBox.style.display = "block";
+      pIdEl.innerText = pId;
+    } else {
+      pIdBox.style.display = "none";
+    }
+  }
+
   document.getElementById("ticketPrintName").innerText = patient.name || "-";
 
   const dobRow = document.getElementById("ticketPrintDobRow");
@@ -1967,9 +1980,13 @@ function openPrintModalDirect(patient, autoTriggerPrint = false, lang = "uz") {
   document.getElementById("ticketPrintRoom").innerText = (typeof formatRoomWithOriginal === 'function') ? formatRoomWithOriginal(patient.room, patient.doctorName, L) : (patient.room || "-");
   document.getElementById("ticketPrintDoctor").innerText = patient.doctorName || "-";
   document.getElementById("ticketPrintService").innerText = ((typeof formatServiceNameWithOriginal === 'function') ? formatServiceNameWithOriginal(patient.service, L) : (patient.service || "Tomografiya")) + (patient.isContrast ? ` ${dict ? dict.contrastBadge : '[KONTRASTLI]'}` : "");
+  
+  const appDateDisplay = patient.appointmentDate || selectedQueueDate || todayDateStr;
+  const dateValEl = document.getElementById("ticketPrintDateVal");
+  if (dateValEl) dateValEl.innerText = appDateDisplay;
+
   document.getElementById("ticketPrintTimeSlot").innerText = patient.timeSlot || patient.scheduledTime || (patient.time || "-");
   document.getElementById("ticketPrintRegistrar").innerText = patient.registeredBy || (patient.operatorLogin ? `${patient.operatorLogin} - ${patient.operatorName || ''}` : "TB1 - Turatov Hojiakbar");
-  const appDateDisplay = patient.appointmentDate || selectedQueueDate || todayDateStr;
   document.getElementById("ticketPrintTime").innerText = (patient.time || "") + " | " + appDateDisplay;
 
   const guideEl = document.getElementById("ticketPrintGuidelines");

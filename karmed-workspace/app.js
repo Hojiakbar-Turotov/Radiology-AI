@@ -1851,7 +1851,7 @@ function printThermalTicket(patient) {
     : `<div class="info-row"><b>Xizmat:</b> ${escapeHtml(servicesText)}</div>`;
   
   // Bemor ID raqami
-  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '-').trim();
+  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '').trim();
 
   // Apparat kodi: MR1, MR2, KT1 va h.k.
   let devCode = "MR1";
@@ -1885,6 +1885,7 @@ function printThermalTicket(patient) {
   const dd = String(dateObj.getDate()).padStart(2, '0');
   const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
   const yyyy = dateObj.getFullYear();
+  const fullDateDisplay = `${dd}.${mm}.${yyyy}`;
 
   // Usha kun uchun navbat raqami: masalan, 008
   const rawNum = String(patient.ticketNumber || '001').replace(/[^0-9]/g, '');
@@ -1893,35 +1894,34 @@ function printThermalTicket(patient) {
   // Format: 03-09-MR1-008 (Kun va oy raqami, qurilma nomi, o'sha kun uchun navbat raqami)
   const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
 
-  // Qabul vaqti: Soat va sana (masalan: 03.09.2026, soat 14:20 – 14:45)
-  let formattedTimeStr = "";
+  // Qabul vaqti: Soat (masalan: 14:20 – 14:45)
+  let timeStr = "";
   if (patient.scheduledTime) {
-    formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${patient.scheduledTime}`;
-    if (patient.finishTime && !formattedTimeStr.includes("–")) {
-      formattedTimeStr += ` – ${patient.finishTime}`;
+    timeStr = patient.scheduledTime;
+    if (patient.finishTime && !timeStr.includes("–") && !timeStr.includes("-")) {
+      timeStr += ` – ${patient.finishTime}`;
     }
   } else if (patient.estimatedStartTimeFormatted) {
-    formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTimeFormatted}`;
+    timeStr = patient.estimatedStartTimeFormatted;
   } else if (patient.estimatedStartTime) {
     if (patient.estimatedStartTime.includes(" ")) {
       const parts = patient.estimatedStartTime.split(" ");
-      formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${parts[1]}`;
+      timeStr = parts[1];
     } else {
       const sDate = new Date(patient.estimatedStartTime);
       if (!isNaN(sDate.getTime())) {
         const sh = String(sDate.getHours()).padStart(2, '0');
         const sm = String(sDate.getMinutes()).padStart(2, '0');
-        formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${sh}:${sm}`;
+        timeStr = `${sh}:${sm}`;
       } else {
-        formattedTimeStr = `${dd}.${mm}.${yyyy}, ${patient.estimatedStartTime}`;
+        timeStr = patient.estimatedStartTime;
       }
     }
-    if (patient.finishTime && !formattedTimeStr.includes("–")) {
-      formattedTimeStr += ` – ${patient.finishTime}`;
+    if (patient.finishTime && !timeStr.includes("–") && !timeStr.includes("-")) {
+      timeStr += ` – ${patient.finishTime}`;
     }
-  } else {
-    formattedTimeStr = `${dd}.${mm}.${yyyy}`;
   }
+  if (!timeStr) timeStr = '--:--';
 
   // Tayyorgarlik va Qarshi ko'rsatmalarni aniqlash (Bir nechta tekshiruv bo'lganda takrorlanishlarsiz)
   const rawPrepList = [];
@@ -2040,16 +2040,26 @@ function printThermalTicket(patient) {
         }
         .patient-id-box {
           text-align: center;
-          font-size: 14px;
+          margin: 6px 0 7px 0;
+          padding: 5px 6px;
+          border: 2.5px solid #000000;
+          border-radius: 6px;
+          background: #ffffff;
+        }
+        .patient-id-label {
+          font-size: 13px;
           font-weight: 900;
+          letter-spacing: 1px;
           color: #000000 !important;
-          margin: 4px 0;
-          letter-spacing: 0.5px;
+          text-transform: uppercase;
         }
         .patient-id-val {
-          font-size: 17px;
+          font-size: 26px;
           font-weight: 900;
+          letter-spacing: 2px;
           color: #000000 !important;
+          margin-top: 2px;
+          font-family: 'Arial', 'Courier New', monospace, sans-serif;
         }
         .ticket-center {
           text-align: center;
@@ -2087,18 +2097,41 @@ function printThermalTicket(patient) {
           background: #ffffff;
         }
         .time-label {
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 900;
           letter-spacing: 0.8px;
           color: #000000 !important;
           text-transform: uppercase;
+          margin-bottom: 4px;
+          border-bottom: 1.5px dashed #000000;
+          padding-bottom: 3px;
         }
-        .time-val {
-          font-size: 19px;
+        .time-date-row {
+          margin: 4px 0 2px 0;
+        }
+        .time-hour-row {
+          margin: 3px 0 2px 0;
+        }
+        .time-sub-label {
+          font-size: 11px;
+          font-weight: 800;
+          color: #000000 !important;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+        .time-date-val {
+          font-size: 20px;
           font-weight: 900;
           color: #000000 !important;
-          margin-top: 2px;
           letter-spacing: 0.5px;
+          margin-top: 1px;
+        }
+        .time-hour-val {
+          font-size: 24px;
+          font-weight: 900;
+          color: #000000 !important;
+          letter-spacing: 1px;
+          margin-top: 1px;
         }
         .footer-contacts {
           text-align: center;
@@ -2156,15 +2189,30 @@ function printThermalTicket(patient) {
         <div class="ticket-title">NAVBAT RAQAMI:</div>
         <div class="ticket-num">${fullTicketNumber}</div>
       </div>
+
+      ${patientIdDisplay ? `
+      <!-- BEMOR ID (KATTA RAQAMLAR) -->
+      <div class="patient-id-box">
+        <div class="patient-id-label">BEMOR ID:</div>
+        <div class="patient-id-val">${escapeHtml(patientIdDisplay)}</div>
+      </div>
+      ` : ''}
       <hr class="divider">
 
       <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
       ${servicesHtml}
 
-      <!-- QABUL VAQTI (KATTA VA ANIQ) -->
+      <!-- QABUL SANASI VA VAQTI (ALOHIDA-ALOHIDA QATORLARDA VA KATTA) -->
       <div class="time-box">
-        <div class="time-label">QABUL VAQTI:</div>
-        <div class="time-val">${escapeHtml(formattedTimeStr)}</div>
+        <div class="time-label">QABUL SANASI VA VAQTI:</div>
+        <div class="time-date-row">
+          <div class="time-sub-label">📅 SANA:</div>
+          <div class="time-date-val">${escapeHtml(fullDateDisplay)}</div>
+        </div>
+        <div class="time-hour-row">
+          <div class="time-sub-label">🕐 SOAT:</div>
+          <div class="time-hour-val">${escapeHtml(timeStr)}</div>
+        </div>
       </div>
 
       ${prepHtml}

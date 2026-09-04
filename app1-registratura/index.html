@@ -901,6 +901,10 @@
         </div>
         <div class="ticket-body">
           <div class="ticket-number" id="ticketPrintNum">U-001</div>
+          <div class="ticket-patient-id-box" id="ticketPrintPatientIdBox" style="display:none; text-align:center; margin:4px 0 6px 0; border:2px solid #000; border-radius:6px; padding:3px 6px; background:#fff;">
+            <span style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; display:block; text-transform:uppercase;">BEMOR ID:</span>
+            <strong id="ticketPrintPatientId" style="font-size:22px; font-weight:900; letter-spacing:1.5px; font-family:monospace; display:block;">-</strong>
+          </div>
           <div class="ticket-info-row">
             <span id="ticketPrintLblPatient">Bemor:</span>
             <strong id="ticketPrintName">-</strong>
@@ -929,9 +933,16 @@
             <span id="ticketPrintLblService">Tekshiruv:</span>
             <strong id="ticketPrintService">-</strong>
           </div>
-          <div class="ticket-slot-box">
-            <div id="ticketPrintLblBookedTime" style="font-size:12px; font-weight:800; text-transform:uppercase; color:#000; letter-spacing:0.5px;">BAND QILINGAN QABUL VAQTI:</div>
-            <strong id="ticketPrintTimeSlot" style="font-size:1.45rem; font-weight:900; color:#000; display:block; margin-top:3px;">-</strong>
+          <div class="ticket-slot-box" style="border:2.5px solid #000; border-radius:8px; padding:6px 4px; margin:7px 0; text-align:center;">
+            <div id="ticketPrintLblBookedTime" style="font-size:12px; font-weight:800; text-transform:uppercase; color:#000; letter-spacing:0.5px; border-bottom:1.5px dashed #000; padding-bottom:3px; margin-bottom:3px;">BAND QILINGAN QABUL VAQTI:</div>
+            <div id="ticketPrintDateRow" style="margin:3px 0;">
+              <div style="font-size:11px; font-weight:800; text-transform:uppercase;">📅 SANA:</div>
+              <strong id="ticketPrintDateVal" style="font-size:19px; font-weight:900; color:#000; display:block;">-</strong>
+            </div>
+            <div id="ticketPrintTimeRow" style="margin:3px 0;">
+              <div style="font-size:11px; font-weight:800; text-transform:uppercase;">🕐 SOAT:</div>
+              <strong id="ticketPrintTimeSlot" style="font-size:24px; font-weight:900; color:#000; display:block;">-</strong>
+            </div>
           </div>
           <div class="ticket-info-row">
             <span id="ticketPrintLblRegistrar">Ro'yxatga oluvchi:</span>

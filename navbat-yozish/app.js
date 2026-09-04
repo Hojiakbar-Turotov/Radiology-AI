@@ -314,12 +314,13 @@ function printTicket(patient) {
     window.print();
     return;
   }
-  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '-').trim();
+  const patientIdDisplay = String(patient.patientId || patient.id || patient.cardNo || '').trim();
   const dateStr = patient.date || new Date().toISOString().split('T')[0];
   const parts = dateStr.split('-');
   const dd = parts[2] ? parts[2].padStart(2, '0') : String(new Date().getDate()).padStart(2, '0');
   const mm = parts[1] ? parts[1].padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
   const yyyy = parts[0] || new Date().getFullYear();
+  const fullDateDisplay = `${dd}.${mm}.${yyyy}`;
 
   let devCode = "MR1";
   const devId = String(patient.deviceId || "").toLowerCase();
@@ -349,7 +350,6 @@ function printTicket(patient) {
   if (patient.finishTime && !timeStr.includes('–') && !timeStr.includes('-')) {
     timeStr += ` – ${patient.finishTime}`;
   }
-  const formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${timeStr}`;
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -367,16 +367,79 @@ function printTicket(patient) {
         }
         .header { text-align: center; font-weight: 900; font-size: 14px; line-height: 1.25; color: #000000 !important; text-transform: uppercase; margin-bottom: 4px; }
         .divider { border: none; border-top: 2.5px dashed #000000; margin: 5px 0; }
-        .patient-id-box { text-align: center; font-size: 14px; font-weight: 900; color: #000000 !important; margin: 4px 0; letter-spacing: 0.5px; }
-        .patient-id-val { font-size: 17px; font-weight: 900; color: #000000 !important; }
+        .patient-id-box {
+          text-align: center;
+          margin: 6px 0 7px 0;
+          padding: 5px 6px;
+          border: 2.5px solid #000000;
+          border-radius: 6px;
+          background: #ffffff;
+        }
+        .patient-id-label {
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 1px;
+          color: #000000 !important;
+          text-transform: uppercase;
+        }
+        .patient-id-val {
+          font-size: 26px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          color: #000000 !important;
+          margin-top: 2px;
+          font-family: 'Arial', 'Courier New', monospace, sans-serif;
+        }
         .ticket-center { text-align: center; margin: 5px 0; }
         .ticket-title { font-size: 14.5px; font-weight: 900; letter-spacing: 1px; color: #000000 !important; }
         .ticket-num { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #000000 !important; margin: 3px 0; }
         .info-row { margin: 4px 0; font-size: 13px; color: #000000 !important; font-weight: 800; }
         .info-row b { font-weight: 900; color: #000000 !important; }
-        .time-box { border: 2.5px solid #000000; border-radius: 6px; padding: 6px 4px; margin: 7px 0; text-align: center; background: #ffffff; }
-        .time-label { font-size: 13px; font-weight: 900; letter-spacing: 0.8px; color: #000000 !important; text-transform: uppercase; }
-        .time-val { font-size: 19px; font-weight: 900; color: #000000 !important; margin-top: 2px; letter-spacing: 0.5px; }
+        .time-box {
+          border: 2.5px solid #000000;
+          border-radius: 6px;
+          padding: 6px 4px;
+          margin: 7px 0;
+          text-align: center;
+          background: #ffffff;
+        }
+        .time-label {
+          font-size: 12.5px;
+          font-weight: 900;
+          letter-spacing: 0.8px;
+          color: #000000 !important;
+          text-transform: uppercase;
+          margin-bottom: 4px;
+          border-bottom: 1.5px dashed #000000;
+          padding-bottom: 3px;
+        }
+        .time-date-row {
+          margin: 4px 0 2px 0;
+        }
+        .time-hour-row {
+          margin: 3px 0 2px 0;
+        }
+        .time-sub-label {
+          font-size: 11px;
+          font-weight: 800;
+          color: #000000 !important;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+        .time-date-val {
+          font-size: 20px;
+          font-weight: 900;
+          color: #000000 !important;
+          letter-spacing: 0.5px;
+          margin-top: 1px;
+        }
+        .time-hour-val {
+          font-size: 24px;
+          font-weight: 900;
+          color: #000000 !important;
+          letter-spacing: 1px;
+          margin-top: 1px;
+        }
         .footer-contacts { text-align: center; font-size: 12.5px; margin: 6px 0; line-height: 1.35; color: #000000 !important; font-weight: 800; }
         .qr-box {
           text-align: center;
@@ -413,12 +476,30 @@ function printTicket(patient) {
         <div class="ticket-title">NAVBAT RAQAMI:</div>
         <div class="ticket-num">${fullTicketNumber}</div>
       </div>
+
+      ${patientIdDisplay ? `
+      <!-- BEMOR ID (KATTA RAQAMLAR) -->
+      <div class="patient-id-box">
+        <div class="patient-id-label">BEMOR ID:</div>
+        <div class="patient-id-val">${escapeHtml(patientIdDisplay)}</div>
+      </div>
+      ` : ''}
       <hr class="divider">
+
       <div class="info-row"><b>FISH:</b> ${escapeHtml(patient.patientName)}</div>
       <div class="info-row"><b>Xizmat:</b> ${escapeHtml(patient.primaryService || 'MRT Tekshiruvi')}</div>
+
+      <!-- QABUL SANASI VA VAQTI (ALOHIDA-ALOHIDA QATORLARDA VA KATTA) -->
       <div class="time-box">
-        <div class="time-label">QABUL VAQTI:</div>
-        <div class="time-val">${escapeHtml(formattedTimeStr)}</div>
+        <div class="time-label">QABUL SANASI VA VAQTI:</div>
+        <div class="time-date-row">
+          <div class="time-sub-label">📅 SANA:</div>
+          <div class="time-date-val">${escapeHtml(fullDateDisplay)}</div>
+        </div>
+        <div class="time-hour-row">
+          <div class="time-sub-label">🕐 SOAT:</div>
+          <div class="time-hour-val">${escapeHtml(timeStr)}</div>
+        </div>
       </div>
       ${patient.isContrast ? '<div class="info-row" style="color:#000000; font-weight:900;">💉 DIQQAT: Vena ichi kontrast moddasi talab qilinadi. 15 daqiqa oldin xonaga uchrashing!</div>' : ''}
       <hr class="divider">
