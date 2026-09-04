@@ -149,6 +149,22 @@ function refreshCurrentFrame() {
   }
 }
 
+window.openWorkspaceManual = function() {
+  const map = {
+    laborant: 'laborant',
+    dashboard: 'server_dashboard',
+    tv: 'tv_tablo',
+    navbat: 'navbat_yozish',
+    karmed: 'navbat_yozish'
+  };
+  const key = map[currentTab] || 'navbat_yozish';
+  if (typeof openDepartmentManual === 'function') {
+    openDepartmentManual(key);
+  } else if (window.ManualModal) {
+    window.ManualModal.open(key);
+  }
+};
+
 function toggleFullScreen() {
   const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
 

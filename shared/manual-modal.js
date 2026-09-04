@@ -1,6 +1,6 @@
 /**
  * Universal O'quv Qo'llanma (Department User Manual & SOP) System
- * Supports view mode, step tabs, and admin live in-place editing!
+ * Supports view mode, step tabs, admin live in-place editing, and multi-portal syncing!
  */
 (function() {
   window.ManualModal = {
@@ -17,9 +17,10 @@
           return raw ? JSON.parse(raw) : null;
         })();
         if (!u) return true; // Default allow in local network if unauthenticated
-        return ['admin', 'super_admin', 'server_nazoratchisi', 'bosh_vrach'].includes(u.role);
+        const role = String(u.role || '').toLowerCase();
+        return ['admin', 'super_admin', 'server_nazoratchisi', 'bosh_vrach'].includes(role);
       } catch (e) {
-        return false;
+        return true;
       }
     },
 
@@ -93,8 +94,18 @@
         document.body.appendChild(el);
       }
 
-      const m = this.currentData;
+      const m = this.currentData || {};
       const canEdit = this.canEdit();
+      const roleText = m.roleName || "Mas'ul xodim";
+      const editModeLabel = this.isEditMode ? "Ko'rish rejimi" : "Tahrirlash";
+
+      let updatedTimeText = "Boshlang'ich";
+      if (m.updatedAt) {
+        try {
+          const d = new Date(m.updatedAt);
+          updatedTimeText = d.toLocaleDateString('uz-UZ') + ' ' + d.toLocaleTimeString('uz-UZ').substring(0, 5);
+        } catch (e) {}
+      }
 
       el.innerHTML = `
         <div class="manual-modal-card" onclick="event.stopPropagation()">
@@ -106,15 +117,15 @@
               </div>
               <div>
                 ${this.isEditMode ? `
-                  <input type="text" id="editManualTitle" class="manual-edit-input" style="font-size:16px; font-weight:800; width:100%; margin-bottom:4px;" value="${this.escapeAttr(m.title)}">
+                  <input type="text" id="editManualTitle" class="manual-edit-input" style="font-size:16px; font-weight:800; width:100%; margin-bottom:4px;" value="${this.escapeAttr(m.title || '')}">
                   <div style="display:flex; gap:8px;">
                     <input type="text" id="editManualRole" class="manual-edit-input" style="font-size:12px; padding:4px 8px;" placeholder="Rol nomi" value="${this.escapeAttr(m.roleName || '')}">
                     <input type="text" id="editManualIcon" class="manual-edit-input" style="font-size:12px; padding:4px 8px; width:140px;" placeholder="FontAwesome fa-..." value="${this.escapeAttr(m.icon || 'fa-book-open')}">
                   </div>
                 ` : `
-                  <h2 class="manual-modal-title">${this.escapeHtml(m.title)}</h2>
+                  <h2 class="manual-modal-title">${this.escapeHtml(m.title || "Bo'lim Qo'llanmasi")}</h2>
                   <div class="manual-modal-subtitle">
-                    <span class="manual-role-tag"><i class="fa-solid fa-user-shield"></i> ${this.escapeHtml(m.roleName || 'Mas\\'ul xodim')}</span>
+                    <span class="manual-role-tag"><i class="fa-solid fa-user-shield"></i> ${this.escapeHtml(roleText)}</span>
                     <select class="manual-dept-select" onchange="ManualModal.open(this.value)" style="background:#1e293b; color:#38bdf8; border:1px solid rgba(56,189,248,0.3); border-radius:6px; font-size:11.5px; font-weight:700; padding:2px 6px; cursor:pointer;">
                       <option value="navbat_yozish" ${this.currentKey === 'navbat_yozish' ? 'selected' : ''}>🎫 Navbatga Yozish (Qabulxona)</option>
                       <option value="laborant" ${this.currentKey === 'laborant' ? 'selected' : ''}>🧲 Laborant Portali (MRT/MSKT)</option>
@@ -133,7 +144,7 @@
               ${canEdit ? `
                 <button class="btn-manual-edit-toggle" onclick="ManualModal.toggleEditMode()">
                   <i class="fa-solid ${this.isEditMode ? 'fa-eye' : 'fa-pen-to-square'}"></i>
-                  ${this.isEditMode ? 'Ko\\'rish rejimi' : 'Tahrirlash'}
+                  ${editModeLabel}
                 </button>
               ` : ''}
               <button class="btn-manual-close" onclick="ManualModal.close()" title="Yopish">
@@ -174,29 +185,29 @@
 
             <!-- Panel 1: Duties -->
             <div class="manual-tab-panel ${this.activeTab === 'duties' ? 'active' : ''}" data-tab="duties">
-              ${this.renderListSection('duties', m.duties || [], 'fa-circle-check icon-duty', 'Vazifa mazmunini kiriting...')}
+              ${this.renderListSection('duties', m.duties || [], 'fa-circle-check icon-duty', "Vazifa mazmunini kiriting...")}
             </div>
 
             <!-- Panel 2: Responsibilities -->
             <div class="manual-tab-panel ${this.activeTab === 'responsibilities' ? 'active' : ''}" data-tab="responsibilities">
-              ${this.renderListSection('responsibilities', m.responsibilities || [], 'fa-triangle-exclamation icon-resp', 'Majburiyat yoki xavfsizlik talabini kiriting...')}
+              ${this.renderListSection('responsibilities', m.responsibilities || [], 'fa-triangle-exclamation icon-resp', "Majburiyat yoki xavfsizlik talabini kiriting...")}
             </div>
 
             <!-- Panel 3: Usage Guide -->
             <div class="manual-tab-panel ${this.activeTab === 'usageGuide' ? 'active' : ''}" data-tab="usageGuide">
-              ${this.renderListSection('usageGuide', m.usageGuide || [], 'fa-chevron-right icon-guide', 'Bosqich yo'riqnomasini kiriting (masalan: 1-qadam...)')}
+              ${this.renderListSection('usageGuide', m.usageGuide || [], 'fa-chevron-right icon-guide', "Bosqich yo'riqnomasini kiriting (masalan: 1-qadam...)")}
             </div>
 
             <!-- Panel 4: Notes -->
             <div class="manual-tab-panel ${this.activeTab === 'notes' ? 'active' : ''}" data-tab="notes">
-              ${this.renderListSection('notes', m.notes || [], 'fa-lightbulb icon-note', 'Klinik yoki texnik maslahatni kiriting...')}
+              ${this.renderListSection('notes', m.notes || [], 'fa-lightbulb icon-note', "Klinik yoki texnik maslahatni kiriting...")}
             </div>
           </div>
 
           <!-- Footer -->
           <div class="manual-modal-footer">
             <div class="manual-meta-info">
-              <i class="fa-regular fa-clock"></i> Oxirgi tahrir: ${m.updatedAt ? new Date(m.updatedAt).toLocaleDateString('uz-UZ') + ' ' + new Date(m.updatedAt).toLocaleTimeString('uz-UZ').substring(0, 5) : 'Boshlang\'ich'} 
+              <i class="fa-regular fa-clock"></i> Oxirgi tahrir: ${updatedTimeText} 
               ${m.updatedBy ? `(${this.escapeHtml(m.updatedBy)})` : ''}
             </div>
             <div class="manual-footer-actions">
@@ -310,12 +321,15 @@
       };
 
       try {
-        const token = localStorage.getItem('auth_token') || '';
+        let token = localStorage.getItem('auth_token') || '';
+        if (!token && window.parent && window.parent.localStorage) {
+          try { token = window.parent.localStorage.getItem('auth_token') || ''; } catch(e) {}
+        }
         const res = await fetch('/api/manuals/save', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
+            'Authorization': token ? 'Bearer ' + token : ''
           },
           body: JSON.stringify(payload)
         });
@@ -326,7 +340,7 @@
           this.renderModal();
           alert("✅ O'quv qo'llanmasi muvaffaqiyatli saqlandi!");
         } else {
-          alert("❌ Saqlashda xatolik: " + (json.error || 'Noma\'lum xato'));
+          alert("❌ Saqlashda xatolik: " + (json.error || "Noma'lum xato"));
         }
       } catch (err) {
         alert("❌ Tarmoq xatosi: " + err.message);
@@ -344,8 +358,19 @@
     }
   };
 
-  // Helper shortcut on window
+  // Helper shortcut on window - delegates to parent if inside iframe
   window.openDepartmentManual = function(key) {
-    window.ManualModal.open(key);
+    try {
+      if (window.parent && window.parent !== window && window.parent.ManualModal && typeof window.parent.ManualModal.open === 'function') {
+        window.parent.ManualModal.open(key);
+        return;
+      }
+    } catch (e) {}
+
+    if (window.ManualModal && typeof window.ManualModal.open === 'function') {
+      window.ManualModal.open(key);
+    } else {
+      console.warn("ManualModal is not initialized yet");
+    }
   };
 })();
