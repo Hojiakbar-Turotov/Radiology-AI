@@ -3503,7 +3503,7 @@ async function openSendModal(patientData) {
           ${patientData.isAlreadyQueued && patientData.existingQueueData ? `
             <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:8px; padding:10px 12px; margin-bottom:10px;">
               <div style="color:#b45309; font-weight:900; font-size:13px; margin-bottom:4px;">
-                ⚠️ DIQQAT: Ushbu tekshiruv (Namuna №${escapeHtml(patientData.sampleNumber || '')}) allaqachon navbatga qo'yilgan!
+                ⚠️ DIQQAT: Ushbu tekshiruv allaqachon navbatga qo'yilgan!
               </div>
               <div style="font-size:11.5px; color:#334155; line-height:1.5;">
                 <div><strong>Talon raqami:</strong> №${escapeHtml(patientData.existingQueueData.ticketId)}</div>
@@ -3527,12 +3527,6 @@ async function openSendModal(patientData) {
             <span class="utt-info-label" id="uttModalLblPatName">Bemor F.I.Sh:</span>
             <span class="utt-info-val" style="font-weight:900; color:#0f172a;">${escapeHtml(patientData.name)}</span>
           </div>
-          ${patientData.sampleNumber ? `
-            <div class="utt-info-row">
-              <span class="utt-info-label">Namuna raqami:</span>
-              <span class="utt-info-val" style="color:#4338ca; font-weight:800;">№ ${escapeHtml(patientData.sampleNumber)}</span>
-            </div>
-          ` : ''}
           ${patientData.birthDate ? `
             <div class="utt-info-row">
               <span class="utt-info-label">Tug'ilgan sana:</span>

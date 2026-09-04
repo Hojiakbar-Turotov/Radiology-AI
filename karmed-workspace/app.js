@@ -866,20 +866,20 @@ function extractPatientFromKarmedDoc(doc, clickedRow) {
 
     if (!surname && cellTexts[0] && isNaN(cellTexts[0])) surname = cellTexts[0];
     if (!name && cellTexts[1] && isNaN(cellTexts[1])) name = cellTexts[1];
-    if (!patientId) {
+    // Namuna raqami (agar ustundan olinmagan bo'lsa, 7 xonali sonni aniqlash)
+    if (!sampleNumber) {
       for (const val of cellTexts) {
-        if (/^\d{4,8}$/.test(val)) {
-          patientId = val;
+        if (/^\d{6,8}$/.test(val) && val !== "2024" && val !== "2025" && val !== "2026") {
+          sampleNumber = val;
           break;
         }
       }
     }
 
-    // Namuna raqami (agar ustundan olinmagan bo'lsa, 7 xonali sonni aniqlash)
-    if (!sampleNumber) {
+    if (!patientId) {
       for (const val of cellTexts) {
-        if (/^\d{6,8}$/.test(val) && val !== patientId && val !== "2024" && val !== "2025" && val !== "2026") {
-          sampleNumber = val;
+        if (/^\d{4,8}$/.test(val) && val !== sampleNumber) {
+          patientId = val;
           break;
         }
       }
@@ -1889,12 +1889,6 @@ function printThermalTicket(patient) {
       <div class="header">
         RESPUBLIKA RADIOLOGIYA VA<br>
         ONKOLOGIYA MARKAZI
-      </div>
-      <hr class="divider">
-
-      <!-- BEMORNING ID RAQAMI (NAVBAT RAQAMI dan OLDIN) -->
-      <div class="patient-id-box">
-        BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span>
       </div>
       <hr class="divider">
 

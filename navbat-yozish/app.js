@@ -409,8 +409,6 @@ function printTicket(patient) {
     <body>
       <div class="header">RESPUBLIKA RADIOLOGIYA VA<br>ONKOLOGIYA MARKAZI</div>
       <hr class="divider">
-      <div class="patient-id-box">BEMOR ID RAQAMI: <span class="patient-id-val">${escapeHtml(patientIdDisplay)}</span></div>
-      <hr class="divider">
       <div class="ticket-center">
         <div class="ticket-title">NAVBAT RAQAMI:</div>
         <div class="ticket-num">${fullTicketNumber}</div>
@@ -557,7 +555,6 @@ function renderQueueTable() {
         <td class="ticket-cell">${escapeHtml(p.ticketNumber)}</td>
         <td>
           <strong>${escapeHtml(p.patientName)}</strong>
-          ${p.sampleNumber ? `<div style="font-size:11px; color:#38bdf8; font-weight:700;"><i class="fa-solid fa-vial"></i> Namuna: №${escapeHtml(p.sampleNumber)}</div>` : ''}
           ${p.phone ? `<div style="font-size:11px; color:#9ca3af;">${p.phone}</div>` : ''}
         </td>
         <td>
