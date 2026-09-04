@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadServicesCatalog();
   fetchQueue();
   connectWebSocket();
+  updateCalculationsPreview();
 });
 
 function initEventListeners() {
@@ -139,32 +140,80 @@ window.toggleService = function(code) {
 // -------------------------------------------------------------
 // HISOB-KITOBLAR VA LIVE PREVIEW
 // -------------------------------------------------------------
-function updateCalculationsPreview() {
-  let totalMinutes = 0;
-  let hasContrast = document.getElementById("chkIsContrast").checked;
+let previewDebounceTimer = null;
 
+function updateCalculationsPreview() {
+  const targetDevVal = document.getElementById("selectTargetDevice") ? document.getElementById("selectTargetDevice").value : "auto";
+  const hasContrast = document.getElementById("chkIsContrast") ? document.getElementById("chkIsContrast").checked : false;
+
+  const srvList = selectedServices.length > 0
+    ? selectedServices
+    : [{ name: "MRT Tekshiruvi", code: "R157", duration: 30 }];
+
+  // Boshlang'ich taxminiy hisob-kitob
+  let totalMinutes = 0;
   if (selectedServices.length === 0) {
     totalMinutes = 30;
   } else {
     selectedServices.forEach((s, idx) => {
-      totalMinutes += idx === 0 ? s.duration : Math.round(s.duration * 0.75);
-      if (s.isContrast) hasContrast = true;
+      totalMinutes += idx === 0 ? (s.duration || 25) : Math.round((s.duration || 25) * 0.75);
     });
   }
+  const durEl = document.getElementById("prevDuration");
+  if (durEl) durEl.innerText = `${totalMinutes} daqiqa`;
 
-  document.getElementById("prevDuration").innerText = `${totalMinutes} daqiqa`;
+  const devEl = document.getElementById("prevDevice");
+  let fallbackDevName = "Aqlli Taqsimlash";
+  if (targetDevVal === "mrt1" || (targetDevVal === "auto" && hasContrast)) fallbackDevName = "1-MRT (1.5 T)";
+  else if (targetDevVal === "mrt2") fallbackDevName = "2-MRT (3.0 T)";
+  else if (targetDevVal === "mskt1") fallbackDevName = "1-MSKT";
+  if (devEl) devEl.innerText = fallbackDevName;
 
-  const targetDevVal = document.getElementById("selectTargetDevice").value;
-  let devName = "Aqlli Taqsimlash";
-  if (targetDevVal === "mrt1" || (targetDevVal === "auto" && hasContrast)) {
-    devName = "1-MRT (1.5 T)";
-  } else if (targetDevVal === "mrt2") {
-    devName = "2-MRT (3.0 T)";
-  } else if (targetDevVal === "mskt1") {
-    devName = "1-MSKT";
-  }
+  // Aqlli taqsimlash algoritmi orqali eng yaqin aniq bo'sh soatni hisoblash
+  clearTimeout(previewDebounceTimer);
+  previewDebounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch("/api/queue/smart-slot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          services: srvList,
+          deviceId: targetDevVal !== "auto" ? targetDevVal : null,
+          isContrast: hasContrast
+        })
+      });
 
-  document.getElementById("prevDevice").innerText = devName;
+      const data = await res.json();
+      if (data && data.success && data.slot) {
+        const slot = data.slot;
+
+        if (durEl) durEl.innerText = `${slot.durationMinutes} daqiqa`;
+        if (devEl) {
+          const devMap = { mrt1: "1-MRT (1.5 T)", mrt2: "2-MRT (3.0 T)", mskt1: "1-MSKT" };
+          devEl.innerText = devMap[slot.deviceId] || slot.deviceId.toUpperCase();
+        }
+
+        const startEl = document.getElementById("prevStartTime");
+        if (startEl) {
+          const dateTxt = slot.scheduledDateFormatted ? `${slot.scheduledDateFormatted}, ` : '';
+          startEl.innerHTML = `<span style="color:#38bdf8; font-weight:800; font-size:14px;">${dateTxt}${slot.startTime}</span> <small style="color:#94a3b8; font-size:11px; font-weight:600;">(${slot.finishTime} gacha)</small>`;
+        }
+
+        const prepEl = document.getElementById("prevPrepTime");
+        if (prepEl) {
+          // Tayyorgarlik vaqti: tekshiruvdan 15 daqiqa oldin
+          const [sh, sm] = slot.startTime.split(':').map(Number);
+          let prepTotal = sh * 60 + sm - 15;
+          if (prepTotal < 0) prepTotal = 0;
+          const ph = String(Math.floor(prepTotal / 60)).padStart(2, '0');
+          const pm = String(prepTotal % 60).padStart(2, '0');
+          prepEl.innerHTML = `<span style="color:#fbbf24; font-weight:800; font-size:14px;">${ph}:${pm}</span> <small style="color:#94a3b8; font-size:10.5px; font-weight:600;">(15 daq oldin)</small>`;
+        }
+      }
+    } catch (e) {
+      console.warn("Smart slot preview xatosi:", e);
+    }
+  }, 80);
 }
 
 // -------------------------------------------------------------
@@ -281,7 +330,25 @@ function printTicket(patient) {
   const seqStr = (rawNum || '1').padStart(3, '0');
   const fullTicketNumber = `${dd}-${mm}-${devCode}-${seqStr}`;
 
-  const timeStr = patient.scheduledTime || patient.estimatedStartTimeFormatted || '--:--';
+  let timeStr = patient.scheduledTime || '';
+  if (!timeStr && patient.estimatedStartTime) {
+    if (patient.estimatedStartTime.includes('T')) {
+      try {
+        const dt = new Date(patient.estimatedStartTime);
+        if (!isNaN(dt.getTime())) timeStr = dt.toTimeString().substring(0, 5);
+      } catch(e) {}
+    } else {
+      const m = patient.estimatedStartTime.match(/\d{1,2}:\d{2}/);
+      if (m) timeStr = m[0];
+    }
+  }
+  if (!timeStr && patient.estimatedStartTimeFormatted) {
+    timeStr = patient.estimatedStartTimeFormatted;
+  }
+  if (!timeStr) timeStr = '--:--';
+  if (patient.finishTime && !timeStr.includes('–') && !timeStr.includes('-')) {
+    timeStr += ` – ${patient.finishTime}`;
+  }
   const formattedTimeStr = `${dd}.${mm}.${yyyy}, soat ${timeStr}`;
 
   printWindow.document.write(`
@@ -393,6 +460,58 @@ async function fetchQueue() {
   } catch (e) {}
 }
 
+function formatQueueSlotTime(p) {
+  let startTime = p.scheduledTime || '';
+  let finishTime = p.finishTime || '';
+
+  if (!startTime && p.estimatedStartTime) {
+    if (p.estimatedStartTime.includes('T')) {
+      try {
+        const d = new Date(p.estimatedStartTime);
+        if (!isNaN(d.getTime())) {
+          startTime = d.toTimeString().substring(0, 5);
+        }
+      } catch(e) {}
+    } else {
+      const m = p.estimatedStartTime.match(/\d{1,2}:\d{2}/);
+      if (m) startTime = m[0];
+    }
+  }
+
+  if (!finishTime && p.estimatedFinishTime) {
+    if (p.estimatedFinishTime.includes('T')) {
+      try {
+        const d = new Date(p.estimatedFinishTime);
+        if (!isNaN(d.getTime())) {
+          finishTime = d.toTimeString().substring(0, 5);
+        }
+      } catch(e) {}
+    } else {
+      const m = p.estimatedFinishTime.match(/\d{1,2}:\d{2}/);
+      if (m) finishTime = m[0];
+    }
+  }
+
+  if (!startTime && p.estimatedStartTimeFormatted) {
+    return `<div style="font-size:13px; font-weight:800; color:#38bdf8;">${escapeHtml(p.estimatedStartTimeFormatted)}</div>`;
+  }
+
+  if (!startTime) {
+    return `<span style="color:#64748b; font-weight:700;">--:--</span>`;
+  }
+
+  const isOtherDay = p.scheduledDate && p.scheduledDate !== new Date().toISOString().split('T')[0];
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:2px;">
+      <div style="font-size:13.5px; font-weight:900; color:#38bdf8; letter-spacing:0.4px; line-height:1.2; white-space:nowrap;">
+        <i class="fa-regular fa-clock" style="font-size:11px; margin-right:3px; opacity:0.85;"></i>${startTime}${finishTime ? ` <span style="font-weight:700; color:#94a3b8; font-size:11.5px;">– ${finishTime}</span>` : ''}
+      </div>
+      ${isOtherDay ? `<div style="font-size:10px; font-weight:800; color:#a5b4fc; white-space:nowrap;"><i class="fa-regular fa-calendar"></i> ${escapeHtml(p.scheduledDate)}</div>` : ''}
+    </div>
+  `;
+}
+
 function renderQueueTable() {
   const tbody = document.getElementById("todayQueueTableBody");
   if (!tbody) return;
@@ -448,7 +567,7 @@ function renderQueueTable() {
         </td>
         <td><span style="font-size:11.5px; font-weight:700; color:#93c5fd;">${escapeHtml(p.deviceId.toUpperCase())}</span></td>
         <td><span class="${statusClass}">${statusMap[p.status] || p.status}</span></td>
-        <td style="font-family:monospace; font-size:11.5px;">${p.estimatedStartTimeFormatted || '--:--'}</td>
+        <td style="white-space:nowrap;">${formatQueueSlotTime(p)}</td>
         <td style="text-align:right; white-space:nowrap;">
           <button class="btn-icon" onclick="callPatientAction('${p.id}')" title="Chaqirish"><i class="fa-solid fa-bullhorn"></i></button>
           <button class="btn-icon" onclick="printSingleTicket('${p.id}')" title="Chipta"><i class="fa-solid fa-print"></i></button>

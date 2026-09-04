@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registratura - UTT Navbat Tizimi</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase App & Realtime Database SDKs -->
@@ -48,6 +49,9 @@
           <span class="today-date" id="currentDate"></span>
         </div>
         <div class="header-right" style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn-nav-manual" onclick="openDepartmentManual('registratura')" title="Registratura o'quv qo'llanmasi">
+            <i class="fa-solid fa-book-open"></i> O'quv Qo'llanma
+          </button>
           <!-- Faol Ro'yxatchi Profili -->
           <div id="headerOperatorBox" style="display:none; align-items:center; gap:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:4px 10px;">
             <div style="font-size:12px;">
@@ -1448,6 +1452,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="./logos.js"></script>
   <script src="./i18n.js"></script>
   <script src="./app.js"></script>

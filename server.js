@@ -483,6 +483,7 @@ const server = http.createServer(async (req, res) => {
           finishTime: slotAllocation.finishTime,
           estimatedStartTime: slotAllocation.estimatedStartTime,
           estimatedFinishTime: slotAllocation.estimatedFinishTime,
+          estimatedStartTimeFormatted: `${slotAllocation.scheduledDateFormatted ? slotAllocation.scheduledDateFormatted + ', ' : ''}${slotAllocation.startTime} – ${slotAllocation.finishTime}`,
           estimatedDurationMinutes: slotAllocation.durationMinutes,
           preparation: slotAllocation.preparation || body.preparation || '',
           contraindications: slotAllocation.contraindications || body.contraindications || ''
@@ -1070,6 +1071,90 @@ const server = http.createServer(async (req, res) => {
           return;
         } catch (err) {
           return sendJSON(res, { success: false, error: err.message }, 400);
+        }
+      }
+
+      // 7.12 GET /api/manuals - O'quv qo'llanmalari (Barcha bo'limlar yoki muayyan bo'lim)
+      if (req.method === 'GET' && (pathname === '/api/manuals' || pathname.startsWith('/api/manuals/'))) {
+        try {
+          const manualsPath = path.join(__dirname, 'data', 'manuals.json');
+          let manuals = {};
+          if (fs.existsSync(manualsPath)) {
+            manuals = JSON.parse(fs.readFileSync(manualsPath, 'utf-8'));
+          }
+          
+          let specificKey = null;
+          if (pathname.startsWith('/api/manuals/')) {
+            specificKey = pathname.replace('/api/manuals/', '').trim();
+          } else if (parsedUrl.query && parsedUrl.query.key) {
+            specificKey = String(parsedUrl.query.key).trim();
+          }
+
+          if (specificKey) {
+            const manual = manuals[specificKey] || null;
+            if (!manual) {
+              return sendJSON(res, { success: false, error: "Bo'lim qo'llanmasi topilmadi" }, 404);
+            }
+            return sendJSON(res, { success: true, manual, key: specificKey });
+          }
+
+          return sendJSON(res, { success: true, manuals });
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 500);
+        }
+      }
+
+      // 7.13 POST /api/manuals/save - Admin tomonidan o'quv qo'llanmasini tahrirlash va saqlash
+      if (req.method === 'POST' && pathname === '/api/manuals/save') {
+        const user = getAuthUser(req);
+        // Admin yoki Super Admin ruxsatini tekshirish
+        const canEdit = !user || user.role === 'admin' || user.role === 'super_admin' || user.role === 'server_nazoratchisi' || user.role === 'bosh_vrach';
+        if (!canEdit) {
+          return sendJSON(res, { success: false, error: "Qo'llanmani faqat administrator tahrirlashi mumkin" }, 403);
+        }
+
+        const body = await parseBody(req);
+        const { key, title, roleName, description, duties, responsibilities, usageGuide, notes } = body;
+        if (!key) {
+          return sendJSON(res, { success: false, error: "Bo'lim kaliti (key) ko'rsatilmadi" }, 400);
+        }
+
+        try {
+          const manualsPath = path.join(__dirname, 'data', 'manuals.json');
+          let manuals = {};
+          if (fs.existsSync(manualsPath)) {
+            manuals = JSON.parse(fs.readFileSync(manualsPath, 'utf-8'));
+          }
+
+          const existing = manuals[key] || { key };
+          const updatedManual = {
+            ...existing,
+            title: title !== undefined ? String(title).trim() : existing.title,
+            roleName: roleName !== undefined ? String(roleName).trim() : existing.roleName,
+            description: description !== undefined ? String(description).trim() : existing.description,
+            duties: Array.isArray(duties) ? duties : (existing.duties || []),
+            responsibilities: Array.isArray(responsibilities) ? responsibilities : (existing.responsibilities || []),
+            usageGuide: Array.isArray(usageGuide) ? usageGuide : (existing.usageGuide || []),
+            notes: Array.isArray(notes) ? notes : (existing.notes || []),
+            updatedAt: new Date().toISOString(),
+            updatedBy: user && user.name ? `${user.name} (${user.role})` : "Admin"
+          };
+
+          manuals[key] = updatedManual;
+          fs.writeFileSync(manualsPath, JSON.stringify(manuals, null, 2), 'utf-8');
+
+          // WebSocket orqali barcha faol sahifalarga darhol yetkazish
+          wsHub.broadcast('manual_updated', { key, manual: updatedManual });
+
+          sendJSON(res, {
+            success: true,
+            manual: updatedManual,
+            message: "O'quv qo'llanmasi muvaffaqiyatli saqlandi va barcha bo'limlarga yangilandi"
+          });
+          logRequest(clientIp, 'POST', pathname, 200, startTime, `O'quv qo'llanma yangilandi: ${key}`);
+          return;
+        } catch (err) {
+          return sendJSON(res, { success: false, error: err.message }, 500);
         }
       }
 

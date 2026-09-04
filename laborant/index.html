@@ -7,6 +7,7 @@
   <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <script src="/shared/auth-guard.js"></script>
   <script src="/shared/theme.js"></script>
 </head>
@@ -32,6 +33,9 @@
         </button>
         <button class="btn-head-consent" onclick="openConsentQuestionsManagerModal()" title="Rozilik savollari ro'yxati va tahrirlash">
           <i class="fa-solid fa-list-check"></i> Savollar
+        </button>
+        <button class="btn-head-consent" onclick="openDepartmentManual('laborant')" title="Laborant o'quv qo'llanmasi" style="background:#0284c7; border-color:#38bdf8;">
+          <i class="fa-solid fa-book-open"></i> Qo'llanma
         </button>
       </div>
     </header>
@@ -451,6 +455,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

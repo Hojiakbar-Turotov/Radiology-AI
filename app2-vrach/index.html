@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Vrach - Laborant Xonasi | RONS Navbat Tizimi</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase App & Realtime Database SDKs -->
@@ -63,20 +64,20 @@
           ❌ Login yoki parol noto'g'ri!
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="padding: 13px;">
-          <i class="fa-solid fa-right-to-bracket"></i> Xonaga Kirish
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 24px; padding: 12px; font-size: 15px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Tizimga Kirish
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 2. ASOSIY VRACH ISH STOLI -->
-  <div id="doctorWorkspace" class="workspace-container" style="display: none;">
-    <!-- Tepalik Header Bar -->
-    <header class="doctor-header">
-      <div class="doc-profile">
-        <div class="doc-avatar">
-          <i class="fa-solid fa-user-doctor"></i>
+  <!-- 2. ASOSIY ISH MAYDONI -->
+  <div id="mainApp" class="app-wrapper" style="display: none;">
+    <!-- Tepalik Header -->
+    <header class="top-bar">
+      <div class="brand-section">
+        <div class="logo-box">
+          <i class="fa-solid fa-hospital"></i>
         </div>
         <div class="doc-info">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -109,6 +110,11 @@
           <span class="status-dot connected" id="connDot"></span>
           <span id="connText">Online</span>
         </div>
+
+        <!-- O'quv Qo'llanma -->
+        <button class="btn btn-services-nav" onclick="openDepartmentManual('vrach')" title="Shifokor o'quv qo'llanmasi" style="background:#0284c7; color:#fff;">
+          <i class="fa-solid fa-book-open"></i> <span class="btn-txt-responsive">Qo'llanma</span>
+        </button>
 
         <!-- Tekshiruvlar va Xona Boshqaruvi -->
         <button class="btn btn-services-nav" onclick="openServicesManagementModal()" title="Xona tekshiruvlarini boshqarish">
@@ -969,6 +975,7 @@
   </div>
 
   <!-- JavaScript Fayllari -->
+  <script src="/shared/manual-modal.js"></script>
   <script src="./logos.js"></script>
   <script src="./i18n.js"></script>
   <script src="./app.js"></script>

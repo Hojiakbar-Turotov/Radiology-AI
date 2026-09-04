@@ -1,0 +1,255 @@
+{
+  "navbat_yozish": {
+    "key": "navbat_yozish",
+    "title": "Navbatga Yozish va Chiptalar Bo'limi (Qabulxona)",
+    "roleName": "Qabulxona xodimi / Operator",
+    "icon": "fa-ticket",
+    "description": "Bemorlarni MRT va MSKT apparatlariga ro'yxatga olish, aqlli navbat hisob-kitobi va chipta (talon) chop etish bo'limi.",
+    "duties": [
+      "Bemorlarni qabul qilish, ularning shaxsini va shifokor yo'llanmasini tekshirish.",
+      "Kerakli MRT yoki MSKT tekshiruvini va apparatni tanlash (1-MRT, 2-MRT, 1-MSKT).",
+      "Namuna raqamini (Karmed / Laboratoriya kodi) tizimga kiritish va takrorlanmasligini nazorat qilish.",
+      "Aqlli navbat tizimi ajratgan bo'sh vaqt slotini bemorga tushuntirish va navbat talonini (QR kodli chiptani) chop etib berish.",
+      "Kontrastli tekshiruvlar uchun bemorga tayyorgarlik qoidalarini (kamida 4 soat och qoringa kelish, suv ichish tartibi) eslatish."
+    ],
+    "responsibilities": [
+      "Bemor ma'lumotlarini (F.I.Sh, telefon raqami) to'liq va xatosiz kiritish.",
+      "Bitta tekshiruvni yoki namuna raqamini asossiz ravishda ikki marta navbatga qo'ymaslik.",
+      "Bemorlarga xushmuomala bo'lish, navbat vaqtidan kechikmasliklarini qat'iy uqtirish.",
+      "Chiptadagi QR kod orqali bemorlarni rasmiy Telegram kanalimizga (@rons_2026) a'zo bo'lishga yo'naltirish."
+    ],
+    "usageGuide": [
+      "1. Bemorning F.I.Sh va telefon raqamini, kerak bo'lsa Namuna raqamini kiriting.",
+      "2. Kerakli tekshiruv xizmatini ro'yxatdan tanlang (bir vaqtning o'zida bir nechta soha tanlanishi mumkin).",
+      "3. Apparatni tanlang yoki 'Avtomatik' rejimda qoldiring. Tizim navbatchi laborantlar grafigiga asosan eng yaqin bo'sh vaqtni hisoblab chiqadi.",
+      "4. 'Navbatga Qo'shish' tugmasini bosing.",
+      "5. 'Chiptani Chop Etish' tugmasi orqali termoprinterda chiqarilgan talonni bemorga taqdim eting."
+    ],
+    "notes": [
+      "Agar bemor oldinroq navbatga qo'yilgan bo'lsa, tizim namuna raqami bo'yicha dublikatni darhol aniqlaydi va ogohlantiradi.",
+      "Taxminiy Boshlanish va Tayyorgarlik Vaqti blokida navbatchi laborantning ish soatlariga mos keladigan aniq vaqt ko'rinadi.",
+      "Shoshilinch holatlarda bemor 'Navbatdan tashqari' belgisi bilan qabul qilinishi mumkin."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "laborant": {
+    "key": "laborant",
+    "title": "Laborant Portali (MRT / MSKT Bo'limi)",
+    "roleName": "MRT / MSKT Rentgen-laboranti",
+    "icon": "fa-microscope",
+    "description": "Tomografiya xonalarida bemorlarni qabul qilish, anketalarni to'ldirish, tayyorgarlik va tekshiruvlarni boshqarish.",
+    "duties": [
+      "O'z ish kunlari va ish soatlarini kalendar orqali oldindan belgilash (bir oylik yoki yillik grafik).",
+      "Har bir tekshiruv uchun o'zi sarflaydigan aniq texnik vaqt me'yorlarini (daqiqalarda) kiritish.",
+      "Har bir tekshiruv uchun alohida tayyorgarlik, qarshi ko'rsatmalar va rozilik anketasi savollarini boshqarish.",
+      "Navbatdagi bemorlarni TV tablo orqali ovozli tarzda chaqirish ('Chaqirish' tugmasi).",
+      "Bemor xonaga kirganda 'Rozilik Anketasi' savollarini bemor bilan birga to'ldirish va xavfsizlikni tasdiqlash.",
+      "Kontrast yuborishdan oldin kateter o'rnatish va bemorning tayyorgarlik holatini tekshirish.",
+      "Tekshiruv boshlanishi va tugallanishini tizimda qayd etish."
+    ],
+    "responsibilities": [
+      "MRT xonasiga metall buyumlar (soat, telefon, kalit, metall protezlar, kardiostimulyator) bilan kirishni qat'iy taqiqlash va nazorat qilish!",
+      "Kontrast yuboriladigan bemorlarning qon tahlilidagi kreatinin ko'rsatkichini va allergiya anamnezini qat'iy tekshirish.",
+      "Har bir tekshiruv jarayonida bemorning umumiy holatini va audio-aloqa tizimini nazorat qilib turish.",
+      "Tizimda o'z ish vaqtlarini va grafigini haqiqatga mos holda yangilab borish."
+    ],
+    "usageGuide": [
+      "1. Ish boshida 'Mening Ish Grafigim' bo'limidan o'z ish kunlaringizni va smenangizni faollashtiring.",
+      "2. 'Xizmatlar va Vaqtlar' bo'limida har bir tekshiruv uchun o'zingiz sarflaydigan daqiqalarni belgilang.",
+      "3. 'Kutish Zali' ro'yxatidan navbatdagi bemor qarshisidagi 'Anketa' tugmasini bosib xavfsizlik roziligini oling.",
+      "4. 'Tayyorlash' tugmasi orqali bemorga kateter yoki kontrast tayyorgarligini boshlang.",
+      "5. 'Chaqirish' tugmasi bilan bemorni xonaga taklif qiling, apparat skanerlashini bajaring va ish yakunida 'Tugatildi' holatiga o'tkazing."
+    ],
+    "notes": [
+      "Shoshilinch (Cito!) bemorlar kelganda, laborant navbatdan tashqari qabul qilish yoki boshqa bemorlar vaqtini avtomatik surish imkoniyatiga ega.",
+      "Rozilik anketasidagi qizil ogohlantirishlar (masalan, kardiostimulyator) mavjud bo'lsa, MRT skanerlash qat'iyan man etiladi.",
+      "Har bir apparatda faqat navbatchi laborantlar vaqti va xizmatlari hisobga olinadi."
+    ],
+    "updatedAt": "2026-09-04T04:10:39.121Z",
+    "updatedBy": "Admin"
+  },
+  "registratura": {
+    "key": "registratura",
+    "title": "Registratura va Birlamchi Ro'yxatga Olish",
+    "roleName": "Bosh registrator / Operator",
+    "icon": "fa-hospital-user",
+    "description": "Markazga kelgan fuqarolarni birlamchi qabul qilish, ambulator kartalarni ochish va yo'naltirish.",
+    "duties": [
+      "Markazga kelgan har bir bemorning shaxsini tasdiqlovchi hujjatlarini tekshirish va kartasini ochish.",
+      "Shifokor yo'llanmasi mavjudligini tekshirish yoki tegishli tor mutaxassisga yo'naltirish.",
+      "Bemorlarni umumiy navbatga, qon tahliliga (kreatinin) yoki to'g'ridan-to'g'ri MRT/MSKT ga biriktirish.",
+      "Bemorlarga xizmatlar narxi, chegirmalar va to'lov turlari haqida to'liq axborot berish."
+    ],
+    "responsibilities": [
+      "Fuqarolarning shaxsiy ma'lumotlarini to'g'ri va sir saqlash talablariga qat'iy rioya qilish.",
+      "Navbatda tirbandlik yuzaga kelmasligi uchun bemorlarni to'g'ri yo'naltirish.",
+      "Imtiyozli yoki shoshilinch holatdagi bemorlarni zudlik bilan navbatsiz ro'yxatga olish.",
+      "Klinika qoidalariga muvofiq barcha yozuvlarni toza va aniq yuritish."
+    ],
+    "usageGuide": [
+      "1. 'Yangi Bemor' tugmasini bosing yoki qidiruv orqali mavjud bemor kartasini toping.",
+      "2. Bemorning passport ma'lumotlari, PINFL, telefon raqami va manzilini to'liq kiriting.",
+      "3. Kerakli xizmat paketini tanlab, kassa yoki navbat bo'limiga yuboring.",
+      "4. Bemorga qabul tartibi va tekshiruv xonasi raqamini tushuntiring."
+    ],
+    "notes": [
+      "Bemorning ilgari o'tkazilgan tekshiruvlari tarixi arxiv orqali ko'rib chiqilishi mumkin.",
+      "Kontrastli tekshiruvlar uchun 14 kundan oshmagan kreatinin tahlili talab qilinadi."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "vrach": {
+    "key": "vrach",
+    "title": "Shifokor-Radiolog / Rentgenolog Portali",
+    "roleName": "Shifokor-radiolog / Vrachi",
+    "icon": "fa-user-doctor",
+    "description": "DICOM tasvirlarini tahlil qilish, tibbiy xulosalar (protokollar) yozish va tasdiqlash.",
+    "duties": [
+      "Laborant tomonidan bajarilgan MRT / MSKT tasvirlarini (DICOM / PACS) tahlil qilish.",
+      "O'rnatilgan andozalar (shablonlar) asosida xulosalarni (protokollarni) yozish.",
+      "Bemorning tashxisi, klinik xulosasi va tavsiyalarini tizimga kiritish.",
+      "Xulosa tayyor bo'lgach, uni imzolash va bemorga chop etib berish yoki elektron tarzda jo'natish."
+    ],
+    "responsibilities": [
+      "Tashxis va xulosalarning tibbiy jihatdan asoslanganligi va to'g'riligi uchun to'liq javobgarlik.",
+      "Belgilangan muddatlarda (standart: 2 soat ichida, Cito: 30 daqiqa ichida) xulosalarni topshirish.",
+      "Zarur hollarda murakkab holatlarda konsilium chaqirish yoki takroriy skanerlashni tavsiya qilish.",
+      "Shifokorlik siri va tibbiy etika me'yorlariga so'zsiz amal qilish."
+    ],
+    "usageGuide": [
+      "1. 'Navbatdagi Tasvirlar' bo'limidan tekshiruv yakunlangan bemorni tanlang.",
+      "2. 'Xulosa Yozish' oynasini oching va tegishli anatomiya shablonini tanlang.",
+      "3. Patologik o'zgarishlar, o'lchamlar va differensial tashxislarni kiriting.",
+      "4. 'Xulosani Saqlash va Chop Etish' tugmasini bosing."
+    ],
+    "notes": [
+      "Shablonlar bo'limida shifokor o'zining shaxsiy xulosa andozalarini yaratishi va tezkor foydalanish uchun saqlashi mumkin.",
+      "Xulosaga radiologik rasmlardan lavhalar (snapshot) biriktirish mumkin."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "admin": {
+    "key": "admin",
+    "title": "Markaz Boshqaruvi va Administrator Portali",
+    "roleName": "Tizim Administratori / Super-Admin",
+    "icon": "fa-shield-halved",
+    "description": "Tizim konfiguratsiyasi, xodimlar, xizmatlar, narxlar va o'quv qo'llanmalarini boshqarish.",
+    "duties": [
+      "Tizim foydalanuvchilarini (laborantlar, shifokorlar, registratorlar, hisobchilar) boshqarish va rollarni belgilash.",
+      "Xizmatlar katalogi, narxlar va apparatlar parametrlarini sozlash.",
+      "Barcha 8 ta bo'limdagi 'O'quv Qo'llanmalari' matnlarini tahrirlash, qo'shimchalar kiritish va tasdiqlash.",
+      "Tizim xavfsizligi, audit jurnali va xodimlarning ish faoliyatini monitoring qilish."
+    ],
+    "responsibilities": [
+      "Foydalanuvchilarning parollari va kirish huquqlarini xavfsiz holatda saqlash.",
+      "Narxlar va xizmatlar ro'yxatining amaldagi klinik buyruqlarga mos kelishini ta'minlash.",
+      "Barcha o'quv qo'llanmalarni va ichki yo'riqnomalarni muntazam yangilab borish.",
+      "Markaz ma'lumotlarining xavfsizligi va zaxiralanishini nazorat qilish."
+    ],
+    "usageGuide": [
+      "1. 'Foydalanuvchilar' bo'limidan yangi xodim qo'shish yoki huquqlarini o'zgartirish.",
+      "2. 'Narxlar va Xizmatlar' bo'limida xizmatlar narxini tahrirlash.",
+      "3. 'O'quv Qo'llanmalari' moduli orqali istalgan bo'lim yo'riqnomasini to'g'rilash va saqlash.",
+      "4. 'Audit jurnali' orqali tizimdagi barcha muhim harakatlarni nazorat qilish."
+    ],
+    "notes": [
+      "Administrator o'quv qo'llanmalarni tahrirlaganda, o'zgarishlar darhol barcha xodimlarning ekranida aks etadi.",
+      "Xodimlar huquqlarini belgilashda 'Minimal zarur huquqlar' (Principle of Least Privilege) qoidasiga amal qiling."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "server_dashboard": {
+    "key": "server_dashboard",
+    "title": "Server Nazoratchisi va Texnik Monitoring",
+    "roleName": "Server Nazoratchisi / DevOps Muhandis",
+    "icon": "fa-server",
+    "description": "Server quvvati, xotira sarfi, klaster sinxronizatsiyasi va kiberxavfsizlik monitoringi.",
+    "duties": [
+      "Server resurslarini (CPU, RAM, Disk, Tarmoq) uzluksiz kuzatib borish.",
+      "Node.js va WebSocket klaster holatini, xotira sarfini (Heap memory) nazorat qilish.",
+      "Tizim zaxira nusxalarini (Backup) muntazam yaratish va tiklashga tayyorligini tekshirish.",
+      "Kiberxavfsizlik va ruxsatsiz kirish urinishlarini loglar orqali aniqlash."
+    ],
+    "responsibilities": [
+      "Tizimning 24/7 rejimida uzluksiz ishlashini ta'minlash (High Availability).",
+      "Klaster tugunlari orasidagi ma'lumotlar sinxronizatsiyasi buzilmasligini nazorat qilish.",
+      "Avariya holatlarida zaxira serverni zudlik bilan ishga tushirish.",
+      "Server dasturiy ta'minotining xavfsizlik yangilanishlarini o'z vaqtida o'rnatish."
+    ],
+    "usageGuide": [
+      "1. 'Dashboard' ekranida jonli ko'rsatkichlar (CPU, RAM, Uptime) bilan tanishing.",
+      "2. 'Klaster va Tugunlar' bo'limida barcha serverlar aloqasini tekshiring.",
+      "3. 'Zaxira Nusxa (Backup)' tugmasi yordamida bazani arxivlang.",
+      "4. 'Xatoliklar Jurnali' orqali favqulodda loglarni tahlil qiling."
+    ],
+    "notes": [
+      "Xotira sarfi 85% dan oshganda tizim avtomatik ogohlantirish beradi.",
+      "Klasterdagi P2P sinxronizatsiya orqali boshqa serverlarga barcha ma'lumotlar bir zumda uzatiladi."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "tv_tablo": {
+    "key": "tv_tablo",
+    "title": "Kutish Zali TV Tablo va Chaqiruv Tizimi",
+    "roleName": "TV Tablo Operatori / Kutish zali ma'muri",
+    "icon": "fa-tv",
+    "description": "Katta televizor ekranida jonli navbatni ko'rsatish va ovozli e'lonlar (TTS) tizimi.",
+    "duties": [
+      "Katta televizor ekranida jonli navbat jadvalini (M-001, K-002...) to'liq ekranda (Fullscreen) uzatish.",
+      "Ovozli e'lon (Text-to-Speech) orqali bemorlarni tegishli xonaga taklif qilish.",
+      "Bemorlarga navbat bo'yicha qulay va xotirjam kutish muhitini yaratish."
+    ],
+    "responsibilities": [
+      "TV ekranining doimiy yoqiq va tarmoqqa ulangan bo'lishini ta'minlash.",
+      "Ovoz kuchaytirgichlarning (kolonkalarning) ovoz balandligini zalga moslab sozlash.",
+      "Ekran brauzeri qotib qolmasligi uchun muntazam ravishda holatni tekshirib turish."
+    ],
+    "usageGuide": [
+      "1. Smart TV yoki kompyuter brauzerida '/mrt-tv/' yoki '/app3-android-tv/' manzilini oching.",
+      "2. 'F11' yoki ekrandagi tugma orqali to'liq ekran (Fullscreen) rejimiga o'tkazing.",
+      "3. Ovoz tugmasi faolligini tekshiring.",
+      "4. Laborant bemorni chaqirganda tizim avtomatik ravishda chiroyli animatsiya va o'zbekcha ovoz bilan xabar beradi."
+    ],
+    "notes": [
+      "TV Tablo real vaqt rejimida WebSocket orqali ishlaydi, sahifani qo'lda yangilash talab etilmaydi.",
+      "Ekranda navbatdagi bemorlar, apparat nomi va taxminiy kutish vaqti avtomatik almashinib turadi."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  },
+  "hisobchi": {
+    "key": "hisobchi",
+    "title": "Moliya, Kassa va Buxgalteriya Bo'limi",
+    "roleName": "Bosh hisobchi / G'aznachi",
+    "icon": "fa-cash-register",
+    "description": "Xizmatlar to'lovini qabul qilish, kassa hisobotlari va shifokorlar hisob-kitobi.",
+    "duties": [
+      "Bemorlardan ko'rsatilgan MRT/MSKT xizmatlari uchun to'lovlarni qabul qilish (naqd, plastik karta, pul o'tkazish).",
+      "To'lov chekini chop etish va tizimda to'lov holatini 'To'langan' deb tasdiqlash.",
+      "Kunlik kassa hisobotlarini, umumiy tushumni va shifokorlar ulushlarini (bonuslarini) hisoblash.",
+      "Moliyaviy ko'rsatkichlarni Excel formatida eksport qilish."
+    ],
+    "responsibilities": [
+      "Kassa intizomiga qat'iy rioya qilish, kassa qoldig'ining to'g'riligi.",
+      "Bemorlarga har bir to'lov uchun qonuniy fiskal va tizim chekini taqdim etish.",
+      "Imtiyozli yoki qaytarilgan to'lovlar bo'yicha hujjatlarni rasmiylashtirish."
+    ],
+    "usageGuide": [
+      "1. 'Kassa Qabuli' oynasidan bemorning navbat chiptasini yoki ID sini kiriting.",
+      "2. Xizmatlar summasini tekshirib, to'lov turini tanlang.",
+      "3. 'To'lovni Tasdiqlash' tugmasini bosing va chekni chop eting.",
+      "4. Kun oxirida 'Kunlik Kassa Yopilishi' tugmasi orqali hisobotni shakllantiring."
+    ],
+    "notes": [
+      "Noto'g'ri hisoblangan to'lovlarni bekor qilish faqat administrator ruxsati bilan amalga oshiriladi.",
+      "Barcha to'lov amallari audit jurnalida sekundigacha qayd etiladi."
+    ],
+    "updatedAt": "2026-09-04T09:00:00.000Z",
+    "updatedBy": "Super Admin"
+  }
+}

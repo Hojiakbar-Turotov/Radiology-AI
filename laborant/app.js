@@ -290,6 +290,12 @@ function renderLaborantView() {
             ${escapeHtml(p.primaryService)} 
             ${p.isContrast ? '<b style="color:#f87171;">[💉 Kontrast]</b>' : ''}
           </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+            <span style="font-size:12px; font-weight:800; color:#38bdf8; font-family:monospace;">
+              <i class="fa-regular fa-clock"></i> ${p.scheduledTime || (p.estimatedStartTime && p.estimatedStartTime.includes(':') ? (p.estimatedStartTime.match(/\d{1,2}:\d{2}/) || [''])[0] : '') || '--:--'}${p.finishTime ? ` – ${p.finishTime}` : ''}
+            </span>
+            ${p.prepCallTime ? `<span style="font-size:10.5px; color:#fbbf24; font-weight:700;"><i class="fa-solid fa-hourglass-start"></i> Tayyorgarlik: ${new Date(p.prepCallTime).toTimeString().substring(0, 5)}</span>` : ''}
+          </div>
         </div>
       </div>
       <div class="item-actions">

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buxgalteriya & Hisobchi Portali — Shifokorlar Ko'rgan Bemorlar Tahlili</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js for data visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -29,6 +30,10 @@
       </div>
 
       <div class="header-right">
+        <button type="button" class="btn-nav-manual" onclick="openDepartmentManual('hisobchi')" title="Buxgalteriya o'quv qo'llanmasi">
+          <i class="fa-solid fa-book-open"></i> O'quv Qo'llanma
+        </button>
+
         <div class="live-clock-card">
           <div class="clock-time" id="headerClock">12:00:00</div>
           <div class="clock-date" id="headerDate">Dushanba, 27-Avgust 2026</div>
@@ -346,6 +351,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="firebase-config.js"></script>
   <script src="app.js"></script>
 </body>

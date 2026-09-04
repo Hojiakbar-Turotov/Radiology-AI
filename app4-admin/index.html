@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin & Monitoring Portali | RONS AI-Randevu</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js for beautiful graphs -->
@@ -101,6 +102,9 @@
           </button>
           <button class="nav-tab" data-section="services" onclick="switchAdminSection('services', this)">
             <i class="fa-solid fa-list-check"></i> <span>Tekshiruvlar</span>
+          </button>
+          <button class="nav-tab" data-section="manuals" onclick="openDepartmentManual('admin')">
+            <i class="fa-solid fa-book-open"></i> <span>O'quv Qo'llanmalari</span>
           </button>
           <button class="nav-tab" data-section="audit" onclick="switchAdminSection('audit', this)">
             <i class="fa-solid fa-clock-rotate-left"></i> <span>Audit & Commits</span>
@@ -979,6 +983,7 @@
   </div>
 
   <!-- JavaScript Fayllari -->
+  <script src="/shared/manual-modal.js"></script>
   <script src="./i18n.js"></script>
   <script src="./app.js"></script>
 </body>

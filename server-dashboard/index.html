@@ -7,6 +7,7 @@
   <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <script src="/shared/auth-guard.js"></script>
 </head>
 <body>
@@ -28,6 +29,9 @@
         <div class="server-ip-badge">
           <i class="fa-solid fa-network-wired"></i> <span id="txtServerIp">127.0.0.1:3000</span>
         </div>
+        <button class="btn btn-secondary btn-sm" onclick="openDepartmentManual('server_dashboard')" title="Server o'quv qo'llanmasi" style="background:#0284c7; color:#fff; border:none;">
+          <i class="fa-solid fa-book-open"></i> Qo'llanma
+        </button>
         <button class="btn btn-primary btn-sm" id="btnManualBackup" title="Zaxira nusxa yaratish">
           <i class="fa-solid fa-floppy-disk"></i> Zaxira Olish
         </button>
@@ -166,6 +170,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

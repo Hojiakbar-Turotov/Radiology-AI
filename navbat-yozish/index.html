@@ -6,6 +6,7 @@
   <title>Respublika Radiologiya va Onkologiya Markazi | Navbatga Yozish</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/manual-modal.css">
   <!-- Auth Guard & Failover & Theme -->
   <script src="/shared/auth-guard.js"></script>
   <script src="/shared/failover.js"></script>
@@ -23,6 +24,9 @@
         </div>
       </div>
       <div class="header-actions">
+        <button type="button" class="btn-nav-manual" onclick="openDepartmentManual('navbat_yozish')" title="Bo'lim o'quv qo'llanmasi">
+          <i class="fa-solid fa-book-open"></i> O'quv Qo'llanma
+        </button>
         <button class="nav-btn theme-toggle-btn" id="btnThemeToggle" onclick="toggleAppTheme()" title="Kunduzgi / Tungi rejimni almashtirish">
           <i class="fa-solid fa-sun" id="themeIcon"></i>
           <span id="themeLabel">Kunduzgi</span>
@@ -206,6 +210,7 @@
     </div>
   </div>
 
+  <script src="/shared/manual-modal.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
