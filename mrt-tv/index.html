@@ -41,6 +41,9 @@
         </div>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
+        <button type="button" class="tv-action-pill" id="btnTvQr" onclick="openTvQrModal()" title="Telefon yoki Android TV orqali Wi-Fi tarmog'ida ochish">
+          <i class="fa-solid fa-qrcode"></i> <span id="tvQrBtnText">Wi-Fi / Mobil</span>
+        </button>
         <button type="button" class="tv-action-pill" onclick="openDepartmentManual('tv_tablo')" title="TV Tablo o'quv qo'llanmasi">
           <i class="fa-solid fa-book-open"></i> Qo'llanma
         </button>
@@ -55,6 +58,67 @@
         </button>
       </div>
     </footer>
+  </div>
+
+  <!-- Android TV / Brauzer Ovozini Faollashtirish Eslatmasi -->
+  <div id="tvAudioUnlockHint" class="tv-audio-unlock-hint" onclick="unlockTvAudio()">
+    <i class="fa-solid fa-volume-high"></i>
+    <span>Ovozli chaqiruvni faollashtirish uchun ekranga yoki pultdagi [OK] tugmasiga bosing</span>
+    <button type="button" class="btn-hint-dismiss">&times;</button>
+  </div>
+
+  <!-- Wi-Fi & Mobil / Android TV Ulanish Modali -->
+  <div id="modalTvQr" class="tv-qr-modal-overlay" style="display:none;" onclick="if(event.target===this)closeTvQrModal()">
+    <div class="tv-qr-card">
+      <div class="tv-qr-header">
+        <div class="tv-qr-title-box">
+          <i class="fa-solid fa-wifi" style="color:#0284c7; font-size:22px;"></i>
+          <div>
+            <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-title);">Kutish Zali TV — Wi-Fi & Mobil Ulanish</h3>
+            <span style="font-size:12px; color:var(--text-muted);">Smartfonlar va Android TV uchun jonli tablo</span>
+          </div>
+        </div>
+        <button type="button" class="tv-qr-close" onclick="closeTvQrModal()" title="Yopish"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="tv-qr-body">
+        <div class="tv-qr-code-box">
+          <img id="tvQrImg" src="/api/tv-qr.svg" alt="TV QR Code" class="tv-qr-image" />
+          <div class="tv-qr-badge"><i class="fa-solid fa-camera"></i> Kamerani qarating</div>
+        </div>
+
+        <div class="tv-qr-info">
+          <div class="tv-qr-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Klinika Wi-Fi tarmog'iga ulaning</strong>
+              <p>Smartfoningiz yoki Android TV ushbu Wi-Fi tarmog'iga ulangan bo'lishi lozim.</p>
+            </div>
+          </div>
+
+          <div class="tv-qr-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>📱 Smartfonda ochish</strong>
+              <p>Telefon kamerasini QR-kodga qarating yoki brauzerda quyidagi manzilni oching.</p>
+            </div>
+          </div>
+
+          <div class="tv-qr-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>📺 Android TV / Smart TV'da ochish</strong>
+              <p>Televizor brauzeriga (Chrome, TV Bro, Puffin) kirib quyidagi manzilni oching va pultdagi [Butun Ekran] tugmasini bosing.</p>
+            </div>
+          </div>
+
+          <div class="tv-url-copy-box">
+            <input type="text" id="tvUrlInput" readonly value="http://10.34.17.210:3000/tv" />
+            <button type="button" id="btnCopyTvUrl" onclick="copyTvUrl()"><i class="fa-solid fa-copy"></i> Nusxa olish</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Audio Chime -->

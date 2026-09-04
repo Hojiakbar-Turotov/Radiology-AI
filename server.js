@@ -22,6 +22,7 @@ const cluster = require('./lib/cluster');
 const SmartScheduler = require('./lib/smart-scheduler');
 const wsHub = require('./lib/ws');
 const LaborantBot = require('./lib/laborant-bot');
+const qr = require('./lib/qr');
 
 const scheduler = new SmartScheduler(db);
 const laborantBot = new LaborantBot(db, scheduler);
@@ -151,6 +152,10 @@ function isKarmedProxiedPath(pathname) {
     p.startsWith('/navbat-yozish') ||
     p.startsWith('/laborant') ||
     p.startsWith('/mrt-tv') ||
+    p === '/tv' ||
+    p.startsWith('/tv/') ||
+    p.startsWith('/tablo') ||
+    p.startsWith('/kutish') ||
     p.startsWith('/server-dashboard') ||
     p.startsWith('/app4-admin') ||
     p.startsWith('/shared') ||
@@ -1221,6 +1226,42 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // 13. GET /api/network-info - Wi-Fi / LAN IP manzillari va TV havola
+      if (req.method === 'GET' && pathname === '/api/network-info') {
+        const interfaces = os.networkInterfaces();
+        const ips = [];
+        for (const name of Object.keys(interfaces)) {
+          for (const net of interfaces[name]) {
+            if (net.family === 'IPv4' && !net.internal) {
+              ips.push({ name, ip: net.address });
+            }
+          }
+        }
+        const primary = ips.find(x => !x.ip.startsWith('169.254')) || ips[0] || { ip: '127.0.0.1' };
+        sendJSON(res, {
+          success: true,
+          primaryIp: primary.ip,
+          port: PORT,
+          tvUrl: `http://${primary.ip}:${PORT}/tv`,
+          ips
+        });
+        return;
+      }
+
+      // 14. GET /api/tv-qr.svg - TV Tabloga to'g'ridan-to'g'ri QR kod (SVG)
+      if (req.method === 'GET' && pathname === '/api/tv-qr.svg') {
+        const hostHeader = req.headers.host || `10.34.17.210:${PORT}`;
+        const tvUrl = `http://${hostHeader}/tv`;
+        const svg = qr.generateQrSvg(tvUrl);
+        res.writeHead(200, {
+          'Content-Type': 'image/svg+xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(svg, 'utf-8');
+        return;
+      }
+
       sendJSON(res, { success: false, error: "Noma'lum API endpoint" }, 404);
     } catch (apiErr) {
       console.error('[API Error]:', apiErr);
@@ -1239,6 +1280,21 @@ const server = http.createServer(async (req, res) => {
   if (reqUrl === '/karmed' || reqUrl === '/open-karmed') {
     const karmedInfo = await checkKarmedActiveUrl();
     res.writeHead(302, { 'Location': karmedInfo.url });
+    return res.end();
+  }
+
+  // TV Tablo (Kutish zali) ga tezkor yo'naltirish (Wi-Fi, Telefon va Android TV uchun)
+  if (
+    reqUrl === '/tv' || 
+    reqUrl === '/tv/' || 
+    reqUrl === '/mrt-tv' || 
+    reqUrl === '/tablo' || 
+    reqUrl === '/tablo/' || 
+    reqUrl === '/kutish' || 
+    reqUrl === '/kutish/' ||
+    reqUrl === '/kutish-zali'
+  ) {
+    res.writeHead(302, { 'Location': '/mrt-tv/index.html' });
     return res.end();
   }
 
@@ -1343,4 +1399,205 @@ process.on('uncaughtException', (err) => {
     status: 500,
     details: `Uncaught Exception: ${err.message}`
   });
+});
+
+// =============================================================
+// 📺 TV UCHUN ALOHIDA PORT (Wi-Fi orqali telefon/TV ulanishi)
+// =============================================================
+const TV_PORT = 3030;
+const { WebSocketServer: TvWsServer, WebSocket: TvWsClient } = require('ws');
+
+const tvServer = http.createServer((req, res) => {
+  const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = decodeURI(parsedUrl.pathname);
+
+  // CORS
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    });
+    return res.end();
+  }
+
+  // API so'rovlarini asosiy serverga ichki proxy qilish
+  if (pathname.startsWith('/api/')) {
+    // /api/queue - navbat
+    if (req.method === 'GET' && pathname === '/api/queue') {
+      const dateFilter = parsedUrl.searchParams.get('date');
+      const deviceFilter = parsedUrl.searchParams.get('deviceId');
+      let queue = db.getQueue(dateFilter);
+      if (deviceFilter) {
+        queue = queue.filter(p => p.deviceId === deviceFilter);
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify({ success: true, queue, devices: db.getDevices() }));
+    }
+
+    // /api/devices
+    if (req.method === 'GET' && pathname === '/api/devices') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify({ success: true, devices: db.getDevices() }));
+    }
+
+    // /api/network-info
+    if (req.method === 'GET' && pathname === '/api/network-info') {
+      const interfaces = os.networkInterfaces();
+      const ips = [];
+      for (const name of Object.keys(interfaces)) {
+        for (const net of interfaces[name]) {
+          if (net.family === 'IPv4' && !net.internal) {
+            ips.push({ name, ip: net.address });
+          }
+        }
+      }
+      const primary = ips.find(x => !x.ip.startsWith('169.254')) || ips[0] || { ip: '127.0.0.1' };
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify({ success: true, primaryIp: primary.ip, port: TV_PORT, tvUrl: `http://${primary.ip}:${TV_PORT}`, ips }));
+    }
+
+    // /api/tv-qr.svg
+    if (req.method === 'GET' && pathname === '/api/tv-qr.svg') {
+      const hostHeader = req.headers.host || `${getLocalIP()}:${TV_PORT}`;
+      const tvUrl = `http://${hostHeader}`;
+      const svg = qr.generateQrSvg(tvUrl);
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' });
+      return res.end(svg, 'utf-8');
+    }
+
+    // /api/manuals/:key
+    if (req.method === 'GET' && (pathname === '/api/manuals' || pathname.startsWith('/api/manuals/'))) {
+      let manuals = db.getManuals ? db.getManuals() : [];
+      let specificKey = null;
+      if (pathname.startsWith('/api/manuals/')) {
+        specificKey = pathname.replace('/api/manuals/', '').trim();
+      }
+      if (specificKey) {
+        const found = manuals.find(m => m.key === specificKey);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        return res.end(JSON.stringify({ success: true, manual: found || null }));
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify({ success: true, manuals }));
+    }
+
+    // Boshqa API — 404
+    res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    return res.end(JSON.stringify({ success: false, error: "TV portida bu API mavjud emas" }));
+  }
+
+  // Bosh sahifa — to'g'ridan-to'g'ri TV sahifasiga
+  let reqUrl = pathname;
+  if (reqUrl === '/' || reqUrl === '' || reqUrl === '/tv' || reqUrl === '/tv/' || reqUrl === '/tablo' || reqUrl === '/kutish') {
+    reqUrl = '/mrt-tv/index.html';
+  }
+
+  // Statik fayllarni yuklash (faqat ruxsat etilgan papkalar)
+  const allowedPrefixes = ['/mrt-tv/', '/shared/', '/karmed-workspace/assets/'];
+  const isAllowed = allowedPrefixes.some(prefix => reqUrl.startsWith(prefix));
+
+  if (!isAllowed) {
+    // Ruxsat etilmagan — TV sahifasiga yo'naltirish
+    res.writeHead(302, { 'Location': '/' });
+    return res.end();
+  }
+
+  const filePath = path.join(ROOT_DIR, reqUrl);
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const contentType = MIME_TYPES[extname] || 'application/octet-stream';
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<h1>404 - Fayl topilmadi</h1>', 'utf-8');
+      } else {
+        res.writeHead(500);
+        res.end('Server xatosi', 'utf-8');
+      }
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType, 'Access-Control-Allow-Origin': '*' });
+      res.end(content, 'utf-8');
+    }
+  });
+});
+
+// TV port uchun WebSocket server (asosiy wsHub bilan birga ishlaydi)
+tvServer.listen(TV_PORT, '0.0.0.0', () => {
+  const tvWss = new TvWsServer({ server: tvServer });
+
+  tvWss.on('connection', (ws, req) => {
+    const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1').replace(/^.*:/, '');
+    const clientId = `tv_wifi_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+
+    const clientInfo = {
+      id: clientId,
+      ip: clientIp,
+      userAgent: req.headers['user-agent'] || 'TV/WiFi Device',
+      role: 'tv',
+      room: 'all',
+      connectedAt: new Date().toISOString(),
+      timeFormatted: new Date().toLocaleTimeString('ru-RU'),
+      latencyMs: 0,
+      isAlive: true,
+      isTvPort: true
+    };
+
+    // wsHub ga qo'shish (broadcast olishi uchun)
+    wsHub.clients.set(ws, clientInfo);
+
+    // Boshlang'ich navbatni yuborish
+    const initMsg = JSON.stringify({
+      type: 'connected',
+      payload: { clientId, ip: clientIp, message: 'TV Wi-Fi portiga ulandingiz', timestamp: new Date().toISOString() },
+      timestamp: Date.now()
+    });
+    if (ws.readyState === TvWsClient.OPEN) ws.send(initMsg);
+
+    const queueMsg = JSON.stringify({
+      type: 'queue_init',
+      payload: { queue: db.getQueue(), devices: db.getDevices(), settings: db.getSettings() },
+      timestamp: Date.now()
+    });
+    if (ws.readyState === TvWsClient.OPEN) ws.send(queueMsg);
+
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        wsHub.handleClientMessage(ws, data);
+      } catch (e) {}
+    });
+
+    ws.on('pong', () => { clientInfo.isAlive = true; });
+
+    ws.on('close', () => {
+      wsHub.clients.delete(ws);
+    });
+
+    ws.on('error', () => {});
+  });
+
+  // Heartbeat (har 25 soniyada)
+  setInterval(() => {
+    tvWss.clients.forEach((ws) => {
+      const info = wsHub.clients.get(ws);
+      if (!info || !info.isTvPort) return;
+      if (info.isAlive === false) {
+        wsHub.clients.delete(ws);
+        return ws.terminate();
+      }
+      info.isAlive = false;
+      ws.ping();
+    });
+  }, 25000);
+
+  const ip = getLocalIP();
+  console.log('----------------------------------------------------');
+  console.log('  📺 TV WI-FI PORTI OCHILDI');
+  console.log('----------------------------------------------------');
+  console.log(`  TV Ekran:  http://${ip}:${TV_PORT}`);
+  console.log(`  Telefon / Android TV brauzerida yuqoridagi`);
+  console.log(`  manzilni oching (login talab qilinmaydi).`);
+  console.log('----------------------------------------------------\n');
 });

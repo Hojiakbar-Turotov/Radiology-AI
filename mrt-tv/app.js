@@ -393,4 +393,41 @@ function updateTvFullscreenUi() {
   }
 }
 
+// -------------------------------------------------------------
+// TV QR MODAL AND AUDIO UNLOCK HANDLERS
+// -------------------------------------------------------------
+function openTvQrModal() {
+  const modal = document.getElementById('modalTvQr');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeTvQrModal() {
+  const modal = document.getElementById('modalTvQr');
+  if (modal) modal.style.display = 'none';
+}
+
+function copyTvUrl() {
+  const input = document.getElementById('tvUrlInput');
+  if (!input) return;
+  input.select();
+  document.execCommand('copy');
+}
+
+function unlockTvAudio() {
+  const hint = document.getElementById('tvAudioUnlockHint');
+  if (hint) hint.style.display = 'none';
+  playChime(true);
+}
+
+// Dismiss button listener
+document.addEventListener('DOMContentLoaded', () => {
+  const dismissBtn = document.querySelector('#tvAudioUnlockHint .btn-hint-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      unlockTvAudio();
+    });
+  }
+});
+
 

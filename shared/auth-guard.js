@@ -8,7 +8,7 @@
   const pathname = window.location.pathname;
 
   // TV va Login sahifalarini to'g'ridan-to'g'ri o'tkazish
-  if (pathname.includes('/mrt-tv/') || pathname.includes('login.html')) {
+  if (pathname.includes('/mrt-tv') || pathname.includes('/tv') || pathname.includes('/tablo') || pathname.includes('/kutish') || pathname.includes('login.html')) {
     return;
   }
 
