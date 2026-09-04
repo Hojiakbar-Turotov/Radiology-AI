@@ -1,0 +1,867 @@
+/* ==========================================================================
+   🏥 KUTISH ZALI TV — ZAMONAVIY KUNDUZGI REJIM (DAYLIGHT HOSPITAL THEME)
+   100% Responsiv: Smartfon (320px+), Planshet, Full HD TV (1080p), 4K Smart TV
+   ========================================================================== */
+
+:root {
+  /* Kunduzgi Ranglar Palitrasi */
+  --bg-app: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-sub: #f8fafc;
+  --border-card: #cbd5e1;
+  --border-light: #e2e8f0;
+  
+  --text-title: #0f172a;
+  --text-main: #1e293b;
+  --text-sub: #475569;
+  --text-muted: #64748b;
+  
+  --primary: #0284c7;
+  --primary-light: #e0f2fe;
+  --primary-border: #bae6fd;
+  
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --success-border: #10b981;
+  
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --warning-border: #f59e0b;
+  
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --danger-border: #f87171;
+  
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body.daylight-theme {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   APP KONTEYNERI
+   ========================================================================== */
+.tv-app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+/* ==========================================================================
+   HEADER (SHIFOХОNA LOGO, SARLAVHA VA SOAT)
+   ========================================================================== */
+.tv-header {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.header-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 3px;
+  border: 1.5px solid var(--primary-border);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.15);
+  flex-shrink: 0;
+}
+
+.header-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clinic-title {
+  font-size: clamp(13px, 1.8vw, 22px);
+  font-weight: 900;
+  color: var(--text-title);
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clinic-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-subtitle {
+  font-size: clamp(9px, 1vw, 12px);
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 1.2px;
+}
+
+.live-wifi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: pulse-live 1.5s infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Mobil Tablar Bar */
+.mobile-tabs-container {
+  display: none; /* Standartda TV va kompyuterda yashirin */
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.tab-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-sub);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+/* Soat va Sana */
+.header-clock-section {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.digital-clock {
+  font-size: clamp(24px, 3.2vw, 44px);
+  font-weight: 900;
+  font-family: 'Segoe UI', monospace, tabular-nums;
+  color: var(--text-title);
+  letter-spacing: 1.5px;
+  line-height: 1;
+}
+
+.digital-date {
+  font-size: clamp(10px, 1.1vw, 13px);
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ==========================================================================
+   AUDIO ALERT BANNER (Brauzer ovoz blokirovkasini yechish)
+   ========================================================================== */
+.audio-alert-banner {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.audio-alert-banner:hover {
+  transform: translateY(-1px);
+}
+
+.audio-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(12px, 1.2vw, 14px);
+  font-weight: 700;
+}
+
+.pulse-icon {
+  animation: pulse-speaker 1.2s infinite;
+}
+
+@keyframes pulse-speaker {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.audio-alert-btn {
+  background: #ffffff;
+  color: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   ASOSIY APPARATLAR GRIDI (DEVICES LAYOUT)
+   ========================================================================== */
+.devices-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.loading-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* ==========================================================================
+   APPARAT USTUNI (DEVICE COLUMN CARD)
+   ========================================================================== */
+.device-column {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Apparat Sarlavhasi */
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 10px;
+}
+
+.device-title {
+  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 900;
+  color: var(--text-title);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-title i {
+  color: var(--primary);
+}
+
+.device-room-pill {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   1. IN PROGRESS & CALLING KARTASI (ASOSIY BEMOR)
+   ========================================================================== */
+.current-patient-card {
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+/* Xonada tekshirilmoqda */
+.current-patient-card.in-room {
+  background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+  border: 2px solid var(--success-border);
+}
+
+/* Xonaga chaqirilmoqda (Pulsatsiya va Chaqnash) */
+.current-patient-card.is-calling {
+  background: linear-gradient(145deg, #fef3c7, #fde68a);
+  border: 2.5px solid var(--warning-border);
+  animation: calling-pulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes calling-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.5);
+    transform: scale(1.015);
+  }
+}
+
+/* Apparat bo'sh holati */
+.current-patient-card.is-idle {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  text-align: center;
+  padding: 22px 14px;
+}
+
+.card-status-badge {
+  font-size: 11.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.in-room .card-status-badge { color: var(--success); }
+.is-calling .card-status-badge { color: #b45309; }
+.is-idle .card-status-badge { color: var(--text-muted); justify-content: center; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  animation: blink-dot 1s infinite;
+}
+
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.patient-ticket-big {
+  font-size: clamp(32px, 3.6vw, 48px);
+  font-weight: 900;
+  font-family: 'Segoe UI', monospace;
+  color: var(--text-title);
+  line-height: 1.05;
+  letter-spacing: 1px;
+}
+
+.patient-name-text {
+  font-size: clamp(16px, 1.6vw, 21px);
+  font-weight: 800;
+  color: var(--text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-service-text {
+  font-size: clamp(11.5px, 1.1vw, 14px);
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-meta-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.contrast-badge {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   2. PREPARING KARTASI (TAYYORGARLIKDAGI BEMOR)
+   ========================================================================== */
+.prep-patient-card {
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prep-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #b45309;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prep-body-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.prep-pat-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+
+.prep-ticket-badge {
+  font-size: 15px;
+  font-weight: 900;
+  font-family: monospace;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #fcd34d;
+}
+
+/* ==========================================================================
+   3. WAITING LIST (NAVBATDAGI KUTAYOTGAN BEMORLAR)
+   ========================================================================== */
+.waiting-list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 10px 12px;
+  overflow: hidden;
+}
+
+.waiting-list-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--border-light);
+  margin-bottom: 6px;
+}
+
+.waiting-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.waiting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  transition: background 0.15s ease;
+}
+
+.waiting-row:hover {
+  background: #f8fafc;
+}
+
+.w-ticket-tag {
+  font-weight: 900;
+  font-family: monospace;
+  color: var(--primary);
+  min-width: 55px;
+  font-size: 13.5px;
+}
+
+.w-name-text {
+  flex: 1;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.w-time-tag {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.waiting-empty-state {
+  text-align: center;
+  padding: 24px 10px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   FOOTER (TICKER VA BOSHQARUV TUGMALARI)
+   ========================================================================== */
+.tv-footer {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  border-radius: 14px;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.ticker-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.ticker-icon {
+  color: var(--primary);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.ticker-text-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.ticker-text {
+  white-space: nowrap;
+  display: inline-block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-sub);
+  animation: ticker-animation 35s linear infinite;
+}
+
+@keyframes ticker-animation {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.footer-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  background: #f8fafc;
+  border: 1.5px solid var(--border-light);
+  color: var(--text-sub);
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary-border);
+}
+
+.action-btn:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   RESPONSIVLIK MOSLASHUVI (MEDIA QUERIES)
+   ========================================================================== */
+
+/* ------ 1. Kichik va o'rta smartfonlar (<= 640px) ------ */
+@media (max-width: 640px) {
+  .tv-app-container {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .tv-header {
+    padding: 10px 12px;
+    border-radius: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .header-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .clinic-title {
+    font-size: 13px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .badge-subtitle {
+    display: none;
+  }
+
+  .digital-clock {
+    font-size: 22px;
+  }
+
+  .digital-date {
+    font-size: 9.5px;
+  }
+
+  /* Mobil tablar barni ochish */
+  .mobile-tabs-container {
+    display: flex;
+    order: 3;
+    width: 100%;
+    margin-top: 2px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 6px;
+  }
+
+  .devices-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .device-column {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .patient-ticket-big {
+    font-size: 32px;
+  }
+
+  .patient-name-text {
+    font-size: 16px;
+  }
+
+  .waiting-list-container {
+    max-height: 180px;
+  }
+
+  .tv-footer {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ticker-box {
+    order: 2;
+    width: 100%;
+    font-size: 11px;
+  }
+
+  .footer-actions {
+    order: 1;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .action-btn .btn-text {
+    display: inline;
+  }
+}
+
+/* ------ 2. Planshetlar va Gorizontal Telefonlar (641px - 1024px) ------ */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tv-app-container {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .devices-layout {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .waiting-list-container {
+    max-height: 220px;
+  }
+}
+
+/* ------ 3. Katta TV va Desktop Ekranlar (1025px va undan yuqori) ------ */
+@media (min-width: 1025px) {
+  body.daylight-theme {
+    overflow: hidden; /* TV da keraksiz vertikal scroll bo'lmasligi uchun */
+  }
+
+  .tv-app-container {
+    height: 100vh;
+    height: 100dvh;
+    padding: 14px 20px;
+    gap: 14px;
+  }
+
+  .devices-layout {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    overflow: hidden;
+  }
+
+  .device-column {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .waiting-scroll-area {
+    overflow-y: auto;
+  }
+
+  .patient-ticket-big {
+    font-size: clamp(36px, 3.8vw, 50px);
+  }
+
+  .patient-name-text {
+    font-size: clamp(17px, 1.8vw, 23px);
+  }
+}
+
+/* ------ 4. 4K Ultra HD TV Ekranlar (2160px+) ------ */
+@media (min-width: 2160px) {
+  .tv-app-container {
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  .clinic-title { font-size: 32px; }
+  .digital-clock { font-size: 64px; }
+  .digital-date { font-size: 20px; }
+  .device-title { font-size: 28px; }
+  .patient-ticket-big { font-size: 64px; }
+  .patient-name-text { font-size: 30px; }
+  .patient-service-text { font-size: 20px; }
+  .waiting-row { font-size: 20px; padding: 10px 14px; }
+  .w-ticket-tag { font-size: 22px; min-width: 80px; }
+}
+
+/* Scrollbar dizayni */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+

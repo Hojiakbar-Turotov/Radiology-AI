@@ -1487,14 +1487,18 @@ const tvServer = http.createServer((req, res) => {
     return res.end(JSON.stringify({ success: false, error: "TV portida bu API mavjud emas" }));
   }
 
-  // Bosh sahifa — to'g'ridan-to'g'ri TV sahifasiga
+  // Bosh sahifa — to'g'ridan-to'g'ri yangi Wi-Fi TV sahifasiga
   let reqUrl = pathname;
-  if (reqUrl === '/' || reqUrl === '' || reqUrl === '/tv' || reqUrl === '/tv/' || reqUrl === '/tablo' || reqUrl === '/kutish') {
-    reqUrl = '/mrt-tv/index.html';
+  if (reqUrl === '/' || reqUrl === '' || reqUrl === '/tv' || reqUrl === '/tv/' || reqUrl === '/tablo' || reqUrl === '/kutish' || reqUrl === '/index.html' || reqUrl === '/wifi-tv' || reqUrl === '/wifi-tv/') {
+    reqUrl = '/wifi-tv/index.html';
+  } else if (reqUrl === '/style.css') {
+    reqUrl = '/wifi-tv/style.css';
+  } else if (reqUrl === '/app.js') {
+    reqUrl = '/wifi-tv/app.js';
   }
 
   // Statik fayllarni yuklash (faqat ruxsat etilgan papkalar)
-  const allowedPrefixes = ['/mrt-tv/', '/shared/', '/karmed-workspace/assets/'];
+  const allowedPrefixes = ['/wifi-tv/', '/mrt-tv/', '/shared/', '/karmed-workspace/assets/'];
   const isAllowed = allowedPrefixes.some(prefix => reqUrl.startsWith(prefix));
 
   if (!isAllowed) {

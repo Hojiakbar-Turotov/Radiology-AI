@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kutish Zali TV — Navbat Tablosi | Respublika Radiologiya va Onkologiya Markazi</title>
+  <link rel="icon" href="/karmed-workspace/assets/logo-onko.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="daylight-theme">
+  <div class="tv-app-container">
+    <!-- Header -->
+    <header class="tv-header">
+      <div class="header-brand">
+        <img src="/karmed-workspace/assets/logo-onko.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+        <div class="header-texts">
+          <h1 class="clinic-title">RESPUBLIKA RADIOLOGIYA VA ONKOLOGIYA MARKAZI</h1>
+          <div class="clinic-badge-row">
+            <span class="badge-subtitle">TOMOGRAFIYA VA RADIOLOGIYA BO'LIMI</span>
+            <span class="live-wifi-pill"><span class="live-dot"></span> Jonli Efir (Wi-Fi)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Device Filter Tabs for Mobile Screens -->
+      <div class="mobile-tabs-container" id="mobileTabsBar">
+        <button class="tab-btn active" data-filter="all" onclick="filterDeviceTab('all')">
+          <i class="fa-solid fa-layer-group"></i> Hammasi
+        </button>
+        <button class="tab-btn" data-filter="mrt1" onclick="filterDeviceTab('mrt1')">
+          <i class="fa-solid fa-magnet"></i> MRT 1
+        </button>
+        <button class="tab-btn" data-filter="mrt2" onclick="filterDeviceTab('mrt2')">
+          <i class="fa-solid fa-magnet"></i> MRT 2
+        </button>
+        <button class="tab-btn" data-filter="mskt1" onclick="filterDeviceTab('mskt1')">
+          <i class="fa-solid fa-ring"></i> MSKT 1
+        </button>
+      </div>
+
+      <!-- Right: Clock and Date -->
+      <div class="header-clock-section">
+        <div class="digital-clock" id="tvClock">--:--:--</div>
+        <div class="digital-date" id="tvDate">Yuklanmoqda...</div>
+      </div>
+    </header>
+
+    <!-- Audio Permission Alert for Mobile / TV Browser -->
+    <div id="audioAlertBanner" class="audio-alert-banner" onclick="enableAudio()">
+      <div class="audio-alert-content">
+        <i class="fa-solid fa-volume-high pulse-icon"></i>
+        <span>Ovozli chaqiruvni faollashtirish uchun ekranga yoki pultdagi [OK] tugmasiga bosing</span>
+      </div>
+      <button class="audio-alert-btn" type="button">Yoqish</button>
+    </div>
+
+    <!-- Main Devices Grid -->
+    <main class="devices-layout" id="devicesGridContainer">
+      <div class="loading-state">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <span>Navbat ma'lumotlari yuklanmoqda...</span>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="tv-footer">
+      <div class="ticker-box">
+        <i class="fa-solid fa-bullhorn ticker-icon"></i>
+        <div class="ticker-text-wrapper">
+          <div class="ticker-text" id="tickerText">
+            Hurmatli bemorlar! MRT tekshiruviga kirishdan avval barcha metall buyumlar, soat, uzuk, sirg'a, telefon va kalitlarni yechib qoldirishingiz shart. Kontrastli tekshiruvlar uchun oldindan vena kateteri o'rnatiladi.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="action-btn" id="btnAudioToggle" onclick="toggleAudio()" title="Ovozli chaqiruvni yoqish / o'chirish">
+          <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+          <span id="audioText" class="btn-text">Ovoz: Faol</span>
+        </button>
+        <button class="action-btn" id="btnFullscreen" onclick="toggleFullscreen()" title="Butun ekranga chiqarish (F11)">
+          <i class="fa-solid fa-expand" id="fsIcon"></i>
+          <span id="fsText" class="btn-text">Butun Ekran</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="audioChime" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="app.js"></script>
+</body>
+</html>
