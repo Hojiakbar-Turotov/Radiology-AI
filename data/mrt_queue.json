@@ -170,7 +170,16 @@
     "createdAt": "2026-09-03T07:42:33.988Z",
     "updatedAt": "2026-09-03T08:56:50.047Z",
     "calledAt": "2026-09-03T08:56:50.002Z",
-    "startedAt": "2026-09-03T08:56:50.047Z"
+    "startedAt": "2026-09-03T08:56:50.047Z",
+    "consent": {
+      "isSafe": true,
+      "answers": {
+        "cq_1788427108936": "yes"
+      },
+      "notes": "Bemor barcha kursatmalarga amal qilgan",
+      "filledBy": "Shoxruh (Laborant / Admin)",
+      "filledAt": "2026-09-03T09:18:28.967Z"
+    }
   },
   {
     "id": "p_1788421372416_274rb",
@@ -610,5 +619,112 @@
     "comment": "",
     "createdAt": "2026-09-03T08:57:42.532Z",
     "updatedAt": "2026-09-03T08:57:42.532Z"
+  },
+  {
+    "id": "p_1788430516055_9459f",
+    "ticketNumber": "M-012",
+    "patientName": "GAZIYEVA UMIDA",
+    "patientId": "UMIDA",
+    "sampleNumber": "2777200",
+    "pinfl": "",
+    "phone": "",
+    "birthDate": "",
+    "date": "2026-09-03",
+    "scheduledDate": "2026-09-03",
+    "scheduledTime": "15:20",
+    "finishTime": "16:15",
+    "services": [
+      {
+        "code": "R157",
+        "name": "Bosh Miya Mrt Kontrastsiz",
+        "examType": "MRT",
+        "isContrast": false,
+        "isInjector": false,
+        "duration": 30,
+        "price": 424340,
+        "priceFormatted": "424 340 so'm",
+        "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.",
+        "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish).",
+        "isGreen": false
+      },
+      {
+        "code": "R182",
+        "name": "Kichik chanoq azolari MRT",
+        "examType": "MRT",
+        "isContrast": false,
+        "isInjector": false,
+        "duration": 25,
+        "price": 546840,
+        "priceFormatted": "546 840 so'm",
+        "preparation": "• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.",
+        "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish).",
+        "isGreen": false
+      }
+    ],
+    "primaryService": "Bosh Miya Mrt Kontrastsiz + Kichik chanoq azolari MRT",
+    "isContrast": false,
+    "totalPrice": 0,
+    "deviceId": "mrt2",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 55,
+    "estimatedStartTime": "2026-09-03 15:20",
+    "estimatedFinishTime": "2026-09-03 16:15",
+    "prepCallTime": "2026-09-03T10:05:00.000Z",
+    "preparation": "• Soch va yuzdagi metall qisqichlar, sirg'alar, zanjir va ko'zoynaklarni yechish.\n• Olinadigan tish protezlarini tekshiruvdan oldin yechib qo'yish.\n• Cho'ntaklardagi telefon, tanga, magnit kartalar va kalitlarni qoldirish.\n• Maxsus parhez yoki och qolish talab etilmaydi.\n• Tekshiruvdan 4-6 soat oldin och qolish (ovqat va gazli ichimliklar mumkin emas).\n• 1 kun oldin gaz hosil qiluvchi taomlar (dukkakli, xamir, mevalar) yemaslik.\n• Qovuq o'rtacha to'lgan bo'lishi shart (tekshiruvdan 1 soat oldin 500 ml gazsiz suv ichish).\n• Ichak spazmini kamaytirish uchun tekshiruvdan 30-40 daqiqa oldin 2 tabletka No-shpa ichish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish).",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-03T10:15:16.055Z",
+    "updatedAt": "2026-09-03T10:15:16.055Z"
+  },
+  {
+    "id": "p_1788430581703_09hbi",
+    "ticketNumber": "M-013",
+    "patientName": "KUZNETSOVA GUZAL",
+    "patientId": "40312",
+    "sampleNumber": "2777365",
+    "pinfl": "",
+    "phone": "",
+    "birthDate": "",
+    "date": "2026-09-03",
+    "scheduledDate": "2026-09-03",
+    "scheduledTime": "16:15",
+    "finishTime": "17:05",
+    "services": [
+      {
+        "code": "R169",
+        "name": "Butun umurtqa MRT",
+        "examType": "MRT",
+        "isContrast": false,
+        "isInjector": false,
+        "duration": 50,
+        "price": 1084860,
+        "priceFormatted": "1 084 860 so'm",
+        "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+        "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish).",
+        "isGreen": false
+      }
+    ],
+    "primaryService": "Butun umurtqa MRT",
+    "isContrast": false,
+    "totalPrice": 0,
+    "deviceId": "mrt2",
+    "deviceType": "MRT",
+    "status": "waiting",
+    "estimatedDurationMinutes": 50,
+    "estimatedStartTime": "2026-09-03 16:15",
+    "estimatedFinishTime": "2026-09-03 17:05",
+    "prepCallTime": "2026-09-03T11:00:00.000Z",
+    "preparation": "• Maxsus parhez talab etilmaydi.\n• Kiyimlardagi barcha metall tugma, kamar va fermuarlarni yechish.\n• Oldingi rentgen yoki MRT disk/suratlari va xulosalarni olib kelish.",
+    "contraindications": "• Elektron kardiostimulyator, defibrillyator yoki neyrostimulyator mavjudligi.\n• Bosh miya, ko'z yoki qon tomirlarida ferromagnit metall kliplar va parchalar.\n• Koxlear (ichki quloq) implantlari.\n• Homiladorlikning birinchi trimestri (1-12 haftalar).\n• Og'ir darajadagi klaustrofobiya (yopiq fazodan qo'rqish).",
+    "referringDoctor": "",
+    "performingDoctor": "",
+    "operatorName": "Operator",
+    "comment": "",
+    "createdAt": "2026-09-03T10:16:21.703Z",
+    "updatedAt": "2026-09-03T10:16:21.703Z"
   }
 ]
