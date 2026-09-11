@@ -1,0 +1,2896 @@
+{
+  "currency": "UZS",
+  "generatedAt": "2026-09-10T04:47:54.947Z",
+  "categories": {
+    "UTT": [
+      {
+        "id": "UTT_1",
+        "num": "1",
+        "name": "ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_2",
+        "num": "2",
+        "name": "ДОППЛЕР ( РТД+энергетик) ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+        "category": "UTT",
+        "priceLocal": 192000,
+        "priceForeign": 307200,
+        "priceInsurance": 188160
+      },
+      {
+        "id": "UTT_3",
+        "num": "3",
+        "name": "У Т Т БУЙРАКЛАР",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_4",
+        "num": "4",
+        "name": "ДОППЛЕР (РТД + энергетик) БУЙРАКЛАР",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_5",
+        "num": "5",
+        "name": "СИЙДИК ПУФАГИ",
+        "category": "UTT",
+        "priceLocal": 93000,
+        "priceForeign": 148800,
+        "priceInsurance": 91140
+      },
+      {
+        "id": "UTT_6",
+        "num": "6",
+        "name": "СИЙДИК ПУФАГИ, БАЧАДОН ВА ТУХУМДОНЛАР",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_7",
+        "num": "7",
+        "name": "ДОППЛЕР (РТД + энергетик) БАЧАДОН ВА ТУХУМДОНЛАР",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_8",
+        "num": "8",
+        "name": "СИЙДИК ҚОПИ ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_9",
+        "num": "9",
+        "name": "ДОППЛЕР (РТД + энергетик) СИЙДИК ҚОПИ, ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_10",
+        "num": "10",
+        "name": "ЁРҒОҚ АЪЗОЛАРИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_11",
+        "num": "11",
+        "name": "ДОППЛЕР (РТД + энергетик) ЁРҒОҚ АЪЗОЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_12",
+        "num": "12",
+        "name": "СУТ БЕЗЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_13",
+        "num": "13",
+        "name": "ДОППЛЕР (РТД + энергетик) СУТ БЕЗЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_14",
+        "num": "14",
+        "name": "ҚАЛҚОНСИМОН БЕЗИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_15",
+        "num": "15",
+        "name": "ДОППЛЕР (РТД + энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_16",
+        "num": "16",
+        "name": "ДОППЛЕР (РТД + энергетик) ЮМШОҚ ТЎҚИМА",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_17",
+        "num": "17",
+        "name": "ПЕРИФЕРИК ЛИМФА ТУГУНЛАР",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_18",
+        "num": "18",
+        "name": "ҚОРИН ПАРДА ОРТИ ЛИМФА ТУГУНЛАРИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_19",
+        "num": "19",
+        "name": "ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_20",
+        "num": "20",
+        "name": "ДОППЛЕР ( РТД+энергетик) ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_21",
+        "num": "21",
+        "name": "ПЛЕВРА БЎШЛИҚЛАРИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_22",
+        "num": "22",
+        "name": "ҚОРИН БЎШЛИҒИ ВА КИЧИК ЧАНОК БЎШЛИҒИДА ЭРКИН СУЮҚЛИК МИҚДОРИ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_24",
+        "num": "24",
+        "name": "ТРАНСВАГИНАЛ ТЕКШИРУВИ (ТВ УТТ) Бачадон ва тухумдонлар",
+        "category": "UTT",
+        "priceLocal": 163000,
+        "priceForeign": 260800,
+        "priceInsurance": 159740
+      },
+      {
+        "id": "UTT_25",
+        "num": "25",
+        "name": "ТРАНСРЕКТАЛ ТЕКШИРУВИ (ТР УТТ) простата бези",
+        "category": "UTT",
+        "priceLocal": 163000,
+        "priceForeign": 260800,
+        "priceInsurance": 159740
+      },
+      {
+        "id": "UTT_26",
+        "num": "26",
+        "name": "ОЁҚ ҚОН ТОМИРЛАРДАГИ ТРОМБНИ АНИҚЛАШ",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_27",
+        "num": "27",
+        "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) СУТ БЕЗЛАРИ",
+        "category": "UTT",
+        "priceLocal": 192000,
+        "priceForeign": 307200,
+        "priceInsurance": 188160
+      },
+      {
+        "id": "UTT_28",
+        "num": "28",
+        "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+        "category": "UTT",
+        "priceLocal": 192000,
+        "priceForeign": 307200,
+        "priceInsurance": 188160
+      },
+      {
+        "id": "UTT_29",
+        "num": "29",
+        "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ЮМШОҚ ТЎҚИМА",
+        "category": "UTT",
+        "priceLocal": 192000,
+        "priceForeign": 307200,
+        "priceInsurance": 188160
+      },
+      {
+        "id": "UTT_30",
+        "num": "30",
+        "name": "ЮМШОҚ ТЎҚИМА",
+        "category": "UTT",
+        "priceLocal": 126000,
+        "priceForeign": 201600,
+        "priceInsurance": 123480
+      },
+      {
+        "id": "UTT_31",
+        "num": "31",
+        "name": "СУТ БЕЗЛАР ВА ҚЎЛТИҚ ОСТИ ЛИМФА ТУГУНЛАР",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      },
+      {
+        "id": "UTT_32",
+        "num": "32",
+        "name": "ПУНКЦИОН БИОПСИЯ У Т Т НАЗОРАТИ ОСТИДА",
+        "category": "UTT",
+        "priceLocal": 460000,
+        "priceForeign": 736000,
+        "priceInsurance": 450800
+      },
+      {
+        "id": "UTT_33",
+        "num": "33",
+        "name": "БЎЙИН ҚОН ТОМИРЛАРИ ДОППЛЕРОГРАФИЯСИ",
+        "category": "UTT",
+        "priceLocal": 159000,
+        "priceForeign": 254400,
+        "priceInsurance": 155820
+      }
+    ],
+    "MSKT": [
+      {
+        "id": "MSKT_1",
+        "num": "1",
+        "name": "Компьютер томография шифокори консультацияси",
+        "category": "MSKT",
+        "priceLocal": 188000,
+        "priceForeign": 300800,
+        "priceInsurance": 184240
+      },
+      {
+        "id": "MSKT_2",
+        "num": "2",
+        "name": "Бош мия МСКТ текшируви (контраст моддасиз)",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_3",
+        "num": "3",
+        "name": "Бош мия МСКТ текшируви (вена ичи контраст модда билан)",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_4",
+        "num": "4",
+        "name": "Гипофиз безининг контраст моддасиз МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_5",
+        "num": "5",
+        "name": "Гипофиз безининг вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_6",
+        "num": "6",
+        "name": "Бош-бўйин контраст моддасиз МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги) Бурун ён бушлиглари/ Огиз-бурун-халкум/ Орбита/Чакка сохаси",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_7",
+        "num": "7",
+        "name": "1) Бош-бўйин вена ичи контраст моддаси билан МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги)",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_8",
+        "num": "8",
+        "name": "Кўкрак қафаси органларини контраст моддасиз МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_9",
+        "num": "9",
+        "name": "Кўкрак кафаси органларини контраст моддаси билан МСКТ текшируви Per os",
+        "category": "MSKT",
+        "priceLocal": 435000,
+        "priceForeign": 696000,
+        "priceInsurance": 426300
+      },
+      {
+        "id": "MSKT_10",
+        "num": "10",
+        "name": "Кўкрак кафаси органларини вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_11",
+        "num": "11",
+        "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддасиз МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_12",
+        "num": "12",
+        "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+        "category": "MSKT",
+        "priceLocal": 435000,
+        "priceForeign": 696000,
+        "priceInsurance": 426300
+      },
+      {
+        "id": "MSKT_13",
+        "num": "13",
+        "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_14",
+        "num": "14",
+        "name": "Кичик тос аъзоларини контраст моддасиз МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_15",
+        "num": "15",
+        "name": "Кичик тос аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+        "category": "MSKT",
+        "priceLocal": 435000,
+        "priceForeign": 696000,
+        "priceInsurance": 426300
+      },
+      {
+        "id": "MSKT_16",
+        "num": "16",
+        "name": "Кичик тос аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_17",
+        "num": "17",
+        "name": "Буйрак усти безини контраст моддасиз МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 386000,
+        "priceForeign": 617600,
+        "priceInsurance": 378280
+      },
+      {
+        "id": "MSKT_18",
+        "num": "18",
+        "name": "Буйрак усти безини вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_19",
+        "num": "19",
+        "name": "Умуртқа поғонаси (1-булими) ни контраст моддасиз МСКТ текшируви Буйин умурткалари/ кукрак умурткалари/ бел-думгаза умурткалари/ Дум умуркалари/ Тос-чанок суяклари",
+        "category": "MSKT",
+        "priceLocal": 424000,
+        "priceForeign": 678400,
+        "priceInsurance": 415520
+      },
+      {
+        "id": "MSKT_20",
+        "num": "20",
+        "name": "Умуртқа поғонаси (1-бўлими) ни вена ичи контраст моддаси билан МСКТ текшируви",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      },
+      {
+        "id": "MSKT_21",
+        "num": "21",
+        "name": "Бўғимлар МСКТ текшируви(1 сохани)",
+        "category": "MSKT",
+        "priceLocal": 421000,
+        "priceForeign": 673600,
+        "priceInsurance": 412580
+      },
+      {
+        "id": "MSKT_22",
+        "num": "22",
+        "name": "Қўл ва оёқларнинг контраст моддасиз МСКТ текшируви кафт / кафтғтирсак бугими/ тирсак/ тирсак бугими/ елка суяги/ елка бугими/ умров суяги / Чанок-Сон бугими/ тизза, /сон сохаси/ болдир сохаси/ болди--товон бугими/ оёк кафт сохаси",
+        "category": "MSKT",
+        "priceLocal": 421000,
+        "priceForeign": 673600,
+        "priceInsurance": 412580
+      },
+      {
+        "id": "MSKT_23",
+        "num": "23",
+        "name": "Қўл ва оёқларнинг вена ичи контраст моддаси билан МСКТ текшируви (1 соха)",
+        "category": "MSKT",
+        "priceLocal": 868000,
+        "priceForeign": 1388800,
+        "priceInsurance": 850640
+      }
+    ],
+    "MRT": [
+      {
+        "id": "MRT_1",
+        "num": "1",
+        "name": "МРТ шифокори консультацияси",
+        "category": "MRT",
+        "priceLocal": 188000,
+        "priceForeign": 300800,
+        "priceInsurance": 184240
+      },
+      {
+        "id": "MRT_2",
+        "num": "2",
+        "name": "Бош мия МРТ контрастсиз",
+        "category": "MRT",
+        "priceLocal": 433000,
+        "priceForeign": 692800,
+        "priceInsurance": 424340
+      },
+      {
+        "id": "MRT_3",
+        "num": "3",
+        "name": "Бош мия МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2060000,
+        "priceForeign": 3296000,
+        "priceInsurance": 2018800
+      },
+      {
+        "id": "MRT_3.1",
+        "num": "3.1",
+        "name": "Бош мия МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1137000,
+        "priceForeign": 1819200,
+        "priceInsurance": 1114260
+      },
+      {
+        "id": "MRT_4",
+        "num": "4",
+        "name": "Бош мия МРТ + трактография контрастсиз",
+        "category": "MRT",
+        "priceLocal": 546000,
+        "priceForeign": 873600,
+        "priceInsurance": 535080
+      },
+      {
+        "id": "MRT_5",
+        "num": "5",
+        "name": "Гипофиз МРТ/МРТ гипофиз+контраст",
+        "category": "MRT",
+        "priceLocal": 1125000,
+        "priceForeign": 1800000,
+        "priceInsurance": 1102500
+      },
+      {
+        "id": "MRT_6",
+        "num": "6",
+        "name": "Бош мия ангиография МРТ (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2067000,
+        "priceForeign": 3307200,
+        "priceInsurance": 2025660
+      },
+      {
+        "id": "MRT_6.1",
+        "num": "6.1",
+        "name": "Бош мия ангиография МРТ: МРА/МРВ",
+        "category": "MRT",
+        "priceLocal": 1234000,
+        "priceForeign": 1974400,
+        "priceInsurance": 1209320
+      },
+      {
+        "id": "MRT_7",
+        "num": "7",
+        "name": "Кўз ва орбита МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_8",
+        "num": "8",
+        "name": "Естахевий най ва ички қулоқ МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_9",
+        "num": "9",
+        "name": "Бўйин умуртқалари МРТ",
+        "category": "MRT",
+        "priceLocal": 546000,
+        "priceForeign": 873600,
+        "priceInsurance": 535080
+      },
+      {
+        "id": "MRT_10",
+        "num": "10",
+        "name": "Кўкрак умуртқалари МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_11",
+        "num": "11",
+        "name": "Бел умуртқалари МРТ",
+        "category": "MRT",
+        "priceLocal": 546000,
+        "priceForeign": 873600,
+        "priceInsurance": 535080
+      },
+      {
+        "id": "MRT_12",
+        "num": "12",
+        "name": "Бутун умуртқа МРТ",
+        "category": "MRT",
+        "priceLocal": 1107000,
+        "priceForeign": 1771200,
+        "priceInsurance": 1084860
+      },
+      {
+        "id": "MRT_13",
+        "num": "13",
+        "name": "Спинал канал ва жигар нервлари МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_14",
+        "num": "14",
+        "name": "Бўйин қон томирлари ангиография МРТ (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2067000,
+        "priceForeign": 3307200,
+        "priceInsurance": 2025660
+      },
+      {
+        "id": "MRT_14.1",
+        "num": "14.1",
+        "name": "Бўйин қон томирлари ангиография МРТ МРА",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_15",
+        "num": "15",
+        "name": "Юрак МРТ контрастсиз",
+        "category": "MRT",
+        "priceLocal": 546000,
+        "priceForeign": 873600,
+        "priceInsurance": 535080
+      },
+      {
+        "id": "MRT_16",
+        "num": "16",
+        "name": "Юрак қон томирлари ангиография МРТ (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2067000,
+        "priceForeign": 3307200,
+        "priceInsurance": 2025660
+      },
+      {
+        "id": "MRT_16.1",
+        "num": "16.1",
+        "name": "Юрак қон томирлари ангиография МРТ",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_17",
+        "num": "17",
+        "name": "Қорин бўшлиғи МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_18",
+        "num": "18",
+        "name": "Жигар МРТ контрастсиз",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_19",
+        "num": "19",
+        "name": "Жигар МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2067000,
+        "priceForeign": 3307200,
+        "priceInsurance": 2025660
+      },
+      {
+        "id": "MRT_19.1",
+        "num": "19.1",
+        "name": "Жигар МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_20",
+        "num": "20",
+        "name": "Ошқозон ости бези МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_21",
+        "num": "21",
+        "name": "Буйраклар ва сийдик чиқариш йўллари МРТ/ контраст билан",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_22",
+        "num": "22",
+        "name": "Кичик чаноқ аъзолари МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_23",
+        "num": "23",
+        "name": "Елка бўғими МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_24",
+        "num": "24",
+        "name": "Қўл- кафт бўғими МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_25",
+        "num": "25",
+        "name": "Тизза бўғими МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_26",
+        "num": "26",
+        "name": "Тирсак бўғими МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_27",
+        "num": "27",
+        "name": "Товон/ болдир-товон бугими",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_28",
+        "num": "28",
+        "name": "Чаноқ сон бўғими МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_29",
+        "num": "29",
+        "name": "Чаноқ сон бўғими МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_29.1",
+        "num": "29.1",
+        "name": "Чаноқ сон бўғими МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_30",
+        "num": "30",
+        "name": "Сут безлари МРТ контрастсиз",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_31",
+        "num": "31",
+        "name": "Сут безлари МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_31.1",
+        "num": "31.1",
+        "name": "Сут безлари МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_32",
+        "num": "32",
+        "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_32.1",
+        "num": "32.1",
+        "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_33",
+        "num": "33",
+        "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_33.1",
+        "num": "33.1",
+        "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_34",
+        "num": "34",
+        "name": "Бутун танани скрининг МРТ",
+        "category": "MRT",
+        "priceLocal": 1009000,
+        "priceForeign": 1614400,
+        "priceInsurance": 988820
+      },
+      {
+        "id": "MRT_35",
+        "num": "35",
+        "name": "Синусит ва бурун бўшлиқлари МРТ (Юз-жағ бўғимлари)",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_36",
+        "num": "36",
+        "name": "Бўйин юмшок тукималари МРТ",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_37",
+        "num": "37",
+        "name": "МРТ органов малого таза + в/в контрастирование (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_37.1",
+        "num": "37.1",
+        "name": "МРТ органов малого таза + в/в контрастирование",
+        "category": "MRT",
+        "priceLocal": 1319000,
+        "priceForeign": 2110400,
+        "priceInsurance": 1292620
+      },
+      {
+        "id": "MRT_38",
+        "num": "38",
+        "name": "МРТ органов брюшной полости + в/в контрастирование (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_38.1",
+        "num": "38.1",
+        "name": "МРТ органов брюшной полости + в/в контрастирование",
+        "category": "MRT",
+        "priceLocal": 1319000,
+        "priceForeign": 2110400,
+        "priceInsurance": 1292620
+      },
+      {
+        "id": "MRT_39",
+        "num": "39",
+        "name": "МРТ мягких тканей конечностей (выбранная область, зона исследования до 30 см)",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_40",
+        "num": "40",
+        "name": "МРТ спинного мозга+трактография",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_41",
+        "num": "41",
+        "name": "Дубликат пленки, диска и заключения",
+        "category": "MRT",
+        "priceLocal": 122000,
+        "priceForeign": 195200,
+        "priceInsurance": 119560
+      },
+      {
+        "id": "MRT_42",
+        "num": "42",
+        "name": "Дубликат диска (или дополнительный)",
+        "category": "MRT",
+        "priceLocal": 68000,
+        "priceForeign": 108800,
+        "priceInsurance": 66640
+      },
+      {
+        "id": "MRT_43",
+        "num": "43",
+        "name": "МРТ мягких тканей черепа/ МРТ лицевой части",
+        "category": "MRT",
+        "priceLocal": 546000,
+        "priceForeign": 873600,
+        "priceInsurance": 535080
+      },
+      {
+        "id": "MRT_44",
+        "num": "44",
+        "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2060000,
+        "priceForeign": 3296000,
+        "priceInsurance": 2018800
+      },
+      {
+        "id": "MRT_44.1",
+        "num": "44.1",
+        "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast",
+        "category": "MRT",
+        "priceLocal": 1075000,
+        "priceForeign": 1720000,
+        "priceInsurance": 1053500
+      },
+      {
+        "id": "MRT_45",
+        "num": "45",
+        "name": "МРТ головного мозга+ безконтрастная МР-артерио и венография",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_46",
+        "num": "46",
+        "name": "МРТ головного мозга+ режим Fiesta (нейроваскулярные конфликты)",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_47",
+        "num": "47",
+        "name": "МРТ головного мозга+ DTI",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_48",
+        "num": "48",
+        "name": "МРТ средней трети спинного мозга+позвоночного столба",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_49",
+        "num": "49",
+        "name": "МРТ нижней трети спинного мозга+позвоночного столба",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_50",
+        "num": "50",
+        "name": "МРТ тазобедренных суставов и подвздошно-крестцовых сочленений",
+        "category": "MRT",
+        "priceLocal": 558000,
+        "priceForeign": 892800,
+        "priceInsurance": 546840
+      },
+      {
+        "id": "MRT_51",
+        "num": "51",
+        "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_51.1",
+        "num": "51.1",
+        "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_52",
+        "num": "52",
+        "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_52.1",
+        "num": "52.1",
+        "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      },
+      {
+        "id": "MRT_53",
+        "num": "53",
+        "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+        "category": "MRT",
+        "priceLocal": 2042000,
+        "priceForeign": 3267200,
+        "priceInsurance": 2001160
+      },
+      {
+        "id": "MRT_53.1",
+        "num": "53.1",
+        "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+        "category": "MRT",
+        "priceLocal": 1169000,
+        "priceForeign": 1870400,
+        "priceInsurance": 1145620
+      }
+    ],
+    "RENTGEN": [
+      {
+        "id": "RENTGEN_1",
+        "num": "1",
+        "name": "ШИФОКОР МАСЛАҲАТИ (рентген тасвирни изоҳлаш билан)",
+        "category": "RENTGEN",
+        "priceLocal": 135000,
+        "priceForeign": 216000,
+        "priceInsurance": 132300
+      },
+      {
+        "id": "RENTGEN_2",
+        "num": "2",
+        "name": "КЎКРАК ҚАФАСИ R-СКОПИЯ",
+        "category": "RENTGEN",
+        "priceLocal": 180000,
+        "priceForeign": 288000,
+        "priceInsurance": 176400
+      },
+      {
+        "id": "RENTGEN_3",
+        "num": "3",
+        "name": "КЎКРАК ҚАФАСИ R-ГРАФИЯСИ",
+        "category": "RENTGEN",
+        "priceLocal": 219000,
+        "priceForeign": 350400,
+        "priceInsurance": 214620
+      },
+      {
+        "id": "RENTGEN_4",
+        "num": "4",
+        "name": "КОНТРАСТЛИ ОШҚОЗОН R-СКОПИЯ, ТАСВИР БИЛАН",
+        "category": "RENTGEN",
+        "priceLocal": 401000,
+        "priceForeign": 641600,
+        "priceInsurance": 392980
+      },
+      {
+        "id": "RENTGEN_5",
+        "num": "5",
+        "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯ (БАРИЙ)",
+        "category": "RENTGEN",
+        "priceLocal": 311000,
+        "priceForeign": 497600,
+        "priceInsurance": 304780
+      },
+      {
+        "id": "RENTGEN_6",
+        "num": "6",
+        "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯСИ, ТАРКИБИДА ЙОД САҚЛОВЧИ, СУВДА ЭРИЙДИГАН (контраст билан)",
+        "category": "RENTGEN",
+        "priceLocal": 229000,
+        "priceForeign": 366400,
+        "priceInsurance": 224420
+      },
+      {
+        "id": "RENTGEN_7",
+        "num": "7",
+        "name": "ҚИЗИЛЎНГАЧ R-СКОПИЯСИ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 244000,
+        "priceForeign": 390400,
+        "priceInsurance": 239120
+      },
+      {
+        "id": "RENTGEN_8",
+        "num": "8",
+        "name": "ИРРИГОСКОПИЯ (диск билан)",
+        "category": "RENTGEN",
+        "priceLocal": 625000,
+        "priceForeign": 1000000,
+        "priceInsurance": 612500
+      },
+      {
+        "id": "RENTGEN_9",
+        "num": "9",
+        "name": "ИРРИГОСКОПИЯ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 696000,
+        "priceForeign": 1113600,
+        "priceInsurance": 682080
+      },
+      {
+        "id": "RENTGEN_10",
+        "num": "10",
+        "name": "ИРРИГОСКОПИЯ КОЛОСТОМА ОРКАЛИ",
+        "category": "RENTGEN",
+        "priceLocal": 617000,
+        "priceForeign": 987200,
+        "priceInsurance": 604660
+      },
+      {
+        "id": "RENTGEN_11",
+        "num": "11",
+        "name": "ПРОКТОГРАММА",
+        "category": "RENTGEN",
+        "priceLocal": 465000,
+        "priceForeign": 744000,
+        "priceInsurance": 455700
+      },
+      {
+        "id": "RENTGEN_12",
+        "num": "12",
+        "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (диск билан)",
+        "category": "RENTGEN",
+        "priceLocal": 369000,
+        "priceForeign": 590400,
+        "priceInsurance": 361620
+      },
+      {
+        "id": "RENTGEN_13",
+        "num": "13",
+        "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 387000,
+        "priceForeign": 619200,
+        "priceInsurance": 379260
+      },
+      {
+        "id": "RENTGEN_14",
+        "num": "14",
+        "name": "КОНТРАСЛИ АНОПРОКТОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ (диск билан)",
+        "category": "RENTGEN",
+        "priceLocal": 362000,
+        "priceForeign": 579200,
+        "priceInsurance": 354760
+      },
+      {
+        "id": "RENTGEN_17",
+        "num": "17",
+        "name": "БОШ ЧАНОҒИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+        "category": "RENTGEN",
+        "priceLocal": 335000,
+        "priceForeign": 536000,
+        "priceInsurance": 328300
+      },
+      {
+        "id": "RENTGEN_18",
+        "num": "18",
+        "name": "БЎЙИН УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+        "category": "RENTGEN",
+        "priceLocal": 335000,
+        "priceForeign": 536000,
+        "priceInsurance": 328300
+      },
+      {
+        "id": "RENTGEN_19",
+        "num": "19",
+        "name": "КЎКРАК ҚАФАСИ УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+        "category": "RENTGEN",
+        "priceLocal": 323000,
+        "priceForeign": 516800,
+        "priceInsurance": 316540
+      },
+      {
+        "id": "RENTGEN_20",
+        "num": "20",
+        "name": "ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+        "category": "RENTGEN",
+        "priceLocal": 323000,
+        "priceForeign": 516800,
+        "priceInsurance": 316540
+      },
+      {
+        "id": "RENTGEN_21",
+        "num": "21",
+        "name": "НАЙСИМОН СУЯКЛАР 2 та ПРОЕКЦИЯДА РЕНТГЕН ГРАФИЯГА ОЛИШ",
+        "category": "RENTGEN",
+        "priceLocal": 335000,
+        "priceForeign": 536000,
+        "priceInsurance": 328300
+      },
+      {
+        "id": "RENTGEN_22",
+        "num": "22",
+        "name": "БОЛАЛАРДА ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+        "category": "RENTGEN",
+        "priceLocal": 289000,
+        "priceForeign": 462400,
+        "priceInsurance": 283220
+      },
+      {
+        "id": "RENTGEN_23",
+        "num": "23",
+        "name": "R-ТАСВИР БИЛАН БУРУН ЁНДОШ БЎШЛИҚЛАРИ",
+        "category": "RENTGEN",
+        "priceLocal": 289000,
+        "priceForeign": 462400,
+        "priceInsurance": 283220
+      },
+      {
+        "id": "RENTGEN_24",
+        "num": "24",
+        "name": "ҚОРИН БЎШЛИҒИ РЕНТГЕНОГРАФИЯСИ (диск билан)",
+        "category": "RENTGEN",
+        "priceLocal": 188000,
+        "priceForeign": 300800,
+        "priceInsurance": 184240
+      },
+      {
+        "id": "RENTGEN_25",
+        "num": "25",
+        "name": "ҚОРИН БЎШЛИГИ РЕНТГЕНОГРАФИЯСИ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 298000,
+        "priceForeign": 476800,
+        "priceInsurance": 292040
+      },
+      {
+        "id": "RENTGEN_26",
+        "num": "26",
+        "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан, дискда)",
+        "category": "RENTGEN",
+        "priceLocal": 471000,
+        "priceForeign": 753600,
+        "priceInsurance": 461580
+      },
+      {
+        "id": "RENTGEN_27",
+        "num": "27",
+        "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан) (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 490000,
+        "priceForeign": 784000,
+        "priceInsurance": 480200
+      },
+      {
+        "id": "RENTGEN_28",
+        "num": "28",
+        "name": "АНТЕГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН (контраст билан)",
+        "category": "RENTGEN",
+        "priceLocal": 341000,
+        "priceForeign": 545600,
+        "priceInsurance": 334180
+      },
+      {
+        "id": "RENTGEN_29",
+        "num": "29",
+        "name": "РЕТРОГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ БИЛАН",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_30",
+        "num": "30",
+        "name": "ЦИСТОГРАФИЯ (контраст билан)",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_31",
+        "num": "31",
+        "name": "ФИСТУЛОГРАФИЯ",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_32",
+        "num": "32",
+        "name": "СИАЛОГРАФИЯ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_33",
+        "num": "33",
+        "name": "ХОЛАНГИОГРАФИЯ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_34",
+        "num": "34",
+        "name": "АНТЕГРАД ХОЛАНГИОГРАФИЯ",
+        "category": "RENTGEN",
+        "priceLocal": 359000,
+        "priceForeign": 574400,
+        "priceInsurance": 351820
+      },
+      {
+        "id": "RENTGEN_35",
+        "num": "35",
+        "name": "ГИСТЕРОСАЛЬПИНГОГРАФИЯ (контраст билан)",
+        "category": "RENTGEN",
+        "priceLocal": 341000,
+        "priceForeign": 545600,
+        "priceInsurance": 334180
+      },
+      {
+        "id": "RENTGEN_36",
+        "num": "36",
+        "name": "МАММОГРАФИЯ ДИСК БИЛАН",
+        "category": "RENTGEN",
+        "priceLocal": 213000,
+        "priceForeign": 340800,
+        "priceInsurance": 208740
+      },
+      {
+        "id": "RENTGEN_37",
+        "num": "37",
+        "name": "МАММОГРАФИЯ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 237000,
+        "priceForeign": 379200,
+        "priceInsurance": 232260
+      },
+      {
+        "id": "RENTGEN_38",
+        "num": "38",
+        "name": "ДУКТОГРАФИЯ (тасвир билан)",
+        "category": "RENTGEN",
+        "priceLocal": 397000,
+        "priceForeign": 635200,
+        "priceInsurance": 389060
+      },
+      {
+        "id": "RENTGEN_39",
+        "num": "39",
+        "name": "РЕНТГЕН СКОПИЯ ОРКАЛИ БИОПСИЯ ОЛИШ",
+        "category": "RENTGEN",
+        "priceLocal": 351000,
+        "priceForeign": 561600,
+        "priceInsurance": 343980
+      }
+    ]
+  },
+  "services": [
+    {
+      "id": "UTT_1",
+      "num": "1",
+      "name": "ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_2",
+      "num": "2",
+      "name": "ДОППЛЕР ( РТД+энергетик) ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+      "category": "UTT",
+      "priceLocal": 192000,
+      "priceForeign": 307200,
+      "priceInsurance": 188160
+    },
+    {
+      "id": "UTT_3",
+      "num": "3",
+      "name": "У Т Т БУЙРАКЛАР",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_4",
+      "num": "4",
+      "name": "ДОППЛЕР (РТД + энергетик) БУЙРАКЛАР",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_5",
+      "num": "5",
+      "name": "СИЙДИК ПУФАГИ",
+      "category": "UTT",
+      "priceLocal": 93000,
+      "priceForeign": 148800,
+      "priceInsurance": 91140
+    },
+    {
+      "id": "UTT_6",
+      "num": "6",
+      "name": "СИЙДИК ПУФАГИ, БАЧАДОН ВА ТУХУМДОНЛАР",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_7",
+      "num": "7",
+      "name": "ДОППЛЕР (РТД + энергетик) БАЧАДОН ВА ТУХУМДОНЛАР",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_8",
+      "num": "8",
+      "name": "СИЙДИК ҚОПИ ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_9",
+      "num": "9",
+      "name": "ДОППЛЕР (РТД + энергетик) СИЙДИК ҚОПИ, ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_10",
+      "num": "10",
+      "name": "ЁРҒОҚ АЪЗОЛАРИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_11",
+      "num": "11",
+      "name": "ДОППЛЕР (РТД + энергетик) ЁРҒОҚ АЪЗОЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_12",
+      "num": "12",
+      "name": "СУТ БЕЗЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_13",
+      "num": "13",
+      "name": "ДОППЛЕР (РТД + энергетик) СУТ БЕЗЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_14",
+      "num": "14",
+      "name": "ҚАЛҚОНСИМОН БЕЗИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_15",
+      "num": "15",
+      "name": "ДОППЛЕР (РТД + энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_16",
+      "num": "16",
+      "name": "ДОППЛЕР (РТД + энергетик) ЮМШОҚ ТЎҚИМА",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_17",
+      "num": "17",
+      "name": "ПЕРИФЕРИК ЛИМФА ТУГУНЛАР",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_18",
+      "num": "18",
+      "name": "ҚОРИН ПАРДА ОРТИ ЛИМФА ТУГУНЛАРИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_19",
+      "num": "19",
+      "name": "ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_20",
+      "num": "20",
+      "name": "ДОППЛЕР ( РТД+энергетик) ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_21",
+      "num": "21",
+      "name": "ПЛЕВРА БЎШЛИҚЛАРИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_22",
+      "num": "22",
+      "name": "ҚОРИН БЎШЛИҒИ ВА КИЧИК ЧАНОК БЎШЛИҒИДА ЭРКИН СУЮҚЛИК МИҚДОРИ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_24",
+      "num": "24",
+      "name": "ТРАНСВАГИНАЛ ТЕКШИРУВИ (ТВ УТТ) Бачадон ва тухумдонлар",
+      "category": "UTT",
+      "priceLocal": 163000,
+      "priceForeign": 260800,
+      "priceInsurance": 159740
+    },
+    {
+      "id": "UTT_25",
+      "num": "25",
+      "name": "ТРАНСРЕКТАЛ ТЕКШИРУВИ (ТР УТТ) простата бези",
+      "category": "UTT",
+      "priceLocal": 163000,
+      "priceForeign": 260800,
+      "priceInsurance": 159740
+    },
+    {
+      "id": "UTT_26",
+      "num": "26",
+      "name": "ОЁҚ ҚОН ТОМИРЛАРДАГИ ТРОМБНИ АНИҚЛАШ",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_27",
+      "num": "27",
+      "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) СУТ БЕЗЛАРИ",
+      "category": "UTT",
+      "priceLocal": 192000,
+      "priceForeign": 307200,
+      "priceInsurance": 188160
+    },
+    {
+      "id": "UTT_28",
+      "num": "28",
+      "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+      "category": "UTT",
+      "priceLocal": 192000,
+      "priceForeign": 307200,
+      "priceInsurance": 188160
+    },
+    {
+      "id": "UTT_29",
+      "num": "29",
+      "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ЮМШОҚ ТЎҚИМА",
+      "category": "UTT",
+      "priceLocal": 192000,
+      "priceForeign": 307200,
+      "priceInsurance": 188160
+    },
+    {
+      "id": "UTT_30",
+      "num": "30",
+      "name": "ЮМШОҚ ТЎҚИМА",
+      "category": "UTT",
+      "priceLocal": 126000,
+      "priceForeign": 201600,
+      "priceInsurance": 123480
+    },
+    {
+      "id": "UTT_31",
+      "num": "31",
+      "name": "СУТ БЕЗЛАР ВА ҚЎЛТИҚ ОСТИ ЛИМФА ТУГУНЛАР",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "UTT_32",
+      "num": "32",
+      "name": "ПУНКЦИОН БИОПСИЯ У Т Т НАЗОРАТИ ОСТИДА",
+      "category": "UTT",
+      "priceLocal": 460000,
+      "priceForeign": 736000,
+      "priceInsurance": 450800
+    },
+    {
+      "id": "UTT_33",
+      "num": "33",
+      "name": "БЎЙИН ҚОН ТОМИРЛАРИ ДОППЛЕРОГРАФИЯСИ",
+      "category": "UTT",
+      "priceLocal": 159000,
+      "priceForeign": 254400,
+      "priceInsurance": 155820
+    },
+    {
+      "id": "RENTGEN_1",
+      "num": "1",
+      "name": "ШИФОКОР МАСЛАҲАТИ (рентген тасвирни изоҳлаш билан)",
+      "category": "RENTGEN",
+      "priceLocal": 135000,
+      "priceForeign": 216000,
+      "priceInsurance": 132300
+    },
+    {
+      "id": "RENTGEN_2",
+      "num": "2",
+      "name": "КЎКРАК ҚАФАСИ R-СКОПИЯ",
+      "category": "RENTGEN",
+      "priceLocal": 180000,
+      "priceForeign": 288000,
+      "priceInsurance": 176400
+    },
+    {
+      "id": "RENTGEN_3",
+      "num": "3",
+      "name": "КЎКРАК ҚАФАСИ R-ГРАФИЯСИ",
+      "category": "RENTGEN",
+      "priceLocal": 219000,
+      "priceForeign": 350400,
+      "priceInsurance": 214620
+    },
+    {
+      "id": "RENTGEN_4",
+      "num": "4",
+      "name": "КОНТРАСТЛИ ОШҚОЗОН R-СКОПИЯ, ТАСВИР БИЛАН",
+      "category": "RENTGEN",
+      "priceLocal": 401000,
+      "priceForeign": 641600,
+      "priceInsurance": 392980
+    },
+    {
+      "id": "RENTGEN_5",
+      "num": "5",
+      "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯ (БАРИЙ)",
+      "category": "RENTGEN",
+      "priceLocal": 311000,
+      "priceForeign": 497600,
+      "priceInsurance": 304780
+    },
+    {
+      "id": "RENTGEN_6",
+      "num": "6",
+      "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯСИ, ТАРКИБИДА ЙОД САҚЛОВЧИ, СУВДА ЭРИЙДИГАН (контраст билан)",
+      "category": "RENTGEN",
+      "priceLocal": 229000,
+      "priceForeign": 366400,
+      "priceInsurance": 224420
+    },
+    {
+      "id": "RENTGEN_7",
+      "num": "7",
+      "name": "ҚИЗИЛЎНГАЧ R-СКОПИЯСИ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 244000,
+      "priceForeign": 390400,
+      "priceInsurance": 239120
+    },
+    {
+      "id": "RENTGEN_8",
+      "num": "8",
+      "name": "ИРРИГОСКОПИЯ (диск билан)",
+      "category": "RENTGEN",
+      "priceLocal": 625000,
+      "priceForeign": 1000000,
+      "priceInsurance": 612500
+    },
+    {
+      "id": "RENTGEN_9",
+      "num": "9",
+      "name": "ИРРИГОСКОПИЯ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 696000,
+      "priceForeign": 1113600,
+      "priceInsurance": 682080
+    },
+    {
+      "id": "RENTGEN_10",
+      "num": "10",
+      "name": "ИРРИГОСКОПИЯ КОЛОСТОМА ОРКАЛИ",
+      "category": "RENTGEN",
+      "priceLocal": 617000,
+      "priceForeign": 987200,
+      "priceInsurance": 604660
+    },
+    {
+      "id": "RENTGEN_11",
+      "num": "11",
+      "name": "ПРОКТОГРАММА",
+      "category": "RENTGEN",
+      "priceLocal": 465000,
+      "priceForeign": 744000,
+      "priceInsurance": 455700
+    },
+    {
+      "id": "RENTGEN_12",
+      "num": "12",
+      "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (диск билан)",
+      "category": "RENTGEN",
+      "priceLocal": 369000,
+      "priceForeign": 590400,
+      "priceInsurance": 361620
+    },
+    {
+      "id": "RENTGEN_13",
+      "num": "13",
+      "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 387000,
+      "priceForeign": 619200,
+      "priceInsurance": 379260
+    },
+    {
+      "id": "RENTGEN_14",
+      "num": "14",
+      "name": "КОНТРАСЛИ АНОПРОКТОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ (диск билан)",
+      "category": "RENTGEN",
+      "priceLocal": 362000,
+      "priceForeign": 579200,
+      "priceInsurance": 354760
+    },
+    {
+      "id": "RENTGEN_17",
+      "num": "17",
+      "name": "БОШ ЧАНОҒИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+      "category": "RENTGEN",
+      "priceLocal": 335000,
+      "priceForeign": 536000,
+      "priceInsurance": 328300
+    },
+    {
+      "id": "RENTGEN_18",
+      "num": "18",
+      "name": "БЎЙИН УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+      "category": "RENTGEN",
+      "priceLocal": 335000,
+      "priceForeign": 536000,
+      "priceInsurance": 328300
+    },
+    {
+      "id": "RENTGEN_19",
+      "num": "19",
+      "name": "КЎКРАК ҚАФАСИ УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+      "category": "RENTGEN",
+      "priceLocal": 323000,
+      "priceForeign": 516800,
+      "priceInsurance": 316540
+    },
+    {
+      "id": "RENTGEN_20",
+      "num": "20",
+      "name": "ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+      "category": "RENTGEN",
+      "priceLocal": 323000,
+      "priceForeign": 516800,
+      "priceInsurance": 316540
+    },
+    {
+      "id": "RENTGEN_21",
+      "num": "21",
+      "name": "НАЙСИМОН СУЯКЛАР 2 та ПРОЕКЦИЯДА РЕНТГЕН ГРАФИЯГА ОЛИШ",
+      "category": "RENTGEN",
+      "priceLocal": 335000,
+      "priceForeign": 536000,
+      "priceInsurance": 328300
+    },
+    {
+      "id": "RENTGEN_22",
+      "num": "22",
+      "name": "БОЛАЛАРДА ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+      "category": "RENTGEN",
+      "priceLocal": 289000,
+      "priceForeign": 462400,
+      "priceInsurance": 283220
+    },
+    {
+      "id": "RENTGEN_23",
+      "num": "23",
+      "name": "R-ТАСВИР БИЛАН БУРУН ЁНДОШ БЎШЛИҚЛАРИ",
+      "category": "RENTGEN",
+      "priceLocal": 289000,
+      "priceForeign": 462400,
+      "priceInsurance": 283220
+    },
+    {
+      "id": "RENTGEN_24",
+      "num": "24",
+      "name": "ҚОРИН БЎШЛИҒИ РЕНТГЕНОГРАФИЯСИ (диск билан)",
+      "category": "RENTGEN",
+      "priceLocal": 188000,
+      "priceForeign": 300800,
+      "priceInsurance": 184240
+    },
+    {
+      "id": "RENTGEN_25",
+      "num": "25",
+      "name": "ҚОРИН БЎШЛИГИ РЕНТГЕНОГРАФИЯСИ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 298000,
+      "priceForeign": 476800,
+      "priceInsurance": 292040
+    },
+    {
+      "id": "RENTGEN_26",
+      "num": "26",
+      "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан, дискда)",
+      "category": "RENTGEN",
+      "priceLocal": 471000,
+      "priceForeign": 753600,
+      "priceInsurance": 461580
+    },
+    {
+      "id": "RENTGEN_27",
+      "num": "27",
+      "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан) (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 490000,
+      "priceForeign": 784000,
+      "priceInsurance": 480200
+    },
+    {
+      "id": "RENTGEN_28",
+      "num": "28",
+      "name": "АНТЕГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН (контраст билан)",
+      "category": "RENTGEN",
+      "priceLocal": 341000,
+      "priceForeign": 545600,
+      "priceInsurance": 334180
+    },
+    {
+      "id": "RENTGEN_29",
+      "num": "29",
+      "name": "РЕТРОГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ БИЛАН",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_30",
+      "num": "30",
+      "name": "ЦИСТОГРАФИЯ (контраст билан)",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_31",
+      "num": "31",
+      "name": "ФИСТУЛОГРАФИЯ",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_32",
+      "num": "32",
+      "name": "СИАЛОГРАФИЯ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_33",
+      "num": "33",
+      "name": "ХОЛАНГИОГРАФИЯ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_34",
+      "num": "34",
+      "name": "АНТЕГРАД ХОЛАНГИОГРАФИЯ",
+      "category": "RENTGEN",
+      "priceLocal": 359000,
+      "priceForeign": 574400,
+      "priceInsurance": 351820
+    },
+    {
+      "id": "RENTGEN_35",
+      "num": "35",
+      "name": "ГИСТЕРОСАЛЬПИНГОГРАФИЯ (контраст билан)",
+      "category": "RENTGEN",
+      "priceLocal": 341000,
+      "priceForeign": 545600,
+      "priceInsurance": 334180
+    },
+    {
+      "id": "RENTGEN_36",
+      "num": "36",
+      "name": "МАММОГРАФИЯ ДИСК БИЛАН",
+      "category": "RENTGEN",
+      "priceLocal": 213000,
+      "priceForeign": 340800,
+      "priceInsurance": 208740
+    },
+    {
+      "id": "RENTGEN_37",
+      "num": "37",
+      "name": "МАММОГРАФИЯ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 237000,
+      "priceForeign": 379200,
+      "priceInsurance": 232260
+    },
+    {
+      "id": "RENTGEN_38",
+      "num": "38",
+      "name": "ДУКТОГРАФИЯ (тасвир билан)",
+      "category": "RENTGEN",
+      "priceLocal": 397000,
+      "priceForeign": 635200,
+      "priceInsurance": 389060
+    },
+    {
+      "id": "RENTGEN_39",
+      "num": "39",
+      "name": "РЕНТГЕН СКОПИЯ ОРКАЛИ БИОПСИЯ ОЛИШ",
+      "category": "RENTGEN",
+      "priceLocal": 351000,
+      "priceForeign": 561600,
+      "priceInsurance": 343980
+    },
+    {
+      "id": "MSKT_1",
+      "num": "1",
+      "name": "Компьютер томография шифокори консультацияси",
+      "category": "MSKT",
+      "priceLocal": 188000,
+      "priceForeign": 300800,
+      "priceInsurance": 184240
+    },
+    {
+      "id": "MSKT_2",
+      "num": "2",
+      "name": "Бош мия МСКТ текшируви (контраст моддасиз)",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_3",
+      "num": "3",
+      "name": "Бош мия МСКТ текшируви (вена ичи контраст модда билан)",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_4",
+      "num": "4",
+      "name": "Гипофиз безининг контраст моддасиз МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_5",
+      "num": "5",
+      "name": "Гипофиз безининг вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_6",
+      "num": "6",
+      "name": "Бош-бўйин контраст моддасиз МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги) Бурун ён бушлиглари/ Огиз-бурун-халкум/ Орбита/Чакка сохаси",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_7",
+      "num": "7",
+      "name": "1) Бош-бўйин вена ичи контраст моддаси билан МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги)",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_8",
+      "num": "8",
+      "name": "Кўкрак қафаси органларини контраст моддасиз МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_9",
+      "num": "9",
+      "name": "Кўкрак кафаси органларини контраст моддаси билан МСКТ текшируви Per os",
+      "category": "MSKT",
+      "priceLocal": 435000,
+      "priceForeign": 696000,
+      "priceInsurance": 426300
+    },
+    {
+      "id": "MSKT_10",
+      "num": "10",
+      "name": "Кўкрак кафаси органларини вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_11",
+      "num": "11",
+      "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддасиз МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_12",
+      "num": "12",
+      "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+      "category": "MSKT",
+      "priceLocal": 435000,
+      "priceForeign": 696000,
+      "priceInsurance": 426300
+    },
+    {
+      "id": "MSKT_13",
+      "num": "13",
+      "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_14",
+      "num": "14",
+      "name": "Кичик тос аъзоларини контраст моддасиз МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_15",
+      "num": "15",
+      "name": "Кичик тос аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+      "category": "MSKT",
+      "priceLocal": 435000,
+      "priceForeign": 696000,
+      "priceInsurance": 426300
+    },
+    {
+      "id": "MSKT_16",
+      "num": "16",
+      "name": "Кичик тос аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_17",
+      "num": "17",
+      "name": "Буйрак усти безини контраст моддасиз МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 386000,
+      "priceForeign": 617600,
+      "priceInsurance": 378280
+    },
+    {
+      "id": "MSKT_18",
+      "num": "18",
+      "name": "Буйрак усти безини вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_19",
+      "num": "19",
+      "name": "Умуртқа поғонаси (1-булими) ни контраст моддасиз МСКТ текшируви Буйин умурткалари/ кукрак умурткалари/ бел-думгаза умурткалари/ Дум умуркалари/ Тос-чанок суяклари",
+      "category": "MSKT",
+      "priceLocal": 424000,
+      "priceForeign": 678400,
+      "priceInsurance": 415520
+    },
+    {
+      "id": "MSKT_20",
+      "num": "20",
+      "name": "Умуртқа поғонаси (1-бўлими) ни вена ичи контраст моддаси билан МСКТ текшируви",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MSKT_21",
+      "num": "21",
+      "name": "Бўғимлар МСКТ текшируви(1 сохани)",
+      "category": "MSKT",
+      "priceLocal": 421000,
+      "priceForeign": 673600,
+      "priceInsurance": 412580
+    },
+    {
+      "id": "MSKT_22",
+      "num": "22",
+      "name": "Қўл ва оёқларнинг контраст моддасиз МСКТ текшируви кафт / кафтғтирсак бугими/ тирсак/ тирсак бугими/ елка суяги/ елка бугими/ умров суяги / Чанок-Сон бугими/ тизза, /сон сохаси/ болдир сохаси/ болди--товон бугими/ оёк кафт сохаси",
+      "category": "MSKT",
+      "priceLocal": 421000,
+      "priceForeign": 673600,
+      "priceInsurance": 412580
+    },
+    {
+      "id": "MSKT_23",
+      "num": "23",
+      "name": "Қўл ва оёқларнинг вена ичи контраст моддаси билан МСКТ текшируви (1 соха)",
+      "category": "MSKT",
+      "priceLocal": 868000,
+      "priceForeign": 1388800,
+      "priceInsurance": 850640
+    },
+    {
+      "id": "MRT_1",
+      "num": "1",
+      "name": "МРТ шифокори консультацияси",
+      "category": "MRT",
+      "priceLocal": 188000,
+      "priceForeign": 300800,
+      "priceInsurance": 184240
+    },
+    {
+      "id": "MRT_2",
+      "num": "2",
+      "name": "Бош мия МРТ контрастсиз",
+      "category": "MRT",
+      "priceLocal": 433000,
+      "priceForeign": 692800,
+      "priceInsurance": 424340
+    },
+    {
+      "id": "MRT_3",
+      "num": "3",
+      "name": "Бош мия МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2060000,
+      "priceForeign": 3296000,
+      "priceInsurance": 2018800
+    },
+    {
+      "id": "MRT_3.1",
+      "num": "3.1",
+      "name": "Бош мия МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1137000,
+      "priceForeign": 1819200,
+      "priceInsurance": 1114260
+    },
+    {
+      "id": "MRT_4",
+      "num": "4",
+      "name": "Бош мия МРТ + трактография контрастсиз",
+      "category": "MRT",
+      "priceLocal": 546000,
+      "priceForeign": 873600,
+      "priceInsurance": 535080
+    },
+    {
+      "id": "MRT_5",
+      "num": "5",
+      "name": "Гипофиз МРТ/МРТ гипофиз+контраст",
+      "category": "MRT",
+      "priceLocal": 1125000,
+      "priceForeign": 1800000,
+      "priceInsurance": 1102500
+    },
+    {
+      "id": "MRT_6",
+      "num": "6",
+      "name": "Бош мия ангиография МРТ (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2067000,
+      "priceForeign": 3307200,
+      "priceInsurance": 2025660
+    },
+    {
+      "id": "MRT_6.1",
+      "num": "6.1",
+      "name": "Бош мия ангиография МРТ: МРА/МРВ",
+      "category": "MRT",
+      "priceLocal": 1234000,
+      "priceForeign": 1974400,
+      "priceInsurance": 1209320
+    },
+    {
+      "id": "MRT_7",
+      "num": "7",
+      "name": "Кўз ва орбита МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_8",
+      "num": "8",
+      "name": "Естахевий най ва ички қулоқ МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_9",
+      "num": "9",
+      "name": "Бўйин умуртқалари МРТ",
+      "category": "MRT",
+      "priceLocal": 546000,
+      "priceForeign": 873600,
+      "priceInsurance": 535080
+    },
+    {
+      "id": "MRT_10",
+      "num": "10",
+      "name": "Кўкрак умуртқалари МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_11",
+      "num": "11",
+      "name": "Бел умуртқалари МРТ",
+      "category": "MRT",
+      "priceLocal": 546000,
+      "priceForeign": 873600,
+      "priceInsurance": 535080
+    },
+    {
+      "id": "MRT_12",
+      "num": "12",
+      "name": "Бутун умуртқа МРТ",
+      "category": "MRT",
+      "priceLocal": 1107000,
+      "priceForeign": 1771200,
+      "priceInsurance": 1084860
+    },
+    {
+      "id": "MRT_13",
+      "num": "13",
+      "name": "Спинал канал ва жигар нервлари МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_14",
+      "num": "14",
+      "name": "Бўйин қон томирлари ангиография МРТ (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2067000,
+      "priceForeign": 3307200,
+      "priceInsurance": 2025660
+    },
+    {
+      "id": "MRT_14.1",
+      "num": "14.1",
+      "name": "Бўйин қон томирлари ангиография МРТ МРА",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_15",
+      "num": "15",
+      "name": "Юрак МРТ контрастсиз",
+      "category": "MRT",
+      "priceLocal": 546000,
+      "priceForeign": 873600,
+      "priceInsurance": 535080
+    },
+    {
+      "id": "MRT_16",
+      "num": "16",
+      "name": "Юрак қон томирлари ангиография МРТ (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2067000,
+      "priceForeign": 3307200,
+      "priceInsurance": 2025660
+    },
+    {
+      "id": "MRT_16.1",
+      "num": "16.1",
+      "name": "Юрак қон томирлари ангиография МРТ",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_17",
+      "num": "17",
+      "name": "Қорин бўшлиғи МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_18",
+      "num": "18",
+      "name": "Жигар МРТ контрастсиз",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_19",
+      "num": "19",
+      "name": "Жигар МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2067000,
+      "priceForeign": 3307200,
+      "priceInsurance": 2025660
+    },
+    {
+      "id": "MRT_19.1",
+      "num": "19.1",
+      "name": "Жигар МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_20",
+      "num": "20",
+      "name": "Ошқозон ости бези МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_21",
+      "num": "21",
+      "name": "Буйраклар ва сийдик чиқариш йўллари МРТ/ контраст билан",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_22",
+      "num": "22",
+      "name": "Кичик чаноқ аъзолари МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_23",
+      "num": "23",
+      "name": "Елка бўғими МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_24",
+      "num": "24",
+      "name": "Қўл- кафт бўғими МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_25",
+      "num": "25",
+      "name": "Тизза бўғими МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_26",
+      "num": "26",
+      "name": "Тирсак бўғими МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_27",
+      "num": "27",
+      "name": "Товон/ болдир-товон бугими",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_28",
+      "num": "28",
+      "name": "Чаноқ сон бўғими МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_29",
+      "num": "29",
+      "name": "Чаноқ сон бўғими МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_29.1",
+      "num": "29.1",
+      "name": "Чаноқ сон бўғими МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_30",
+      "num": "30",
+      "name": "Сут безлари МРТ контрастсиз",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_31",
+      "num": "31",
+      "name": "Сут безлари МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_31.1",
+      "num": "31.1",
+      "name": "Сут безлари МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_32",
+      "num": "32",
+      "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_32.1",
+      "num": "32.1",
+      "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_33",
+      "num": "33",
+      "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_33.1",
+      "num": "33.1",
+      "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_34",
+      "num": "34",
+      "name": "Бутун танани скрининг МРТ",
+      "category": "MRT",
+      "priceLocal": 1009000,
+      "priceForeign": 1614400,
+      "priceInsurance": 988820
+    },
+    {
+      "id": "MRT_35",
+      "num": "35",
+      "name": "Синусит ва бурун бўшлиқлари МРТ (Юз-жағ бўғимлари)",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_36",
+      "num": "36",
+      "name": "Бўйин юмшок тукималари МРТ",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_37",
+      "num": "37",
+      "name": "МРТ органов малого таза + в/в контрастирование (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_37.1",
+      "num": "37.1",
+      "name": "МРТ органов малого таза + в/в контрастирование",
+      "category": "MRT",
+      "priceLocal": 1319000,
+      "priceForeign": 2110400,
+      "priceInsurance": 1292620
+    },
+    {
+      "id": "MRT_38",
+      "num": "38",
+      "name": "МРТ органов брюшной полости + в/в контрастирование (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_38.1",
+      "num": "38.1",
+      "name": "МРТ органов брюшной полости + в/в контрастирование",
+      "category": "MRT",
+      "priceLocal": 1319000,
+      "priceForeign": 2110400,
+      "priceInsurance": 1292620
+    },
+    {
+      "id": "MRT_39",
+      "num": "39",
+      "name": "МРТ мягких тканей конечностей (выбранная область, зона исследования до 30 см)",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_40",
+      "num": "40",
+      "name": "МРТ спинного мозга+трактография",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_41",
+      "num": "41",
+      "name": "Дубликат пленки, диска и заключения",
+      "category": "MRT",
+      "priceLocal": 122000,
+      "priceForeign": 195200,
+      "priceInsurance": 119560
+    },
+    {
+      "id": "MRT_42",
+      "num": "42",
+      "name": "Дубликат диска (или дополнительный)",
+      "category": "MRT",
+      "priceLocal": 68000,
+      "priceForeign": 108800,
+      "priceInsurance": 66640
+    },
+    {
+      "id": "MRT_43",
+      "num": "43",
+      "name": "МРТ мягких тканей черепа/ МРТ лицевой части",
+      "category": "MRT",
+      "priceLocal": 546000,
+      "priceForeign": 873600,
+      "priceInsurance": 535080
+    },
+    {
+      "id": "MRT_44",
+      "num": "44",
+      "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2060000,
+      "priceForeign": 3296000,
+      "priceInsurance": 2018800
+    },
+    {
+      "id": "MRT_44.1",
+      "num": "44.1",
+      "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast",
+      "category": "MRT",
+      "priceLocal": 1075000,
+      "priceForeign": 1720000,
+      "priceInsurance": 1053500
+    },
+    {
+      "id": "MRT_45",
+      "num": "45",
+      "name": "МРТ головного мозга+ безконтрастная МР-артерио и венография",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_46",
+      "num": "46",
+      "name": "МРТ головного мозга+ режим Fiesta (нейроваскулярные конфликты)",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_47",
+      "num": "47",
+      "name": "МРТ головного мозга+ DTI",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_48",
+      "num": "48",
+      "name": "МРТ средней трети спинного мозга+позвоночного столба",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_49",
+      "num": "49",
+      "name": "МРТ нижней трети спинного мозга+позвоночного столба",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_50",
+      "num": "50",
+      "name": "МРТ тазобедренных суставов и подвздошно-крестцовых сочленений",
+      "category": "MRT",
+      "priceLocal": 558000,
+      "priceForeign": 892800,
+      "priceInsurance": 546840
+    },
+    {
+      "id": "MRT_51",
+      "num": "51",
+      "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_51.1",
+      "num": "51.1",
+      "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_52",
+      "num": "52",
+      "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_52.1",
+      "num": "52.1",
+      "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    },
+    {
+      "id": "MRT_53",
+      "num": "53",
+      "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+      "category": "MRT",
+      "priceLocal": 2042000,
+      "priceForeign": 3267200,
+      "priceInsurance": 2001160
+    },
+    {
+      "id": "MRT_53.1",
+      "num": "53.1",
+      "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+      "category": "MRT",
+      "priceLocal": 1169000,
+      "priceForeign": 1870400,
+      "priceInsurance": 1145620
+    }
+  ]
+}

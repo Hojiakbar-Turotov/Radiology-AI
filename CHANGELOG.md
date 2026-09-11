@@ -1,0 +1,80 @@
+# KARMED RADIOLOGY NAVBAT VA MONITORING TIZIMI — VERSIYALAR TARIXI (CHANGELOG)
+
+## [v7.0.0] - 2026-09-11 (GitHub Dynamic Tunnel Broker & Smart TV APK Failover)
+### Yangiliklar va Arxitekturaviy Yechimlar:
+- **GitHub Doimiy Tunnel Brokeri (`tunnel_config.json` & `index.html`)**:
+  - `https://github.com/Hojiakbar-Turotov/Radiology-AI.git` bilan avtomatlashtirilgan sinxronizatsiya.
+  - Tunnel serveri ishga tushganda yangi Cloudflare URL manzillarini GitHub Pages orqali avtomatik e'lon qiladi.
+- **Android TV Smart Failover & 30-minutlik Local Probe (`MainActivity.java`)**:
+  - **Lokal port birinchi tekshiriladi:** `http://10.34.17.210:9877/tv` yoki `9880`.
+  - **GitHub zaxira tekshiruvi:** Lokal tarmoq bo'lmasa, `tunnel_config.json` dan online tunnelni yuklaydi.
+  - **30 minutlik tekshiruv:** Har 30 minutda lokal port tekshiriladi va lokal tarmoq paydo bo'lganda darhol lokalga o'tadi.
+  - **Server o'chiqligida toza TV ekrani:** Server o'chiq bo'lsa xatolik dialogi o'rniga "Hozirda ushbu xonada navbatda kutayotgan bemorlar mavjud emas" yozuvi bilan xona ko'rinishi ochiladi.
+- **TV da Shifokor F.I.SH va Xona Nomi (11 ta xona xaritalanishi)**:
+  - Har bir xona uchun shifokor F.I.SH to'liq kiritildi (masalan: `UTT1-53 XONA` / `Ultratovush-1(Juravlev Igor Ivanovich)`).
+  - Tanlangan xona `localStorage` da eslab qolinadi va offline holatda ham shifokor F.I.SH ko'rinib turadi.
+
+---
+
+## [v6.0.0] - 2026-09-11 (Karmed Qabul Bemorlar, TV Telemetriya & Chaqiruv Cheklovi)
+### Yangiliklar va Arxitekturaviy Yechimlar:
+- **Qabul Qilmoqda holati (`DosyaDurumu=4`)**: Karmedda qabul qilingan bemorlar TV ekranida "Qabul qilmoqda" holatida aks ettiriladi.
+- **TV Telemetriya Monitoringi (`data/devices.json`)**: Qaysi TV qachon qaysi IP orqali ulanayotganini tahlil qilish.
+- **Chaqiruv Signali Takrorlanishini Cheklash**: TV monitorda bir bemor uchun signal faqat 1 marta yangrashi ta'minlandi.
+- **Shaffof Boshqaruv Tugmalari**: TV monitor tugmalari (barcha xonalar, xona tanlash, to'liq ekran) nozik shaffof holatga keltirildi.
+
+---
+
+## [v5.1.0] - 2026-09-10 (Executive Admin Analytics Dashboard & Financial Price Catalog)
+### Yangiliklar va Arxitekturaviy Yechimlar:
+- **Professional Rahbariyat Analitika Paneli (`admin.html`, `admin.js`, `admin.css`)**:
+  - `http://localhost:9880` va online `https://battle-opening-telephony-miss.trycloudflare.com/admin` orqali to'liq tahlil portali.
+  - **Faqat qo'lda so'rov yuborish (On-Demand Monitoring)**: Server va Karmedni ortiqcha yuklamaslik uchun avto-polling va SSE live-stream o'chirildi. Yangilanish faqat admin "Hisobotni Olish" yoki "Karmeddan Yangilash" tugmasini bosganda amalga oshiriladi.
+  - **2 oylik retrospektiv tahlil (01.08.2026 — 10.09.2026)**: 6,500 nafar yo'naltirilgan bemor, 5,820 (89.5%) tekshiruvdan o'tganlar, 610 kutayotganlar va 49 qabul qilinganlar aniq hisoblandi.
+- **UTT Vrachlari (Xonalar) Tahlili & "👥 Bemorlar Ro'yxati" Modali**:
+  - Barcha 10 ta UTT shifokori (Ultratovush-1 dan 10 gacha) bo'yicha ko'rgan bemorlari, o'tganlari, kutayotganlari va qabul qilingan to'lov summasi.
+  - Har bir vrach kartochkasida "👥 Bemorlar Ro'yxati" tugmasi orqali shu shifokor qabul qilgan barcha bemorlarning to'liq ma'lumotlari (ID, F.I.SH, sana, holat, xizmat, to'lov) modali ochiladi.
+- **Davolovchi Shifokorlar Reytingi (DosyaDoktoru)**:
+  - UTT bo'limiga eng ko'p bemor yo'naltirgan shifokorlar shohsupasi (#1 Dr. Inoyatov Shavkat - 431 bemor, #2 Dr. Kasimov Doniyor - 388 bemor, #3 Dr. Laboratoriya va Radyologiya - 386 bemor) va to'liq jadvali.
+- **160 ta Rasmiy Tibbiy Tariflar Katalogi (Google Sheets Integratsiyasi)**:
+  - Rasmiy tasdiqlangan narxlar (32 UTT, 37 Rentgen, 23 MSKT, 68 MRT) asosida jami 917,255,100 so'm tushum aniq hisoblandi.
+- **Tezkor Kesh Tizimi (`data/admin_analytics_cache.json`)**:
+  - 6,500 bemorlik hisobot bir marta yuklangach, keyingi barcha so'rovlar keshdan 50ms dan kam vaqtda ochiladi.
+- **Excel (CSV UTF-8 BOM) Eksport**:
+  - Bemorlar jurnali, vrachlar hisoboti va davolovchi shifokorlar reytingini bitta tugma bilan Excelda ochiladigan CSV formatda yuklab olish imkoniyati.
+
+---
+### Yangiliklar va Arxitekturaviy Yechimlar:
+- **Karmed Direct Master Sync Engine**:
+  - `logger_server.js` da har 20 soniyada Karmed serveridan (`192.168.150.111:2025`) `HastaSorgula` orqali barcha bugungi UTT bemorlarini mustaqil, xolis va uzluksiz tortib oluvchi master dvigatel ishga tushirildi.
+  - Brauzer kengaytmasiga bo'lgan to'liq bog'liqlik bartaraf etildi.
+  - Sessiya uzilganda avtomatik `loginToKarmedLive('R5', '17720')` orqali yangi token va cookielar olinadi.
+- **Destructive Overwrite Guard (Navbatni himoyalash)**:
+  - Shifokor yoki registrator o'z kompyuterida 1 nafar bemorni qidirganda kengaytma serverga 1 kishilik jadval yuborsa, ushbu chala ma'lumot rad etiladi va master 50+ kishilik navbat saqlab qolinadi.
+- **10 ta UTT xonasi to'liq xaritalanishi**:
+  - Barcha bemorlar o'z xonalariga (`Ultratovush-1` dan `Ultratovush-10` gacha) taqsimlanadi.
+  - "Kutayotgan bemorlar yo'q" holati bartaraf etildi.
+- **Android TV Avto-yangilanish va Masofaviy Ekranga chiqarish**:
+  - `https://battle-opening-telephony-miss.trycloudflare.com/tv` orqali masofadan TV ekrani ishlaydi.
+  - `/api/app-version` va `/download/UTT_TV_Navbat.apk` orqali TV ilovasi yangi versiyalarni aniqlaydi va o'zini yangilaydi.
+- **Yangi .exe Launcher**:
+  - `KARMED_SERVER_V5.exe` orqali serverni bitta tugma bilan ishga tushirish ta'minlandi.
+
+---
+
+## [v4.1.0] - 2026-09-09 (Modality Agents & Individual Search)
+- UTT (9881), MSKT (9882) va MRT (9883) uchun 3 ta alohida mobil agent portlari ochildi.
+- Individual bemor qidiruvi (`HastaSorgula` ID bo'yicha) barcha bo'limlar bo'yicha kengaytirildi.
+- R5 orqali xonani o'zgartirish (`AltBolumuDegistir`) MRT, MSKT va UTT bo'limlariga moslashtirildi.
+
+---
+
+## [v4.0.0] - 2026-09-08 (TV Monitor & Multi-Room)
+- TV Monitor ekrani (9877) to'liq ekran rejimi, 10 ta xona gridi va ovozli chaqiruv tizimi bilan chiqarildi.
+- Shifokor kabinetlari (9878, U0-U9) va chaqiruv mexanizmi joriy etildi.
+
+---
+
+## [v3.0.0] - 2026-09-05 (Kunlik Logger va Real-time SSE)
+- `Log/<DD.MM.YYYY>/logger.me` dinamik kunlik log fayli joriy etildi.
+- Server-Sent Events (SSE) orqali barcha portlar soniyada sinxronlashtirildi.

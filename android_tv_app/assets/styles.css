@@ -1,0 +1,1672 @@
+/* ==========================================================================
+   KARMED UTT NAVBAT TIZIMI — STYLES.CSS (v3.0.0)
+   TV Ekran, Post Kompyuter va Mobil Telefon uchun To'liq Responsiv Dizayn
+   ========================================================================== */
+
+:root {
+  --bg-dark: #070d1e;
+  --bg-card-tv: #0f1c3f;
+  --bg-card-tv-header: #152759;
+  --border-tv: #1e3a8a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-gold: #f59e0b;
+  --accent-blue: #38bdf8;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-family);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 12px 18px;
+}
+
+/* ==========================================================================
+   1. YUQORI SARLAVHA (HEADER)
+   ========================================================================== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0f1c3f 0%, #172a5a 100%);
+  border: 1.5px solid var(--border-tv);
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hospital-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.header-titles .hospital-name {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.header-titles .dept-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Rejim tanlash, xona tanlash va to'liq ekran tugmalari (Shaffof boshqaruv) */
+.view-switch-group,
+.room-selector-wrap,
+.fullscreen-btn {
+  opacity: 0.05;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.header-right:hover .view-switch-group,
+.header-right:hover .room-selector-wrap,
+.header-right:hover .fullscreen-btn,
+.view-switch-group:hover,
+.view-switch-group:focus-within,
+.room-selector-wrap:hover,
+.room-selector-wrap:focus-within,
+.fullscreen-btn:hover,
+.fullscreen-btn:focus-within {
+  opacity: 1;
+}
+
+.view-switch-group {
+  display: flex;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.view-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.view-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+/* Xonani tanlash dropdowni (Header) */
+.room-selector-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.room-dropdown {
+  background: #1e293b;
+  border: 1.5px solid #3b82f6;
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+/* To'liq ekran (Fullscreen) tugmasi */
+.fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #38bdf8;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fullscreen-btn:hover {
+  background: #2563eb;
+  border-color: #60a5fa;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+  transform: translateY(-1px);
+}
+
+.fullscreen-btn .fs-icon {
+  font-size: 14px;
+}
+
+/* Jonli soat va holat */
+.live-clock-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  border-left: 1px solid #334155;
+  padding-left: 14px;
+}
+
+.live-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.live-time {
+  font-size: 24px;
+  font-weight: 900;
+  font-family: monospace, Arial, sans-serif;
+  color: #ffffff;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+
+.live-connection-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.live-connection-chip.connected {
+  color: var(--accent-green);
+}
+
+.live-connection-chip.disconnected {
+  color: var(--accent-red);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pulseAnim 1.5s infinite;
+}
+
+@keyframes pulseAnim {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* ==========================================================================
+   2. STATISTIKA VA WI-FI BANNERI
+   ========================================================================== */
+.top-info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f1c3f;
+  border: 1px solid var(--border-tv);
+  padding: 6px 14px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.stat-pill .stat-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stat-pill .stat-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.total-pill {
+  border-color: #2563eb;
+}
+.total-pill .stat-val {
+  color: var(--accent-blue);
+}
+
+.selected-docs-pill {
+  border-color: var(--accent-gold);
+}
+.selected-docs-pill .stat-val {
+  color: var(--accent-gold);
+}
+
+.wifi-marquee-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(30, 58, 138, 0.4);
+  border: 1px solid var(--border-tv);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.wifi-marquee-card b {
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sound-toggle-btn {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sound-toggle-btn:hover {
+  background: #334155;
+}
+
+/* ==========================================================================
+   3. POST KOMPYUTERI FILTRLAR PANELI (POST MODE)
+   ========================================================================== */
+.post-controls-panel {
+  background: #0f1c3f;
+  border: 1.5px solid var(--border-tv);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  display: none; /* Standart holatda TV da ko'rinmaydi */
+}
+
+body.mode-post .post-controls-panel {
+  display: block;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title .hint-text {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-btn:hover {
+  background: #334155;
+}
+
+.select-all-btn {
+  border-color: #2563eb;
+  color: #93c5fd;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrap input {
+  background: #091024;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px 28px 6px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  width: 240px;
+  outline: none;
+}
+
+.search-input-wrap input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Vrachlar chiplari */
+.doctor-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.doc-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #152248;
+  border: 1.5px solid #243669;
+  color: #cbd5e1;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.doc-chip:hover {
+  border-color: #3b82f6;
+  background: #1e326b;
+  transform: translateY(-1px);
+}
+
+.doc-chip.selected {
+  background: #1d4ed8;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.doc-chip-count {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--accent-gold);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.doc-chip.selected .doc-chip-count {
+  background: #ffffff;
+  color: #1e3a8a;
+}
+
+/* ==========================================================================
+   4. TV VA MOBIL NAVBAT KARTALARI (GRID)
+   ========================================================================== */
+.main-content {
+  flex: 1;
+}
+
+.tv-queue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+/* Yagona vrach kartasi */
+.doctor-queue-card {
+  background: var(--bg-card-tv);
+  border: 2px solid var(--border-tv);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.doctor-queue-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.2);
+}
+
+.doctor-queue-card.has-active {
+  border-color: #3b82f6;
+}
+
+.doc-card-header {
+  background: var(--bg-card-tv-header);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-tv);
+}
+
+.doc-room-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-badge {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.doc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #93c5fd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.doc-queue-badge {
+  background: #1e3a8a;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.doc-queue-badge.empty {
+  background: #334155;
+  color: #94a3b8;
+}
+
+/* Hozirgi chaqirilayotgan yoki 1-navbatdagi bemor */
+.current-patient-box {
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 28, 63, 0.6) 100%);
+  padding: 12px 14px;
+  border-bottom: 1px dashed var(--border-tv);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cur-queue-num-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 65px;
+}
+
+.cur-queue-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cur-queue-number {
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ffffff;
+  font-family: 'Arial Black', Impact, sans-serif;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.cur-patient-details {
+  flex: 1;
+  overflow: hidden;
+}
+
+.cur-patient-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 1px;
+}
+
+.cur-patient-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 2px 0;
+}
+
+.cur-patient-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Keyingi kutayotgan bemorlar ro'yxati */
+.waiting-list-section {
+  padding: 8px 12px 12px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.waiting-list-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.waiting-items-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.waiting-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.waiting-row-item:hover {
+  background: rgba(30, 58, 138, 0.4);
+}
+
+.wait-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.wait-num {
+  background: #1e293b;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wait-name {
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.wait-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.empty-doc-queue {
+  text-align: center;
+  padding: 24px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   5. POST REJIMIDAGI JADVAL
+   ========================================================================== */
+body.mode-post .tv-queue-grid {
+  display: none;
+}
+
+body.mode-post .post-table-container {
+  display: block !important;
+}
+
+.table-card {
+  background: #0f1c3f;
+  border: 1.5px solid var(--border-tv);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.table-card-header {
+  background: var(--bg-card-tv-header);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-tv);
+}
+
+.table-card-header h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.table-card-header .badge {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.styled-patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12.5px;
+}
+
+.styled-patient-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid #334155;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.styled-patient-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+.styled-patient-table tr:hover td {
+  background: rgba(30, 58, 138, 0.3);
+}
+
+.q-badge-table {
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.pat-id-table {
+  font-family: monospace;
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-size: 13px;
+}
+
+.pat-name-table {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px !important;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   6. PASTKI QISM (FOOTER)
+   ========================================================================== */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #091024;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.apk-dl-link {
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #0284c7;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.apk-dl-link:hover {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   7. MOBIL VA TELEFON REJIMI (RESPONSIVE MEDIA QUERIES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 8px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+  }
+
+  .header-titles .hospital-name {
+    font-size: 13px;
+  }
+
+  .header-titles .dept-title {
+    font-size: 11.5px;
+  }
+
+  .header-right {
+    justify-content: space-between;
+    border-top: 1px solid #334155;
+    padding-top: 8px;
+  }
+
+  .live-time {
+    font-size: 20px;
+  }
+
+  .tv-queue-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wifi-marquee-card {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .search-input-wrap input {
+    width: 100%;
+  }
+
+  .panel-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Katta TV ekranlar uchun (Full HD va 4K TV) */
+@media (min-width: 1600px) {
+  .hospital-name {
+    font-size: 20px;
+  }
+  .dept-title {
+    font-size: 16px;
+  }
+  .live-time {
+    font-size: 36px;
+  }
+  .tv-queue-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 18px;
+  }
+  .cur-queue-number {
+    font-size: 56px;
+  }
+  .cur-patient-name {
+    font-size: 18px;
+  }
+}
+
+/* ==========================================================================
+   8. YAGONA XONA TV EKRANI (SINGLE ROOM DISPLAY - SCREENSHOT 2)
+   ========================================================================== */
+
+/* Single Room rejimida sahifa ko'rinishi */
+body.mode-single-room {
+  background-color: #f1f5f9; /* Yorug', toza, oq TV foni */
+  color: #0f172a;
+}
+
+body.mode-single-room .app-container {
+  padding: 12px 24px 16px 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+body.mode-single-room #mainAppHeader,
+body.mode-single-room #topInfoBar,
+body.mode-single-room #postControlsPanel,
+body.mode-single-room #tvQueueGrid,
+body.mode-single-room #postTableContainer,
+body.mode-single-room #mainAppFooter {
+  display: none !important;
+}
+
+body.mode-single-room #singleRoomWrapper {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: calc(100vh - 28px);
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 8.1. XONA EKRANI TEPASI (HEADER) */
+.sr-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  padding: 2px 4px 6px 4px;
+}
+
+.sr-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  opacity: 0.05;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.sr-header-left:hover,
+.sr-header-left:focus-within {
+  opacity: 1;
+}
+
+/* To'liq ekranda ham shaffof turishi */
+body.is-fullscreen .sr-header-left {
+  opacity: 0.05;
+}
+
+body.is-fullscreen .sr-header-left:hover,
+body.is-fullscreen .sr-header-left:focus-within {
+  opacity: 1;
+}
+
+.sr-back-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.sr-back-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.sr-room-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e3a8a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sr-room-select {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e3a8a;
+  outline: none;
+  cursor: pointer;
+}
+
+.sr-fs-btn {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.sr-fs-btn:hover {
+  background: #2563eb;
+}
+
+/* Markazdagi sarlavha: UTT10-51 XONA */
+.sr-center-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 46px;
+  font-weight: 900;
+  color: #172554;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* O'ng tomondagi sana va soat: Seshanba 8 Sentabr 2026 | 10:28:34 */
+.sr-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  z-index: 5;
+}
+
+.sr-full-date {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.sr-full-clock {
+  font-size: 40px;
+  font-weight: 900;
+  font-family: monospace, Arial, sans-serif;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+/* 8.2. ASOSIY OQ KARTA (QIZIL TEPALIK CHIZIQ BILAN) */
+.sr-main-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border-top: 6px solid #ef4444; /* Qizil chiziq */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 16px 24px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Shifokor to'liq nomi: Ultratovush-10(Xudayberdiyeva Nigora Nizamovna) */
+.sr-doctor-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: 0.3px;
+}
+
+.sr-page-badge {
+  display: inline-block;
+  margin-left: 14px;
+  background: #1e3a8a;
+  color: #60a5fa;
+  border: 1.5px solid #3b82f6;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  vertical-align: middle;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+/* Jadval konteyneri */
+.sr-table-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+.sr-patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* Jadval sarlavhasi (Ko'k rang) */
+.sr-patient-table thead tr {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.sr-patient-table th {
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-right: 1.5px solid rgba(255, 255, 255, 0.25);
+}
+
+.sr-patient-table th:last-child {
+  border-right: none;
+}
+
+.col-sr-name {
+  width: 48%;
+  text-align: left;
+}
+
+.col-sr-time {
+  width: 26%;
+  text-align: center;
+}
+
+.col-sr-queue {
+  width: 26%;
+  text-align: center;
+}
+
+/* Jadval qatorlari */
+.sr-patient-table tbody tr {
+  border-bottom: 1.5px solid #e2e8f0;
+  transition: background-color 0.15s;
+}
+
+.sr-patient-table tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.sr-patient-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.sr-patient-table tbody tr:hover {
+  background-color: #eff6ff;
+}
+
+.col-sr-name-td {
+  padding: 14px 20px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1.5px solid #e2e8f0;
+}
+
+.col-sr-time-td {
+  padding: 14px 20px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #2563eb;
+  text-align: center;
+  font-family: monospace, -apple-system, BlinkMacSystemFont, Arial;
+  border-right: 1.5px solid #e2e8f0;
+}
+
+.col-sr-queue-td {
+  padding: 14px 20px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  text-align: center;
+}
+
+.sr-empty-state {
+  text-align: center;
+  padding: 50px 20px !important;
+  font-size: 19px;
+  color: #64748b;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* 8.3. PASTKI YUGURUVCHI SATR (TICKER) */
+.sr-running-ticker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2563eb;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 10px 18px;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  position: relative;
+  margin-top: 4px;
+}
+
+.sr-ticker-track {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.sr-ticker-item {
+  display: inline-block;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  animation: srTickerAnim 30s linear infinite;
+  white-space: nowrap;
+  padding-right: 50px;
+}
+
+.sr-ticker-divider {
+  display: inline-block;
+  color: #93c5fd;
+  font-size: 18px;
+  margin: 0 15px;
+}
+
+@keyframes srTickerAnim {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.sr-ticker-logo {
+  flex-shrink: 0;
+  margin-left: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 3px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.sr-ticker-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   9. TO'LIQ EKRAN (FULLSCREEN) MAXSUS SOZLAMALARI
+   ========================================================================== */
+:fullscreen {
+  overflow-y: auto;
+}
+
+:-webkit-full-screen {
+  overflow-y: auto;
+}
+
+body.is-fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+body.is-fullscreen .app-container {
+  padding: 10px 18px;
+  max-width: 100vw;
+}
+
+/* Responsivlik: Katta TV ekranlar uchun (Full HD va 4K) */
+@media (min-width: 1600px) {
+  .sr-center-title {
+    font-size: 54px;
+  }
+  .sr-full-date {
+    font-size: 24px;
+  }
+  .sr-full-clock {
+    font-size: 48px;
+  }
+  .sr-doctor-title {
+    font-size: 34px;
+  }
+  .sr-patient-table th {
+    font-size: 20px;
+    padding: 18px 24px;
+  }
+  .col-sr-name-td {
+    font-size: 24px;
+    padding: 18px 24px;
+  }
+  .col-sr-time-td {
+    font-size: 24px;
+    padding: 18px 24px;
+  }
+  .col-sr-queue-td {
+    font-size: 26px;
+    padding: 18px 24px;
+  }
+  .sr-ticker-item {
+    font-size: 20px;
+  }
+}
+
+/* Kichik ekranlar va telefonlar uchun moslashuv */
+@media (max-width: 768px) {
+  .sr-top-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .sr-center-title {
+    position: static;
+    transform: none;
+    font-size: 28px;
+    margin: 6px 0;
+  }
+  .sr-header-right {
+    align-items: center;
+  }
+  .sr-full-date {
+    font-size: 15px;
+  }
+  .sr-full-clock {
+    font-size: 28px;
+  }
+  .sr-doctor-title {
+    font-size: 18px;
+  }
+  .sr-patient-table th {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+  .col-sr-name-td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+  .col-sr-time-td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+  .col-sr-queue-td {
+    font-size: 15px;
+    padding: 8px 6px;
+  }
+  .sr-ticker-item {
+    font-size: 13px;
+  }
+}
+
+/* ==========================================================================
+   10. TV NAVBAT CHAQIRUVI BILDIRISHNOMASI (OVERLAY & POPUP)
+   ========================================================================== */
+.tv-call-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 9, 24, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: tcpFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes tcpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tv-call-popup-card {
+  background: linear-gradient(135deg, #0f1c3f 0%, #1e3a8a 100%);
+  border: 4px solid #f59e0b;
+  border-radius: 28px;
+  padding: 42px 50px;
+  max-width: 900px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.4);
+  animation: tcpPopBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+@keyframes tcpPopBounce {
+  0% { transform: scale(0.65); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.tcp-header-badge {
+  display: inline-block;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 8px 28px;
+  border-radius: 999px;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  animation: tcpPulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes tcpPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.05); filter: brightness(1.2); }
+}
+
+.tcp-q-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.tcp-q-lbl {
+  font-size: 18px;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tcp-q-num {
+  font-size: 88px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fbbf24;
+  text-shadow: 0 0 35px rgba(245, 158, 11, 0.6);
+}
+
+.tcp-name {
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.25;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  max-width: 800px;
+}
+
+.tcp-room-banner {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 900;
+  padding: 14px 34px;
+  border-radius: 18px;
+  display: inline-block;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.45);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+
+.tcp-bottom-hint {
+  color: #cbd5e1;
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* Single Room va TV Griddagi chaqirilgan bemor yoritilishi */
+tr.row-calling {
+  background: rgba(245, 158, 11, 0.28) !important;
+  border-left: 6px solid #f59e0b !important;
+  animation: rowCallGlow 1.2s infinite alternate;
+}
+
+@keyframes rowCallGlow {
+  0% { background-color: rgba(245, 158, 11, 0.2); }
+  100% { background-color: rgba(34, 197, 94, 0.35); }
+}
+
+.badge-calling-now {
+  display: inline-block;
+  background: #22c55e;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-left: 8px;
+  animation: tcpPulse 1s infinite alternate;
+}
+
+.doc-card-calling-banner {
+  background: linear-gradient(90deg, #f59e0b, #22c55e);
+  color: #0b1536;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin: 6px 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: tcpPulse 1s infinite alternate;
+}
+
+/* ==========================================================================
+   v6.0.0 "QABUL QILMOQDA" (KARMED ACCEPTED) MAXSUS TV STILLARI
+   ========================================================================== */
+.banner-accepted {
+  background: linear-gradient(135deg, #059669, #10b981, #34d399) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  font-weight: 800 !important;
+  font-size: 13.5px !important;
+  animation: bannerAcceptGlow 1.5s infinite alternate !important;
+}
+
+@keyframes bannerAcceptGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.85);
+    transform: scale(1.01);
+  }
+}
+
+.doctor-queue-card.card-accepted {
+  border-color: #10b981 !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
+}
+
+.doctor-queue-card.card-accepted .room-badge {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  color: #ffffff !important;
+}
+
+tr.row-accepted {
+  background: rgba(16, 185, 129, 0.28) !important;
+  border-left: 6px solid #10b981 !important;
+  animation: rowAcceptGlow 1.5s infinite alternate !important;
+}
+
+@keyframes rowAcceptGlow {
+  0% { background-color: rgba(16, 185, 129, 0.2); }
+  100% { background-color: rgba(52, 211, 153, 0.38); }
+}
+
+.badge-accepted-now {
+  display: inline-block;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-left: 8px;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  animation: tcpPulse 1.2s infinite alternate;
+}
+
+.sr-active-call-badge {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sr-active-call-badge.sr-badge-accepted {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+  animation: bannerAcceptGlow 1.5s infinite alternate;
+}
+
+.sr-active-call-badge.sr-badge-calling {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #0b1536;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.5);
+}
+
+.empty-doc-queue.accepted-only {
+  color: #34d399;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+
+

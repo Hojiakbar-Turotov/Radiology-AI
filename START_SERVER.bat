@@ -1,9 +1,10 @@
 @echo off
-title UTT Tibbiy Navbat Tizimi - Server
-chcp 65001 > nul
+chcp 65001 >nul
+title Karmed UTT Navbat va Logger Server (v3.0.0)
 cd /d "%~dp0"
-echo ========================================================
-echo   UTT MRT & MSKT Navbat Tizimi Serveri Ishga Tushirilmoqda...
-echo ========================================================
-node server.js
+if exist "server.exe" (
+    server.exe
+) else (
+    node logger_server.js
+)
 pause

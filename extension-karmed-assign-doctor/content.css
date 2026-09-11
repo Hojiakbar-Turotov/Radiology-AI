@@ -1,0 +1,708 @@
+/* CONTENT.CSS - KARMED TEZKOR VRACH BIRIKTIRISH (0-9) */
+
+/* 1. ACTIVE ROW HIGHLIGHT IN KARMED TABLE */
+.karmed-active-study-row {
+  outline: 2px solid #2563eb !important;
+  outline-offset: -1px !important;
+  background-color: #f0f7ff !important;
+  box-shadow: inset 0 0 0 1px #3b82f6 !important;
+}
+
+/* 2. SPEED UP DEVEXPRESS POPUPS & MENUS (DISABLE SLOW ANIMATIONS) */
+.dxm-popup,
+.dxpcLite,
+.dxpc-mainDiv,
+div[id*="Popup"],
+div[id*="pm"],
+.dxm-item,
+.dxpcWindow,
+.dxpc-content {
+  transition: none !important;
+  animation: none !important;
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* 3. FLOATING QUICK BAR */
+#utt-quick-assign-bar {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid #cbd5e1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  color: #1e293b;
+  z-index: 999999;
+  user-select: none;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#utt-quick-assign-bar.minimized {
+  width: 180px;
+  border-radius: 24px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+/* Quick Bar Header */
+.qbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#utt-quick-assign-bar.power-off .qbar-header {
+  background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+}
+
+.qbar-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.qbar-icon {
+  font-size: 15px;
+}
+
+.qbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qbar-power-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.qbar-power-btn.power-on {
+  background: #16a34a;
+  border-color: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.qbar-power-btn.power-off {
+  background: #dc2626;
+  border-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.qbar-power-btn:hover {
+  filter: brightness(1.15);
+  transform: scale(1.03);
+}
+
+.qbar-power-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: inline-block;
+}
+
+.qbar-btn-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.qbar-btn-toggle:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Quick Bar Body */
+.qbar-body {
+  padding: 10px;
+  background: #f8fafc;
+}
+
+.qbar-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 5px 8px;
+  background: #edf2f7;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 11px;
+}
+
+.qbar-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+}
+
+.qbar-status-indicator.status-active {
+  color: #15803d;
+}
+
+.qbar-status-indicator.status-inactive {
+  color: #b91c1c;
+}
+
+.status-dot-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+}
+
+.status-inactive .status-dot-pulse {
+  background: #dc2626;
+  box-shadow: none;
+}
+
+.qbar-hotkey-hint {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.qbar-hotkey-hint b {
+  background: #cbd5e1;
+  color: #1e293b;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+#utt-quick-assign-bar.power-off .qbar-item-btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.qbar-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.qbar-hint b {
+  color: #1e3a8a;
+  background: #e2e8f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.qbar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.qbar-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+.qbar-item-btn:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.15);
+}
+
+.qbar-item-btn:active {
+  transform: translateY(0);
+  background: #dbeafe;
+}
+
+.qbar-key-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #1e40af;
+  color: #ffffff;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 11px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(30, 64, 175, 0.3);
+}
+
+.qbar-room-name {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.qbar-doc-name {
+  font-size: 11px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4. TOAST NOTIFICATION */
+#karmed-assign-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  z-index: 10000002;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+#karmed-assign-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.karmed-toast-success {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+.karmed-toast-error {
+  background: #b91c1c;
+  color: #ffffff;
+  border: 1px solid #991b1b;
+}
+
+.karmed-toast-warn {
+  background: #d97706;
+  color: #ffffff;
+  border: 1px solid #b45309;
+}
+
+.karmed-toast-info {
+  background: #1d4ed8;
+  color: #ffffff;
+  border: 1px solid #1e40af;
+}
+
+/* 5. PRINT CONTROLS IN QUICK BAR */
+.qbar-print-controls {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0 8px 0;
+}
+
+.qbar-print-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qbar-print-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.qbar-autoprint-btn {
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.qbar-autoprint-btn.auto-on {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.qbar-autoprint-btn.auto-off {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* 6. LANGUAGE SELECTION IN QUICK BAR */
+.qbar-lang-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 6px 0;
+  padding: 3px;
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+
+.qbar-lang-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: #475569;
+  padding: 0 4px;
+}
+
+.qbar-lang-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 3px 2px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #334155;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.qbar-lang-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.qbar-lang-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.35);
+}
+
+/* 7. FILES SYNC / SNAPSHOT BUTTON */
+.qbar-sync-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.qbar-sync-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* 7.1 TV NAVBAT TUGMASI VA INDIKATOR */
+.qbar-tv-row {
+  margin: 6px 0;
+}
+
+.qbar-tv-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s ease;
+}
+
+.qbar-tv-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.45);
+}
+
+.qbar-queue-badge {
+  background: #1e293b;
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qbar-queue-badge:hover {
+  background: #0f172a;
+  border-color: #38bdf8;
+}
+
+/* 8. DOCTOR CHANGE REASON MODAL */
+#karmed-reason-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(3px);
+  z-index: 99999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  animation: karmedFadeIn 0.15s ease-out;
+}
+
+@keyframes karmedFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.karmed-reason-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 480px;
+  max-width: 94vw;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.karmed-reason-modal-header {
+  background: #1e3a8a;
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.karmed-reason-modal-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.karmed-reason-close-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0.8;
+  transition: all 0.15s ease;
+}
+
+.karmed-reason-close-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.karmed-reason-patient-info {
+  background: #f8fafc;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.karmed-reason-route {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.reason-arrow {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.karmed-reason-section-title {
+  padding: 12px 16px 6px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.karmed-reason-option {
+  margin: 6px 16px;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.karmed-reason-option:hover,
+.karmed-reason-option.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+.reason-opt-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reason-key-badge {
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reason-opt-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.reason-opt-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 3px;
+  padding-left: 28px;
+  line-height: 1.3;
+}
+
+.reason-extra-input-wrap {
+  margin-top: 8px;
+  padding-left: 28px;
+  display: flex;
+  gap: 6px;
+}
+
+.reason-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1.5px solid #2563eb;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.reason-confirm-sub-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.reason-confirm-sub-btn:hover {
+  background: #1d4ed8;
+}
+
+.karmed-reason-footer {
+  padding: 10px 16px 14px 16px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 6px;
+}
+
+.reason-cancel-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reason-cancel-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+
+
+

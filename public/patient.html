@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bemorlar Navbat Portali — Respublika Onkologiya Markazi</title>
+  <link rel="stylesheet" href="patient.css">
+  <link rel="icon" href="icons/logo-onko.png" type="image/png">
+</head>
+<body>
+  <div class="patient-app-wrap">
+    
+    <!-- 1. YUQORI SARLAVHA -->
+    <header class="pat-header">
+      <div class="pat-brand">
+        <img src="icons/logo-onko.png" alt="Logo" class="pat-logo" onerror="this.style.display='none'">
+        <div class="pat-header-text">
+          <h1>RESPUBLIKA ONKOLOGIYA MARKAZI</h1>
+          <h2>Ultratovush (UTT) • Bemorlar Navbat Portali</h2>
+        </div>
+      </div>
+      <div class="pat-clock" id="patLiveClock">10:00:00</div>
+    </header>
+
+    <!-- 2. QIDIRUV FORMASI -->
+    <section class="pat-search-section">
+      <div class="pat-search-card">
+        <h3>🔍 O'z navbatingizni aniqlang</h3>
+        <p class="search-hint">Bemor ID raqamingiz (masalan: <b>46002</b>) yoki <b>Familiyangizni</b> kiriting:</p>
+        
+        <div class="search-box-wrap">
+          <input type="text" id="patientSearchInput" class="pat-search-input" placeholder="ID raqam yoki Familiya..." autocomplete="off" />
+          <button type="button" id="btnSearchPatient" class="btn-pat-search">
+            <span>Izlash</span>
+          </button>
+        </div>
+
+        <div class="quick-examples">
+          <span>Namuna:</span>
+          <a href="#" class="ex-link" data-query="336">ID 336</a>
+          <a href="#" class="ex-link" data-query="46002">ID 46002</a>
+          <a href="#" class="ex-link" data-query="19272">ID 19272</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. QIDIRUV NATIJASI VA NAVBAT KARTASI -->
+    <main class="pat-result-section" id="patResultSection" style="display: none;">
+      
+      <!-- SIZ CHAQIRILDINGIZ BANNERI (CALL ALERT) -->
+      <div class="called-hero-banner" id="calledHeroBanner" style="display: none;">
+        <div class="called-pulse-circle">🎉</div>
+        <div class="called-banner-text">
+          <h2 class="called-alert-title">SIZNI XONAGA CHAQIRISHMOQDA!</h2>
+          <p class="called-alert-sub" id="calledAlertSub">Iltimos, zudlik bilan xonaga kiring!</p>
+        </div>
+      </div>
+
+      <!-- KUTISH HOLATI BANNERI -->
+      <div class="waiting-hero-banner" id="waitingHeroBanner">
+        <div class="wait-status-icon">⏳</div>
+        <div class="wait-status-text">
+          <h3>Navbatingiz kutilmoqda</h3>
+          <p id="waitPositionText">Iltimos, xona oldidagi kutish zalida kuting.</p>
+        </div>
+      </div>
+
+      <!-- ASOSIY BEMOR KARTASI -->
+      <div class="patient-main-card">
+        <div class="pm-header">
+          <div class="pm-name-block">
+            <span class="pm-label">BEMOR F.I.SH</span>
+            <h2 class="pm-fullname" id="pmFullName">-</h2>
+            <div class="pm-id-chip">ID: <b id="pmPatientId">-</b></div>
+          </div>
+          <div class="pm-queue-badge">
+            <span class="pm-q-title">SIZNING NAVBATINGIZ</span>
+            <span class="pm-q-number" id="pmQueueNumber">1</span>
+          </div>
+        </div>
+
+        <!-- BIRIKTIRILGAN XONA VA SHIFOKOR -->
+        <div class="pm-doctor-box">
+          <div class="pm-room-title" id="pmRoomTitle">UTT10-51 XONA</div>
+          <div class="pm-doc-name" id="pmDoctorName">Dr. Xudayberdiyeva Nigora Nizamovna</div>
+        </div>
+
+        <!-- STATISTIK PILLAR -->
+        <div class="pm-stats-grid">
+          <div class="p-stat-card stat-ahead">
+            <span class="stat-num" id="pmPatientsAheadCount">0</span>
+            <span class="stat-desc">Sizdan oldin navbatda</span>
+          </div>
+          <div class="p-stat-card stat-total">
+            <span class="stat-num" id="pmTotalRoomPatients">0</span>
+            <span class="stat-desc">Shifokorda jami bemor</span>
+          </div>
+          <div class="p-stat-card stat-time">
+            <span class="stat-num" id="pmRegTime">-</span>
+            <span class="stat-desc">Ro'yxatga olingan</span>
+          </div>
+        </div>
+
+        <!-- JONLI HOLAT ESATMASI -->
+        <div class="pm-live-hint">
+          <span class="pulse-dot-green"></span>
+          <span>Sahifa avtomatik yangilanadi. Chaqirilganingizda ekranda yashil signal chiqadi.</span>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 4. HECH NARSA TOPILMAGANDA -->
+    <div class="pat-not-found" id="patNotFound" style="display: none;">
+      <div class="not-found-icon">❓</div>
+      <h3>Bemor topilmadi</h3>
+      <p>Kiritilgan ma'lumot bo'yicha bugungi navbatda bemor topilmadi. Iltimos, ID raqam yoki Familiyani tekshirib qayta kiriting yoki ro'yxatga olish bo'limiga uchrashing.</p>
+    </div>
+
+    <!-- 5. BIR NECHTA NATIJA TOPILGANDA TANLASH -->
+    <div class="pat-multi-matches" id="patMultiMatches" style="display: none;">
+      <h3>Bir nechta bemor topildi. O'zingizni tanlang:</h3>
+      <div class="multi-list" id="multiList"></div>
+    </div>
+
+    <!-- 6. FOOTER -->
+    <footer class="pat-footer">
+      <div class="wifi-info-card">
+        <span>📶 Bepul Wi-Fi: <b>ONC-Clients</b> | Parol: <b>Onco2026++</b></span>
+      </div>
+      <p>© 2026 Respublika Onkologiya Markazi • UTT Bo'limi</p>
+    </footer>
+
+  </div>
+
+  <script src="patient.js"></script>
+</body>
+</html>

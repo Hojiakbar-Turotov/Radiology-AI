@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KARMED UTT — Rahbariyat & Admin Analitika Dashborti</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+</head>
+<body>
+  <div class="admin-layout">
+
+    <!-- TOP EXECUTIVE HEADER -->
+    <header class="admin-header">
+      <div class="header-main">
+        <div class="brand-badge">
+          <span class="badge-icon">🏛️</span>
+          <div>
+            <div class="brand-org">RESPUBLIKA ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI</div>
+            <div class="brand-title">KARMED UTT — RAHBARIYAT STRATEGIK TAHLIL DASHBORTI</div>
+          </div>
+        </div>
+        <div class="header-status-group">
+          <!-- Summani ko'rsatish / yashirish toggle -->
+          <button type="button" class="btn-money-toggle" id="btn-money-toggle" title="Moliyaviy summalarni ko'rsatish yoki yashirish">
+            <span class="money-icon">👁️</span> <span class="money-text">Summalar: Ko'rsatilgan</span>
+          </button>
+
+          <!-- Kunduzgi / Tungi Rejim -->
+          <button type="button" class="btn-theme-toggle" id="btn-theme-toggle" title="Kunduzgi / Tungi rejimni almashtirish">
+            <span class="theme-icon">🌙</span> <span class="theme-text">Tungi rejim</span>
+          </button>
+
+          <div class="status-chip mode-chip">
+            <span class="chip-dot"></span>
+            <span>Monitoring: <strong>Qo'lda So'rov</strong></span>
+          </div>
+          <div class="status-chip server-chip">
+            <span>Server: <strong>192.168.150.111:2025</strong></span>
+          </div>
+          <div class="status-chip time-chip" id="admin-clock">--:--:--</div>
+        </div>
+      </div>
+
+      <!-- FILTER & QUERY CONTROL BAR -->
+      <div class="control-bar">
+        <div class="date-controls">
+          <div class="input-group">
+            <label for="input-start-date">📅 Boshlanish sanasi:</label>
+            <input type="text" id="input-start-date" class="date-input" value="" placeholder="DD.MM.YYYY">
+          </div>
+          <div class="input-group">
+            <label for="input-end-date">📅 Tugash sanasi:</label>
+            <input type="text" id="input-end-date" class="date-input" value="" placeholder="DD.MM.YYYY">
+          </div>
+          
+          <div class="presets-group">
+            <span class="preset-label">Tezkor muddat:</span>
+            <button type="button" class="btn-preset active" data-preset="today" id="btn-preset-today">Bugun</button>
+            <button type="button" class="btn-preset" data-preset="september" id="btn-preset-month">Joriy oy</button>
+            <button type="button" class="btn-preset" data-preset="7days">Oxirgi 7 kun</button>
+            <button type="button" class="btn-preset" data-preset="august" id="btn-preset-lastmonth">O'tgan oy</button>
+            <button type="button" class="btn-preset" data-preset="2month">Oxirgi 2 oy</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" class="btn-primary" id="btn-fetch-report">
+            <span class="btn-icon">📊</span> Hisobotni Olish
+          </button>
+          <button type="button" class="btn-warning" id="btn-force-refresh" title="Keshni chetlab o'tib, Karmeddan yangi ma'lumotlarni qayta yuklaydi">
+            <span class="btn-icon">🔄</span> Karmeddan Yangilash
+          </button>
+          <button type="button" class="btn-success" id="btn-export-csv" title="Joriy tahlilni Excel formatida yuklab olish">
+            <span class="btn-icon">📥</span> Excel (CSV)
+          </button>
+        </div>
+      </div>
+
+      <!-- CACHE & SYNC INFO BANNER -->
+      <div class="cache-banner" id="cache-status-banner">
+        <span class="cache-indicator" id="cache-indicator">⚡ Ma'lumot kutilmoqda...</span>
+        <span id="auto-refresh-status" style="font-size:12px; margin-left:12px; padding:3px 10px; border-radius:12px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); font-weight:600;">🟢 Jonli avto-yangilanish: Faol (45s)</span>
+        <span class="date-summary" id="date-summary-text">Muddat: Bugun</span>
+      </div>
+    </header>
+
+    <!-- KPI SUMMARY CARDS (5 METRICS - BOSILGANDA FILTRLANADI) -->
+    <section class="kpi-grid">
+      <!-- 1. Jami Yo'naltirilgan -->
+      <div class="kpi-card kpi-total clickable" data-kpi-filter="ALL" title="Barcha bemorlar ro'yxatini ko'rish uchun bosing">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kpi-total-referred">0</div>
+          <div class="kpi-title">Jami Yo'naltirilgan Bemorlar</div>
+          <div class="kpi-hint">UTT bo'limiga ro'yxatga olinganlar <span class="kpi-click-hint">👉 Ko'rish</span></div>
+        </div>
+      </div>
+
+      <!-- 2. Tekshiruvdan O'tgan -->
+      <div class="kpi-card kpi-completed clickable" data-kpi-filter="completed" title="O'tgan bemorlarni filtrlash uchun bosing">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kpi-total-completed">0</div>
+          <div class="kpi-title">Tekshiruvdan O'tganlar (Rapor Onaylı)</div>
+          <div class="kpi-hint"><span id="kpi-completed-pct" class="badge-pct">0%</span> muvaffaqiyatli xulosa <span class="kpi-click-hint">👉 Filtrlash</span></div>
+        </div>
+      </div>
+
+      <!-- 3. Navbatda Kutmoqda -->
+      <div class="kpi-card kpi-waiting clickable" data-kpi-filter="waiting" title="Kutayotgan bemorlarni filtrlash uchun bosing">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kpi-total-waiting">0</div>
+          <div class="kpi-title">Navbatda Kutayotganlar</div>
+          <div class="kpi-hint">Tekshiruvga kirmagan bemorlar <span class="kpi-click-hint">👉 Filtrlash</span></div>
+        </div>
+      </div>
+
+      <!-- 4. Qabul Qilingan -->
+      <div class="kpi-card kpi-accepted clickable" data-kpi-filter="accepted" title="Qabul qilingan bemorlarni filtrlash uchun bosing">
+        <div class="kpi-icon">🩺</div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kpi-total-accepted">0</div>
+          <div class="kpi-title">Qabul Qilinganlar (Xonada)</div>
+          <div class="kpi-hint">Jarayondagi tekshiruvlar <span class="kpi-click-hint">👉 Filtrlash</span></div>
+        </div>
+      </div>
+
+      <!-- 5. Jami To'lov Summasi -->
+      <div class="kpi-card kpi-revenue" title="Preyskurant (Rezident, No-rezident, Sug'urta)">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-body">
+          <div class="kpi-value revenue-val" id="kpi-total-revenue">0 so'm</div>
+          <div class="kpi-title">Jami Hisoblangan Tushum</div>
+          <div class="kpi-hint" id="kpi-residency-hint">Rezident / No-rezident / Sug'urta</div>
+        </div>
+      </div>
+
+      <!-- 6. Farqli Qabullar (Discrepancies) -->
+      <div class="kpi-card kpi-discrepancy clickable" data-kpi-filter="discrepancy" title="Xonasi va hisobot muallifi mos kelmagan bemorlar (Filtrlash uchun bosing)">
+        <div class="kpi-icon">⚠️</div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kpi-total-discrepancies" style="color: #f59e0b;">0</div>
+          <div class="kpi-title">Farqli Qabullar (Boshqa Vrach)</div>
+          <div class="kpi-hint"><span id="kpi-discrepancy-pct" class="badge-pct" style="background:rgba(245,158,11,0.2); color:#fbbf24;">0%</span> xona ⟷ muallif farqi <span class="kpi-click-hint">👉 Filtrlash</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="admin-tabs">
+      <button type="button" class="tab-btn active" data-tab="tab-doctors">
+        <span class="tab-icon">🏥</span> UTT Vrachlari (Xonalar) Tahlili
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-cross-matrix">
+        <span class="tab-icon">🔄</span> Vrachlararo Taqsimot (UTT ⟷ Davolovchi)
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-referrals">
+        <span class="tab-icon">👨‍⚕️</span> Davolovchi Shifokorlar Reytingi
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-timeline">
+        <span class="tab-icon">📈</span> Kunlik Dinamika & Trend
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-patients">
+        <span class="tab-icon">📋</span> Bemorlar Jurnali (Kengaytirilgan)
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-prices">
+        <span class="tab-icon">💵</span> Rasmiy Narxlar Tarifnomasi
+      </button>
+    </nav>
+
+    <!-- MAIN TAB CONTENT PANELS -->
+    <main class="tabs-content">
+
+      <!-- =================================================================== -->
+      <!-- TAB 1: UTT VRACHLARI (XONALAR) TAHLILI VA BEMORLAR RO'YXATI         -->
+      <!-- =================================================================== -->
+      <div class="tab-pane active" id="tab-doctors">
+        <div class="section-intro">
+          <div>
+            <h2>🏥 UTT Xonalari va Shifokorlari Faoliyati</h2>
+            <p class="subtitle">Har bir UTT shifokori bo'yicha qabul qilingan bemorlar soni, o'tganlar, kutayotganlar, tushum va individual bemorlar ro'yxati</p>
+          </div>
+          <div class="search-box">
+            <input type="text" id="filter-doc-input" class="search-input" placeholder="Xona yoki shifokor nomi bo'yicha qidirish...">
+          </div>
+        </div>
+
+        <!-- DOCTOR CARDS GRID -->
+        <div class="doctors-cards-grid" id="doctors-cards-container">
+          <div class="loading-box">Ma'lumotlar yuklanmoqda...</div>
+        </div>
+
+        <!-- DOCTORS COMPARISON TABLE -->
+        <div class="panel-section">
+          <div class="panel-title-bar">
+            <h3>📊 Barcha 10 ta UTT Shifokori Taqqoslash Jadvali</h3>
+            <button class="btn-secondary" id="btn-export-doctors-csv">📥 Vrachlar Jadvalini Yuklab Olish (CSV)</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="table-doctors-summary">
+              <thead>
+                <tr>
+                  <th>Xona</th>
+                  <th>Shifokor F.I.SH</th>
+                  <th class="text-right">Jami Yo'naltirilgan</th>
+                  <th class="text-right">Tekshiruvdan O'tgan</th>
+                  <th class="text-right">Kutmoqda</th>
+                  <th class="text-right">Qabul Qilingan</th>
+                  <th class="text-center">O'tish Foizi</th>
+                  <th class="text-right">Qabul Qilingan Tushum</th>
+                  <th class="text-center">Bemorlar</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-doctors-summary">
+                <tr><td colspan="9" class="text-center">Ma'lumotlar yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB: VRACHLARARO TAQSIMOT (UTT ⟷ DAVOLOVCHI IKKI TOMONLAMA MATRITSA)-->
+      <!-- =================================================================== -->
+      <div class="tab-pane" id="tab-cross-matrix">
+        <div class="section-intro">
+          <div>
+            <h2>🔄 Vrachlararo Taqsimot Matritsasi (Bidirectional Cross-Referral)</h2>
+            <p class="subtitle">1. Qaysi UTT shifokoriga qaysi davolovchi shifokorlar qancha bemor yuborgan. 2. Aksincha, davolovchi shifokorlar yuborgan bemorlar qaysi UTT xonalariga borgani tahlili</p>
+          </div>
+          <div class="matrix-top-actions">
+            <div class="matrix-mode-pills">
+              <button type="button" class="btn-matrix-mode active" data-matrix-mode="utt-first">
+                🏥 UTT Shifokori Bo'yicha (Kimlar unga yubordi)
+              </button>
+              <button type="button" class="btn-matrix-mode" data-matrix-mode="ref-first">
+                👨‍⚕️ Davolovchi Shifokor Bo'yicha (Qaysi UTT ga yubordi)
+              </button>
+            </div>
+            <div class="search-box">
+              <input type="text" id="filter-matrix-input" class="search-input" placeholder="Shifokor yoki xona bo'yicha qidirish...">
+            </div>
+            <button type="button" class="btn-secondary" id="btn-export-cross-matrix-csv">
+              📥 Matritsani Yuklab Olish (CSV)
+            </button>
+          </div>
+        </div>
+
+        <div class="matrix-grid-container" id="matrix-grid-container">
+          <div class="loading-box">Matritsa ma'lumotlari yuklanmoqda...</div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB 2: DAVOLOVCHI SHIFOKORLAR (YO'NALTIRUVCHILAR) REYTINGI         -->
+      <!-- =================================================================== -->
+      <div class="tab-pane" id="tab-referrals">
+        <div class="section-intro">
+          <div>
+            <h2>👨‍⚕️ Davolovchi Shifokorlar Reytingi (DosyaDoktoru)</h2>
+            <p class="subtitle">UTT bo'limiga eng ko'p bemor yo'naltirgan shifokorlar, ularning bo'limlari, o'tgan bemorlar va generatsiya qilingan tushum</p>
+          </div>
+          <div class="search-box">
+            <input type="text" id="filter-ref-input" class="search-input" placeholder="Shifokor yoki bo'lim bo'yicha qidirish...">
+          </div>
+        </div>
+
+        <!-- TOP 3 PODIUM -->
+        <div class="top-podium-grid" id="top-podium-container">
+          <!-- Will be rendered dynamically -->
+        </div>
+
+        <!-- REFERRALS TABLE -->
+        <div class="panel-section">
+          <div class="panel-title-bar">
+            <h3>📋 Barcha Davolovchi Shifokorlar Ro'yxati</h3>
+            <div class="table-actions">
+              <span class="count-badge" id="badge-ref-count">0 shifokor</span>
+              <button class="btn-secondary" id="btn-export-referrals-csv">📥 Davolovchilar Ro'yxatini Yuklab Olish (CSV)</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="table-referrals">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 60px;">O'rni</th>
+                  <th>Davolovchi Shifokor F.I.SH</th>
+                  <th>Asosiy Bo'limi</th>
+                  <th class="text-right">Jami Yuborgan</th>
+                  <th class="text-right">O'tganlar</th>
+                  <th class="text-right">Kutmoqda</th>
+                  <th class="text-center">Umumiy Ulushi</th>
+                  <th class="text-right">Yo'naltirilgan Summa</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-referrals">
+                <tr><td colspan="8" class="text-center">Ma'lumotlar yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB 3: KUNLIK DINAMIKA VA OYLIK TREND                               -->
+      <!-- =================================================================== -->
+      <div class="tab-pane" id="tab-timeline">
+        <div class="section-intro">
+          <div>
+            <h2>📈 Kunlik Qatnov Dinamikasi va Tushumlar Trendi</h2>
+            <p class="subtitle">Tanlangan muddatdagi har bir kunlik qabul qilingan bemorlar soni, o'tish ko'rsatkichi va kunlik tushum</p>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title-bar">
+            <h3>📅 Kunlar Bo'yicha Bemorlar Oqimi</h3>
+            <span class="count-badge" id="badge-days-count">0 kun</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="table-timeline">
+              <thead>
+                <tr>
+                  <th style="width: 140px;">Sana</th>
+                  <th class="text-right" style="width: 130px;">Jami Bemorlar</th>
+                  <th style="min-width: 250px;">Oqim Vizualizatsiyasi</th>
+                  <th class="text-right" style="width: 130px;">O'tganlar</th>
+                  <th class="text-center" style="width: 110px;">O'tish Foizi</th>
+                  <th class="text-right" style="width: 180px;">Kunlik Tushum</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-timeline">
+                <tr><td colspan="6" class="text-center">Ma'lumotlar yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB 4: BEMORLAR JURNALI (KENGAYTIRILGAN QIDIRUV VA FILTR)           -->
+      <!-- =================================================================== -->
+      <div class="tab-pane" id="tab-patients">
+        <div class="section-intro">
+          <div>
+            <h2>📋 Umumiy Bemorlar Jurnali</h2>
+            <p class="subtitle">Barcha ro'yxatga olingan bemorlarni ID, F.I.SH, xona, shifokor va holati bo'yicha saralash va qidirish</p>
+          </div>
+        </div>
+
+        <!-- PATIENTS ADVANCED FILTER BAR -->
+        <div class="patients-filter-bar">
+          <div class="filter-item">
+            <label>🔍 Qidiruv:</label>
+            <input type="text" id="patient-search-query" class="search-input" placeholder="Bemor F.I.SH, ID yoki Protokol...">
+          </div>
+          <div class="filter-item">
+            <label>🏥 UTT Xonasi:</label>
+            <select id="patient-filter-room" class="select-input">
+              <option value="ALL">Barcha Xonalar</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>📌 Holati:</label>
+            <select id="patient-filter-status" class="select-input">
+              <option value="ALL">Barcha Holatlar</option>
+              <option value="completed">Tekshiruvdan o'tgan (Rapor Onaylı)</option>
+              <option value="waiting">Navbatda kutmoqda (Bekleyen)</option>
+              <option value="accepted">Qabul qilingan (Kabul Edilen)</option>
+              <option value="writing">Hisobot yozilmoqda</option>
+              <option value="cancelled">Bekor qilingan / Kelmagan</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>⚠️ Farq Holati:</label>
+            <select id="patient-filter-discrepancy" class="select-input">
+              <option value="ALL">Barcha Bemorlar</option>
+              <option value="DISCREPANCY_ONLY">⚠️ Faqat Farqli Bemorlar (Boshqa vrach qabul qilgan)</option>
+              <option value="MATCH_ONLY">✓ Bir xil (Xona vrachi qabul qilgan)</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>🏛️ Toifasi (Karmed):</label>
+            <select id="patient-filter-type" class="select-input">
+              <option value="ALL">Barcha Toifalar</option>
+              <option value="rezident">🇺🇿 Rezident (O'zbekiston fuqarosi)</option>
+              <option value="sugurta">🏥 Sug'urta / Orderli / Imtiyozli</option>
+              <option value="norezident">🌐 No-rezident (Chet el fuqarosi)</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>📄 Sahifada:</label>
+            <select id="patient-page-size" class="select-input">
+              <option value="50">50 ta</option>
+              <option value="100" selected>100 ta</option>
+              <option value="200">200 ta</option>
+              <option value="500">500 ta</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PATIENTS TABLE -->
+        <div class="panel-section">
+          <div class="panel-title-bar">
+            <div class="left-stats">
+              <span>Topilgan bemorlar: <strong id="patients-matched-count">0</strong> ta</span>
+              <span class="text-muted" id="patients-page-info">(1-100 ko'rsatilmoqda)</span>
+            </div>
+            <div class="pagination-controls" id="pagination-controls">
+              <!-- Dynamically generated -->
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="table-patients">
+              <thead>
+                <tr>
+                  <th style="width: 45px;">№</th>
+                  <th style="width: 90px;">Bemor ID</th>
+                  <th style="width: 95px;">Protokol</th>
+                  <th style="min-width: 160px;">Bemor F.I.SH</th>
+                  <th style="width: 140px;">Toifasi (Karmed)</th>
+                  <th style="width: 90px;">Sana</th>
+                  <th style="width: 65px;">Vaqt</th>
+                  <th style="width: 135px;">Tekshiruv Organlari</th>
+                  <th style="min-width: 150px;">Ulangan Bo'lim (Xona)</th>
+                  <th style="min-width: 150px;">Qabul Qiluvchi Shifokor</th>
+                  <th style="width: 110px;">Farq</th>
+                  <th style="min-width: 150px;">Davolovchi Shifokor</th>
+                  <th style="width: 150px;">Holati</th>
+                  <th class="text-right" style="width: 130px;">Tarif Summasi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-patients">
+                <tr><td colspan="14" class="text-center">Ma'lumotlar yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB 5: RASMIY NARXLAR TARIFNOMASI (GOOGLE SHEETS)                   -->
+      <!-- =================================================================== -->
+      <div class="tab-pane" id="tab-prices">
+        <div class="section-intro">
+          <div>
+            <h2>💵 Rasmiy Tibbiy Xizmatlar Tarifnomasi (160 ta xizmat)</h2>
+            <p class="subtitle">Respublika Onkologiya Markazining rasmiy tasdiqlangan preyskuranti (UTT, Rentgen, MSKT, MRT)</p>
+          </div>
+          <div class="search-box">
+            <input type="text" id="price-search-input" class="search-input" placeholder="Xizmat nomi yoki kodi bo'yicha qidirish...">
+          </div>
+        </div>
+
+        <div class="price-modality-tabs">
+          <button type="button" class="mod-pill active" data-mod="ALL">Barchasi (160)</button>
+          <button type="button" class="mod-pill" data-mod="UTT">🎯 UTT (32)</button>
+          <button type="button" class="mod-pill" data-mod="RENTGEN">☢️ Rentgen (37)</button>
+          <button type="button" class="mod-pill" data-mod="MSKT">⚡ MSKT (23)</button>
+          <button type="button" class="mod-pill" data-mod="MRT">🧲 MRT (68)</button>
+        </div>
+
+        <div class="panel-section">
+          <div class="table-wrapper">
+            <table class="data-table" id="table-prices">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">Kodi</th>
+                  <th style="width: 100px;">Bo'lim</th>
+                  <th>Xizmat Nomi</th>
+                  <th class="text-right" style="width: 170px;">Mahalliy Narx (UZS)</th>
+                  <th class="text-right" style="width: 170px;">Sug'urta Narxi (UZS)</th>
+                  <th class="text-right" style="width: 170px;">Xorijiy Fuqaro (UZS)</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-prices">
+                <tr><td colspan="6" class="text-center">Narxlar tarifnomasi yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- DOCTOR PATIENTS MODAL (BEMORLAR RO'YXATI MODALI)                      -->
+    <!-- ===================================================================== -->
+    <div class="modal-overlay" id="doctor-modal" style="display: none;">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <h3 id="modal-doctor-title">🏥 Ultratovush-9 — Xusanova Nilufar</h3>
+            <p id="modal-doctor-subtitle" class="subtitle">Ushbu shifokor ko'rgan bemorlar ro'yxati</p>
+          </div>
+          <button type="button" class="modal-close" id="btn-close-modal">&times;</button>
+        </div>
+
+        <div class="modal-toolbar">
+          <div class="modal-search">
+            <input type="text" id="modal-patient-search" class="search-input" placeholder="Ushbu shifokor bemorlari orasidan qidirish...">
+          </div>
+          <div class="modal-filter-status">
+            <select id="modal-status-filter" class="select-input">
+              <option value="ALL">Barcha Holatlar</option>
+              <option value="completed">Faqat O'tganlar (Rapor Onaylı)</option>
+              <option value="waiting">Kutayotganlar (Bekleyen)</option>
+              <option value="accepted">Qabul qilinganlar (Kabul)</option>
+            </select>
+          </div>
+          <div class="modal-stats" id="modal-stats-summary">
+            Jami: <strong>0</strong> ta | O'tgan: <strong>0</strong> ta | Tushum: <strong>0 so'm</strong>
+          </div>
+          <button type="button" class="btn-secondary" id="btn-export-modal-csv">📥 Ushbu Ro'yxatni Yuklab Olish (CSV)</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="table-wrapper modal-table-scroll">
+            <table class="data-table" id="table-modal-patients">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">№</th>
+                  <th style="width: 110px;">Bemor ID</th>
+                  <th style="width: 100px;">Protokol</th>
+                  <th>Bemor F.I.SH</th>
+                  <th style="width: 150px;">Toifasi (Karmed)</th>
+                  <th style="width: 100px;">Sana</th>
+                  <th style="width: 80px;">Vaqt</th>
+                  <th style="width: 170px;">Holati</th>
+                  <th>Tekshiruv Turi</th>
+                  <th>Davolovchi Shifokor</th>
+                  <th class="text-right" style="width: 130px;">To'lov</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-modal-patients">
+                <tr><td colspan="11" class="text-center">Bemorlar yuklanmoqda...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- BEMORNING KARMED JAVOBLARI VA TEKSHIRUV ORGANLARI MODALI                 -->
+    <!-- ========================================================================= -->
+    <div class="modal-overlay" id="patient-detail-modal" style="display: none;">
+      <div class="modal-container patient-detail-container">
+        <div class="modal-header">
+          <div>
+            <h2 id="pmodal-fullname">Bemor F.I.SH</h2>
+            <p class="modal-subtitle" id="pmodal-meta">ID: — | Protokol: — | Sana: —</p>
+          </div>
+          <button type="button" class="btn-modal-close" id="btn-close-patient-modal">&times;</button>
+        </div>
+
+        <div class="patient-detail-body">
+          <!-- Diagnosis & Alert block -->
+          <div class="pmodal-diagnosis-banner" id="pmodal-diagnosis-box">
+            <div class="pmodal-diag-label">🏷️ Karmed Tashxisi:</div>
+            <div class="pmodal-diag-text" id="pmodal-diagnosis-text">Yuklanmoqda...</div>
+          </div>
+
+          <div class="pmodal-discrepancy-banner" id="pmodal-discrepancy-banner" style="display:none;">
+            <span class="pmodal-alert-icon">⚠️</span>
+            <div class="pmodal-alert-content">
+              <strong>DIQQAT: Shifokorlar o'rtasida farq aniqlandi!</strong>
+              <div id="pmodal-discrepancy-desc">—</div>
+            </div>
+          </div>
+
+          <!-- 3 Doctor Cards Grid -->
+          <div class="pmodal-docs-grid">
+            <div class="pmodal-doc-card">
+              <div class="pmodal-doc-role">🏥 Ulangan Bo'lim / Xona</div>
+              <div class="pmodal-doc-name" id="pmodal-connected-room">—</div>
+              <div class="pmodal-doc-hint" id="pmodal-connected-doc">—</div>
+            </div>
+            <div class="pmodal-doc-card pmodal-doc-author">
+              <div class="pmodal-doc-role">👨‍⚕️ Qabul Qiluvchi Shifokor</div>
+              <div class="pmodal-doc-name" id="pmodal-report-author">—</div>
+              <div class="pmodal-doc-hint" id="pmodal-report-status">Ko'rik o'tkazgan shifokor</div>
+            </div>
+            <div class="pmodal-doc-card">
+              <div class="pmodal-doc-role">👨‍⚕️ Davolovchi Shifokor (Yuborgan)</div>
+              <div class="pmodal-doc-name" id="pmodal-referring-doc">—</div>
+              <div class="pmodal-doc-hint" id="pmodal-dept">—</div>
+            </div>
+          </div>
+
+          <!-- Services / Organs Table -->
+          <div class="pmodal-table-section">
+            <div class="pmodal-section-title">
+              <h3>🔬 Bemorning Barcha Tekshiruv Organlari (Karmed javobi)</h3>
+              <span class="count-badge" id="pmodal-services-count">0 ta tekshiruv</span>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="pmodal-services-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">№</th>
+                    <th style="width: 90px;">Navbat ID</th>
+                    <th style="width: 70px;">Kod</th>
+                    <th>Tekshiruv Organi / Xizmat Nomi</th>
+                    <th>Qabul Qiluvchi Shifokor</th>
+                    <th style="width: 140px;">Hisobot Holati</th>
+                    <th class="text-right" style="width: 130px;">Tarif Narxi</th>
+                  </tr>
+                </thead>
+                <tbody id="pmodal-services-tbody">
+                  <tr><td colspan="7" class="text-center">Tekshiruvlar yuklanmoqda...</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="6" class="text-right"><strong>JAMI HISOB-KITOB QILINGAN SUMMA:</strong></td>
+                    <td class="text-right" id="pmodal-total-price" style="color:#34d399; font-weight:800; font-size:1.05rem;">0 so'm</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <span class="text-muted" id="pmodal-timestamp">Karmed tizimidan to'g'ridan-to'g'ri olingan ma'lumotlar</span>
+          <button type="button" class="btn btn-outline" id="btn-close-patient-modal-2">Yopish</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

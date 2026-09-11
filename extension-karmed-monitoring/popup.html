@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Karmed Monitoring</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    .user-snapshot-box {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .user-snapshot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .prop-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #090d16;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 10px;
+      color: #cbd5e1;
+    }
+    .btn-mini-copy {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 9px;
+    }
+    .btn-mini-copy:hover { background: #0284c7; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="popup-title">🛰️ Karmed Monitoring</div>
+      <div class="popup-version">v1.3.0</div>
+    </div>
+
+    <div class="status-card">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span class="status-text">Faol (Monitoring yoqilgan)</span>
+      </div>
+      <div class="host-badge">http://192.168.150.111:2025/</div>
+    </div>
+
+    <!-- USER SESSION SNAPSHOT BOX -->
+    <div class="user-snapshot-box" id="pop-user-box">
+      <div class="user-snapshot-header">
+        <span id="pop-user-name">👤 Pazliyev Sardor (R5)</span>
+        <span style="font-size:10px; color:#10b981;">● Nusxa saqlangan</span>
+      </div>
+      <div class="prop-row">
+        <span>Sessiya: <span id="pop-sess-id">Aniqlanmoqda...</span></span>
+        <button class="btn-mini-copy" id="pop-copy-sess">📋 Nusxa</button>
+      </div>
+      <div class="prop-row">
+        <span>Token: <span id="pop-token">Aniqlanmoqda...</span></span>
+        <button class="btn-mini-copy" id="pop-copy-tok">📋 Nusxa</button>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div class="m-val" id="pop-auth-status">Faol</div>
+        <div class="m-lbl">Avtorizatsiya</div>
+      </div>
+      <div class="metric-box">
+        <div class="m-val" id="pop-patient-status">8 Port</div>
+        <div class="m-lbl">Tizim Holati</div>
+      </div>
+    </div>
+
+    <div class="actions-list">
+      <button class="btn-primary" id="btn-open-panel">🖥️ Sahifadagi Panelni Ochish</button>
+      <button class="btn-secondary" id="btn-download">💾 Tarixni JSON Yuklab Olish</button>
+    </div>
+
+    <div class="popup-footer">
+      Karmed F.I.SH, Token va SessionId nazorati
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

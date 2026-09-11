@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link type="text/css" rel="stylesheet" href="/Radiology/extjs/packages/theme_classic/build/resources/theme-classic-all-embedded-css/ext.axd?v=4.1.0" id="ext-theme" />
+    <link type="text/css" rel="stylesheet" href="/Radiology/extnet/resources/css/extnet-all-embedded-css/ext.axd?v=4.1.0" id="extnet-styles" />
+    <link type="text/css" rel="stylesheet" href="/Radiology/extnet/unlicensed/css/un-embedded-css/ext.axd?v=4.1.0" />
+    <script type="text/javascript" src="/Radiology/extjs/ext-all-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/extjs/packages/theme_classic/build/theme-classic-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/extnet/extnet-all-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/extnet/locale/locale-tr-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/ux/clearbutton/clearbutton-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/ux/filterheader/filterheader-js/ext.axd?v=4.1.0"></script>
+    <script type="text/javascript" src="/Radiology/extnet/unlicensed/un-js/ext.axd?v=4.1.0"></script>
+
+    <script type="text/javascript" src="/Radiology/extnet/extnet-init-js/ext.axd?6f4eef5b42ec45b7bc1e1190956fe835"></script><title>
+	RBYS - Kardelen Yazılım
+</title><link rel="icon" type="image/x-icon" href="icons/rbys.ico" />
+    <style>
+        .boldText {
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        var Rbys = {};
+    </script>
+    
+    <script>
+        function KararDestekWindow(wid, t, w, h, loadurl, callBack) {
+            top.Ext.create("Ext.window.Window", {
+                id: wid,
+                height: h,
+                header: t == null || t == '' ? false : true,
+                hidden: true,
+                width: w,
+                draggable: true,
+                idMode: 'Static',
+                title: t,
+                layout: 'fit',
+                maximized: w != 0 || h != 0 ? false : true,
+                autoLoad: {
+                    url: loadurl,
+                    nocache: true,
+                    renderer: 'frame',
+                    loadMask: {
+                        showMask: true,
+                        msg: "Yükleniyor"
+                    },
+                    listeners: {
+
+                    }
+                },
+                listeners: {
+                    close: {
+                        fn: function () {
+                            Page.DosyaKabulEt();
+                        }
+                    }
+                }
+            }).show();
+        }
+
+        function getContains() {
+            var value = this.getRawValue().replaceAll('ı', 'I').replaceAll('i', 'İ');
+            if (value && value[0] !== "*" && !Ext.net.FilterHeader.behaviour.getBehaviour("string", value)) {
+                return "*" + value;
+            }
+
+
+            return value;
+        }
+
+        function kayitSayisiSec() {
+            App.grdHastalar.store.pageSize = parseInt(App.cbKayitSayisiSecim.getValue(), 10);
+            App.grdHastalar.store.reload();
+        }
+
+        function gridYenile() {
+            dm.HastaSorgula(null, false);
+        }
+
+    </script>
+    </head>
+<body>
+    <div>
+        <link href="/Radiology/icons/ico.css?v=6471" rel="stylesheet" /><link href="/Radiology/icons/icoBase.css?v=6471" rel="stylesheet" /><link href="/Radiology/css/extStyles.css?v=6471" rel="stylesheet" /><link href="/Radiology/css/rbysStyle.css?v=6471" rel="stylesheet" /><script src="/Radiology/js/lib/jquery.min.js?v=6471"></script><script src="/Radiology/js/protocolcheck.min.js?v=6471"></script><script src="/Radiology/js/ExtTools.min.js?v=6471"></script><script src="/Radiology/js/RbysTools.min.js?v=6471"></script><script src="/Radiology/lib/Window/Win.min.js?v=6471"></script><script src="/Radiology/lib/CanliKaydet/CanliKaydet.min.js?v=6471"></script><script src="/Radiology/lib/Rbys.BolumYetki/BolumYetki.min.js?v=6471"></script><script src="/Radiology/lib/Rbys.KullaniciYetki/KullaniciYetki.min.js?v=6471"></script><script src="/Radiology/lib/GListe/GList.min.js?v=05112025?v=6471"></script><script src="/Radiology/lib/GListe/GList2.min.js?v=25122024?v=6471"></script><script src="/Radiology/lib/Rbys/Islemler.min.js?v=6471"></script><script src="/Radiology/lib/Rbys/Sayfalar.min.js?v=6471"></script><script src="/Radiology/lib/Rbys/SonucRapor.min.js?v=6471"></script><script src="/Radiology/lib/Rbys/Sabitler.min.js?v=6471"></script><script src="/Radiology/js/DisMonitor.js?v=6471"></script>
+    </div>
+    
+    
+    
+    <form method="post" action="./Rbys.aspx" id="form1">
+<div class="aspNetHidden">
+
+
+
+</div>
+
+
+
+
+
+<script src="Translations/Translation.tr-TR.2.0.js?ver=20190626" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=r29CI8TDHYCk9qCnU3mysvzZ1FpozICblzxOkER4WNn8UlpDyDZ-lOMnGxNm0Tse2x8OXT6PEhyfHE0Otjt_bytiyeX6E0kXfSsV3cICvbS55qgais5VWvbwmzROSiJz0&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=M5RTNDxiNIVinQ3gpfAp8-e-8ZUgvS7Mi_13VoPU0SDF79GyTfm1EPFKfrlNIzDso06sDH_4eEb1WZ6GzQHsToMJ2QCnLiumnUqwCmp_IZGiKRszWVn_IADcLfytXxn-0&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=z53Fgf_nG7JIRzuMxCxbbZZnMEMIIadJOs7Dd3eyBJ8mdXMx64PVf0Cdt9crfcE2p3lr3Ar1vksnLHeqtEBrFu4nkx9w2w-R7Fhy7OP_Qy86MwKysDOkyuZSoRgEJRmU0&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=oDciJ2TrvkKHfJ7JIdBuRCWXY5R4IkxOQa9npAnuBFTwMdwxQQu34pxptLVR-VHzzv7sd19WmpGnucUuUJJA96ev7U7kIa26zo1Ub1kRsPWNxeOlAC0HaAOf-cO5pB-gAFoznjM8brLMpMwIMGsxVw2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=4AEy3BHrDglwGm12xoDmF5rmRoRGSsaQVlNWY3oDpiTp9_LNXuqgEBWfsODYxVcEb-H2vLcpm6S2qSkv0mdaIErspE7MJPeqI4K-JioThYtWqgJw5Byh5-swKY7F-jLIGw2lyzSuf6b0CxESlbwvrg2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=SNcF7XmWroLquoQ05pG4YCh7YQMhNL5AJx-u2_e6U8lShLfjKqtUeNZuwYXVfWFX9d1eJTJbSRfm_WIik5IinTyi7Mde6PQQ0AWzPIf6b1jRo0zilAa2tYMcSTdrVtCmst1DEAilSKxlxrkesqU3LA2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=3pSCc_6nU975VZl_ruIOiSoQzLyoT68Zg49msPNYWI82AcKN9cmDcR8KEV2GiaZ_MSJd4T9jHsW06L_TwqImGJnHmIAEchOilxUtrBwIa46SrmI6rRMS3XiUjoVvkNwM9whyfapybMCs2Fev7wX2FQ2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=Mynjb6FcJCz8SE6NC1Ef6zGzX1heTdxqIh2MoPWAb7cBdwNVNGJ2FWmv9bPtvolpWX4xH-nby7BPiYtYsV7zs4frOmU63-Q1yerSrKHcywkWxCXedqbKVAHCb_kozlbFAhbjxYIWhv5iPBlWHD1dWA2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=ZHEBbEB5ZbUZ5IOEzT6awkFiv_j4UW13-JEXrLm2BV0RVC5BdifY8SQ8fy2BS51ngnQlyq07Gvi5UY1Bb67-rwy0gHJ8GyFS1dQK1MnCg_k8qcQjeR2aknuf28K8SZPnMs9mgG_O8UCk3VKuUFyJJg2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=DW92YiV8zGE9QcT_YjEnHBafi0HY1FzdgTou9IxbTj98M4cQLfQFLGhaonDRa8FrASTnhyw08odPJHvJpvM-rz5QWyNf9RTAxIrSwRKqSV9jCP5gv8NQm4EjMPPuXXzoJ7wjQwBxOez9w6uf7AEkGw2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=qcY4cjeURvB2a-SqvOHofMa6uF0xQ1A6611P7RwardP_IPvsiGD6FbhtN28QOO3xoUItWWJxA9f3xXVaYhoROaFR4AGJqpshz_vzXOVqMAXl1DtjUNgJPsJ6Kph4paSG0&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=V17ZsyOmZDsHUjCDLruligy19RH2FxI0nKEZFX7zWU3BxHlQu6K39-pNP7h5VoisoYEEFspwP3Tkum0r8Qq8g_VIXsd1oscq-bLf41ZjkYZv7UaSgwAJtQsWSrp_urdyPFHIl1s-MZ1iSPB-AGhytQ2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=m4R5xUUyqmDE4o1re06rvRq_pzZWeLK2czA7A4MKKYAcf7KH4EkvDWAxus1Q3ThglmxrNz_Vkhc5rQ0-js8t2ZIh7mFsxG8mSZKfwwhRF3KbgLp8q-uNkU_-UkBJzIkJAuAfuteBxPt2JFCz2ij7xg2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=mBuUi-KdJReIW6RqSF5i4hjiA0fHe87C9cwsGyYq3E9K07i0xQjv7OK-KikVwPkK5F345Cn6633Z0HP0DP5oOB_3QoEGbFNg2t9TFQhNoN-wq4rag43TiqUCVcTPBvTn0&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=kxAG81N-9gu8P8yW-1pOF1oZmG2RWBmtHnk0ojLrU8fDQgqpBM-H3loZBo0CXY5ui7Gx5cXZkKA5_Mvjf9AegRl5EAlQu_5C8GwvgTDplgmj8iKxS7fyS_PbwMvou76voIBjd9cSJaRHUiKK9Y_D1w2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=6ZhsxAZ3JkwLKvJXbvHkcCAogkDTRv9Pg_KjTDWOHtllvqv6q7Ai-_1_VdVJZ11rx1jLaqlEKq_10Q3tSyugernZubWsczCIqoTWyKDnAT5GP3YoWNsW2Xba-wRndG2V_AH4UtYwpPCMe09-DTsDcA2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=f4JEWzkUO9X6HJXHnDkUTe-meEhMYE6P_sEh6s2d4SEtV6Dc8ha35QcOZB2jVWq6PIWzlRTELVYTdpAsWnU3FENcc2916XP3rvKMmCBQ4mBfw-Y_Lm5QZrh6WX1mmMCvnVIzFYtMZdwCMfhAt_M86g2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=Lu8oq2v_COuP-6f16eQMZ8m3A5DZGYia6Uv2wlWYvbClCB6uObP5N0qPtRmknzDGyo_0XzldK7em2b1cvaLPc1f1TEfYx-GVZ9HivBdI7eJ1tmS2G7brNwoFdxC59fX6MGBVM2TePoIpxTpdXDYiuQ2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=wso8vdL8unaNppfsm1oOR6Av6DXGupFgPBy3ywCJE8AbcotOsqg1cfYEp1_NSg76t04VYENej6OCweqP8HkJQSgmojwS3fJUwfHqabsUUp6uCBKu5ifYdO7Ud7rW_G2Fej09wyj8q4o-yLMG0c7MQg2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=5szsNsle3ezPM4_stC2sODrW-F5lC625O7FAQT4v7i3WQUWJ7Xx0d-9PwzljaQ9C4rNDboJDof-JBb2H6INcicKGSr4zyqxqcil9kTMrslqkklAkK5pUXzZ8ms8LsQFumgCZfZ7pfvhrvPrVa432yA2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=p029eoPwwGX1HyjKpzR0slxuHOBQrS4UowlPXydgrh1AO26_BoIeYbNQ3Ll2v7yK9IyhY-lol-V9J47_X1Oyx4ZJ56npF7meLyUMV18ceZu4L1YIpQbzzIWjD5cBosFQAnRHMeW1zwt1gHfCVB9VbQ2&amp;t=639138519579194406" type="text/javascript"></script>
+<script src="/Radiology/WebResource.axd?d=OuQsA5dBMAe9bNJ0QmerQ4a5TsMYFITFDm_kcD0KXVdpFeVClnUljGv9sPMknGTYNJmsJNg74EYXNy3-Xsr11qt1X-tBR-j8kJVKM7dDK80bL0Elq4I37yD9oe0kixO-_ovZrr-2ZZ2mwBArgxVjnw2&amp;t=639138519579194406" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="5DE5E74B" />
+</div>
+        
+        
+
+    
+    
+
+<script src="/Radiology/lib/Rbys.Dosya/RbysDosya.min.js?v=18082026?v=6471"></script>
+
+
+
+    <div id="App.hdnIlacKayitYapildi_Container"></div>
+
+    
+
+<div id="pnlHastaninTumRaporlari_Content" class="x-hidden">
+                                    
+
+
+                                </div>
+
+    <div id="App.idbb0367515cadc750_Container"></div>
+
+    
+
+    <script>
+        function mukerrerlikSayfasiIslemSonucu(sonuc, hizmetIndex) {
+            console.log(sonuc);
+        }
+    </script>
+
+    <script>
+
+        function sortTR(value) {
+            return value.replace('Ç', 'CZ')
+                .replace('Ğ', 'GZ')
+                .replace('İ', 'IZ')
+                .replace('Ö', 'OZ')
+                .replace('Ş', 'SZ')
+                .replace('Ü', 'UZ');
+        }
+
+        var InfoPanelSecili = false;
+        var Page = (function () {
+
+            function infoPanelSec() {
+                if (InfoPanelSecili)
+                    dm.InfoPanelSec(0, "", "", 0);
+                else
+                    GList.SecimYap(null, null).InfoPanelListesi(function (aPanel) {
+                        dm.InfoPanelSec(aPanel.Id, aPanel.Ad, aPanel.Ip, aPanel.Port);
+                    });
+            }
+
+            var grdHizmetlerShowHandler = function (toolTip, grid) {
+                var view = grid.getView(),
+                    //store = grid.getStore(),
+                    record = view.getRecord(view.findItemByChild(toolTip.triggerElement)),
+                    column = view.getHeaderByCell(toolTip.triggerElement),
+                    data = record.get(column.dataIndex);
+                toolTip.update(data);
+            };
+
+            function tanimFormuAc(aTuru, aBaslik) {
+                WindowAc(aBaslik, 800, 600, "Tanimlar.aspx", { turu: aTuru });
+            }
+
+            function raporFormuAc() {
+
+                if (App.hdnRaporlarTureGoreAcilmasin.getValue() != "T") {
+                    if (App.grdHizmetler.sec.RbysRaporTuru != 0) {
+                        MsgGoster('Bu bölüme genel rapor yazılamaz!');
+                        return;
+                    }
+                }
+
+                Rbys.BolumYetki.VarMi(App.grdHastalar.sec.RandevuTuru, Rbys.BolumYetki.Turler.FilmCikmadiysaRaporYazma,
+                    function () {
+                        if (App.grdHastalar.sec.FilmCikti === "T") {
+                            raporFormu();
+                        } else {
+                            MsgGoster('Hastanın Filmi Çıkmadıysa Rapor Yazılamaz!');
+                        }
+                    },
+                    function () {
+                        dm.FaturaKesildiMi(App.grdHastalar.sec.RandevuTuru, App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, dmSuccess(function (kesildi) {
+                            if (kesildi) {
+                                MsgGoster('Hasta Dosyası Faturalandığından Üzerinde İşlem Yapamazsınız!');
+                            }
+                            else {
+                                raporFormu();
+                            }
+                        }));
+
+                    }, function () {
+                        raporFormu();
+                    });
+            }
+
+            function raporFormu() {
+                Rbys.SonucRapor.GenelRaporAc(App.grdHastalar.sec.DosyaDurumu, App.grdHizmetler.sec.Id, App.grdHastalar.sec.RandevuTuru, function () { dm.HastaSatirSorgula(App.grdHastalar.sec.Id); dm.RaporKayitveOnayKontrolEt(App.grdHastalar.sec.Id); });
+            }
+
+            function raporBolumFormuAc() {
+                if (App.grdHastalar.sec.DosyaDurumu <= 3)
+                    MsgGoster("Hastayı kabul etmeden rapor yazamazsınız.");
+                else
+                    Rbys.BolumYetki.VarMi(App.grdHastalar.sec.RandevuTuru, Rbys.BolumYetki.Turler.FilmCikmadiysaRaporYazma,
+                        function () {
+                            Rbys.BolumYetki.VarMi(App.grdHastalar.sec.RandevuTuru, Rbys.BolumYetki.Turler.RaporAcilisindaAmeliyatSureleriKontrolEdilsin,
+                                function () {
+                                    dm.AmeliyatKaydiVarMi(App.grdHastalar.sec.Id, App.grdHastalar.sec.AmeliyatBaslangicTarihi || "", App.grdHastalar.sec.AmeliyatBitisTarihi || "", App.grdHastalar.sec.RaporCikti, dmSuccess(function (sonuc) {
+                                        if (sonuc.Basarili) {
+                                            if (App.grdHastalar.sec.FilmCikti === "T") {
+                                                Rbys.SonucRapor.RaporFormuAc(App.grdHizmetler.sec.RbysRaporTuru, App.grdHizmetler.sec.Id, App.grdHastalar.sec.RandevuTuru, function () { dm.HastaSatirSorgula(App.grdHastalar.sec.Id); });
+                                            } else {
+                                                MsgGoster('Hastanın Filmi Çıkmadıysa Rapor Yazılamaz!');
+                                            }
+                                        }
+                                        else {
+                                            MsgGoster(sonuc.Mesaj, function () {
+                                                WindowAc('Ameliyat Kayıt Penceresi', 470, 225, 'AmeliyatKayit.aspx', { dosyaId: App.grdHastalar.sec.Id });
+                                            });
+                                        }
+                                    }));
+                                },
+                                function () {
+                                    if (App.grdHastalar.sec.FilmCikti === "T") {
+                                        Rbys.SonucRapor.RaporFormuAc(App.grdHizmetler.sec.RbysRaporTuru, App.grdHizmetler.sec.Id, App.grdHastalar.sec.RandevuTuru, function () { dm.HastaSatirSorgula(App.grdHastalar.sec.Id); });
+                                    } else {
+                                        MsgGoster('Hastanın Filmi Çıkmadıysa Rapor Yazılamaz!');
+                                    }
+                                });
+                        },
+                        function () {
+                            Rbys.BolumYetki.VarMi(App.grdHastalar.sec.RandevuTuru, Rbys.BolumYetki.Turler.RaporAcilisindaAmeliyatSureleriKontrolEdilsin,
+                                function () {
+                                    dm.AmeliyatKaydiVarMi(App.grdHastalar.sec.Id, App.grdHastalar.sec.AmeliyatBaslangicTarihi || "", App.grdHastalar.sec.AmeliyatBitisTarihi || "", App.grdHastalar.sec.RaporCikti, dmSuccess(function (sonuc) {
+                                        if (sonuc.Basarili) {
+                                            Rbys.SonucRapor.RaporFormuAc(App.grdHizmetler.sec.RbysRaporTuru, App.grdHizmetler.sec.Id, App.grdHastalar.sec.RandevuTuru, function () { dm.HastaSatirSorgula(App.grdHastalar.sec.Id); });
+                                        }
+                                        else {
+                                            MsgGoster(sonuc.Mesaj, function () {
+                                                WindowAc('Ameliyat Kayıt Penceresi', 470, 225, 'AmeliyatKayit.aspx', { dosyaId: App.grdHastalar.sec.Id });
+                                            });
+                                        }
+                                    }));
+                                },
+                                function () {
+                                    Rbys.SonucRapor.RaporFormuAc(App.grdHizmetler.sec.RbysRaporTuru, App.grdHizmetler.sec.Id, App.grdHastalar.sec.RandevuTuru, function () { dm.HastaSatirSorgula(App.grdHastalar.sec.Id); });
+                                });
+                        });
+            }
+
+            function hizmetAktar() {
+                SoruSor("Seçili hizmeti yeni dosyaya aktarmak istediğinizden emin misiniz?", function () {
+                    dm.YeniLabDosyaOlustur((App.grdHastalar.sec.Id), (App.grdHizmetler.sec.Id));
+                });
+            }
+
+            function hizmetSil() {
+                SoruSor("Seçili hizmeti silmek istediğinizden emin misiniz?", function () {
+                    dm.HizmetSonucuVarMi(App.grdHizmetler.sec.Id, dmSuccess(function (aSonuc) {
+                        if (aSonuc) {
+                            MsgGoster("Hizmet raporu yazılmıştır. Silinemez");
+                        } else {
+                            dm.HizmetSil(App.grdHastalar.sec.Id, App.grdHizmetler.sec.Id);;
+                        }
+                    }));
+                });
+            }
+
+            function hizmetDegistir() {
+                if (App.grdHastalar.sec.DosyaDurumu === 8) {
+                    MsgGoster("Rapor onaylanmış hizmet değiştirilemez, onay iptal işlemi yapınız!")
+                    return;
+                }
+
+                dm.HizmetSonucuVarMi(App.grdHizmetler.sec.Id, dmSuccess(function (aSonuc) {
+                    if (aSonuc) {
+                        MsgGoster("Hizmet raporu yazılmıştır. Değiştirilemez");
+                    } else {
+                        dm.HizmetDegistirKontrol(App.grdHastalar.sec.Id, dmSuccess(function (aSonuc) {
+                            if (aSonuc.Basarili) {
+                                dm.MukerrerlikKontroluYapma(App.grdHastalar.sec.RandevuTuru, dmSuccess(function (yapma) {
+                                    if (!yapma) {
+                                        MsgGoster('Mükererlikten dolayı sadece aynı SUT koduyla hizmet değiştirilebilir.', function () {
+                                            GList.SecimYap(null, "Hizmet listesi bulunamadı").SutKodunaAitHizmetListesi(App.grdHastalar.sec.RandevuTuru, App.grdHizmetler.sec.KodAra, function (aHizmet) {
+                                                dm.HizmetDegistir(App.grdHastalar.sec.Id, App.grdHizmetler.sec.Id, aHizmet.Id);
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        GList.SecimYap(null, "Hizmet listesi bulunamadı").HizmetListesi(App.grdHastalar.sec.RandevuTuru, function (aHizmet) {
+                                            dm.HizmetDegistir(App.grdHastalar.sec.Id, App.grdHizmetler.sec.Id, aHizmet.Id);
+                                        });
+                                    }
+                                }));
+                            }
+                            else {
+                                MsgGoster(aSonuc.Mesaj);
+                            }
+                        }));
+                    }
+                }));
+            }
+
+            function disMonitorAc() {
+                GList.SecimYap(null, null).RandevuBolum(function (aBolum) {
+                    GList.SecimYap(null, GList.YoksaSifirAt).RandevuAltBolum(aBolum.Id, function (aBolumAlt) {
+                        GList.SecimYap(null, GList.YoksaSifirAt).RandevuAltIleOda(aBolumAlt.Id, function (aOda) {
+                            dm.DisMonitorAc(aBolum.Id, aBolum.Ad, aBolumAlt.Id, aBolumAlt.Ad, aOda.Id, aOda.Ad, dmSuccess(function (aIslem) {
+                                if (aIslem) {
+                                    setTimeout(function () { dm.DisMonitorListeGuncelle(); }, 5000);
+                                    setInterval(function () { dm.DisMonitorListeGuncelle(); }, 15000);
+                                }
+                            }));
+                        });
+                    });
+                });
+            }
+
+            function disMonitorHastaBeklemeSuresiGetir() {
+                return localStorage.getItem(Rbys.LocalStorage.DisMonitorHastaBeklemeSuresi) || "5";
+            }
+
+            function disMonitorHastaBeklemeSuresiAyarla() {
+                var lSure = disMonitorHastaBeklemeSuresiGetir();
+                BilgiGirisiN("Lütfen dış monitör hasta bekleme süresi girisiniz.. (sn)", lSure, function (aSure) {
+                    localStorage.setItem(Rbys.LocalStorage.DisMonitorHastaBeklemeSuresi, aSure || "5");
+                });
+            }
+
+            function disMonitorHastaCagir() {
+
+                var altBolum = App.grdHastalar.sec.RandevuTuruAlt | 0;
+                var odaId = App.grdHastalar.sec.OdaId | 0;
+
+                var davetAltBolumSecim = function () {
+
+                    if (altBolum > 0) {
+                        davetOdaSecim();
+                    }
+                    else {
+                        var lsBolumId = localStorage.getItem(Rbys.LocalStorage.VarsayilanAltBolumIcinBolumId);
+                        var lsAltBolumId = localStorage.getItem(Rbys.LocalStorage.VarsayilanBolumAltBolumId);
+
+                        if (!!lsBolumId && !!lLsAltBolumId && (App.grdHastalar.sec.RandevuTuru.toString() === lsBolumId.toString())) {
+                            App.grdHastalar.sec.RandevuTuruAlt.setValue(lsAltBolumId);
+                            BildirimGoster("Alt bölüm otomatik olarak atanmıştır..");
+                            davetOdaSecim();
+                        }
+
+                        GList2.RandevuAltBolum(App.grdHastalar.sec.RandevuTuru).SecimYok("Alt Bölüm Seçimi Yapmadınız..! İşlem İptal edildi.").Ac(function (bolumAlt) {
+                            altBolum = bolumAlt.Id;
+                            davetOdaSecim();
+                        });
+                    }
+                };
+
+                var davetOdaSecim = function () {
+                    Rbys.BolumYetki.VarMi(App.grdHastalar.sec.RandevuTuru, Rbys.BolumYetki.Turler.AltOdaSec,
+                        function () {
+                            GList2.RandevuAltIleOda(altBolum).SecimYok("Oda seçimi yapmanız zorunludur. İşlem iptal edildi!").Ac(function (oda) {
+                                odaId = oda.Id;
+                                disMonitorHastaCagir();
+                            })
+                        },
+                        function () {
+                            disMonitorHastaCagir();
+                        });
+
+                };
+
+                var disMonitorHastaCagir = function () {
+                    var lSure = disMonitorHastaBeklemeSuresiGetir();
+
+                    if (altBolum > 0)
+                        App.grdHastalar.sec.RandevuTuruAlt = altBolum;
+                    if (odaId > 0)
+                        App.grdHastalar.sec.OdaId = odaId;
+
+                    dm.DisMonitorHastaCagir(App.grdHastalar.sec, lSure, dmSuccess(function (aKabulEtmekUygun) {
+                        if (aKabulEtmekUygun)
+                            SoruSor("Davete Gönderilen Hasta Dosyası Kabul Edilsin mi?", function () {
+                                dosyaKabulEt();
+                            });
+                        dm.DisMonitorListeGuncelle();
+                    }));
+                };
+
+                davetAltBolumSecim();
+            }
+
+            function cekimIptalEt() {
+                GList.SecimYap(null, "Çekim iptal nedenleri listesi bulunamadı").CekimIptalNedenleri(App.grdHastalar.sec.RandevuTuru, function (aCekimIptalNedeni) {
+                    if (aCekimIptalNedeni.Id == -1) {
+                        App.hdnCekimIptalNedeniId.setValue(aCekimIptalNedeni.Id);
+                        App.winCekimIptalAciklama.show();
+                    }
+                    else {
+                        dm.CekimIptal(App.grdHastalar.sec.Id, aCekimIptalNedeni.Id, App.grdHastalar.sec.RandevuTuru, aCekimIptalNedeni.Ad);
+                    }
+                });
+            }
+
+            function cekimIptalEtTetkikBazli() {
+                GList.SecimYap(null, "Çekim iptal nedenleri listesi bulunamadı").CekimIptalNedenleri(App.grdHastalar.sec.RandevuTuru, function (aCekimIptalNedeni) {
+                    if (aCekimIptalNedeni.Id == -1) {
+                        App.hdnTetkikCekimIptalNedeniId.setValue(aCekimIptalNedeni.Id);
+                        App.winTetkikCekimIptalAciklama.show();
+                    }
+                    else {
+                        dm.CekimIptalTetkikBazli(App.grdHizmetler.sec.Id, App.grdHastalar.sec.Id, aCekimIptalNedeni.Id);
+                    }
+                });
+            }
+
+            function yenidenCekimeGonder() {
+                GList.SecimYap(null, "Yenidem çekim listesi bulunamadı").YenidenCekimNedenleri(App.grdHastalar.sec.RandevuTuru, function (aYenidenCekimNedeni) {
+                    var lYenidenCekimeGonder = function (goruntuleriSil) {
+                        dm.YenidenCekimeGonder(App.grdHastalar.sec.Id, aYenidenCekimNedeni.Id, goruntuleriSil);
+                    }
+                    SoruSor("Dosya görüntüleri silinsin mi?",
+                        function () { lYenidenCekimeGonder(true); },
+                        function () { lYenidenCekimeGonder(false); });
+                });
+            }
+
+            function dosyaKabulEt() {
+                Rbys.Dosya.KabulEtDurumKontrollu(App.grdHastalar.sec.Id, App.grdHastalar.sec.OnKayitId, App.grdHastalar.sec.RandevuTuru, App.grdHastalar.sec.RandevuTuruAlt, App.grdHastalar.sec.OdaId, function () {
+                    dm.AnamnezFormuAcilacakMi(App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.RandevuTuru, dmSuccess(function (aAnamnezFormuAcilacakMi) {
+                        if (aAnamnezFormuAcilacakMi)
+                            dm.OrtakDmOrtakSayfalar.AnamnezBilgiDetayFormuUrlGetir(App.grdHastalar.sec.KimlikNo);
+                    }));
+                    dm.HastaSatirSorgula(App.grdHastalar.sec.Id);
+                    dm.KabulSonrasiRandevuDurumuGuncelle(App.grdHastalar.sec.Id, App.grdHastalar.sec.RandevuVerildi);
+                },
+                    App.grdHastalar.sec.DosyaDurumu);
+            }
+
+            function altBolumDegistir() {
+                GList.SecimYap(null, "Bölüm Listesi Bulunamadı!").RandevuAltBolum(App.grdHastalar.sec.RandevuTuru, function (aAltBolum) {
+                    GList.SecimYap(null, GList.YoksaNullAt).RandevuAltIleOda(aAltBolum.Id, function (aOda) {
+                        dm.AltBolumuDegistir(App.grdHastalar.sec.Id, aAltBolum.Id, aOda.Id);
+                    });
+                });
+            }
+
+            function altBolumAktivasyonPenceresiniAc() {
+                Rbys.KulYetki.VarMi(Rbys.KulYetki.Turler.AltBolumAktivasyon,
+                    function () {
+                        WindowAc('Alt Bölüm Aktivasyon', 600, 400, 'AltBolumAktivasyon.aspx', {});
+                    }
+                    ,
+                    "Alt bölüm aktivasyon yetkiniz bulunmamaktadır."
+                );
+            }
+
+            function raporButonuKontrolEtKapat() {
+                if (App.hdnRaporlarTureGoreAcilmasin.getValue() != "T") {
+                    if (App.grdHizmetler.sec.RbysRaporTuru != 0)
+                        App.btnRapor.disable();
+                    else
+                        App.btnRapor.enable();
+                }
+            }
+
+            return {
+                DosyaKabulEt: dosyaKabulEt,
+                RaporFormuAc: raporFormuAc,
+                RaporBolumFormuAc: raporBolumFormuAc,
+                GrdHizmetlerShowHandler: grdHizmetlerShowHandler,
+                CekimIptalEt: cekimIptalEt,
+                CekimIptalEtTetkikBazli: cekimIptalEtTetkikBazli,
+                YenidenCekimeGonder: yenidenCekimeGonder,
+                AltBolumDegistir: altBolumDegistir,
+                HizmetSil: hizmetSil,
+                HizmetDegistir: hizmetDegistir,
+                HizmetAktar: hizmetAktar,
+                TanimFormuAc: tanimFormuAc,
+                DisMonitorAc: disMonitorAc,
+                InfoPanelSec: infoPanelSec,
+                AltBolumAktivasyonPenceresiniAc: altBolumAktivasyonPenceresiniAc,
+                RaporButonuKontrolEtKapat: raporButonuKontrolEtKapat,
+                btnRandevu: function () {
+                    Rbys.KulYetki.VarMi(Rbys.KulYetki.Turler.RandevuVerme,
+                        function () {
+                            var lSecili = App.grdHastalar.sec;
+                            Rbys.Sayfalar.RandevuVermeFormuAc(lSecili.DosyaDurumu,
+                                lSecili.Durum,
+                                lSecili.OnKayitId,
+                                lSecili.Id,
+                                lSecili.RandevuTuru,
+                                function () {
+                                    dm.ParametreAktifseOtomatikDavetEt(App.grdHastalar.sec.Id, App.grdHastalar.sec.RandevuTuru);
+                                });
+                        },
+                        "Randevu verme yetkiniz yok!"
+                    );
+                },
+                miRandevuIptal: function () {
+                    dm.RandevuIptalNedenGirilsinMi(App.grdHastalar.sec.RandevuTuru, dmSuccess(function (Girilsin) {
+                        if (Girilsin) {
+                            dm.RandevuIptalNedenleriniGetir(App.grdHastalar.sec.RandevuTuru);
+                            App.wRandevuIptalNedenleri.show();
+                        }
+                        else {
+                            SoruSor("Randevunun silineceği bilgisi sms ile bildirilsin mi?", function () {
+                                dm.RandevuSil(App.grdHastalar.sec.Id, true)
+                            }, function () {
+                                dm.RandevuSil(App.grdHastalar.sec.Id, false)
+                            });
+                        }
+                    }))
+                },
+                miMhrsGuncelle: function () {
+                    dm.MhrsRandevuGuncelle(App.grdHastalar.sec.Id);
+                },
+                miRandevuGuncelle: function () {
+                    dm.RandevuDurumGuncelle(App.grdHastalar.sec.Id);
+                },
+                btnGonder: function () {
+                    if (App.grdHastalar.sec.DosyaDurumu == 4) { // Dosya Durumu: Kabul Edildi
+                        MsgGoster('Kabul edilmiş dosyalar gönderilemez!');
+                        return;
+                    }
+
+                    Rbys.Dosya.Gonder(App.grdHastalar.sec.Id,
+                        App.grdHastalar.sec.OnKayitId,
+                        App.grdHastalar.sec.RandevuTuru,
+                        App.grdHastalar.sec.RandevuTuruAlt,
+                        function (islemSonucu) {
+                            if (islemSonucu.Veri.DosyaGonderimdeKabulEdilsin) {
+                                SoruSor("Davete Gönderilen Hasta Dosyası Kabul Edilsin mi?",
+                                    function () {
+                                        Rbys.Dosya.KabulEt(App.grdHastalar.sec.Id, App.grdHastalar.sec.OnKayitId, App.grdHastalar.sec.RandevuTuru, App.grdHastalar.sec.RandevuTuruAlt, function () {
+                                            dm.HastaSatirSorgula(App.grdHastalar.sec.Id);
+                                        });
+                                    },
+                                    function () {
+                                        if (App.chkDurumKontrol.getValue()) {
+                                            listeyiYenile();
+                                        }
+                                    });
+                            }
+                            else {
+                                if (App.chkDurumKontrol.getValue()) {
+                                    listeyiYenile();
+                                }
+                            }
+                        });
+                },
+                miTumunuGonderBekleyen: function () {
+                    Rbys.Dosya.TumunuGonder(
+                        App.grdHastalar.sec.RandevuTuru,
+                        App.grdHastalar.sec.RandevuTuruAlt,
+                        false,
+                        function () {
+                            dm.HastaSorgula(null, false);
+                        });
+                },
+                miTumunuGonderRandevulu: function () {
+                    Rbys.Dosya.TumunuGonder(
+                        App.grdHastalar.sec.RandevuTuru,
+                        App.grdHastalar.sec.RandevuTuruAlt,
+                        true,
+                        function () {
+                            dm.HastaSorgula(null, false);
+                        });
+                },
+                miGonderimIptal: function () {
+                    Rbys.Dosya.GonderIpltal(App.grdHastalar.sec.Id, App.grdHastalar.sec.BolumTuru,
+                        function () {
+                            dm.HastaSatirSorgula(App.grdHastalar.sec.Id);
+                        });
+                },
+                btnDavetEt: function () {
+                    disMonitorHastaCagir();
+                },
+                miDisMonitorAktifHastaBeklemeSuresi: function () {
+                    disMonitorHastaBeklemeSuresiAyarla();
+                },
+                miKabulIptal: function () {
+                    if (App.grdHastalar.sec.FilmCikti === "T") {
+                        MsgGoster("Filmi çıkmış dosyalar iptal edilemez!");
+                        return;
+                    }
+                    Rbys.Dosya.KabulIptal(App.grdHastalar.sec.Id, function (servisStokCikisVar) {
+                        if (servisStokCikisVar) {
+                            MsgGoster("Hastaya stok düşümü yapılmıştır. Stok silmeden kabul iptal yapılamaz!",
+                                WindowAc('İlaç Sarf Bilgileri', 1000, 600, 'HastaIlacSarfBilgileri.aspx', { dosyaId: App.grdHastalar.sec.Id }, null, 'wIlacSarfBilgileri'));
+                        }
+                        else
+                            dm.HastaSatirSorgula(App.grdHastalar.sec.Id);
+                    });
+                },
+                btnKabulEt: function () {
+                    dm.KararDestekBaslat(App.grdHastalar.sec.OnKayitId);
+                },
+                btnPacsYeniViewer: function () {
+                    dm.YeniViewerAc(App.grdHastalar.sec.Id);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsDosyaWin: function () {
+                    dm.WindowsPacsViewerAc(1,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsMrrsAc: function () {
+                    dm.PacsMrrsAc(
+                        App.grdHastalar.sec.Id,
+                        App.grdHastalar.sec.MrrsKimlikNo,
+                        App.grdHastalar.sec.MrrsProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsHastaWin: function () {
+                    dm.WindowsPacsViewerAc(0,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnHastayaDisKaynaktanGoruntuYukle: function () {
+                    dm.HastayaDisKaynaktanGoruntuYukle(App.grdHastalar.sec.KimlikNo, "");
+                },
+                btnHastaDosyasinaDisKaynaktanGoruntuYukle: function () {
+                    dm.HastayaDisKaynaktanGoruntuYukle(App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                },
+                btnPacsDosyaWeb: function () {
+                    dm.PacsViewerAc(false,
+                        1,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo,
+                        null);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsHastaWeb: function () {
+                    dm.PacsViewerAc(false,
+                        0,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo,
+                        null);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsDosyaJava: function () {
+                    dm.JavaPacsViewerAcDosya(App.grdHastalar.sec.Id);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsHastaJava: function () {
+                    dm.JavaPacsViewerAc(0,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsDosyaOhif: function () {
+                    dm.OHIFViewerAc(1,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPacsHastaOhif: function () {
+                    dm.OHIFViewerAc(0,
+                        App.grdHastalar.sec.KimlikNo,
+                        App.grdHastalar.sec.YatPol + App.grdHastalar.sec.ProtokolNo);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnDisPacs: function () {
+                    dm.PacsViewerAc(true, 1, 0, "", App.grdHizmetler.sec.Id);
+                    dm.GoruntulemeIslemLogla(App.grdHastalar.sec.YatPol, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.OnKayitId, 16);
+                },
+                btnPolIslemleri: function () {
+                    WindowAc("Poliklinik İşlemleri", 700, 600, "RbysPoliklinikIslemleri.aspx", { OnkayitId: App.grdHastalar.sec.OnKayitId });
+                },
+                btnPacsGonderimAc: function () {
+                    if (App.grdHastalar.sec.KabulTarihi < (new Date()).addDays(-4)) {
+                        MsgGoster("72 saati geçmiş hizmetler için çekim yapılamaz. ");
+                        return;
+                    }
+                    dm.PacsGonderimAc(App.grdHastalar.sec.KimlikNo, App.grdHastalar.sec.ProtokolNo, App.grdHastalar.sec.Id,
+                        App.grdHastalar.sec.RandevuTuru, App.grdHastalar.sec.RandevuTuruAlt, App.grdHastalar.sec.HastaAdi + " " + App.grdHastalar.sec.Soyadi,
+                        App.grdHastalar.sec.OnKayitId, App.grdHizmetler.sec.Id);
+                },
+                DigerKaynaklardanPacsSorgula: function (tcKimlikNo) {
+                    GList2.PacsDigerKaynaklar().KayitYok("Diğer kaynak bulunamadı.").KayitYok("işlem iptal edildi.").Ac(function (kaynak) {
+                        dm.WindowsPacsDigerKaynakViewerAc(tcKimlikNo, kaynak.Host, kaynak.Port);
+                    });
+                }
+            };
+
+        })();
+
+        function kontrastliIlacBilgiFormuAc(hizmetID) {
+            WindowAc('Kontrastlı İlaç Bilgi Formu', 1000, 600, 'KontrastliIlacBilgiFormu.aspx', { dosyaId: App.grdHastalar.sec.Id, yuklenenId: hizmetID, onkayitId: App.grdHastalar.sec.OnKayitId, hastaAd: App.grdHastalar.sec.HastaAdi, hastaSoyad: App.grdHastalar.sec.Soyadi, tetkikIsmi: '', protokolNo: App.grdHastalar.sec.ProtokolNo }, '', '', true);
+        }
+
+        function kontrastliIlacBilgiFormuAcKapatirkenKayitKontrolEt(hizmetID) {
+            WindowAc('Kontrastlı İlaç Bilgi Formu', 1000, 600, 'KontrastliIlacBilgiFormu.aspx', { dosyaId: App.grdHastalar.sec.Id, yuklenenId: hizmetID, onkayitId: App.grdHastalar.sec.OnKayitId, hastaAd: App.grdHastalar.sec.HastaAdi, hastaSoyad: App.grdHastalar.sec.Soyadi, tetkikIsmi: '', protokolNo: App.grdHastalar.sec.ProtokolNo }, function () { dm.KontrastIlacKayitKontroluYap(App.grdHastalar.sec.Id, App.grdHastalar.sec.OnKayitId) }, '', true);
+        }
+
+        function kontrastliIlacBilgiFormuAcDosyaDurumKontrollu() {
+            if (App.grdHastalar.sec.DosyaDurumu === 1) {
+                MsgGoster("Kabul edilmemiş dosyalara ilaç işlenemez!");
+                return;
+            }
+
+            dm.KontrastIlacBilgiFormuKontroluYapDurumKontrollu(App.grdHastalar.sec.Id, App.grdHizmetler.sec.Id);
+        }
+
+        function randevuSilIptalNedeniKaydet() {
+            SoruSor("Randevunun silineceği bilgisi sms ile bildirilsin mi?", function () {
+                dm.RandevuSilIptalNedeniKaydet(App.grdHastalar.sec.Id, App.grdRandevuDurumu.getSelectionModel().getSelection()[0].data.Aciklama, true)
+            }, function () {
+                dm.RandevuSilIptalNedeniKaydet(App.grdHastalar.sec.Id, App.grdRandevuDurumu.getSelectionModel().getSelection()[0].data.Aciklama, false)
+            });
+
+            App.wRandevuIptalNedenleri.hide();
+        }
+
+        function listeyiYenile() {
+            dm.HastaSorgula(null, false);
+        }
+    </script>
+
+
+    
+    
+
+
+
+    <div id="App.hdnKrmdLoginBilgi_Container"></div><div id="App.BaseKisaYol4debdb4fdd7c4dea9e36ac270cd76379_Container"></div>
+</form>
+</body>
+</html>

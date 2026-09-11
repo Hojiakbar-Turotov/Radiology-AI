@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MRT MOBIL AGENTI (Port 9883)</title>
+  <link rel="stylesheet" href="mobile_agent.css">
+  <script>
+    window.APP_MODALITY = 'MRT';
+    window.APP_PORT = 9883;
+    window.APP_TITLE = 'MRT MOBIL AGENTI';
+    window.APP_ICON = '🧲';
+  </script>
+</head>
+<body class="theme-mrt">
+  <div class="mobile-app">
+    
+    <!-- HEADER -->
+    <header class="m-header">
+      <div class="m-header-top">
+        <div class="m-app-title" id="m-header-app-title">🧲 MRT MOBIL AGENTI</div>
+        <div class="m-agent-pill">
+          <span class="m-pulse"></span>
+          <span id="m-agent-status-label">Agent Faol</span>
+        </div>
+      </div>
+
+      <!-- USER SESSION BAR -->
+      <div class="m-user-session-bar" id="m-user-session-bar">
+        <div class="m-user-badge" id="m-logged-user-name">👤 Kirilmagan</div>
+        <button class="m-btn-logout" id="m-btn-logout">🚪 Chiqish</button>
+      </div>
+
+      <!-- PROFILE SELECTOR (KARMED AGENT NOMI) -->
+      <div class="m-profile-selector-row">
+        <label>🛰️ Karmed Agenti:</label>
+        <select id="m-user-profile-select" class="m-profile-select">
+          <option value="R5">R5 — Registrator (17720)</option>
+        </select>
+      </div>
+
+      <div class="m-header-bottom">
+        <div class="m-stat-item">
+          <span class="m-stat-num" id="m-total-patients">0</span>
+          <span class="m-stat-lbl">Kutayotganlar</span>
+        </div>
+        <div class="m-stat-item">
+          <span class="m-stat-num" id="m-active-rooms">0</span>
+          <span class="m-stat-lbl">Xonalar</span>
+        </div>
+        <button class="m-btn-sync" id="m-btn-refresh">🔄 Yangilash</button>
+      </div>
+    </header>
+
+    <!-- NAV TABS -->
+    <nav class="m-nav">
+      <button class="m-nav-tab active" data-tab="search">🔍 Bemor Izlash</button>
+      <button class="m-nav-tab" data-tab="queue">📋 Navbat</button>
+      <button class="m-nav-tab" data-tab="profiles">👤 Profillar</button>
+    </nav>
+
+    <!-- MAIN VIEWS -->
+    <main class="m-body">
+      
+      <!-- TAB 1: SEARCH & PATIENT ACTIONS -->
+      <section class="m-view active" id="m-view-search">
+        <div class="m-search-card">
+          <div style="font-size:12px; color:#38bdf8; font-weight:700;">🔍 🧲 BEMOR ID RAQAMI BILAN TEZKOR TOPISH</div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="m-search-id-input" class="m-input" placeholder="Bemor ID: 57095, 49385..." style="flex:1;">
+            <button class="m-btn-action" id="m-btn-quick-search" style="padding:10px 18px;">Topish</button>
+          </div>
+        </div>
+
+        <div id="m-search-result-container">
+          <div class="m-tip-text">Bemor tekshiruvlarini ko'rish uchun ID raqamini kiriting.</div>
+        </div>
+      </section>
+
+      <!-- TAB 2: QUEUE -->
+      <section class="m-view" id="m-view-queue">
+        <div class="m-room-chips" id="m-room-chips">
+          <button class="m-chip active" data-room="all">Barchasi</button>
+        </div>
+        <div class="m-patient-list" id="m-patient-list">
+          <div class="m-loading">Bemorlar ro'yxati yuklanmoqda...</div>
+        </div>
+      </section>
+
+      <!-- TAB 3: PROFILES STATUS -->
+      <section class="m-view" id="m-view-profiles">
+        <div class="m-search-card">
+          <div style="font-size:13px; font-weight:700; color:#38bdf8;">👤 Aniqlangan Karmed Profillari:</div>
+          <p style="font-size:11px; color:#94a3b8;">Kompyuter agenti Karmed tizimiga ushbu profillar orqali so'rov yuboradi:</p>
+          <div id="m-profiles-list-box" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+            <div class="m-loading">Profillar yuklanmoqda...</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- AUTH MODAL OVERLAY -->
+    <div class="m-auth-overlay" id="m-auth-overlay">
+      <div class="m-auth-modal">
+        <div class="m-auth-header">
+          <div class="m-auth-icon">🧲</div>
+          <div class="m-auth-title">MRT MOBIL AGENTIga Kirish</div>
+          <div class="m-auth-sub">Davom etish uchun login va parolingizni kiriting</div>
+        </div>
+        <form class="m-auth-form" id="m-auth-form" onsubmit="return false;">
+          <div class="m-auth-error" id="m-auth-error"></div>
+          <div class="m-auth-field">
+            <label>Login (masalan: R5 yoki U1):</label>
+            <input type="text" id="m-login-username" class="m-auth-input" placeholder="R5" value="R5" autocomplete="username" required>
+          </div>
+          <div class="m-auth-field">
+            <label>Parol (masalan: 17720 yoki 15420):</label>
+            <input type="password" id="m-login-password" class="m-auth-input" placeholder="•••••" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="m-auth-btn" id="m-btn-do-login">Kirish</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="mobile_agent.js"></script>
+</body>
+</html>

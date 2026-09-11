@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "Karmed Tezkor Vrach va XPrinter Navbat Taloni (0-9)",
+  "version": "4.0.0",
+  "description": "Karmed tizimida 0-9 raqamlari orqali vrach biriktirish, vrach o'zgartirilganda sabab tanlash (3 xil izoh), 6 tilda XPrinter taloni va to'liq logger.me tizimi.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "icons": {
+    "16": "icons/logo-onko.png",
+    "48": "icons/logo-onko.png",
+    "128": "icons/logo-onko.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Tezkor Vrach Biriktirish (0-9)",
+    "default_icon": {
+      "16": "icons/logo-onko.png",
+      "48": "icons/logo-onko.png",
+      "128": "icons/logo-onko.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://192.168.150.111:2025/*",
+        "http://192.168.150.111/*",
+        "https://192.168.150.111:2025/*",
+        "https://192.168.150.111/*",
+        "http://213.230.91.59:2025/*",
+        "http://213.230.91.59/*",
+        "https://213.230.91.59:2025/*",
+        "https://213.230.91.59/*",
+        "*://*.karmed.uz/*",
+        "*://*.karmed.com/*",
+        "*://*.kardelen.uz/*",
+        "*://*.kardelen.com/*"
+      ],
+      "all_frames": false,
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/logo-onko.png",
+        "icons/logo-ssv.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

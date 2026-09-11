@@ -1,0 +1,1430 @@
+[
+  {
+    "index": 1,
+    "id": 2815474,
+    "patientId": 12830,
+    "dosyaNo": 260023604,
+    "fullName": "MAVLUDA KASIMOVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 20,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-07T17:32:31.471585",
+    "referringDoctor": "Dr. Izrailbekova Kamila Shavkatovna",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      },
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "id": 2834773,
+    "patientId": 33508,
+    "dosyaNo": 260023698,
+    "fullName": "GULSUNOY YUSUPOVA",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T10:37:47.378831",
+    "referringDoctor": "Dr. Mominov Abdumomin Anvarovich",
+    "services": [
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Mominov Abdumomin Anvarovich"
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "id": 2836552,
+    "patientId": 41947,
+    "dosyaNo": 260023928,
+    "fullName": "ABDULLOH IBROXIMOV",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 539,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T12:52:02.401886",
+    "referringDoctor": "Dr. Turgunov Shokirjon Sharifjon",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Turgunov Shokirjon Sharifjon"
+      },
+      {
+        "name": "Orbita Va Koz Olmalari",
+        "code": "R80",
+        "doctor": "Turgunov Shokirjon Sharifjon"
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "id": 2836819,
+    "patientId": 56177,
+    "dosyaNo": 260023947,
+    "fullName": "MUHAMMADAZIZ BERDIKULOV",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T13:14:42.60294",
+    "referringDoctor": "Dr. Usmanov Rustam Xodjiakbarovich",
+    "services": [
+      {
+        "name": "Orbita Va Koz Olmalari",
+        "code": "R80",
+        "doctor": "Usmanov Rustam Xodjiakbarovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Usmanov Rustam Xodjiakbarovich"
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "id": 2837524,
+    "patientId": 40902,
+    "dosyaNo": 260023907,
+    "fullName": "SHAVKAT  UMIRQULOV",
+    "room": "Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T14:11:45.044369",
+    "referringDoctor": "Dr. Djumanazarov Temirbek Matchanovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Djumanazarov Temirbek Matchanovich"
+      },
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Djumanazarov Temirbek Matchanovich"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "id": 2840735,
+    "patientId": 57048,
+    "dosyaNo": 260024025,
+    "fullName": "MIRZA  NAZAROV ",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 1,
+    "status": "Kabul Edilen",
+    "registeredAt": "2026-09-09T16:24:39.259031",
+    "referringDoctor": "Dr. Mominov Abdumomin Anvarovich",
+    "services": [
+      {
+        "name": "Plevra boshliqlari",
+        "code": "R82",
+        "doctor": "Ziyayev Ilyosmirzo Pazlitdin O‘g‘li"
+      },
+      {
+        "name": "Siydik qopi prostata bezi, urug pufakchalari",
+        "code": "R69",
+        "doctor": "Ziyayev Ilyosmirzo Pazlitdin O‘g‘li"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Ziyayev Ilyosmirzo Pazlitdin O‘g‘li"
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "id": 2843280,
+    "patientId": 53052,
+    "dosyaNo": 260024029,
+    "fullName": "XULKAR KURBANOVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 15,
+    "status": "Kabul Edilen",
+    "registeredAt": "2026-09-09T17:49:43.976623",
+    "referringDoctor": "Dr. Izrailbekova Kamila Shavkatovna",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      },
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "id": 2843599,
+    "patientId": 2427,
+    "dosyaNo": 260024000,
+    "fullName": "VENERA SELYAMETOVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 545,
+    "status": "Kabul Edilen",
+    "registeredAt": "2026-09-09T18:16:18.347499",
+    "referringDoctor": "Dr. Izrailbekova Kamila Shavkatovna",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      },
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Izrailbekova Kamila Shavkatovna"
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "id": 2846500,
+    "patientId": 48308,
+    "dosyaNo": 260023970,
+    "fullName": "ZAMIRA SAFAROVA",
+    "room": "Ultratovush-1(Juravlev Igor Ivanovich)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T01:32:33.552977",
+    "referringDoctor": "Dr. Xolov Parvin Abdurashıdovich",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Xolov Parvin Abdurashıdovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Xolov Parvin Abdurashıdovich"
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "id": 2846503,
+    "patientId": 48308,
+    "dosyaNo": 260023970,
+    "fullName": "ZAMIRA SAFAROVA",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T01:32:47.516636",
+    "referringDoctor": "Dr. Xolov Parvin Abdurashıdovich",
+    "services": [
+      {
+        "name": "Oyoq qon tomirlardagi trombni aniqlash",
+        "code": "R87",
+        "doctor": "Xolov Parvin Abdurashıdovich"
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "id": 2847105,
+    "patientId": 13680,
+    "dosyaNo": 260023954,
+    "fullName": "MUHAMMADSODIQ RAXIMOV",
+    "room": "Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)",
+    "queueNo": 374,
+    "status": "Kabul Edilen",
+    "registeredAt": "2026-09-10T06:59:47.298782",
+    "referringDoctor": "Dr. Asamedinov Nuriddin Kamolovich",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Asamedinov Nuriddin Kamolovich"
+      },
+      {
+        "name": "Siydik qopi prostata bezi, urug pufakchalari",
+        "code": "R69",
+        "doctor": "Asamedinov Nuriddin Kamolovich"
+      },
+      {
+        "name": "Yumshoq toqima",
+        "code": "R91",
+        "doctor": "Asamedinov Nuriddin Kamolovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Asamedinov Nuriddin Kamolovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Asamedinov Nuriddin Kamolovich"
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "id": 2847178,
+    "patientId": 29799,
+    "dosyaNo": 260024075,
+    "fullName": "ANORA SHARIPOVA",
+    "room": "Ultratovush-2(Kurbanova Sevinch Musayevna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T07:38:38.818595",
+    "referringDoctor": "Dr. Abdurahimov Abdulaziz Ikromjon ugli",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Abdurahimov Abdulaziz Ikromjon ugli"
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "id": 2847244,
+    "patientId": 55307,
+    "dosyaNo": 260023657,
+    "fullName": "UKTAM NORBOYEV",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:07:01.279449",
+    "referringDoctor": "Dr. Abdikarimov Asilbek Mavludjon ogli",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Abdikarimov Asilbek Mavludjon ogli"
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "id": 2847254,
+    "patientId": 52140,
+    "dosyaNo": 260022623,
+    "fullName": "QUVONCH XOLMATOV",
+    "room": "Ultratovush--11(Yulchiyeva Nodira Siddikovna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:09:26.180116",
+    "referringDoctor": "Dr. Niyozaliyev Umid Sharafitdinovich",
+    "services": [
+      {
+        "name": "Qorin boshligi va kichik chanoq boshligida Erkin Suyuqlik Miqdori",
+        "code": "R83",
+        "doctor": "Niyozaliyev Umid Sharafitdinovich"
+      },
+      {
+        "name": "Siydik qopi prostata bezi, urug pufakchalari",
+        "code": "R69",
+        "doctor": "Niyozaliyev Umid Sharafitdinovich"
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "id": 2847264,
+    "patientId": 56545,
+    "dosyaNo": 260023597,
+    "fullName": "RAXMONALI YULDASHEV",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:15:42.062793",
+    "referringDoctor": "Dr. Davletov Rasulbek Rahimberdiyevich",
+    "services": [
+      {
+        "name": "Oyoq qon tomirlardagi trombni aniqlash",
+        "code": "R87",
+        "doctor": "Davletov Rasulbek Rahimberdiyevich"
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "id": 2847290,
+    "patientId": 52588,
+    "dosyaNo": 260024010,
+    "fullName": "MIRYUSUP XAMIDOV",
+    "room": "Ultratovush-1(Juravlev Igor Ivanovich)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:23:44.93172",
+    "referringDoctor": "Dr. Azimov Akbar Axbor o‘g‘li",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Azimov Akbar Axbor o‘g‘li"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Azimov Akbar Axbor o‘g‘li"
+      },
+      {
+        "name": "Siydik qopi prostata bezi, urug pufakchalari",
+        "code": "R69",
+        "doctor": "Azimov Akbar Axbor o‘g‘li"
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "id": 2847319,
+    "patientId": 56152,
+    "dosyaNo": 260024079,
+    "fullName": "BURIXOL BEKIYEVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:25:27.705509",
+    "referringDoctor": "Dr. Usmanov Rustam Xodjiakbarovich",
+    "services": [
+      {
+        "name": "Orbita Va Koz Olmalari",
+        "code": "R80",
+        "doctor": "Usmanov Rustam Xodjiakbarovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Usmanov Rustam Xodjiakbarovich"
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "id": 2847477,
+    "patientId": 50207,
+    "dosyaNo": 260023833,
+    "fullName": "MAVLUDA MURODOVA",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:45:59.896541",
+    "referringDoctor": "Dr. Nurjabov Abbos Ikromovich",
+    "services": [
+      {
+        "name": "Oyoq qon tomirlardagi trombni aniqlash",
+        "code": "R87",
+        "doctor": "Nurjabov Abbos Ikromovich"
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "id": 2833738,
+    "patientId": 56193,
+    "dosyaNo": 260104407,
+    "fullName": "ZAYNAB PARDAYEVA",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T09:30:49.950439",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 20,
+    "id": 2838009,
+    "patientId": 26224,
+    "dosyaNo": 260104347,
+    "fullName": "NATALYA YAKOVENKO",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-09T14:28:05.022975",
+    "referringDoctor": "Dr. Mannopova Nargiza Mannapovna",
+    "services": [
+      {
+        "name": "Oyoq qon tomirlardagi trombni aniqlash",
+        "code": "R87",
+        "doctor": "Mannopova Nargiza Mannapovna"
+      }
+    ]
+  },
+  {
+    "index": 21,
+    "id": 2847212,
+    "patientId": 43758,
+    "dosyaNo": 260104929,
+    "fullName": "ZARNIGOR QUCHQAROVA",
+    "room": "Ultratovush-7(ASADOVA DILDORAXON ASATULLAYEVNA)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-10T07:54:50.84769",
+    "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Laboratoriya va Radyologiya"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Laboratoriya va Radyologiya"
+      }
+    ]
+  },
+  {
+    "index": 22,
+    "id": 2847214,
+    "patientId": 56538,
+    "dosyaNo": 260102835,
+    "fullName": "ZIYADA DJUMAYEVA",
+    "room": "Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T07:55:30.769703",
+    "referringDoctor": "Dr. Muminov Sobit",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Muminov Sobit"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Muminov Sobit"
+      }
+    ]
+  },
+  {
+    "index": 23,
+    "id": 2847219,
+    "patientId": 56492,
+    "dosyaNo": 260104915,
+    "fullName": "XOSIYATXON  TURDIYEVA",
+    "room": "Ultratovush-6(Toirova Shaxlo Oybek kizi)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T07:55:59.105753",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 24,
+    "id": 2847220,
+    "patientId": 56492,
+    "dosyaNo": 260104915,
+    "fullName": "XOSIYATXON  TURDIYEVA",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T07:56:11.909371",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Oyoq qon tomirlardagi trombni aniqlash",
+        "code": "R87",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 25,
+    "id": 2847237,
+    "patientId": 25969,
+    "dosyaNo": 260104918,
+    "fullName": "LARISA STRELSOVA",
+    "room": "Ultratovush-7(ASADOVA DILDORAXON ASATULLAYEVNA)",
+    "queueNo": 546,
+    "status": "Kabul Edilen",
+    "registeredAt": "2026-09-10T08:01:05.291264",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 26,
+    "id": 2847239,
+    "patientId": 29652,
+    "dosyaNo": 260104933,
+    "fullName": "SVETLANA STARCHINKOVA",
+    "room": "Ultratovush-7(ASADOVA DILDORAXON ASATULLAYEVNA)",
+    "queueNo": 2,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-10T08:02:48.945404",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 27,
+    "id": 2847240,
+    "patientId": 57231,
+    "dosyaNo": 260104951,
+    "fullName": "ZIROATXON TOLIPOVA",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-10T08:03:30.805053",
+    "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Laboratoriya va Radyologiya"
+      }
+    ]
+  },
+  {
+    "index": 28,
+    "id": 2847245,
+    "patientId": 57228,
+    "dosyaNo": 260104936,
+    "fullName": "MAVLLUDA HIKMATOVA",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:08:03.445134",
+    "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      }
+    ]
+  },
+  {
+    "index": 29,
+    "id": 2847259,
+    "patientId": 17403,
+    "dosyaNo": 260104943,
+    "fullName": "OLGA  LAVROVA ",
+    "room": "Ultratovush-7(ASADOVA DILDORAXON ASATULLAYEVNA)",
+    "queueNo": 3,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:11:56.811442",
+    "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      }
+    ]
+  },
+  {
+    "index": 30,
+    "id": 2847270,
+    "patientId": 15375,
+    "dosyaNo": 260104981,
+    "fullName": "LAYLOXON NASIVALIYEVA",
+    "room": "Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:17:58.67052",
+    "referringDoctor": "Dr. Abdikarimov Azizbek Xurshidovich",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Abdikarimov Azizbek Xurshidovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Abdikarimov Azizbek Xurshidovich"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Abdikarimov Azizbek Xurshidovich"
+      }
+    ]
+  },
+  {
+    "index": 31,
+    "id": 2847276,
+    "patientId": 57227,
+    "dosyaNo": 260104934,
+    "fullName": "ORIF XAYRULLAYEV",
+    "room": "Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)",
+    "queueNo": 2,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-10T08:20:11.321463",
+    "referringDoctor": "Dr. Israilov Abdurasul Abdupataxovich",
+    "services": [
+      {
+        "name": "Yumshoq toqima",
+        "code": "R91",
+        "doctor": "Israilov Abdurasul Abdupataxovich"
+      }
+    ]
+  },
+  {
+    "index": 32,
+    "id": 2847279,
+    "patientId": 57234,
+    "dosyaNo": 260104965,
+    "fullName": "GULCHEXRA TILAVOVA",
+    "room": "Ultratovush-2(Kurbanova Sevinch Musayevna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:20:50.755147",
+    "referringDoctor": "Dr. Murotova Munojat Murotovna",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Murotova Munojat Murotovna"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Murotova Munojat Murotovna"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Murotova Munojat Murotovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Murotova Munojat Murotovna"
+      }
+    ]
+  },
+  {
+    "index": 33,
+    "id": 2847292,
+    "patientId": 57239,
+    "dosyaNo": 260105005,
+    "fullName": "MAXSUDA ESHONDADAYEVA",
+    "room": "Ultratovush-2(Kurbanova Sevinch Musayevna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:23:50.432373",
+    "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Laboratoriya va Radyologiya"
+      }
+    ]
+  },
+  {
+    "index": 34,
+    "id": 2847303,
+    "patientId": 8774,
+    "dosyaNo": 260104996,
+    "fullName": "ROVSHAN ZAKIROV",
+    "room": "Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)",
+    "queueNo": 375,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:24:42.965712",
+    "referringDoctor": "Dr. Alimova Sanobar Sobirovna",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Alimova Sanobar Sobirovna"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Alimova Sanobar Sobirovna"
+      },
+      {
+        "name": "Qorin parda orti limfa tugunlari",
+        "code": "R79",
+        "doctor": "Alimova Sanobar Sobirovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Alimova Sanobar Sobirovna"
+      }
+    ]
+  },
+  {
+    "index": 35,
+    "id": 2847327,
+    "patientId": 19437,
+    "dosyaNo": 260104991,
+    "fullName": "DILDORA MIRZAXMEDOVA",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 1,
+    "status": "Rapor Onaylı",
+    "registeredAt": "2026-09-10T08:26:45.340654",
+    "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
+    "services": [
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      }
+    ]
+  },
+  {
+    "index": 36,
+    "id": 2847334,
+    "patientId": 14288,
+    "dosyaNo": 260104980,
+    "fullName": "MASUDA ILXOMOVA",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 3,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:28:01.232804",
+    "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
+    "services": [
+      {
+        "name": "Transvaginal Tekshiruvi (TV UTT) Bachadon Va Tuxumdonlar",
+        "code": "R85",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      }
+    ]
+  },
+  {
+    "index": 37,
+    "id": 2847344,
+    "patientId": 57221,
+    "dosyaNo": 260104921,
+    "fullName": "XOLISXON YULCHIYEVA",
+    "room": "Ultratovush-1(Juravlev Igor Ivanovich)",
+    "queueNo": 3,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:28:48.537189",
+    "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": "Qorin parda orti limfa tugunlari",
+        "code": "R79",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      }
+    ]
+  },
+  {
+    "index": 38,
+    "id": 2847356,
+    "patientId": 8527,
+    "dosyaNo": 260104972,
+    "fullName": "ALBINA IBRAGIMOVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:30:25.101056",
+    "referringDoctor": "Dr. Kuvvatov Jurabek Toshmamatovich",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Kuvvatov Jurabek Toshmamatovich"
+      }
+    ]
+  },
+  {
+    "index": 39,
+    "id": 2847358,
+    "patientId": 48636,
+    "dosyaNo": 260105025,
+    "fullName": "DILOVAR BOYIMOVA",
+    "room": "Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)",
+    "queueNo": 376,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:30:45.761444",
+    "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Laboratoriya va Radyologiya"
+      }
+    ]
+  },
+  {
+    "index": 40,
+    "id": 2847362,
+    "patientId": 27868,
+    "dosyaNo": 260104989,
+    "fullName": "DILFUZA SHAROPOVA",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 547,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:32:34.331951",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 41,
+    "id": 2847370,
+    "patientId": 34392,
+    "dosyaNo": 260105006,
+    "fullName": "ROIXA ABDULLAYEVA",
+    "room": "Ultratovush-6(Toirova Shaxlo Oybek kizi)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:33:53.800656",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 42,
+    "id": 2847372,
+    "patientId": 34890,
+    "dosyaNo": 260104927,
+    "fullName": "TURSUNTOSH XUDAYBERDIYEVA",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 548,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:34:19.614805",
+    "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      }
+    ]
+  },
+  {
+    "index": 43,
+    "id": 2847377,
+    "patientId": 16865,
+    "dosyaNo": 260105032,
+    "fullName": "VIKTORIYA GRIMM",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:35:33.801135",
+    "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Inoyatov Shavkat Inoyatovich"
+      }
+    ]
+  },
+  {
+    "index": 44,
+    "id": 2847392,
+    "patientId": 47046,
+    "dosyaNo": 260105018,
+    "fullName": "ZULFIYA  IKRAMOVA",
+    "room": "Ultratovush-7(ASADOVA DILDORAXON ASATULLAYEVNA)",
+    "queueNo": 547,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:37:35.631886",
+    "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      },
+      {
+        "name": "Transvaginal Tekshiruvi (TV UTT) Bachadon Va Tuxumdonlar",
+        "code": "R85",
+        "doctor": "Ergasheva Erkinoy Muxammadovna"
+      }
+    ]
+  },
+  {
+    "index": 45,
+    "id": 2847402,
+    "patientId": 36411,
+    "dosyaNo": 260104930,
+    "fullName": "NOZIMA IBRAGIMOVA",
+    "room": "Ultratovush-2(Kurbanova Sevinch Musayevna)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:38:32.304816",
+    "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+    "services": [
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Saydaxmedova Viloyat Amirdinovna"
+      }
+    ]
+  },
+  {
+    "index": 46,
+    "id": 2847431,
+    "patientId": 18510,
+    "dosyaNo": 260104998,
+    "fullName": "BAXTIYOR AKRAMOV",
+    "room": "Ultratovush-9(XUSANOVA FERUZA IKROMJONOVNA)",
+    "queueNo": 1,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:40:29.168172",
+    "referringDoctor": "Dr. Almardanov Rustam Boymurodovich",
+    "services": [
+      {
+        "name": "Plevra boshliqlari",
+        "code": "R82",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      },
+      {
+        "name": "Qorin parda orti limfa tugunlari",
+        "code": "R79",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      },
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      },
+      {
+        "name": "Siydik qopi prostata bezi, urug pufakchalari",
+        "code": "R69",
+        "doctor": "Almardanov Rustam Boymurodovich"
+      }
+    ]
+  },
+  {
+    "index": 47,
+    "id": 2847436,
+    "patientId": 43443,
+    "dosyaNo": 260104912,
+    "fullName": "MAVLUDA BOBOQULOVA",
+    "room": "Ultratovush-3(Abidjanov Alisher Maxamataliyevich)",
+    "queueNo": 4,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:40:33.251926",
+    "referringDoctor": "Dr. Mannopova Nargiza Mannapovna",
+    "services": [
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Mannopova Nargiza Mannapovna"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Mannopova Nargiza Mannapovna"
+      }
+    ]
+  },
+  {
+    "index": 48,
+    "id": 2847460,
+    "patientId": 57229,
+    "dosyaNo": 260104944,
+    "fullName": "MARXABOXON SOTVOLDIYEVA",
+    "room": "Ultratovush--5(Xoshimova Lola Kabulovna)",
+    "queueNo": 3,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:41:55.978151",
+    "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": "Siydik Pufagi",
+        "code": "R66",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": "Transvaginal Tekshiruvi (TV UTT) Bachadon Va Tuxumdonlar",
+        "code": "R85",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      }
+    ]
+  },
+  {
+    "index": 49,
+    "id": 2847470,
+    "patientId": 56294,
+    "dosyaNo": 260101916,
+    "fullName": "MATLUBA MAMADALIYEVA",
+    "room": "Ultratovush--4(Ziyayeva Zarina Abduganiyevna)",
+    "queueNo": 549,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:44:01.495895",
+    "referringDoctor": "Dr. Xatamov Akbarjon Muxametovich",
+    "services": [
+      {
+        "name": "Doppler ( RTD+Energetik) jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R63",
+        "doctor": "Xatamov Akbarjon Muxametovich"
+      }
+    ]
+  },
+  {
+    "index": 50,
+    "id": 2847473,
+    "patientId": 57250,
+    "dosyaNo": 260105050,
+    "fullName": "BARNO KUTLIMURATOV",
+    "room": "Ultratovush-6(Toirova Shaxlo Oybek kizi)",
+    "queueNo": 3,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:45:49.822779",
+    "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
+    "services": [
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Sut Bezlar va qoltiq osti limfa tugunlar",
+        "code": "R92",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      },
+      {
+        "name": "Siydik Pufagi, Bachadon Va Tuxumdonlar",
+        "code": "R67",
+        "doctor": "Kasimov Doniyor Abrorovich"
+      }
+    ]
+  },
+  {
+    "index": 51,
+    "id": 2847479,
+    "patientId": 42505,
+    "dosyaNo": 260104952,
+    "fullName": "NAAPISA SAYDULLAYEVA",
+    "room": "Ultratovush--11(Yulchiyeva Nodira Siddikovna)",
+    "queueNo": 2,
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:47:01.456325",
+    "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
+    "services": [
+      {
+        "name": "U T T Buyraklar",
+        "code": "R64",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": "Siydik Pufagi",
+        "code": "R66",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": "Transvaginal Tekshiruvi (TV UTT) Bachadon Va Tuxumdonlar",
+        "code": "R85",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": " ҚАЛҚОНСИМОН БЕЗИ",
+        "code": "R75",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      },
+      {
+        "name": " Jigar, ot qopi, oshqozon osti bezi, taloq",
+        "code": "R62",
+        "doctor": "Ruziyeva Mexribon Mavlon qizi"
+      }
+    ]
+  },
+  {
+    "index": 52,
+    "id": 2847482,
+    "patientId": 57251,
+    "dosyaNo": 260105051,
+    "fullName": "ORZIXON PARPIYEVA",
+    "room": "Biriktirilmagan",
+    "queueNo": "—",
+    "status": "Bekleyen",
+    "registeredAt": "2026-09-10T08:48:24.555027",
+    "referringDoctor": "Dr. Israilov Abdurasul Abdupataxovich",
+    "services": [
+      {
+        "name": "Periferik Limfa Tugunlar",
+        "code": "R78",
+        "doctor": "Israilov Abdurasul Abdupataxovich"
+      }
+    ]
+  }
+]

@@ -832,47 +832,6 @@
     "createdAt": "2026-09-04T05:40:20.167Z",
     "expiresAt": "2026-10-04T05:40:20.167Z"
   },
-  "tok_1788507353559_b392963f65aa93d2d9effe94c9db047b": {
-    "token": "tok_1788507353559_b392963f65aa93d2d9effe94c9db047b",
-    "user": {
-      "login": "T4",
-      "name": "Hojiakbar",
-      "role": "server_nazoratchisi",
-      "status": "active",
-      "phone": "",
-      "room": "Server & Radiologiya",
-      "workSchedule": {
-        "start": "08:00",
-        "end": "18:00",
-        "lunchStart": "12:00",
-        "lunchEnd": "13:00",
-        "days": [
-          "Dush",
-          "Sesh",
-          "Chor",
-          "Pay",
-          "Jum",
-          "Shan"
-        ],
-        "customDates": {},
-        "shiftPattern": "standard"
-      },
-      "preferences": {
-        "testDurations": {
-          "MRT_ODDIY": 15,
-          "MRT_KONTRAST": 25,
-          "MSKT": 10
-        },
-        "servicePreparations": {},
-        "serviceContraindications": {},
-        "serviceConsentQuestions": {},
-        "notes": "Server nazoratchisi, Super Admin va Laborant"
-      },
-      "createdAt": "2026-09-03"
-    },
-    "createdAt": "2026-09-04T07:35:53.559Z",
-    "expiresAt": "2026-10-04T07:35:53.559Z"
-  },
   "tok_1788507365458_9ac84428f8e3bb811da2f1ce3cf76490": {
     "token": "tok_1788507365458_9ac84428f8e3bb811da2f1ce3cf76490",
     "user": {
@@ -913,5 +872,87 @@
     },
     "createdAt": "2026-09-04T07:36:05.459Z",
     "expiresAt": "2026-10-04T07:36:05.459Z"
+  },
+  "tok_1788514062765_cb97f4be2e2239e08d42eaec3d2f809b": {
+    "token": "tok_1788514062765_cb97f4be2e2239e08d42eaec3d2f809b",
+    "user": {
+      "login": "T4",
+      "name": "Hojiakbar",
+      "role": "server_nazoratchisi",
+      "status": "active",
+      "phone": "",
+      "room": "Server & Radiologiya",
+      "workSchedule": {
+        "start": "08:00",
+        "end": "18:00",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ],
+        "customDates": {},
+        "shiftPattern": "standard"
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "servicePreparations": {},
+        "serviceContraindications": {},
+        "serviceConsentQuestions": {},
+        "notes": "Server nazoratchisi, Super Admin va Laborant"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-04T09:27:42.765Z",
+    "expiresAt": "2026-10-04T09:27:42.765Z"
+  },
+  "tok_1788520163470_65963addfa0f84d2a2f1691db3a63782": {
+    "token": "tok_1788520163470_65963addfa0f84d2a2f1691db3a63782",
+    "user": {
+      "login": "T1",
+      "name": "Isfandiyor",
+      "role": "tibbiy_navbat",
+      "status": "active",
+      "phone": "+998 90 999-99-99",
+      "room": "Registratura",
+      "workSchedule": {
+        "start": "08:30",
+        "end": "17:30",
+        "lunchStart": "12:00",
+        "lunchEnd": "13:00",
+        "days": [
+          "Dush",
+          "Sesh",
+          "Chor",
+          "Pay",
+          "Jum",
+          "Shan"
+        ],
+        "customDates": {},
+        "shiftPattern": "standard"
+      },
+      "preferences": {
+        "testDurations": {
+          "MRT_ODDIY": 15,
+          "MRT_KONTRAST": 25,
+          "MSKT": 10
+        },
+        "servicePreparations": {},
+        "serviceContraindications": {},
+        "serviceConsentQuestions": {},
+        "notes": "Tibbiy navbatga qo'yuvchi"
+      },
+      "createdAt": "2026-09-03"
+    },
+    "createdAt": "2026-09-04T11:09:23.471Z",
+    "expiresAt": "2026-10-04T11:09:23.471Z"
   }
 }

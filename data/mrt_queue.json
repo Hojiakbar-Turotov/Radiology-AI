@@ -824,7 +824,7 @@
     "totalPrice": 0,
     "deviceId": "mrt1",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "completed",
     "estimatedDurationMinutes": 50,
     "estimatedStartTime": "2026-09-04 08:20",
     "estimatedFinishTime": "2026-09-04 09:10",
@@ -836,8 +836,11 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T03:11:56.385Z",
-    "updatedAt": "2026-09-04T09:15:13.301Z",
-    "presenceStatus": "waiting_room"
+    "updatedAt": "2026-09-04T11:12:47.551Z",
+    "presenceStatus": "waiting_room",
+    "calledAt": "2026-09-04T11:11:44.365Z",
+    "startedAt": "2026-09-04T11:11:44.394Z",
+    "finishedAt": "2026-09-04T11:12:47.551Z"
   },
   {
     "id": "p_1788499747529_hjdjb",
@@ -1114,7 +1117,7 @@
     "totalPrice": 0,
     "deviceId": "mrt1",
     "deviceType": "MRT",
-    "status": "waiting",
+    "status": "in_progress",
     "estimatedDurationMinutes": 15,
     "estimatedStartTime": "2026-09-04 11:05",
     "estimatedFinishTime": "2026-09-04 11:20",
@@ -1126,8 +1129,10 @@
     "operatorName": "Operator",
     "comment": "",
     "createdAt": "2026-09-04T05:30:40.906Z",
-    "updatedAt": "2026-09-04T09:15:43.863Z",
-    "presenceStatus": "waiting_room"
+    "updatedAt": "2026-09-04T11:12:49.015Z",
+    "presenceStatus": "waiting_room",
+    "calledAt": "2026-09-04T11:12:48.988Z",
+    "startedAt": "2026-09-04T11:12:49.015Z"
   },
   {
     "id": "p_1788499845170_tp1sq",

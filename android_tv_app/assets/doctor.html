@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vrach Qabulxona Portali — UTT Bo'limi</title>
+  <link rel="stylesheet" href="doctor.css">
+  <link rel="icon" href="icons/logo-onko.png" type="image/png">
+</head>
+<body>
+  <!-- 1. LOGIN MODAL EKRANI -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <div class="login-logo-wrap">
+        <img src="icons/logo-onko.png" alt="Logo" class="login-logo" onerror="this.style.display='none'">
+      </div>
+      <h2 class="login-title">👨‍⚕️ UTT Vrach Portali</h2>
+      <p class="login-subtitle">Respublika Onkologiya Markazi • Jonli Navbat</p>
+
+      <form id="doctorLoginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUsername">Shifokor / Login:</label>
+          <select id="loginUsername" class="login-input" required>
+            <option value="U0">U0 — Ultratovush-10 (Xudayberdiyeva N.N. - 51-xona)</option>
+            <option value="U1">U1 — Ultratovush-1 (Juravlev I.I. - 53-xona)</option>
+            <option value="U2">U2 — Ultratovush-2 (Kurbanova S.M. - 54-xona)</option>
+            <option value="U3">U3 — Ultratovush-3 (Abidjanov A.M. - 46-xona)</option>
+            <option value="U4">U4 — Ultratovush-4 (Ziyayeva Z.A. - 47-xona)</option>
+            <option value="U5">U5 — Ultratovush-5 (Xoshimova L.K. - 48-xona)</option>
+            <option value="U6">U6 — Ultratovush-6 (Toirova Sh.O. - 52-xona)</option>
+            <option value="U7">U7 — Ultratovush-7 (Asadova D.A. - 45-xona)</option>
+            <option value="U8">U8 — Ultratovush-8 (Saidbayeva Z.E. - 49-xona)</option>
+            <option value="U9">U9 — Ultratovush-9 (Xusanova F.I. - 50-xona)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Parol:</label>
+          <input type="password" id="loginPassword" class="login-input" placeholder="Standart: 15420" required autocomplete="current-password" />
+        </div>
+
+        <div class="login-error-msg" id="loginErrorMsg" style="display: none;"></div>
+
+        <button type="submit" class="btn-login" id="btnLoginSubmit">
+          <span>Tizimga kirish</span> ➔
+        </button>
+      </form>
+
+      <div class="login-footer-hint">
+        <span>Standart parol: <b>15420</b>. Kirgach parolni o'zgartirishingiz mumkin.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ASOSIY VRACH ISH STOLI (WORKSPACE) -->
+  <div class="doctor-app-container" id="doctorAppContainer" style="display: none;">
+    <!-- HEADER -->
+    <header class="doc-header">
+      <div class="doc-header-left">
+        <img src="icons/logo-onko.png" alt="Logo" class="doc-logo" onerror="this.style.display='none'">
+        <div class="doc-titles">
+          <h1 class="hospital-name">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h1>
+          <div class="active-doc-badge" id="headerDocBadge">
+            <span class="pulse-green"></span>
+            <span id="activeDocTitleText">UTT Xonasi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-header-right">
+        <div class="doc-clock-card">
+          <span class="doc-date" id="docLiveDate">08.09.2026</span>
+          <span class="doc-time" id="docLiveTime">10:00:00</span>
+        </div>
+        <button type="button" class="btn-header-action btn-chime-sound" id="btnOpenSoundModal" title="Xonangiz chaqiruv signalini tanlash (25 xil)">
+          🔔 Chaqiruv signali
+        </button>
+        <button type="button" class="btn-header-action btn-change-pwd" id="btnOpenChangePwd">
+          🔑 Parol
+        </button>
+        <button type="button" class="btn-header-action btn-logout" id="btnLogout">
+          🚪 Chiqish
+        </button>
+      </div>
+    </header>
+
+    <!-- ASOSIY MAZMUN -->
+    <main class="doc-main-content">
+      
+      <!-- HERO CHAQIRUV PANELI -->
+      <section class="hero-call-section" id="heroCallSection">
+        <div class="hero-call-idle" id="heroCallIdle">
+          <div class="idle-icon">👨‍⚕️</div>
+          <div class="idle-text">
+            <h3>Hozirda chaqirilgan bemor yo'q</h3>
+            <p>Quyidagi navbat ro'yxatidan kerakli bemorni tanlab <b>«📢 Chaqirish»</b> tugmasini bosing.</p>
+          </div>
+        </div>
+
+        <div class="hero-call-active" id="heroCallActive" style="display: none;">
+          <div class="active-call-header">
+            <span class="call-badge-live">
+              <span class="live-dot"></span> HOZIRGI CHAQIRILGAN BEMOR (QABULDA)
+            </span>
+            <span class="call-time-ago" id="callElapsedTimer">Chaqirildi: 0 daqiqa oldin</span>
+          </div>
+
+          <div class="active-call-body">
+            <div class="call-queue-big">
+              <span class="call-q-lbl">NAVBAT</span>
+              <span class="call-q-num" id="activeCallQueueNo">1</span>
+            </div>
+
+            <div class="call-patient-info">
+              <h2 class="call-pat-name" id="activeCallFullName">BEMOR F.I.SH</h2>
+              <div class="call-pat-meta">
+                <span>Bemor ID: <b id="activeCallPatientId">00000</b></span>
+                <span>•</span>
+                <span>Ro'yxatga olingan: <b id="activeCallRegTime">00:00</b></span>
+                <span>•</span>
+                <span>Xona: <b id="activeCallRoomTitle">UTT</b></span>
+              </div>
+            </div>
+
+            <div class="call-actions-group">
+              <button type="button" class="btn-repeat-call" id="btnRepeatCall" title="TV ekranida chaqiruvni qayta eslatish">
+                🔔 Qayta chaqirish
+              </button>
+              <button type="button" class="btn-finish-call" id="btnFinishCall" title="Ushbu bemor qabulini yakunlash">
+                ✅ Qabulni Yakunlash
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KUTAYOTGAN BEMORLAR JADVALI -->
+      <section class="doc-queue-section">
+        <div class="queue-panel-header">
+          <div class="qp-left">
+            <h2>📋 Sizning Xonangizga Kutayotgan Bemorlar Ro'yxati</h2>
+            <span class="queue-count-badge" id="docQueueCountBadge">0 ta bemor</span>
+          </div>
+          <div class="qp-right">
+            <input type="text" id="docPatientSearch" class="doc-search-input" placeholder="Bemor ID yoki F.I.SH bo'yicha qidirish..." />
+            <button type="button" class="btn-refresh-queue" id="btnRefreshQueue" title="Navbatni yangilash">
+              🔄 Yangilash
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th style="width: 80px; text-align: center;">Navbat</th>
+                <th style="width: 120px;">Bemor ID</th>
+                <th>Bemor F.I.SH</th>
+                <th style="width: 160px;">Ro'yxatga olingan</th>
+                <th>Davolovchi Vrach</th>
+                <th style="width: 160px; text-align: center;">Amal</th>
+              </tr>
+            </thead>
+            <tbody id="docTableBody">
+              <tr>
+                <td colspan="6" class="doc-empty-state">Bemorlar ro'yxati yuklanmoqda...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 3. PAROLNI O'ZGARTIRISH MODALI -->
+  <div class="modal-overlay" id="changePwdModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔑 Parolni o'zgartirish</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseChangePwd">✕</button>
+      </div>
+      <form id="changePwdForm" class="modal-form">
+        <div class="form-group">
+          <label for="oldPassword">Amaldagi parol:</label>
+          <input type="password" id="oldPassword" class="login-input" required />
+        </div>
+        <div class="form-group">
+          <label for="newPassword">Yangi parol:</label>
+          <input type="password" id="newPassword" class="login-input" required minlength="4" />
+        </div>
+        <div class="form-group">
+          <label for="confirmNewPassword">Yangi parolni tasdiqlang:</label>
+          <input type="password" id="confirmNewPassword" class="login-input" required minlength="4" />
+        </div>
+
+        <div class="modal-msg" id="changePwdMsg" style="display: none;"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" id="btnCancelChangePwd">Bekor qilish</button>
+          <button type="submit" class="btn-modal-save">Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. CHAQIRUV SIGNALINI TANLASH MODALI (25 XIL SIGNAL) -->
+  <div class="modal-overlay" id="soundModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔔 Xona Chaqiruv Signalini Tanlash</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseSoundModal">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 0;">
+        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 12px; line-height: 1.4;">
+          Ushbu xonadan bemor chaqirilganda TV ekrani va karnaylarda chalinadigan maxsus ovoz signalini tanlang (25 xil):
+        </p>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="chimeSoundSelect" style="display: block; font-weight: 700; margin-bottom: 6px; color: #e2e8f0;">Signal turi:</label>
+          <select id="chimeSoundSelect" class="login-input" style="width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600;"></select>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <button type="button" id="btnTestSound" style="flex: 1; padding: 10px 16px; border-radius: 8px; font-weight: 700; background: #2563eb; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span>▶ Eshitib ko'rish (Tinglash)</span>
+          </button>
+        </div>
+        <div id="soundModalMsg" class="modal-msg" style="display: none;"></div>
+      </div>
+      <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn-modal-cancel" id="btnCancelSoundModal">Bekor qilish</button>
+        <button type="button" class="btn-modal-save" id="btnSaveSoundModal">💾 Saqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="chime_engine.js"></script>
+  <script src="doctor.js"></script>
+</body>
+</html>

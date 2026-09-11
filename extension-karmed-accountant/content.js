@@ -1,982 +1,1038 @@
 /**
- * Karmed Vrach Bemorlarini Sanash & Hisobchi Portali - Content Script
+ * CONTENT.JS - KARMED IN-PAGE FLOATING PRICE DRAWER & AUTOMATIC PATIENT EXAMINATION PRICE DETECTION
  * 
- * 33 ta Rasmiy Tarif Narxlari (Rezident, No Rezident, Sug'urta/Order/Vaqf/boshqalar)
- * 1. Rezident -> 1-ustun narxlari
- * 2. No Rezident -> 2-ustun narxlari
- * 3. Boshqa barchasi (Sug'urta, Order, Vaqf, Imtiyoz...) -> 3-ustun narxlari
- * 4. Google Sheets (19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0 - Iyun) va "Farq" jurnali
+ * Imkoniyatlar:
+ * 1. Bemor ustiga bosilganda uning barcha tekshiruvlarini aniqlaydi.
+ * 2. Muassasasi bo'yicha 3 ta holat (Rezident, No Rezident, Sug'urta/Order) to'g'ri aniqlanadi.
+ * 3. Jadval ichiga inline narx badgelarini kiritadi (jadval ustunlari buzilmaydi, qora panel yo'q).
+ * 4. Tashxislar yonida ixcham jami to'lov belgisi chiqadi.
+ * 5. Ekranning o'ng pastki burchagida jonli bemor kartochkasi (HUD) chiqadi.
+ * 6. Alt + P orqali ochiluvchi Preyskurantda har bir xizmat uchun 3 ta narx (Rezident, No Rezident, Sug'urta)
+ *    to'liq yozilgan holda va 3 ta tarif tugmasi bilan ko'rsatiladi.
  */
 
-const FIREBASE_DB_URL = "https://xabarlashgich-default-rtdb.firebaseio.com";
-let currentGoogleScriptUrl = "";
-let currentSpreadsheetId = "";
-let currentTargetSheetName = "Farq";
-let autoSaveOnOpen = false;
-let lastSavedPatientKey = "";
-let lastClickedRow = null;
-let lastActivePatient = null;
+(function () {
+  // Prevent duplicate injection
+  if (document.getElementById('karmed-price-fab')) return;
 
-// 33 TA RASMIY TEKSHIRUV TARIFLAR JADVALI
-const OFFICIAL_TARIFF_RATES = [
-  {
-    id: 1,
-    name: "JIGAR, O'T QOPI, OSHQOZON OSTI BEZI, TALOQ",
-    keywords: ["jigar", "qopi"],
-    altKeywords: ["jigar", "taloq"],
-    excludeKeywords: ["doppler", "rtd"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 2,
-    name: "DOPPLER ( RTD+energetik) JIGAR, O'T QOPI, OSHQOZON OSTI BEZI, TALOQ",
-    keywords: ["doppler", "jigar"],
-    altKeywords: ["rtd", "jigar"],
-    rezident: 192000,
-    norezident: 307200,
-    sugurta: 188160
-  },
-  {
-    id: 3,
-    name: "U T T BUYRAKLAR",
-    keywords: ["buyrak"],
-    excludeKeywords: ["doppler", "rtd"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 4,
-    name: "DOPPLER (RTD + energetik) BUYRAKLAR",
-    keywords: ["doppler", "buyrak"],
-    altKeywords: ["rtd", "buyrak"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 5,
-    name: "SIYDIK PUFAGI",
-    keywords: ["siydikpufagi"],
-    excludeKeywords: ["bachadon", "tuxumdon", "prostata"],
-    rezident: 93000,
-    norezident: 148800,
-    sugurta: 91140
-  },
-  {
-    id: 6,
-    name: "SIYDIK PUFAGI, BACHADON VA TUXUMDONLAR",
-    keywords: ["siydik", "bachadon"],
-    altKeywords: ["bachadon", "tuxumdon"],
-    excludeKeywords: ["doppler", "rtd", "transvaginal", "tvutt", "tvu"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 7,
-    name: "DOPPLER (RTD + energetik) BACHADON VA TUXUMDONLAR",
-    keywords: ["doppler", "bachadon"],
-    altKeywords: ["rtd", "bachadon"],
-    excludeKeywords: ["transvaginal", "tvutt"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 8,
-    name: "SIYDIK QOPI PROSTATA BEZI, URUG' PUFAKCHALARI",
-    keywords: ["prostata", "urug"],
-    altKeywords: ["prostata", "pufakcha"],
-    excludeKeywords: ["doppler", "rtd", "transrektal"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 9,
-    name: "DOPPLER (RTD + energetik) SIYDIK QOPI, PROSTATA BEZI, URUG' PUFAKCHALARI",
-    keywords: ["doppler", "prostata"],
-    altKeywords: ["rtd", "prostata"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 10,
-    name: "YORG'OQ A'ZOLARI",
-    keywords: ["yorgoq"],
-    altKeywords: ["moshonka"],
-    excludeKeywords: ["doppler", "rtd"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 11,
-    name: "DOPPLER (RTD + energetik) YORG'OQ A'ZOLARI",
-    keywords: ["doppler", "yorgoq"],
-    altKeywords: ["rtd", "yorgoq"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 12,
-    name: "SUT BEZLARI",
-    keywords: ["sutbez"],
-    excludeKeywords: ["doppler", "rtd", "sonoelastograf", "qoltiq"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 13,
-    name: "DOPPLER (RTD + energetik) SUT BEZLARI",
-    keywords: ["doppler", "sutbez"],
-    altKeywords: ["rtd", "sutbez"],
-    excludeKeywords: ["sonoelastograf"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 14,
-    name: "QALQONSIMON BEZI",
-    keywords: ["qalqonsimon"],
-    excludeKeywords: ["doppler", "rtd", "sonoelastograf"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 15,
-    name: "DOPPLER (RTD + energetik) QALQONSIMON BEZI",
-    keywords: ["doppler", "qalqonsimon"],
-    altKeywords: ["rtd", "qalqonsimon"],
-    excludeKeywords: ["sonoelastograf"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 16,
-    name: "DOPPLER (RTD + energetik) YUMSHOQ TO'QIMA",
-    keywords: ["doppler", "yumshoq"],
-    altKeywords: ["rtd", "yumshoq"],
-    excludeKeywords: ["sonoelastograf"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 17,
-    name: "PERIFERIK LIMFA TUGUNLAR",
-    keywords: ["periferik"],
-    altKeywords: ["limfa"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 18,
-    name: "QORIN PARDA ORTI LIMFA TUGUNLARI",
-    keywords: ["qorinpardaorti"],
-    altKeywords: ["pardaorti"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 19,
-    name: "ORBITA VA KO'Z OLMALARI",
-    keywords: ["orbita"],
-    altKeywords: ["kozolma"],
-    excludeKeywords: ["doppler", "rtd"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 20,
-    name: "DOPPLER ( RTD+energetik) ORBITA VA KO'Z OLMALARI",
-    keywords: ["doppler", "orbita"],
-    altKeywords: ["rtd", "orbita"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 21,
-    name: "PLEVRA BO'SHLIQLARI",
-    keywords: ["plevra"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 22,
-    name: "QORIN BO'SHLIG'I VA KICHIK CHANOQ BO'SHLIG'IDA ERKIN SUYUQLIK MIQDORI",
-    keywords: ["erkin", "suyuqlik"],
-    altKeywords: ["suyuqlikmiqdori"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 23,
-    name: "DOPPLER (CDK + energetik) TRANSVAGINAL TEKSHIRUVI (TV UZI)",
-    keywords: ["doppler", "transvaginal"],
-    altKeywords: ["cdk", "transvaginal"],
-    rezident: 196000,
-    norezident: 313600,
-    sugurta: 192080
-  },
-  {
-    id: 24,
-    name: "TRANSVAGINAL TEKSHIRUVI (TV UTT) Bachadon va tuxumdonlar",
-    keywords: ["transvaginal"],
-    altKeywords: ["tvutt", "tvuzi"],
-    excludeKeywords: ["doppler", "cdk", "rtd"],
-    rezident: 163000,
-    norezident: 260800,
-    sugurta: 159740
-  },
-  {
-    id: 25,
-    name: "TRANSREKTAL TEKSHIRUVI (TR UTT) prostata bezi",
-    keywords: ["transrektal"],
-    altKeywords: ["trutt"],
-    rezident: 163000,
-    norezident: 260800,
-    sugurta: 159740
-  },
-  {
-    id: 26,
-    name: "OYOQ QON TOMIRLARDAGI TROMBNI ANIQLASH",
-    keywords: ["tromb"],
-    altKeywords: ["oyoqqontomir", "venank"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 27,
-    name: "KOMPRESSION SONOELASTOGRAFIYA SUT BEZLARI",
-    keywords: ["sonoelastograf", "sutbez"],
-    altKeywords: ["elastograf", "sutbez"],
-    rezident: 192000,
-    norezident: 307200,
-    sugurta: 188160
-  },
-  {
-    id: 28,
-    name: "KOMPRESSION SONOELASTOGRAFIYA QALQONSIMON BEZI",
-    keywords: ["sonoelastograf", "qalqonsimon"],
-    altKeywords: ["elastograf", "qalqonsimon"],
-    rezident: 192000,
-    norezident: 307200,
-    sugurta: 188160
-  },
-  {
-    id: 29,
-    name: "KOMPRESSION SONOELASTOGRAFIYA YUMSHOQ TO'QIMA",
-    keywords: ["sonoelastograf", "yumshoq"],
-    altKeywords: ["elastograf", "yumshoq"],
-    rezident: 192000,
-    norezident: 307200,
-    sugurta: 188160
-  },
-  {
-    id: 30,
-    name: "YUMSHOQ TO'QIMA",
-    keywords: ["yumshoq"],
-    altKeywords: ["toqima"],
-    excludeKeywords: ["doppler", "rtd", "sonoelastograf"],
-    rezident: 126000,
-    norezident: 201600,
-    sugurta: 123480
-  },
-  {
-    id: 31,
-    name: "SUT BEZLAR VA QO'LTIQ OSTI LIMFA TUGUNLAR",
-    keywords: ["sutbez", "qoltiq"],
-    altKeywords: ["qoltiqosti"],
-    excludeKeywords: ["sonoelastograf"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
-  },
-  {
-    id: 32,
-    name: "PUNKTSION BIOPSIYA U T T NAZORATI OSTIDA",
-    keywords: ["biopsiya"],
-    altKeywords: ["punktsion"],
-    rezident: 460000,
-    norezident: 736000,
-    sugurta: 450800
-  },
-  {
-    id: 33,
-    name: "BO'YIN QON TOMIRLARI DOPPLEROGRAFIYASI",
-    keywords: ["boyin", "tomir"],
-    altKeywords: ["boyindoppler"],
-    rezident: 159000,
-    norezident: 254400,
-    sugurta: 155820
+  let servicesCatalog = [];
+  const catalogByCode = new Map();
+  const catalogByName = new Map();
+
+  // State
+  let currentPatient = null;
+  let detectedSubtableServices = [];
+  let isDrawerOpen = false;
+  let isHudMinimized = false;
+  let toastTimer = null;
+
+  // Drawer state
+  let currentDrawerTariff = 'rezident'; // 'rezident' | 'norezident' | 'sugurta'
+  let currentCategory = 'ALL';
+  let searchQuery = '';
+  let onlyContrast = false;
+  let onlyInjector = false;
+  const selectedCodes = new Set();
+
+  function cyrillicToLatin(str) {
+    if (!str) return '';
+    const map = {
+      'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z',
+      'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+      'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ҳ': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh',
+      'щ': 'sh', 'ъ': '', 'ы': 'i', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+      'ў': 'o', 'ғ': 'g', 'қ': 'q'
+    };
+    return str.toLowerCase().split('').map(c => map[c] !== undefined ? map[c] : c).join('');
   }
-];
 
-// 1. ISHGA TUSHIRISH
-(async function init() {
-  await loadSavedSettings();
-  createQuickFarqFloatingWidget();
-  initClickInterceptor();
-  initKeyboardShortcuts();
-  startActivePatientObserver();
-})();
+  function normalizeName(str) {
+    if (!str) return '';
+    return cyrillicToLatin(str).replace(/[^a-z0-9]/gi, '');
+  }
 
-async function loadSavedSettings() {
-  return new Promise(resolve => {
-    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(["sheetsScriptUrl", "spreadsheetId", "targetSheetName", "autoSaveFarq"], res => {
-        if (res.sheetsScriptUrl) currentGoogleScriptUrl = res.sheetsScriptUrl.trim();
-        if (res.spreadsheetId) currentSpreadsheetId = extractSheetId(res.spreadsheetId);
-        if (res.targetSheetName) currentTargetSheetName = res.targetSheetName.trim() || "Farq";
-        if (res.autoSaveFarq !== undefined) autoSaveOnOpen = Boolean(res.autoSaveFarq);
-        resolve();
+  initPriceExtension();
+
+  async function initPriceExtension() {
+    // 1. Fetch catalog
+    try {
+      const url = chrome.runtime.getURL('price_catalog.json');
+      const res = await fetch(url);
+      servicesCatalog = await res.json();
+
+      // Index catalog for instant O(1) lookup
+      servicesCatalog.forEach(item => {
+        const cleanCode = item.code.toUpperCase().replace(/\s+/g, '');
+        catalogByCode.set(cleanCode, item);
+        catalogByName.set(normalizeName(item.name), item);
+        if (item.nameLatin) {
+          catalogByName.set(normalizeName(item.nameLatin), item);
+        }
       });
-    } else {
-      resolve();
+    } catch (err) {
+      console.warn('[Karmed Preyskurant] Katalog yuklanmadi:', err);
+      return;
     }
-  });
-}
 
-function extractSheetId(inputStr) {
-  if (!inputStr) return "";
-  const str = inputStr.trim();
-  const match = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
-  if (match) return match[1];
-  return str;
-}
+    // 2. Inject UI Elements
+    createFloatingButton();
+    createDrawer();
+    createPatientHud();
 
-// 2. BEMOR STATUSINI ANIQLASH (rezident / norezident / sugurta)
-function getPatientStatusType(muassasaText) {
-  if (!muassasaText) return 'rezident';
-  const clean = muassasaText.toLowerCase().trim();
+    // 3. Listen to Patient Clicks and Table Changes
+    initPatientAndTableObserver();
 
-  if (clean.includes('no rezident') || clean.includes('norezident') || clean.includes('no-rezident')) {
-    return 'norezident';
-  }
-
-  if (clean === 'rezident' || (clean.includes('rezident') && !clean.includes('no'))) {
-    return 'rezident';
-  }
-
-  return 'sugurta';
-}
-
-// 3. XIZMATNING ANIQ TARIFINI HISOBLASH
-function calculateServiceTariffPrice(serviceName, serviceCode, statusType = 'rezident') {
-  const norm = (serviceName || '').toLowerCase().replace(/['`ʻ\s,._\-\(\)]/g, '');
-  
-  for (const item of OFFICIAL_TARIFF_RATES) {
-    const hasKey = item.keywords.every(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
-    const hasAlt = item.altKeywords && item.altKeywords.every(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
-    const hasEx = item.excludeKeywords && item.excludeKeywords.some(k => norm.includes(k.replace(/['`ʻ\s,._\-\(\)]/g, '')));
-
-    if ((hasKey || hasAlt) && !hasEx) {
-      if (statusType === 'norezident') return item.norezident;
-      if (statusType === 'sugurta') return item.sugurta;
-      return item.rezident;
-    }
-  }
-
-  const code = (serviceCode || '').toUpperCase().trim();
-  const codeDefaults = {
-    'R25': { rezident: 126000, norezident: 201600, sugurta: 123480 },
-    'R52': { rezident: 159000, norezident: 254400, sugurta: 155820 },
-    'R62': { rezident: 159000, norezident: 254400, sugurta: 155820 },
-    'R63': { rezident: 192000, norezident: 307200, sugurta: 188160 },
-    'R64': { rezident: 126000, norezident: 201600, sugurta: 123480 },
-    'R67': { rezident: 159000, norezident: 254400, sugurta: 155820 },
-    'R78': { rezident: 126000, norezident: 201600, sugurta: 123480 },
-    'R79': { rezident: 126000, norezident: 201600, sugurta: 123480 },
-    'R85': { rezident: 163000, norezident: 260800, sugurta: 159740 },
-    'R87': { rezident: 126000, norezident: 201600, sugurta: 123480 },
-    'R134': { rezident: 192000, norezident: 307200, sugurta: 188160 },
-    'R135': { rezident: 192000, norezident: 307200, sugurta: 188160 }
-  };
-
-  if (codeDefaults[code]) {
-    return codeDefaults[code][statusType] || codeDefaults[code].rezident;
-  }
-
-  if (statusType === 'norezident') return 254400;
-  if (statusType === 'sugurta') return 155820;
-  return 159000;
-}
-
-// 4. FOYDALANUVCHI QATORGA BOSGANDA DARHOL USHLAB OLISH (CLICK INTERCEPTOR)
-function initClickInterceptor() {
-  document.addEventListener("click", (e) => {
-    const tr = e.target.closest("tr");
-    if (!tr) return;
-
-    if (!tr.innerText.includes("Siydik Pufagi") && !tr.innerText.includes("Doppler") && !tr.innerText.includes("Buyraklar") && !tr.innerText.startsWith("R")) {
-      const p = parsePatientFromRow(tr);
-      if (p) {
-        lastClickedRow = tr;
-        lastActivePatient = p;
-        setTimeout(updateWidgetPatientPreview, 100);
+    // 4. Global Shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Toggle drawer with Alt + P or Ctrl + Shift + P
+      if ((e.altKey && e.code === 'KeyP') || (e.ctrlKey && e.shiftKey && e.code === 'KeyP')) {
+        e.preventDefault();
+        toggleDrawer();
       }
-    }
-  }, true);
-}
-
-// 5. QATORNI (TR) TAHLIL QILIB BEMOR MA'LUMOTLARINI AJRATISH
-function parsePatientFromRow(tr) {
-  if (!tr) return null;
-  const cells = Array.from(tr.querySelectorAll("td"));
-  if (cells.length < 4) return null;
-
-  const cellTexts = cells.map(c => c.innerText.trim());
-
-  let dateIdx = -1;
-  let rawDate = "";
-  cellTexts.forEach((t, idx) => {
-    if (/\d{2}\.\d{2}\.\d{4}/.test(t)) {
-      dateIdx = idx;
-      rawDate = t;
-    }
-  });
-
-  if (dateIdx === -1) return null;
-
-  let patientId = "";
-  let surname = "";
-  let firstName = "";
-  let middleName = "";
-  let muassasa = "";
-  let department = "";
-  let pinfl = "";
-  let referringDoctor = "";
-
-  if (cells[dateIdx + 1] && /^\d{3,8}$/.test(cellTexts[dateIdx + 1])) {
-    patientId = cellTexts[dateIdx + 1];
-    surname = cellTexts[dateIdx + 2] || "";
-    firstName = cellTexts[dateIdx + 3] || "";
-    middleName = cellTexts[dateIdx + 4] || "";
-  } else {
-    const idIdx = cellTexts.findIndex((t, i) => i > 0 && /^\d{3,8}$/.test(t) && !t.includes("."));
-    if (idIdx !== -1) {
-      patientId = cellTexts[idIdx];
-      surname = cellTexts[idIdx + 1] || "";
-      firstName = cellTexts[idIdx + 2] || "";
-      middleName = cellTexts[idIdx + 3] || "";
-    }
+      // Close with Escape
+      if (e.key === 'Escape' && isDrawerOpen) {
+        toggleDrawer(false);
+      }
+    });
   }
 
-  if (!patientId) {
-    const anyId = cellTexts.find(t => /^\d{4,8}$/.test(t));
-    if (anyId) patientId = anyId;
-  }
+  // ============================================================
+  // 1. OBSERVER & PATIENT CLICK LISTENER
+  // ============================================================
+  function initPatientAndTableObserver() {
+    // A. Click on any patient row in top table
+    document.addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      if (!row) return;
 
-  if (/^(xxx|xx|x|\-+|yo['`ʻ]?q|null|none|\.+)$/i.test(middleName.trim())) {
-    middleName = "";
-  }
+      // Check if this row belongs to patient list
+      const patient = parsePatientFromRow(row);
+      if (patient) {
+        currentPatient = patient;
+        currentDrawerTariff = patient.statusType;
+        scheduleSubtableScan();
+      }
+    }, true);
 
-  for (let i = 0; i <= dateIdx; i++) {
-    const t = cellTexts[i];
-    if (t.includes("Dr.") || (t.split(" ").length >= 2 && /[A-ZА-ЯЁ]/.test(t) && !t.includes("Ultratovush") && !t.includes("Mammografiya") && !t.includes("Rentgen"))) {
-      referringDoctor = t.replace(/^Dr\.\s*/i, '');
-      break;
-    }
-  }
+    // B. Periodic scanner to detect subtable even if user used arrow keys or auto-selected
+    setInterval(() => {
+      detectAndInjectSubtablePrices();
+    }, 600);
 
-  for (const t of cellTexts) {
-    const low = t.toLowerCase();
-    if (low.includes("sug'urta") || low.includes("sugurta") || low.includes("order") || low.includes("vaqf") || low.includes("rezident") || low.includes("imtiyoz")) {
-      muassasa = t;
-      break;
-    }
-  }
-  if (!muassasa) muassasa = "Rezident";
-
-  const statusType = getPatientStatusType(muassasa);
-
-  const knownDepts = ["abdominal", "ximyoterapiya", "mamologiya", "ginekologiya", "urologiya", "onkourologiya", "bolalar", "bosh", "torakal"];
-  for (const t of cellTexts) {
-    if (knownDepts.some(d => t.toLowerCase().includes(d))) {
-      department = t;
-      break;
-    }
-  }
-  if (!department) department = "Abdominal";
-
-  const pinflVal = cellTexts.find(t => /^\d{14}$/.test(t)) || (patientId ? `2600${patientId.padStart(5, '0')}` : "260051000");
-  const fullName = [surname, firstName, middleName].filter(Boolean).join(" ").trim();
-
-  if (!fullName || fullName.length < 3) return null;
-
-  return {
-    patientId: patientId || "ID_NOMALUM",
-    fullName: fullName,
-    surname: surname,
-    firstName: firstName,
-    middleName: middleName,
-    pinfl: pinflVal,
-    department: department,
-    priority: "Ambulator",
-    referringDoctor: referringDoctor || "Muminov Sobit",
-    doctorName: "Kurbanova Sevinch Musayevna",
-    confirmDate: rawDate || new Date().toLocaleDateString("ru-RU"),
-    muassasa: muassasa,
-    privilege: muassasa,
-    statusType: statusType
-  };
-}
-
-// 6. JORIY EKRANDAGI BEMOR VA XIZMATLARNI TO'LIQ ANIQLASH
-function getCurrentlyActivePatientFromScreen() {
-  let p = null;
-  if (lastClickedRow) {
-    p = parsePatientFromRow(lastClickedRow);
-  }
-
-  if (!p) {
-    const allRows = Array.from(document.querySelectorAll("tr"));
-    const candidateRows = allRows.filter(r => {
-      const text = r.innerText;
-      return /\d{2}\.\d{2}\.\d{4}/.test(text) && /\d{4,8}/.test(text) && !text.includes("Siydik Pufagi") && !text.includes("Doppler") && !text.includes("Kod");
+    // C. MutationObserver for instant DOM updates
+    let debounceTimer = null;
+    const observer = new MutationObserver((mutations) => {
+      let shouldScan = false;
+      for (const m of mutations) {
+        if (m.addedNodes.length > 0 || (m.target && m.target.nodeName === 'TABLE')) {
+          shouldScan = true;
+          break;
+        }
+      }
+      if (shouldScan) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          detectAndInjectSubtablePrices();
+        }, 120);
+      }
     });
 
-    const coloredRow = candidateRows.find(r => r.getAttribute("style")?.includes("rgb") || r.className?.includes("Focused") || r.className?.includes("Selected") || r.className?.includes("selected"));
-    const bestRow = coloredRow || candidateRows[0];
-
-    if (bestRow) {
-      p = parsePatientFromRow(bestRow);
-    }
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  if (!p) return null;
+  function scheduleSubtableScan() {
+    const delays = [80, 200, 450, 800, 1400];
+    delays.forEach(ms => setTimeout(detectAndInjectSubtablePrices, ms));
+  }
 
-  const services = extractSubTableServicesFromPage(p.referringDoctor, p.statusType);
-  const totalSum = services.reduce((acc, s) => acc + (s.price || 0), 0);
-
-  p.services = services;
-  p.totalSum = totalSum;
-  p.totalSumFormatted = totalSum.toLocaleString('ru-RU') + " so'm";
-
-  return p;
-}
-
-// 7. PASTKI JADVALDAN TEKSHIRUV KODLARI, NOMLARI, TRANZAKSIYA SANASI VA NARXLARINI AJRATIB OLISH
-function extractSubTableServicesFromPage(referringDocFromTop, statusType = 'rezident') {
-  const servicesList = [];
-  const allRows = Array.from(document.querySelectorAll("tr"));
-
-  for (const row of allRows) {
-    const cells = Array.from(row.querySelectorAll("td"));
-    if (cells.length < 3) continue;
+  // ============================================================
+  // 2. PARSE PATIENT FROM ROW
+  // ============================================================
+  function parsePatientFromRow(tr) {
+    if (!tr) return null;
+    const cells = Array.from(tr.querySelectorAll('td'));
+    if (cells.length < 3) return null;
 
     const cellTexts = cells.map(c => c.innerText.trim());
-    const firstCell = cellTexts[0] || "";
 
-    const codeMatch = firstCell.match(/^R\s*(\d{1,5})/i) || cellTexts.find(t => /^R\s*\d{1,5}$/i.test(t));
-    if (codeMatch) {
-      const code = typeof codeMatch === 'string' ? codeMatch.toUpperCase().replace(/\s+/g, '') : `R${codeMatch[1]}`;
-      const name = (cells[1] ? cells[1].innerText.trim() : "") || (cells[2] ? cells[2].innerText.trim() : "Ultratovush tekshiruvi");
-      
-      let date = "";
-      let orderNo = "";
-      let orderingDoctor = referringDocFromTop || "Muminov Sobit";
-      let reportAuthor = "Kurbanova Sevinch Musayevna";
-      let debtStatus = "To'langan";
+    // Check for patient ID (4-8 digits, not containing dot or date)
+    let patientId = '';
+    let doctorName = '';
+    let surname = '';
+    let firstName = '';
+    let middleName = '';
+    let muassasa = '';
 
-      if (cells[2] && /\d{2}\.\d{2}\.\d{4}/.test(cells[2].innerText)) {
-        date = cells[2].innerText.trim();
-      } else {
-        const dCell = cellTexts.find(t => /\d{2}\.\d{2}\.\d{4}/.test(t));
-        if (dCell) date = dCell;
+    for (let i = 0; i < cellTexts.length; i++) {
+      const txt = cellTexts[i];
+      if (/^dr\./i.test(txt) || /shifokor/i.test(txt)) {
+        doctorName = txt;
+      } else if (!patientId && /^\d{4,8}$/.test(txt)) {
+        patientId = txt;
+        if (cellTexts[i + 1]) surname = cellTexts[i + 1];
+        if (cellTexts[i + 2]) firstName = cellTexts[i + 2];
+        if (cellTexts[i + 3]) middleName = cellTexts[i + 3];
+      }
+    }
+
+    if (!patientId && !surname) return null;
+
+    // Muassasa nomini topish (Orderli, Sugurta Ambulator..., Rezident, No rezident, Vaqf, Imtiyoz)
+    for (const t of cellTexts) {
+      const low = t.toLowerCase();
+      if (
+        low.includes('rezident') ||
+        low.includes("sug'urta") ||
+        low.includes('sugurta') ||
+        low.includes('order') ||
+        low.includes('vaqf') ||
+        low.includes('imtiyoz')
+      ) {
+        muassasa = t;
+        break;
+      }
+    }
+    if (!muassasa && cells[5]) {
+      muassasa = cells[5].innerText.trim();
+    }
+    if (!muassasa) muassasa = 'Rezident';
+
+    const statusType = getPatientStatusType(muassasa);
+
+    // Clean patronymic
+    if (/^(xxx|xx|x|\-+|none|null)$/i.test(middleName.trim())) {
+      middleName = '';
+    }
+
+    const fullName = [surname, firstName, middleName].filter(Boolean).join(' ').trim() || 'Bemor';
+
+    return {
+      patientId: patientId || '—',
+      doctorName: doctorName || 'Shifokor',
+      surname,
+      firstName,
+      middleName,
+      fullName,
+      muassasa,
+      statusType
+    };
+  }
+
+  // Muassasa bo'yicha tarif turini aniqlash:
+  // 1. Rezident -> rezident narxi
+  // 2. No Rezident -> norezident narxi
+  // 3. Sug'urta, Order, Orderli, Vaqf, Imtiyoz va boshqalar -> sugurta narxi
+  function getPatientStatusType(muassasaText) {
+    if (!muassasaText) return 'rezident';
+    const clean = muassasaText.toLowerCase().trim();
+
+    // No Rezident
+    if (clean.includes('no rezident') || clean.includes('norezident') || clean.includes('no-rezident')) {
+      return 'norezident';
+    }
+
+    // Rezident
+    if (clean === 'rezident' || (clean.includes('rezident') && !clean.includes('no'))) {
+      return 'rezident';
+    }
+
+    // Sug'urta, Order, Orderli, Vaqf, Imtiyoz va boshqa barcha holatlar
+    return 'sugurta';
+  }
+
+  function getServicePriceByStatus(service, statusType = 'rezident') {
+    if (!service) return { price: 0, priceFormatted: '0 so\'m' };
+    let p = 0;
+    if (service.prices && service.prices[statusType] !== undefined) {
+      p = service.prices[statusType];
+    } else {
+      const base = service.price || 0;
+      if (statusType === 'norezident') p = Math.round(base * 1.6);
+      else if (statusType === 'sugurta') p = Math.round(base * 0.98);
+      else p = base;
+    }
+
+    return {
+      price: p,
+      priceFormatted: formatCurrency(p)
+    };
+  }
+
+  // Find currently highlighted / selected row if currentPatient is null
+  function getSelectedPatientFromPage() {
+    if (currentPatient) return currentPatient;
+
+    const allRows = Array.from(document.querySelectorAll('tr'));
+    for (const tr of allRows) {
+      const cls = (tr.className || '').toLowerCase();
+      const style = tr.getAttribute('style') || '';
+      const isSelected = cls.includes('selected') || cls.includes('focused') || style.includes('background') || style.includes('#d8b4e2');
+
+      if (isSelected) {
+        const p = parsePatientFromRow(tr);
+        if (p && p.patientId !== '—') {
+          currentPatient = p;
+          currentDrawerTariff = p.statusType;
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+
+  // ============================================================
+  // 3. SUBTABLE DETECTION & INLINE ROW PRICE INJECTION
+  // ============================================================
+  function detectAndInjectSubtablePrices() {
+    // Remove old broken column cells or black bar if any exist
+    const oldCells = document.querySelectorAll('.kp-col-price-head, .kp-col-price-cell, #kp-subtable-total-bar');
+    if (oldCells.length > 0) {
+      oldCells.forEach(el => el.remove());
+    }
+
+    const patient = getSelectedPatientFromPage();
+    const statusType = patient ? patient.statusType : 'rezident';
+
+    const allRows = Array.from(document.querySelectorAll('tr'));
+    const matchedItems = [];
+
+    for (const row of allRows) {
+      const cells = Array.from(row.querySelectorAll('td'));
+      if (cells.length < 2) continue;
+
+      const cellTexts = cells.map(c => c.innerText.trim());
+
+      // Skip top patient list rows (they have doctor name or patient ID)
+      const isTopPatientRow = cellTexts.some(t => /^dr\./i.test(t));
+      if (isTopPatientRow) continue;
+
+      let matchedService = null;
+      let matchedCode = '';
+      let matchedName = '';
+      let nameCell = null;
+
+      // Scan all cells in the row to find medical examination code
+      for (let i = 0; i < cells.length; i++) {
+        const raw = cellTexts[i];
+        if (!raw) continue;
+
+        const clean = raw.toUpperCase().replace(/[\s\-_]/g, '');
+
+        // 1. Direct code lookup in catalog (R62, R64, R157, etc.)
+        if (catalogByCode.has(clean)) {
+          matchedCode = clean;
+          matchedService = catalogByCode.get(clean);
+          if (cells[i + 1] && cellTexts[i + 1].length >= 3) {
+            matchedName = cellTexts[i + 1];
+            nameCell = cells[i + 1];
+          }
+          break;
+        }
+
+        // 2. Regex code match R\d+ or X\d+
+        const m = raw.match(/\b([RX]\s*\d{1,5})\b/i);
+        if (m) {
+          const potentialCode = m[1].toUpperCase().replace(/\s+/g, '');
+          if (catalogByCode.has(potentialCode)) {
+            matchedCode = potentialCode;
+            matchedService = catalogByCode.get(potentialCode);
+            if (cells[i + 1] && cellTexts[i + 1].length >= 3) {
+              matchedName = cellTexts[i + 1];
+              nameCell = cells[i + 1];
+            }
+            break;
+          }
+        }
       }
 
-      if (cells[3] && /^\d{6,9}$/.test(cells[3].innerText.trim())) {
-        orderNo = cells[3].innerText.trim();
-      } else {
-        const numCell = cellTexts.find(t => /^\d{6,9}$/.test(t));
-        if (numCell) orderNo = numCell;
+      // 3. Fallback: match by examination name in catalog
+      if (!matchedService) {
+        for (let i = 0; i < cells.length; i++) {
+          const raw = cellTexts[i];
+          if (raw.length >= 4) {
+            const norm = normalizeName(raw);
+            if (catalogByName.has(norm)) {
+              matchedService = catalogByName.get(norm);
+              matchedCode = matchedService.code;
+              matchedName = matchedService.name;
+              nameCell = cells[i];
+              break;
+            }
+          }
+        }
       }
 
-      if (cells[4] && cells[4].innerText.trim().length >= 5) {
-        orderingDoctor = cells[4].innerText.trim().replace(/^Dr\.\s*/i, '');
-      }
+      if (matchedService) {
+        const targetCell = nameCell || cells[1] || cells[0];
+        const priceInfo = getServicePriceByStatus(matchedService, statusType);
 
-      if (cells[5] && cells[5].innerText.trim().length >= 5) {
-        reportAuthor = cells[5].innerText.trim();
-      } else if (cells[10] && cells[10].innerText.trim().length >= 5) {
-        reportAuthor = cells[10].innerText.trim();
-      }
+        const rezPrice = (matchedService.pricesFormatted && matchedService.pricesFormatted.rezident) || formatCurrency(matchedService.price);
+        const noRezPrice = (matchedService.pricesFormatted && matchedService.pricesFormatted.norezident) || formatCurrency(Math.round(matchedService.price * 1.6));
+        const sugPrice = (matchedService.pricesFormatted && matchedService.pricesFormatted.sugurta) || formatCurrency(Math.round(matchedService.price * 0.98));
 
-      if (cellTexts.some(t => t.toLowerCase().includes("to'lanmagan") || t.toLowerCase().includes("tolanmagan") || t.toLowerCase().includes("qarz"))) {
-        debtStatus = "To'lanmagan";
-      }
+        // INJECT INLINE PRICE BADGE DIRECTLY INTO NAME CELL
+        let badge = targetCell.querySelector('.kp-row-price-badge');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'kp-row-price-badge';
+          targetCell.appendChild(badge);
+        }
+        badge.textContent = `[ ${priceInfo.priceFormatted} ]`;
+        badge.title = `Rezident: ${rezPrice} | No rezident: ${noRezPrice} | Sug'urta/Order: ${sugPrice}`;
 
-      const price = calculateServiceTariffPrice(name, code, statusType);
-      const priceStr = price.toLocaleString('ru-RU') + ',00';
-
-      if (!servicesList.some(s => s.code === code && s.name === name && s.orderNo === orderNo)) {
-        servicesList.push({
-          code: code,
-          name: name,
-          price: price,
-          paidAmount: debtStatus === "To'lanmagan" ? 0 : price,
-          priceStr: priceStr,
-          debtStatus: debtStatus,
-          orderNo: orderNo || (2280090 + servicesList.length),
-          date: date || "01.05.2026 08:25",
-          orderingDoctor: orderingDoctor,
-          reportAuthor: reportAuthor
+        matchedItems.push({
+          row,
+          code: matchedCode || matchedService.code,
+          name: matchedName || matchedService.name,
+          price: priceInfo.price,
+          priceFormatted: priceInfo.priceFormatted,
+          prices: matchedService.prices,
+          pricesFormatted: matchedService.pricesFormatted,
+          date: cells[2] ? cells[2].innerText.trim() : "",
+          queueNo: cells[3] ? cells[3].innerText.trim() : ""
         });
       }
     }
-  }
 
-  return servicesList;
-}
-
-// 8. JORIY BEMORNI TO'G'RIDAN-TO'G'RI GOOGLE SHEETS "FARQ" VARAG'IGA SAQLASH
-async function saveCurrentPatientToGoogleSheets() {
-  const patient = getCurrentlyActivePatientFromScreen();
-  if (!patient || !patient.patientId || patient.patientId === "ID_NOMALUM") {
-    alert("⚠️ Karmed ekranida bemor topilmadi! Bemor qatorini bosing.");
-    return;
-  }
-
-  if (!currentGoogleScriptUrl) {
-    await loadSavedSettings();
-  }
-
-  if (!currentGoogleScriptUrl) {
-    // Agar sozlanmagan bo'lsa sozlash oynasini ochish
-    const panel = document.getElementById("karmedFarqSettingsPanel");
-    if (panel) panel.style.display = "flex";
-    alert("⚠️ Google Apps Script Web App URL manzili sozlanmagan!\nPanelning ⚙️ tugmasi orqali URL ni kiriting.");
-    return;
-  }
-
-  const btn = document.getElementById("btnFarqSaveCurrent");
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> "Farq" ga saqlanmoqda...`;
-  }
-
-  const isOrder = patient.muassasa.toLowerCase().includes('order');
-  const isSugurta = patient.statusType === 'sugurta';
-
-  const records = (patient.services || []).map((srv, idx) => {
-    const priceVal = srv.price;
-    const orderliVal = isOrder ? priceVal : 0;
-    const pulliVal = isOrder ? 0 : priceVal;
-    const tolanganVal = (isOrder || isSugurta || srv.debtStatus === "To'lanmagan") ? 0 : priceVal;
-
-    return {
-      no: srv.orderNo || (2280097 + idx),
-      id: patient.pinfl,
-      fullId: patient.pinfl,
-      fullName: patient.fullName.toUpperCase(),
-      patientType: patient.department || 'Abdominal',
-      serviceCategory: 'Radiologiya',
-      functionalDept: 'Ultratovush',
-      serviceName: srv.name,
-      serviceCode: srv.code,
-      cardNo: patient.patientId,
-      cardType: 'Ambulator',
-      priority: 'Ambulator',
-      orderingDoctor: srv.orderingDoctor || patient.referringDoctor,
-      fileDoctor: patient.referringDoctor,
-      doctorName: srv.reportAuthor || patient.doctorName,
-      dr_uygulayan: srv.reportAuthor || patient.doctorName,
-      date: srv.date || patient.confirmDate,
-      privilegeCategory: patient.muassasa,
-      muassasa: patient.muassasa,
-      orderliUcret: orderliVal,
-      price: priceVal,
-      pulliUcret: pulliVal,
-      paidAmount: tolanganVal,
-      tolanganUcret: tolanganVal,
-      debtStatus: srv.debtStatus
-    };
-  });
-
-  if (records.length === 0) {
-    alert("⚠️ Pastki jadvalda tekshiruvlar topilmadi!");
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `📥 "Farq" Jurnaliga Saqlash (F4)`;
+    if (matchedItems.length === 0) {
+      updateTashxisTotalBadge(null, 0, patient);
+      const hud = document.getElementById('karmed-patient-hud');
+      if (hud && !currentPatient) hud.style.display = 'none';
+      return;
     }
-    return;
+
+    detectedSubtableServices = matchedItems;
+
+    // Calculate TRUE TOTAL of all detected row services according to patient's muassasa
+    const totalSum = matchedItems.reduce((acc, cur) => acc + cur.price, 0);
+
+    // Update Tashxis header badge
+    updateTashxisTotalBadge(matchedItems, totalSum, patient);
+
+    // Update Patient Live HUD Card
+    updatePatientHud(patient, matchedItems, totalSum);
   }
 
-  if (!currentGoogleScriptUrl.includes("script.google.com/macros/s/")) {
-    alert("⚠️ Apps Script Web App URL noto'g'ri!\nURL manzili https://script.google.com/macros/s/.../exec ko'rinishida bo'lishi shart (Google Sheets fayl havolasi emas).");
-    return;
-  }
+  // ============================================================
+  // 4. CLEAN TASHXIS TOTAL BADGE (NO BLACK BAR!)
+  // ============================================================
+  function updateTashxisTotalBadge(items, totalSum, patient) {
+    let badge = document.getElementById('kp-tashxis-total-badge');
 
-  try {
-    const postBody = {
-      action: "save_karmed_records",
-      spreadsheetId: currentSpreadsheetId || "",
-      sheetName: currentTargetSheetName || "Farq",
-      records: records
-    };
+    if (!items || items.length === 0) {
+      if (badge) badge.style.display = 'none';
+      return;
+    }
 
-    const res = await fetch(currentGoogleScriptUrl, {
-      method: "POST",
-      redirect: "follow",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(postBody)
-    });
+    // Find container containing "Tashxislar"
+    if (!badge) {
+      let tashxisEl = null;
+      const allElements = Array.from(document.querySelectorAll('div, span, td, b, strong, p'));
+      for (const el of allElements) {
+        if (el.children.length === 0 && el.innerText.trim().toLowerCase().startsWith('tashxislar')) {
+          tashxisEl = el;
+          break;
+        }
+      }
 
-    const rawText = await res.text();
-    let data = null;
-    try {
-      data = JSON.parse(rawText);
-    } catch (e) {
-      if (rawText.includes("<!DOCTYPE") || rawText.includes("<html")) {
-        throw new Error("Google Apps Script ruxsati noto'g'ri!\nApps Script-da 'Развернуть (Deploy)' qilayotganda 'Кто имеет доступ (Who has access)' ni 'Все (Anyone)' qilib belgilang.");
-      } else {
-        throw new Error(rawText || "Kutilmagan server javobi");
+      if (tashxisEl) {
+        badge = document.createElement('span');
+        badge.id = 'kp-tashxis-total-badge';
+        badge.className = 'kp-tashxis-badge';
+        badge.title = "Hisobni nusxalash uchun bosing";
+        tashxisEl.insertAdjacentElement('afterend', badge);
       }
     }
 
-    if (data.status === "success") {
-      lastSavedPatientKey = `${patient.patientId}_${patient.fullName}_${patient.services.length}`;
-      showFarqToast(`✅ "Farq" ga saqlandi: ${patient.fullName} [${patient.muassasa}] (${patient.services.length} ta xizmat, ${patient.totalSumFormatted})`);
-    } else {
-      throw new Error(data.message || "Xatolik yuz berdi");
-    }
+    if (badge) {
+      const muassasaLabel = patient ? patient.muassasa : 'Rezident';
+      badge.style.display = 'inline-flex';
+      badge.innerHTML = `💰 Jami to'lov: ${formatCurrency(totalSum)} (${escapeHtml(muassasaLabel)} • ${items.length} ta)`;
 
-  } catch (err) {
-    alert("❌ Google Sheets-ga saqlashda xatolik:\n" + err.message);
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `📥 "Farq" Jurnaliga Saqlash (F4)`;
+      badge.onclick = (e) => {
+        e.stopPropagation();
+        let text = `🏥 KARMED BEMOR TEKSHIRUVI:\n`;
+        if (patient) {
+          text += `Bemor: ${patient.fullName} (ID: ${patient.patientId})\n`;
+          text += `Muassasa: ${patient.muassasa} (${patient.statusType})\n`;
+          text += `Shifokor: ${patient.doctorName}\n`;
+        }
+        text += `------------------------------------\n`;
+        items.forEach((item, idx) => {
+          text += `${idx + 1}. [${item.code}] ${item.name} - ${item.priceFormatted}\n`;
+        });
+        text += `------------------------------------\n`;
+        text += `JAMI (${items.length} ta tekshiruv): ${formatCurrency(totalSum)}\n`;
+
+        copyText(text, `Jami to'lov nusxalandi! (${formatCurrency(totalSum)})`);
+      };
     }
   }
-}
 
-// 9. EKRANDA SUZUVCHI TEZKOR BOSHQARUV PANELI (WIDGET)
-function createQuickFarqFloatingWidget() {
-  if (document.getElementById("karmedFarqFloatingWidget")) return;
+  // ============================================================
+  // 5. FLOATING PATIENT LIVE HUD CARD
+  // ============================================================
+  function createPatientHud() {
+    const hud = document.createElement('div');
+    hud.id = 'karmed-patient-hud';
+    hud.style.display = 'none';
+    document.body.appendChild(hud);
+  }
 
-  const widget = document.createElement("div");
-  widget.id = "karmedFarqFloatingWidget";
-  widget.className = "karmed-farq-floating-widget";
-  widget.innerHTML = `
-    <div class="karmed-farq-header" id="karmedFarqHeader">
-      <div class="karmed-farq-header-title">
-        <span>📊</span> <b>KARMED ➡️ "FARQ" JURNALI</b>
-      </div>
-      <div class="karmed-farq-header-btns">
-        <button type="button" class="karmed-farq-icon-btn" id="btnToggleFarqSettings" title="Jadvalni sozlash">⚙️</button>
-        <button type="button" class="karmed-farq-icon-btn" id="btnMinFarqWidget" title="Kichraytirish">—</button>
-      </div>
-    </div>
-    
-    <!-- On-screen Settings Panel -->
-    <div class="karmed-farq-settings-panel" id="karmedFarqSettingsPanel" style="display:none;">
-      <div style="font-weight:bold; color:#10b981; font-size:12px;">⚙️ Google Sheets Sozlamalari:</div>
-      <div>
-        <label style="font-size:10.5px; color:#94a3b8;">Apps Script Web App URL:</label>
-        <input type="text" id="widgetInputScriptUrl" class="karmed-farq-settings-input" placeholder="https://script.google.com/macros/s/.../exec">
-      </div>
-      <div>
-        <label style="font-size:10.5px; color:#94a3b8;">Google Sheets Havolasi yoki ID:</label>
-        <input type="text" id="widgetInputSpreadsheetId" class="karmed-farq-settings-input" placeholder="Havola yoki ID">
-      </div>
-      <div style="display:flex; gap:6px;">
-        <div style="flex:1;">
-          <label style="font-size:10.5px; color:#94a3b8;">Varaq (Jurnal):</label>
-          <input type="text" id="widgetInputSheetName" class="karmed-farq-settings-input" placeholder="Farq">
-        </div>
-        <div style="display:flex; align-items:flex-end;">
-          <button type="button" class="btn-farq-settings-save" id="btnWidgetSaveSettings">💾 Saqlash</button>
-        </div>
-      </div>
-    </div>
+  function updatePatientHud(patient, items, totalSum) {
+    const hud = document.getElementById('karmed-patient-hud');
+    if (!hud) return;
 
-    <div class="karmed-farq-body" id="karmedFarqBody">
-      <div class="karmed-farq-patient-card">
-        <div class="karmed-farq-pat-name" id="farqPatName">Bemor qatorini bosing...</div>
-        <div class="karmed-farq-pat-meta" id="farqPatMeta">ID: — • Muassasa: —</div>
-        <div class="karmed-farq-pat-sum" id="farqPatSum">Tekshiruvlar: 0 ta • 0 so'm</div>
-      </div>
-      <button type="button" class="btn-farq-save-main" id="btnFarqSaveCurrent">
-        📥 "Farq" Jurnaliga Saqlash (F4)
-      </button>
-      <div class="karmed-farq-options">
-        <label title="Har safar bemor ochilganda yoki bosilganda avtomatik saqlash">
-          <input type="checkbox" id="chkFarqAutoSave"> ⚡ Ochilganda avto-saqlash
-        </label>
-        <span style="color:#10b981; font-weight:700;">🟢 Online</span>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(widget);
-
-  document.getElementById("btnFarqSaveCurrent").addEventListener("click", saveCurrentPatientToGoogleSheets);
-  
-  const chkAuto = document.getElementById("chkFarqAutoSave");
-  chkAuto.checked = autoSaveOnOpen;
-  chkAuto.addEventListener("change", (e) => {
-    autoSaveOnOpen = e.target.checked;
-    if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ autoSaveFarq: autoSaveOnOpen });
+    if (!items || items.length === 0) {
+      hud.style.display = 'none';
+      return;
     }
-  });
 
-  // Settings panel toggle
-  const btnSettings = document.getElementById("btnToggleFarqSettings");
-  const panelSettings = document.getElementById("karmedFarqSettingsPanel");
-  const inpUrl = document.getElementById("widgetInputScriptUrl");
-  const inpSheetId = document.getElementById("widgetInputSpreadsheetId");
-  const inpSheetName = document.getElementById("widgetInputSheetName");
+    hud.style.display = 'flex';
 
-  btnSettings.addEventListener("click", () => {
-    const isHidden = panelSettings.style.display === "none";
-    panelSettings.style.display = isHidden ? "flex" : "none";
-    if (isHidden) {
-      inpUrl.value = currentGoogleScriptUrl || "";
-      inpSheetId.value = currentSpreadsheetId || "";
-      inpSheetName.value = currentTargetSheetName || "Farq";
+    const count = items.length;
+    const sumFormatted = formatCurrency(totalSum);
+
+    const statusBadge = (patient && patient.statusType === 'norezident') 
+      ? '🌐 No Rezident' 
+      : ((patient && patient.statusType === 'sugurta') ? "📄 Sug'urta / Order" : '🇺🇿 Rezident');
+
+    let rowsHtml = '';
+    items.forEach((item, idx) => {
+      rowsHtml += `
+        <div class="hud-item-row">
+          <div class="hud-item-left">
+            <span class="hud-item-num">${idx + 1}.</span>
+            <span class="hud-item-code">${escapeHtml(item.code)}</span>
+            <span class="hud-item-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+          </div>
+          <div class="hud-item-right">
+            <span class="hud-item-price">${escapeHtml(item.priceFormatted)}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    hud.innerHTML = `
+      <div class="hud-header" id="hudHeader">
+        <div class="hud-patient-info">
+          <span class="hud-patient-name">👤 ${escapeHtml(patient ? patient.fullName : 'Bemor')}</span>
+          <span class="hud-patient-id">ID: ${escapeHtml(patient ? patient.patientId : '—')}</span>
+          <span class="hud-patient-muassasa" title="${escapeHtml(patient ? patient.muassasa : '')}">🏥 ${escapeHtml(patient ? patient.muassasa : 'Rezident')}</span>
+          <span class="hud-status-badge ${patient ? patient.statusType : 'rezident'}">${statusBadge}</span>
+        </div>
+        <div class="hud-controls">
+          <button type="button" class="hud-btn-toggle" id="hudBtnToggle" title="Kichraytirish/Kattalashtirish">
+            ${isHudMinimized ? '➕' : '➖'}
+          </button>
+        </div>
+      </div>
+      <div class="hud-body" id="hudBody" style="display: ${isHudMinimized ? 'none' : 'block'};">
+        <div class="hud-services-list">
+          ${rowsHtml}
+        </div>
+        <div class="hud-footer">
+          <div class="hud-total-box">
+            <span class="hud-total-lbl">Jami (${count} ta tekshiruv):</span>
+            <span class="hud-total-val">${sumFormatted}</span>
+          </div>
+          <button type="button" class="hud-btn-copy" id="hudBtnCopy" title="Hisobni nusxalash">
+            📋 Nusxalash
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Toggle minimize
+    const header = hud.querySelector('#hudHeader');
+    const btnToggle = hud.querySelector('#hudBtnToggle');
+    const body = hud.querySelector('#hudBody');
+
+    btnToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isHudMinimized = !isHudMinimized;
+      body.style.display = isHudMinimized ? 'none' : 'block';
+      hud.classList.toggle('minimized', isHudMinimized);
+      btnToggle.textContent = isHudMinimized ? '➕' : '➖';
+    });
+
+    header.addEventListener('dblclick', () => {
+      isHudMinimized = !isHudMinimized;
+      body.style.display = isHudMinimized ? 'none' : 'block';
+      hud.classList.toggle('minimized', isHudMinimized);
+      btnToggle.textContent = isHudMinimized ? '➕' : '➖';
+    });
+
+    // Copy action
+    const btnCopy = hud.querySelector('#hudBtnCopy');
+    btnCopy.addEventListener('click', () => {
+      let text = `🏥 KARMED BEMOR TEKSHIRUVI:\n`;
+      if (patient) {
+        text += `Bemor: ${patient.fullName} (ID: ${patient.patientId})\n`;
+        text += `Muassasa: ${patient.muassasa} (${statusBadge})\n`;
+        text += `Shifokor: ${patient.doctorName}\n`;
+      }
+      text += `------------------------------------\n`;
+      items.forEach((item, idx) => {
+        text += `${idx + 1}. [${item.code}] ${item.name} - ${item.priceFormatted}\n`;
+      });
+      text += `------------------------------------\n`;
+      text += `JAMI (${items.length} ta tekshiruv): ${sumFormatted}\n`;
+
+      copyText(text, `Hisob nusxalandi! (${sumFormatted})`);
+    });
+  }
+
+  // ============================================================
+  // 6. FLOATING PREYSKURANT BUTTON & DRAWER
+  // ============================================================
+  function createFloatingButton() {
+    const fab = document.createElement('div');
+    fab.id = 'karmed-price-fab';
+    fab.title = 'Karmed rasmiy xizmat narxlari va tariflari (Alt + P)';
+    fab.innerHTML = `
+      <span class="fab-icon">🏷️</span>
+      <span class="fab-label">Preyskurant</span>
+    `;
+    fab.addEventListener('click', () => toggleDrawer());
+    document.body.appendChild(fab);
+  }
+
+  function createDrawer() {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'karmed-price-backdrop';
+    backdrop.addEventListener('click', () => toggleDrawer(false));
+    document.body.appendChild(backdrop);
+
+    const drawer = document.createElement('div');
+    drawer.id = 'karmed-price-drawer';
+    drawer.innerHTML = `
+      <div class="kp-drawer-header">
+        <div class="kp-header-title-box">
+          <h2>KARMED PREYSKURANT</h2>
+          <p>168 ta rasmiy xizmat narxlari (3 ta tarif bo'yicha)</p>
+        </div>
+        <button type="button" class="kp-close-btn" id="kpCloseBtn" title="Yopish (Esc)">✕</button>
+      </div>
+
+      <div class="kp-search-panel">
+        <!-- Search Box -->
+        <div class="kp-search-box">
+          <span class="kp-search-icon">🔍</span>
+          <input 
+            type="text" 
+            class="kp-search-input" 
+            id="kpSearchInput" 
+            placeholder="Kod yoki xizmat nomi (masalan: R157, Miya, UTT)..." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" class="kp-search-clear" id="kpSearchClear">✕</button>
+        </div>
+
+        <!-- Tariff Switcher Bar -->
+        <div class="kp-tariff-bar" id="kpTariffBar">
+          <button type="button" class="kp-tariff-btn active" data-tariff="rezident">🇺🇿 Rezident</button>
+          <button type="button" class="kp-tariff-btn" data-tariff="norezident">🌐 No Rezident</button>
+          <button type="button" class="kp-tariff-btn" data-tariff="sugurta">📄 Sug'urta / Order</button>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="kp-cats-bar" id="kpCatsBar">
+          <button type="button" class="kp-cat-tab active" data-cat="ALL">Barchasi <span class="kp-tab-num" id="kpCount-ALL">168</span></button>
+          <button type="button" class="kp-cat-tab" data-cat="MRT">MRT <span class="kp-tab-num" id="kpCount-MRT">68</span></button>
+          <button type="button" class="kp-cat-tab" data-cat="MSKT">MSKT <span class="kp-tab-num" id="kpCount-MSKT">23</span></button>
+          <button type="button" class="kp-cat-tab" data-cat="Rentgen">Rentgen <span class="kp-tab-num" id="kpCount-Rentgen">41</span></button>
+          <button type="button" class="kp-cat-tab" data-cat="UTT">UTT <span class="kp-tab-num" id="kpCount-UTT">33</span></button>
+          <button type="button" class="kp-cat-tab" data-cat="EKG">EKG <span class="kp-tab-num" id="kpCount-EKG">3</span></button>
+        </div>
+
+        <div class="kp-subfilter-bar">
+          <div class="kp-subfilter-chips">
+            <button type="button" class="kp-chip-btn" id="kpFilterContrast">💉 Kontrastli</button>
+            <button type="button" class="kp-chip-btn" id="kpFilterInjector">⚡ Injektorli</button>
+          </div>
+          <div class="kp-subfilter-info" id="kpFilterInfo">168 ta xizmat</div>
+        </div>
+      </div>
+
+      <div class="kp-viewport" id="kpViewport">
+        <div class="kp-list" id="kpList"></div>
+      </div>
+
+      <div class="kp-calc-footer">
+        <div class="kp-calc-hint" id="kpCalcHint">
+          <span>💡</span> Bir nechta xizmat tanlab jami narxini hisoblang
+        </div>
+        <div class="kp-calc-active" id="kpCalcActive" style="display: none;">
+          <div class="kp-calc-left">
+            <span class="kp-calc-badge" id="kpCalcCount">0 ta xizmat</span>
+            <div class="kp-calc-sum-wrap">
+              <span class="kp-calc-sum-lbl">Jami:</span>
+              <span class="kp-calc-sum-val" id="kpCalcTotal">0 so'm</span>
+            </div>
+          </div>
+          <div class="kp-calc-actions">
+            <button type="button" class="kp-calc-btn kp-btn-copy-calc" id="kpBtnCopyCalc">📋 Nusxalash</button>
+            <button type="button" class="kp-calc-btn kp-btn-reset-calc" id="kpBtnResetCalc">✕ Tozalash</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="kp-toast" id="kpToast"></div>
+    `;
+
+    document.body.appendChild(drawer);
+    setupDrawerEvents(drawer);
+  }
+
+  function toggleDrawer(forceState) {
+    const drawer = document.getElementById('karmed-price-drawer');
+    const backdrop = document.getElementById('karmed-price-backdrop');
+    if (!drawer || !backdrop) return;
+
+    isDrawerOpen = typeof forceState === 'boolean' ? forceState : !isDrawerOpen;
+
+    if (isDrawerOpen) {
+      drawer.classList.add('open');
+      backdrop.classList.add('open');
+
+      // Sync active patient status
+      if (currentPatient) {
+        currentDrawerTariff = currentPatient.statusType;
+        const tariffBar = drawer.querySelector('#kpTariffBar');
+        if (tariffBar) {
+          tariffBar.querySelectorAll('.kp-tariff-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.tariff === currentDrawerTariff);
+          });
+        }
+      }
+
+      // If active patient has services and none selected yet, auto-select them
+      if (selectedCodes.size === 0 && detectedSubtableServices.length > 0) {
+        detectedSubtableServices.forEach(s => selectedCodes.add(s.code));
+        updateCalcUI();
+      }
+
+      renderDrawerList();
+      const input = document.getElementById('kpSearchInput');
+      if (input) setTimeout(() => input.focus(), 150);
+    } else {
+      drawer.classList.remove('open');
+      backdrop.classList.remove('open');
     }
-  });
+  }
 
-  document.getElementById("btnWidgetSaveSettings").addEventListener("click", () => {
-    currentGoogleScriptUrl = inpUrl.value.trim();
-    currentSpreadsheetId = extractSheetId(inpSheetId.value.trim());
-    currentTargetSheetName = inpSheetName.value.trim() || "Farq";
+  function setupDrawerEvents(drawer) {
+    const closeBtn = drawer.querySelector('#kpCloseBtn');
+    const searchInput = drawer.querySelector('#kpSearchInput');
+    const searchClear = drawer.querySelector('#kpSearchClear');
+    const tariffBar = drawer.querySelector('#kpTariffBar');
+    const catsBar = drawer.querySelector('#kpCatsBar');
+    const filterContrast = drawer.querySelector('#kpFilterContrast');
+    const filterInjector = drawer.querySelector('#kpFilterInjector');
+    const btnResetCalc = drawer.querySelector('#kpBtnResetCalc');
+    const btnCopyCalc = drawer.querySelector('#kpBtnCopyCalc');
 
-    if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({
-        sheetsScriptUrl: currentGoogleScriptUrl,
-        spreadsheetId: currentSpreadsheetId,
-        targetSheetName: currentTargetSheetName
+    closeBtn.addEventListener('click', () => toggleDrawer(false));
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      searchClear.style.display = searchQuery ? 'flex' : 'none';
+      renderDrawerList();
+    });
+
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchQuery = '';
+      searchClear.style.display = 'none';
+      searchInput.focus();
+      renderDrawerList();
+    });
+
+    if (tariffBar) {
+      tariffBar.addEventListener('click', (e) => {
+        const btn = e.target.closest('.kp-tariff-btn');
+        if (!btn) return;
+        tariffBar.querySelectorAll('.kp-tariff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentDrawerTariff = btn.dataset.tariff;
+        renderDrawerList();
+        updateCalcUI();
       });
     }
 
-    panelSettings.style.display = "none";
-    showFarqToast(`✅ Sozlamalar saqlandi: ${currentSpreadsheetId || 'Standart'} (${currentTargetSheetName})`);
-  });
+    catsBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.kp-cat-tab');
+      if (!btn) return;
+      catsBar.querySelectorAll('.kp-cat-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+      renderDrawerList();
+    });
 
-  document.getElementById("btnMinFarqWidget").addEventListener("click", () => {
-    const b = document.getElementById("karmedFarqBody");
-    b.style.display = b.style.display === "none" ? "flex" : "none";
-  });
+    filterContrast.addEventListener('click', () => {
+      onlyContrast = !onlyContrast;
+      filterContrast.classList.toggle('active', onlyContrast);
+      renderDrawerList();
+    });
 
-  makeDraggable(widget, document.getElementById("karmedFarqHeader"));
-}
+    filterInjector.addEventListener('click', () => {
+      onlyInjector = !onlyInjector;
+      filterInjector.classList.toggle('active', onlyInjector);
+      renderDrawerList();
+    });
 
-function updateWidgetPatientPreview() {
-  const p = getCurrentlyActivePatientFromScreen();
-  const elName = document.getElementById("farqPatName");
-  const elMeta = document.getElementById("farqPatMeta");
-  const elSum = document.getElementById("farqPatSum");
+    btnResetCalc.addEventListener('click', () => {
+      selectedCodes.clear();
+      updateCalcUI();
+      renderDrawerList();
+      showToast('Belgilashlar tozalandi');
+    });
 
-  if (!elName) return;
+    btnCopyCalc.addEventListener('click', () => {
+      if (selectedCodes.size === 0) return;
+      const selected = servicesCatalog.filter(s => selectedCodes.has(s.code));
+      const total = selected.reduce((acc, cur) => acc + getServicePriceByStatus(cur, currentDrawerTariff).price, 0);
 
-  if (!p) {
-    elName.innerText = "Bemor qatorini bosing...";
-    elMeta.innerText = "ID: — • Muassasa: —";
-    elSum.innerText = "Tekshiruvlar: 0 ta • 0 so'm";
-    return;
+      const tariffLabel = currentDrawerTariff === 'norezident' 
+        ? 'No Rezident' 
+        : (currentDrawerTariff === 'sugurta' ? "Sug'urta / Order" : 'Rezident');
+
+      let text = `🏥 KARMED XIZMATLARI HISOBLANDI (${tariffLabel}):\n`;
+      text += `------------------------------------\n`;
+      selected.forEach((item, idx) => {
+        const pInfo = getServicePriceByStatus(item, currentDrawerTariff);
+        text += `${idx + 1}. [${item.code}] ${item.name} - ${pInfo.priceFormatted}\n`;
+      });
+      text += `------------------------------------\n`;
+      text += `JAMI (${selected.length} ta): ${formatCurrency(total)}\n`;
+
+      copyText(text, `Hisob-kitob nusxalandi! (${formatCurrency(total)})`);
+    });
+
+    updateDrawerTabCounts();
   }
 
-  const statusLabel = p.statusType === 'rezident' ? 'Rezident' : (p.statusType === 'norezident' ? 'No Rezident' : `Sug'urta/Order (${p.muassasa})`);
-  elName.innerText = `👤 ${p.fullName}`;
-  elMeta.innerText = `ID: ${p.patientId} • 🏛️ ${statusLabel} • 👨‍⚕️ ${p.referringDoctor}`;
-  
-  const srvCodes = (p.services || []).map(s => `${s.code} (${s.priceStr})`).join(", ");
-  elSum.innerText = `📋 ${p.services.length} ta tekshiruv: ${p.totalSumFormatted}`;
+  function renderDrawerList() {
+    const listEl = document.getElementById('kpList');
+    const infoEl = document.getElementById('kpFilterInfo');
+    if (!listEl) return;
 
-  const currentKey = `${p.patientId}_${p.fullName}_${p.services.length}_${p.muassasa}`;
-  if (autoSaveOnOpen && p.patientId && p.patientId !== "ID_NOMALUM" && p.services.length > 0 && currentKey !== lastSavedPatientKey) {
-    lastSavedPatientKey = currentKey;
-    saveCurrentPatientToGoogleSheets();
-  }
-}
+    const normQ = cyrillicToLatin(searchQuery).replace(/[^a-z0-9]/g, '');
 
-// 10. KLAVIATURA TUGMALARI (F4 yoki Alt+S orqali saqlash)
-function initKeyboardShortcuts() {
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "F4" || (e.altKey && e.key.toLowerCase() === "s")) {
-      e.preventDefault();
-      saveCurrentPatientToGoogleSheets();
+    const filtered = servicesCatalog.filter(item => {
+      if (currentCategory !== 'ALL' && item.category !== currentCategory) return false;
+      if (onlyContrast && !item.isContrast) return false;
+      if (onlyInjector && !item.isInjector) return false;
+      if (searchQuery) {
+        const mCode = item.code.toLowerCase().includes(searchQuery);
+        const mName = item.name.toLowerCase().includes(searchQuery);
+        const normName = cyrillicToLatin(item.name).replace(/[^a-z0-9]/g, '');
+        const normLatin = item.nameLatin ? item.nameLatin.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        const mTranslit = normName.includes(normQ) || normLatin.includes(normQ);
+        if (!mCode && !mName && !mTranslit) return false;
+      }
+      return true;
+    });
+
+    if (infoEl) infoEl.textContent = `${filtered.length} ta xizmat`;
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `
+        <div class="kp-empty">
+          <div style="font-size:32px;margin-bottom:8px;">🔍</div>
+          <div style="font-weight:700;color:#334155;">Mos xizmat topilmadi</div>
+          <div style="font-size:12px;color:#64748b;">Qidiruv so'zini o'zgartirib ko'ring</div>
+        </div>
+      `;
+      return;
     }
-  });
-}
 
-function startActivePatientObserver() {
-  setInterval(updateWidgetPatientPreview, 800);
-}
+    const activeTariffLabel = currentDrawerTariff === 'norezident' 
+      ? 'No Rezident' 
+      : (currentDrawerTariff === 'sugurta' ? "Sug'urta" : 'Rezident');
 
-function showFarqToast(text) {
-  const toast = document.createElement("div");
-  toast.className = "karmed-farq-toast";
-  toast.innerText = text;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4500);
-}
+    let html = '';
+    filtered.forEach(item => {
+      const isChecked = selectedCodes.has(item.code);
+      const highlightedName = highlightMatch(item.name, searchQuery);
+      const highlightedCode = highlightMatch(item.code, searchQuery);
+      const pInfo = getServicePriceByStatus(item, currentDrawerTariff);
 
-// 11. SUDRAB YURISH (DRAGGABLE)
-function makeDraggable(el, handle) {
-  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  handle.onmousedown = dragMouseDown;
+      const rezPrice = (item.pricesFormatted && item.pricesFormatted.rezident) || formatCurrency(item.price);
+      const noRezPrice = (item.pricesFormatted && item.pricesFormatted.norezident) || formatCurrency(Math.round(item.price * 1.6));
+      const sugPrice = (item.pricesFormatted && item.pricesFormatted.sugurta) || formatCurrency(Math.round(item.price * 0.98));
 
-  function dragMouseDown(e) {
-    e.preventDefault();
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
+      html += `
+        <div class="kp-row ${isChecked ? 'selected' : ''}" data-code="${item.code}">
+          <div class="kp-row-check">
+            <input type="checkbox" class="kp-check" data-code="${item.code}" ${isChecked ? 'checked' : ''}>
+          </div>
+          <div class="kp-row-info">
+            <div class="kp-meta-row">
+              <span class="kp-badge-code ${item.category}">${highlightedCode}</span>
+              ${item.isContrast ? '<span class="kp-tag-badge kp-tag-contrast">💉 Kontrast</span>' : ''}
+              ${item.isInjector ? '<span class="kp-tag-badge kp-tag-injector">⚡ Injektor</span>' : ''}
+            </div>
+            <div class="kp-row-title">${highlightedName}</div>
+            <div class="kp-tariffs-row">
+              <span class="kp-tp-pill rezident ${currentDrawerTariff === 'rezident' ? 'active' : ''}" title="O'zbekiston fuqarolari">
+                <span class="kp-tp-lbl">Rezident:</span>
+                <span class="kp-tp-val">${rezPrice}</span>
+              </span>
+              <span class="kp-tp-pill norezident ${currentDrawerTariff === 'norezident' ? 'active' : ''}" title="Chet el fuqarolari">
+                <span class="kp-tp-lbl">No rezident:</span>
+                <span class="kp-tp-val">${noRezPrice}</span>
+              </span>
+              <span class="kp-tp-pill sugurta ${currentDrawerTariff === 'sugurta' ? 'active' : ''}" title="Davlat tibbiy sug'urta fondi / Order">
+                <span class="kp-tp-lbl">Sug'urta/Order:</span>
+                <span class="kp-tp-val">${sugPrice}</span>
+              </span>
+            </div>
+          </div>
+          <div class="kp-row-price-col">
+            <span class="kp-row-price">${pInfo.priceFormatted}</span>
+            <span class="kp-tariff-hint ${currentDrawerTariff}">${activeTariffLabel}</span>
+            <button type="button" class="kp-btn-copy-item" data-code="${item.code}" title="3 ta narxni nusxalash">
+              📋 Nusxa
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll('.kp-row').forEach(row => {
+      const code = row.dataset.code;
+      const chk = row.querySelector('.kp-check');
+      const copyBtn = row.querySelector('.kp-btn-copy-item');
+
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.kp-btn-copy-item')) return;
+        if (e.target !== chk) chk.checked = !chk.checked;
+
+        if (chk.checked) {
+          selectedCodes.add(code);
+          row.classList.add('selected');
+        } else {
+          selectedCodes.delete(code);
+          row.classList.remove('selected');
+        }
+        updateCalcUI();
+      });
+
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const item = servicesCatalog.find(s => s.code === code);
+        if (!item) return;
+
+        const rezPrice = (item.pricesFormatted && item.pricesFormatted.rezident) || formatCurrency(item.price);
+        const noRezPrice = (item.pricesFormatted && item.pricesFormatted.norezident) || formatCurrency(Math.round(item.price * 1.6));
+        const sugPrice = (item.pricesFormatted && item.pricesFormatted.sugurta) || formatCurrency(Math.round(item.price * 0.98));
+
+        const copyText = `[${item.code}] ${item.name}\n` +
+          `• Rezident (O'zb): ${rezPrice}\n` +
+          `• No rezident (Chet el): ${noRezPrice}\n` +
+          `• Sug'urta / Order: ${sugPrice}`;
+
+        copyTextFn(copyText, `${item.code} 3 ta narxi nusxalandi!`);
+      });
+    });
   }
 
-  function elementDrag(e) {
-    e.preventDefault();
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    el.style.top = (el.offsetTop - pos2) + "px";
-    el.style.left = (el.offsetLeft - pos1) + "px";
-    el.style.right = "auto";
-    el.style.bottom = "auto";
+  function updateCalcUI() {
+    const hintEl = document.getElementById('kpCalcHint');
+    const activeEl = document.getElementById('kpCalcActive');
+    const countEl = document.getElementById('kpCalcCount');
+    const totalEl = document.getElementById('kpCalcTotal');
+
+    if (!hintEl || !activeEl) return;
+
+    if (selectedCodes.size === 0) {
+      hintEl.style.display = 'flex';
+      activeEl.style.display = 'none';
+      return;
+    }
+
+    hintEl.style.display = 'none';
+    activeEl.style.display = 'flex';
+    countEl.textContent = `${selectedCodes.size} ta xizmat`;
+
+    let total = 0;
+    servicesCatalog.forEach(item => {
+      if (selectedCodes.has(item.code)) {
+        total += getServicePriceByStatus(item, currentDrawerTariff).price;
+      }
+    });
+
+    totalEl.textContent = formatCurrency(total);
   }
 
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
+  function updateDrawerTabCounts() {
+    const counts = { ALL: servicesCatalog.length, MRT: 0, MSKT: 0, Rentgen: 0, UTT: 0, EKG: 0, Boshqa: 0 };
+    servicesCatalog.forEach(s => {
+      if (counts[s.category] !== undefined) counts[s.category]++;
+      else counts.Boshqa++;
+    });
 
-// 12. POPUPDAN XABARLARNI QABUL QILISH
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "DETECT_PAGE_DOCTORS") {
-    sendResponse({ success: true, doctors: ["Kurbanova Sevinch Musayevna", "Muminov Sobit", "Mannopova Nargiza Mannapovna", "Kasimov Doniyor Abrorovich"] });
-    return true;
+    Object.keys(counts).forEach(cat => {
+      const el = document.getElementById(`kpCount-${cat}`);
+      if (el) el.textContent = counts[cat];
+    });
   }
-  if (request.action === "UPDATE_SETTINGS") {
-    if (request.payload?.sheetsScriptUrl) currentGoogleScriptUrl = request.payload.sheetsScriptUrl;
-    if (request.payload?.spreadsheetId) currentSpreadsheetId = extractSheetId(request.payload.spreadsheetId);
-    if (request.payload?.targetSheetName) currentTargetSheetName = request.payload.targetSheetName;
-    sendResponse({ success: true });
-    return true;
+
+  // ============================================================
+  // 7. GENERAL HELPERS
+  // ============================================================
+  function highlightMatch(text, query) {
+    if (!query) return escapeHtml(text);
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return escapeHtml(text).replace(regex, '<span class="kp-highlight">$1</span>');
   }
-});
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatCurrency(val) {
+    return Math.round(val).toLocaleString('uz-UZ').replace(/,/g, ' ') + " so'm";
+  }
+
+  function copyTextFn(text, msg) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(msg);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(msg);
+    });
+  }
+
+  function copyText(text, msg) {
+    copyTextFn(text, msg);
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('kpToast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2400);
+  }
+})();

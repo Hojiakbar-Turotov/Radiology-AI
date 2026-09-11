@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karmed Tezkor Vrach Biriktirish</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <img src="icons/logo-onko.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+        <div class="brand-text">
+          <h1>TEZKOR VRACH (0-9)</h1>
+          <span>Karmed avtomatik biriktirish tizimi</span>
+        </div>
+      </div>
+      <button type="button" class="status-power-btn power-on" id="popupPowerBtn" title="Kengaytmani Yoqish / O'chirish (F8)">
+        <span class="power-dot"></span>
+        <span id="popupPowerText">Yoqilgan</span>
+      </button>
+    </header>
+
+    <!-- Instructions Banner -->
+    <div class="guide-banner">
+      <div class="guide-step">
+        <span class="step-num">⚡</span>
+        <span>Yoqish / O'chirish: <b>F8</b> | Talon chop etish: <b>P</b></span>
+      </div>
+      <div class="guide-step">
+        <span class="step-num">1</span>
+        <span>Karmed jadvalida kerakli fayl (bemor) qatorini bosing.</span>
+      </div>
+      <div class="guide-step">
+        <span class="step-num">2</span>
+        <span><b>0-9</b> ni bosing — vrach biriktiriladi va XPrinter taloni chiqadi!</span>
+      </div>
+    </div>
+
+    <!-- Doctors Table -->
+    <main class="docs-section">
+      <div class="section-title">VRACHLAR VA TUGMALAR RO'YXATI</div>
+      <div class="docs-list" id="docsList">
+        <!-- Rendered by JS -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <span>Rep. Onkologiya Markazi • UTT Bo'limi</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

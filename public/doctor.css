@@ -1,0 +1,755 @@
+/* ==========================================================================
+   UTT VRACH QABULXONA VA CHAQIRUV PORTALI — DOCTOR.CSS (v4.0.0)
+   ========================================================================== */
+
+:root {
+  --bg-dark: #070d1e;
+  --bg-card: #0f1c3f;
+  --bg-card-header: #172a5a;
+  --border-color: #1e3a8a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-blue: #38bdf8;
+  --accent-green: #22c55e;
+  --accent-gold: #f59e0b;
+  --accent-red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   1. LOGIN MODAL EKRANI
+   ========================================================================== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0f1c3f 0%, #070d1e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.login-card {
+  background: #0f1c3f;
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.login-logo-wrap {
+  margin-bottom: 12px;
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--accent-blue);
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.login-form {
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.login-input {
+  width: 100%;
+  background: #070d1e;
+  border: 1.5px solid #334155;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.login-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.login-error-msg {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--accent-red);
+  color: #fca5a5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.btn-login {
+  width: 100%;
+  background: #2563eb;
+  border: none;
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-login:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.login-footer-hint {
+  margin-top: 20px;
+  font-size: 11.5px;
+  color: #64748b;
+  border-top: 1px solid #1e293b;
+  padding-top: 12px;
+}
+
+/* ==========================================================================
+   2. VRACH ASOSIY ISH STOLI (WORKSPACE)
+   ========================================================================== */
+.doctor-app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 12px 18px;
+}
+
+.doc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0f1c3f 0%, #172a5a 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  gap: 16px;
+}
+
+.doc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.doc-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.hospital-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.active-doc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--accent-green);
+  color: #86efac;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.pulse-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+
+.doc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-clock-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border-right: 1px solid #334155;
+  padding-right: 14px;
+}
+
+.doc-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.doc-time {
+  font-size: 22px;
+  font-weight: 900;
+  font-family: monospace;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.btn-header-action {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-header-action:hover {
+  background: #334155;
+}
+
+.btn-logout {
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.btn-logout:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   3. HERO CHAQIRUV PANELI (ACTIVE CALL)
+   ========================================================================== */
+.hero-call-section {
+  background: #0f1c3f;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+}
+
+.hero-call-idle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+}
+
+.idle-icon {
+  font-size: 40px;
+  background: #1e293b;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #334155;
+}
+
+.idle-text h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.idle-text p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Faol chaqirilayotgan bemor */
+.hero-call-active {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(15, 28, 63, 0.8) 100%);
+  border: 2px solid var(--accent-green);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.2);
+}
+
+.active-call-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.call-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-green);
+  color: #070d1e;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: liveBlink 1s infinite alternate;
+}
+
+@keyframes liveBlink {
+  0% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.call-time-ago {
+  font-size: 12px;
+  font-weight: 700;
+  color: #86efac;
+}
+
+.active-call-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.call-queue-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #070d1e;
+  border: 2px solid var(--accent-green);
+  padding: 8px 18px;
+  border-radius: 10px;
+  min-width: 90px;
+}
+
+.call-q-lbl {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+}
+
+.call-q-num {
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ffffff;
+  font-family: 'Arial Black', Impact, sans-serif;
+}
+
+.call-patient-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.call-pat-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.call-pat-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.call-pat-meta b {
+  color: var(--accent-blue);
+}
+
+.call-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-repeat-call {
+  background: #1e293b;
+  border: 1.5px solid var(--accent-blue);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-repeat-call:hover {
+  background: #2563eb;
+}
+
+.btn-finish-call {
+  background: #16a34a;
+  border: none;
+  color: #ffffff;
+  padding: 11px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+}
+
+.btn-finish-call:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   4. KUTAYOTGAN BEMORLAR JADVALI
+   ========================================================================== */
+.doc-queue-section {
+  background: #0f1c3f;
+  border: 1.5px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.queue-panel-header {
+  background: var(--bg-card-header);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.qp-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qp-left h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.queue-count-badge {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.qp-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-search-input {
+  background: #070d1e;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  width: 240px;
+  outline: none;
+}
+
+.doc-search-input:focus {
+  border-color: var(--accent-blue);
+}
+
+.btn-refresh-queue {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refresh-queue:hover {
+  background: #334155;
+}
+
+.table-wrap {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.doc-table th {
+  background: #152248;
+  color: #94a3b8;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-bottom: 2px solid #1e3a8a;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.doc-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+.doc-table tr:hover td {
+  background: rgba(30, 58, 138, 0.3);
+}
+
+.doc-table tr.row-calling td {
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
+.q-badge {
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.pat-id {
+  font-family: monospace;
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-size: 13px;
+}
+
+.pat-name {
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.btn-call-patient {
+  background: #2563eb;
+  border: none;
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-call-patient:hover {
+  background: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.btn-call-patient.calling {
+  background: var(--accent-green);
+  color: #070d1e;
+}
+
+.doc-empty-state {
+  text-align: center;
+  padding: 40px !important;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   5. PAROLNI O'ZGARTIRISH MODALI
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 13, 30, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #0f1c3f;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 10px;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-modal-cancel {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-modal-save {
+  background: #2563eb;
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.modal-msg {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.modal-msg.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--accent-red);
+  color: #fca5a5;
+}
+
+.modal-msg.success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--accent-green);
+  color: #86efac;
+}
+
+@media (max-width: 768px) {
+  .doc-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .doc-header-right {
+    justify-content: space-between;
+    border-top: 1px solid #334155;
+    padding-top: 8px;
+  }
+  .active-call-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .call-actions-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .call-actions-group button {
+    flex: 1;
+  }
+}

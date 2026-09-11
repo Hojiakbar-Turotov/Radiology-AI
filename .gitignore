@@ -3,8 +3,23 @@ node_modules/
 *.log
 .vscode/
 .idea/
-data/karmed_profile/
 scratch/
 dist/
 build-installer/runtime/
 *.exe
+android_tv_app/build/
+*.idsig
+
+# Large data logs and dynamic files
+Log/
+*.me
+*.rar
+*.zip
+*.tflite
+*cache.json
+**/*cache.json
+**/karmed_profile/
+**/user_sessions/
+versions/
+
+

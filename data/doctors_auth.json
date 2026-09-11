@@ -1,0 +1,123 @@
+{
+  "U0": {
+    "username": "U0",
+    "password": "15420",
+    "roomId": "Ultratovush-10",
+    "roomNum": "51",
+    "roomTitle": "UTT10-51 XONA",
+    "doctorName": "Xudayberdiyeva Nigora Nizamovna",
+    "shortName": "Xudayberdiyeva",
+    "kod": "33",
+    "soundId": 8
+  },
+  "U1": {
+    "username": "U1",
+    "password": "15420",
+    "roomId": "Ultratovush-1",
+    "roomNum": "53",
+    "roomTitle": "UTT1-53 XONA",
+    "doctorName": "Juravlev Igor Ivanovich",
+    "shortName": "Juravlev",
+    "kod": "13",
+    "soundId": 2
+  },
+  "U2": {
+    "username": "U2",
+    "password": "15420",
+    "roomId": "Ultratovush-2",
+    "roomNum": "54",
+    "roomTitle": "UTT2-54 XONA",
+    "doctorName": "Kurbanova Sevinch Musayevna",
+    "shortName": "Kurbanova",
+    "kod": "15",
+    "soundId": 3
+  },
+  "U3": {
+    "username": "U3",
+    "password": "15420",
+    "roomId": "Ultratovush-3",
+    "roomNum": "46",
+    "roomTitle": "UTT3-46 XONA",
+    "doctorName": "Abidjanov Alisher Maxamataliyevich",
+    "shortName": "Abidjanov",
+    "kod": "16",
+    "soundId": 4
+  },
+  "U4": {
+    "username": "U4",
+    "password": "15420",
+    "roomId": "Ultratovush-4",
+    "roomNum": "47",
+    "roomTitle": "UTT4-47 XONA",
+    "doctorName": "Ziyayeva Zarina Abduganiyevna",
+    "shortName": "Ziyayeva",
+    "kod": "18",
+    "soundId": 5
+  },
+  "U5": {
+    "username": "U5",
+    "password": "15420",
+    "roomId": "Ultratovush-5",
+    "roomNum": "48",
+    "roomTitle": "UTT5-48 XONA",
+    "doctorName": "Xoshimova Lola Kabulovna",
+    "shortName": "Xoshimova",
+    "kod": "17",
+    "soundId": 6
+  },
+  "U6": {
+    "username": "U6",
+    "password": "15420",
+    "roomId": "Ultratovush-6",
+    "roomNum": "52",
+    "roomTitle": "UTT6-52 XONA",
+    "doctorName": "Toirova Shaxlo Oybek qizi",
+    "shortName": "Toirova",
+    "kod": "19",
+    "soundId": 7
+  },
+  "U7": {
+    "username": "U7",
+    "password": "15420",
+    "roomId": "Ultratovush-7",
+    "roomNum": "45",
+    "roomTitle": "UTT7-45 XONA",
+    "doctorName": "Asadova Dildoraxon Asatullayevna",
+    "shortName": "Asadova",
+    "kod": "32",
+    "soundId": 8
+  },
+  "U8": {
+    "username": "U8",
+    "password": "15420",
+    "roomId": "Ultratovush-8",
+    "roomNum": "49",
+    "roomTitle": "UTT8-49 XONA",
+    "doctorName": "Saidbayeva Zulfiya Yergeshovna",
+    "shortName": "Saidbayeva",
+    "kod": "20",
+    "soundId": 9
+  },
+  "U9": {
+    "username": "U9",
+    "password": "15420",
+    "roomId": "Ultratovush-9",
+    "roomNum": "50",
+    "roomTitle": "UTT9-50 XONA",
+    "doctorName": "Xusanova Feruza Ikromjonovna",
+    "shortName": "Xusanova",
+    "kod": "21",
+    "soundId": 10
+  },
+  "U11": {
+    "username": "U11",
+    "password": "15420",
+    "roomId": "Ultratovush-11",
+    "roomNum": "11",
+    "roomTitle": "UTT11 XONA",
+    "doctorName": "Yulchiyeva Nodira Siddikovna",
+    "shortName": "Yulchiyeva",
+    "kod": "22",
+    "soundId": 1
+  }
+}

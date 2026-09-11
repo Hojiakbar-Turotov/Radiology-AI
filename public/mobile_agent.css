@@ -1,0 +1,656 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #090d16;
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.mobile-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 500px;
+  margin: 0 auto;
+  background: #090d16;
+  position: relative;
+}
+
+/* HEADER */
+.m-header {
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.m-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.m-app-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+.m-agent-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #090d16;
+  border: 1px solid #334155;
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  color: #34d399;
+}
+.m-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+.m-header-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.m-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+.m-stat-num { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.1; }
+.m-stat-lbl { font-size: 10px; color: #94a3b8; }
+.m-btn-sync {
+  background: #0284c7;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* NAV TABS */
+.m-nav {
+  display: flex;
+  background: #0b1120;
+  border-bottom: 1px solid #1e293b;
+}
+.m-nav-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  padding: 10px 0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.m-nav-tab.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.05);
+}
+
+/* BODY VIEWS */
+.m-body {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+.m-view {
+  display: none;
+  padding: 12px;
+  flex-direction: column;
+  gap: 10px;
+}
+.m-view.active {
+  display: flex;
+}
+
+/* ROOM CHIPS */
+.m-room-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.m-chip {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.m-chip.active {
+  background: #0284c7;
+  color: #fff;
+  border-color: #0284c7;
+}
+
+/* PATIENT CARDS */
+.m-patient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.m-patient-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.m-q-num {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fbbf24;
+  min-width: 44px;
+  text-align: center;
+}
+.m-p-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.m-p-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+.m-p-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.m-p-room {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* SEARCH & FORMS */
+.m-search-card, .m-custom-form {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.m-input {
+  background: #090d16;
+  border: 1px solid #334155;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+}
+.m-input:focus { border-color: #38bdf8; }
+.m-btn-action {
+  background: #0284c7;
+  border: none;
+  color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* REPLAY */
+.m-replay-box { display: flex; flex-direction: column; gap: 12px; }
+.m-section-desc { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+.m-replay-actions { display: flex; flex-direction: column; gap: 8px; }
+.m-action-btn {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f1f5f9;
+  text-align: left;
+  cursor: pointer;
+}
+.m-action-btn:active { background: #1e293b; border-color: #38bdf8; }
+.m-action-icon { font-size: 24px; }
+.m-action-text strong { display: block; font-size: 13px; color: #38bdf8; }
+.m-action-text small { font-size: 11px; color: #64748b; }
+
+.m-response-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.m-card-title { font-size: 12px; font-weight: 700; color: #94a3b8; }
+.m-code-box {
+  background: #070a10;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #38bdf8;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.m-form-group { display: flex; flex-direction: column; gap: 4px; }
+.m-form-group label { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.m-loading, .m-tip-text { text-align: center; color: #64748b; font-size: 12px; padding: 20px; }
+
+.m-profile-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #090d16;
+  border: 1px solid #334155;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+.m-profile-selector-row label { color: #94a3b8; font-weight: 600; white-space: nowrap; }
+.m-profile-select {
+  flex: 1;
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid #1e293b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+}
+
+/* ENRICHED PATIENT CARD */
+.m-patient-full-card {
+  background: #0f172a;
+  border: 1px solid #0284c7;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.2);
+}
+.m-pfc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 8px;
+}
+.m-pfc-name { font-size: 16px; font-weight: 800; color: #fff; }
+.m-pfc-qnum { font-size: 24px; font-weight: 900; color: #fbbf24; }
+.m-pfc-meta { font-size: 11px; color: #94a3b8; line-height: 1.5; }
+.m-pfc-room { font-size: 13px; font-weight: 700; color: #38bdf8; margin-top: 2px; }
+
+.m-services-list {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.m-service-tag {
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.m-service-dot { width: 4px; height: 4px; border-radius: 50%; background: #38bdf8; }
+
+.m-actions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.m-change-room-box {
+  display: flex;
+  gap: 6px;
+}
+.m-select-room {
+  flex: 1;
+  background: #090d16;
+  border: 1px solid #334155;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.m-btn-change-room {
+  background: #0284c7;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.m-btn-accept-row {
+  display: flex;
+  gap: 8px;
+}
+.m-btn-accept {
+  flex: 1;
+  background: #16a34a;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.m-btn-cancel-accept {
+  flex: 1;
+  background: #dc2626;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* CATEGORIZED SERVICES STYLES */
+.m-services-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.m-service-category-card {
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #1e293b;
+}
+.m-scc-utt {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: #10b981;
+}
+.m-scc-mrt {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: #8b5cf6;
+}
+.m-scc-kt {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: #f59e0b;
+}
+.m-scc-rentgen {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: #06b6d4;
+}
+.m-scc-other {
+  background: rgba(100, 116, 139, 0.08);
+  border-color: #64748b;
+}
+
+.m-scc-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+}
+.m-scc-utt .m-scc-title { color: #34d399; }
+.m-scc-mrt .m-scc-title { color: #c084fc; }
+.m-scc-kt .m-scc-title { color: #fbbf24; }
+.m-scc-rentgen .m-scc-title { color: #38bdf8; }
+.m-scc-other .m-scc-title { color: #94a3b8; }
+
+.m-scc-count-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.m-scc-item {
+  display: flex;
+  flex-direction: column;
+  background: #090d16;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 10px;
+  border-radius: 6px;
+  gap: 3px;
+}
+.m-scc-item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.m-scc-code {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  white-space: nowrap;
+}
+.code-utt { background: #059669; }
+.code-mrt { background: #7c3aed; }
+.code-kt { background: #d97706; }
+.code-rentgen { background: #0891b2; }
+.code-other { background: #475569; }
+
+.m-scc-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+  flex: 1;
+}
+.m-scc-doc {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+
+/* =========================================================================
+   MOBIL AGENT AUTH MODAL & MODALITET TEMALARI (UTT, MSKT, MRT)
+   ========================================================================= */
+
+/* AUTH MODAL */
+.m-auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(4, 7, 13, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.m-auth-modal {
+  width: 100%;
+  max-width: 380px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalFadeIn 0.3s ease-out;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+.m-auth-header {
+  text-align: center;
+}
+.m-auth-icon {
+  font-size: 38px;
+  margin-bottom: 4px;
+}
+.m-auth-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+.m-auth-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+.m-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.m-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.m-auth-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+.m-auth-input {
+  background: #090d16;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  font-weight: 600;
+}
+.m-auth-input:focus {
+  border-color: #38bdf8;
+}
+.m-auth-btn {
+  background: #0284c7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.m-auth-btn:hover { background: #0369a1; }
+.m-auth-error {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid #dc2626;
+  color: #f87171;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: none;
+  text-align: center;
+}
+
+/* USER SESSION BAR IN HEADER */
+.m-user-session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.m-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+  font-weight: 700;
+}
+.m-btn-logout {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* MODALITY THEMES */
+/* 🎯 UTT (Emerald Green) */
+body.theme-utt .m-app-title { color: #34d399; }
+body.theme-utt .m-nav-tab.active { color: #34d399; border-bottom-color: #34d399; }
+body.theme-utt .m-btn-action { background: #059669; }
+body.theme-utt .m-auth-title { color: #34d399; }
+body.theme-utt .m-auth-btn { background: #059669; }
+
+/* ⚡ MSKT (Amber / Gold) */
+body.theme-mskt .m-app-title { color: #fbbf24; }
+body.theme-mskt .m-nav-tab.active { color: #fbbf24; border-bottom-color: #fbbf24; }
+body.theme-mskt .m-btn-action { background: #d97706; }
+body.theme-mskt .m-auth-title { color: #fbbf24; }
+body.theme-mskt .m-auth-btn { background: #d97706; }
+
+/* 🧲 MRT (Purple / Indigo) */
+body.theme-mrt .m-app-title { color: #c084fc; }
+body.theme-mrt .m-nav-tab.active { color: #c084fc; border-bottom-color: #c084fc; }
+body.theme-mrt .m-btn-action { background: #7c3aed; }
+body.theme-mrt .m-auth-title { color: #c084fc; }
+body.theme-mrt .m-auth-btn { background: #7c3aed; }
+
+/* HIGHLIGHT CURRENT MODALITY IN PATIENT CARD */
+.m-scc-primary {
+  border-width: 2px !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+.m-scc-other-dept-wrap {
+  border-top: 1px dashed #334155;
+  padding-top: 10px;
+  margin-top: 8px;
+}
+.m-scc-other-header {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

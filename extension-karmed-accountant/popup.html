@@ -2,234 +2,103 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Karmed Hisobchi Portali</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karmed Xizmat Narxlari</title>
   <link rel="stylesheet" href="popup.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="popup-container">
-    <!-- 1. HEADER -->
-    <header class="popup-header">
+  <div class="app-container">
+    <!-- TOP HEADER -->
+    <header class="app-header">
       <div class="header-brand">
-        <img src="icons/logo-onko.png" alt="RONS Logo" class="brand-logo">
-        <div>
-          <h2>KARMED HISOBCHI</h2>
-          <p>Shifokor Bemorlari & Google Sheets Integratsiyasi</p>
+        <img src="icons/logo-onko.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+        <div class="brand-text">
+          <h1>KARMED PREYSKURANT</h1>
+          <span class="brand-subtitle">Rasmiy tibbiy xizmat tariflari va narxlari</span>
         </div>
       </div>
-      <span class="status-badge live" id="connectionBadge">
-        <i class="fa-solid fa-circle"></i> Karmed Tayyor
-      </span>
+      <div class="header-stats">
+        <span class="badge-total" id="totalServicesBadge">168 xizmat</span>
+      </div>
     </header>
 
-    <!-- 2. GOOGLE SHEETS BOSHQARUV BLOKI -->
-    <div class="card-box sheets-box">
-      <div class="sheets-header">
-        <span><i class="fa-solid fa-table" style="color: #10b981;"></i> <strong>Google Sheets Integratsiyasi</strong></span>
-        <button type="button" class="btn-text-action" id="btnToggleSheetsConfig" title="Sozlamalarni ko'rsatish/yashirish">
-          <i class="fa-solid fa-gear"></i> Sozlash
-        </button>
+    <!-- SEARCH & CATEGORY BAR -->
+    <div class="search-panel">
+      <!-- Search Box -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Kod yoki nom bo'yicha qidiring (R157, miya, UTT, kontrast)..." 
+          autocomplete="off"
+          spellcheck="false"
+          autofocus
+        >
+        <button type="button" id="clearSearchBtn" class="btn-clear-search" title="Tozalash">✕</button>
       </div>
 
-      <!-- Sheets Sozlamalari (Akkordeon) -->
-      <div class="sheets-config-panel" id="sheetsConfigPanel" style="display: none;">
-        <div class="form-group" style="margin-bottom: 8px;">
-          <label style="font-size: 11.5px;"><strong>Apps Script Web App URL:</strong></label>
-          <input type="text" id="inputSheetsScriptUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
-        </div>
-        <div class="form-group" style="margin-bottom: 8px;">
-          <label style="font-size: 11.5px;"><strong>Google Sheets Havolasi yoki ID:</strong></label>
-          <input type="text" id="inputSpreadsheetId" class="form-control" placeholder="Havola yoki ID ni kiriting">
-        </div>
-        <div class="sheets-tabs-row">
-          <div class="form-group" style="flex: 1;">
-            <label style="font-size: 11px;">Manba (Bemor ID):</label>
-            <input type="text" id="inputSourceSheetName" class="form-control" placeholder="Sevinch">
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label style="font-size: 11px;">Maqsad (Yozish):</label>
-            <input type="text" id="inputTargetSheetName" class="form-control" placeholder="Farq">
-          </div>
-        </div>
-        <div style="margin-top: 10px; display: flex; gap: 6px;">
-          <button type="button" class="btn btn-primary btn-sm" id="btnSaveSheetsConfig" style="flex: 2; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 7px;">
-            <i class="fa-solid fa-floppy-disk"></i> 💾 Saqlash
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnClearSheetsCache" style="flex: 1; font-size: 11px; background: #475569; border: none;" title="Barcha eski kesh va ID larni o'chirish">
-            <i class="fa-solid fa-trash-can"></i> 🧹 Tozalash
-          </button>
-        </div>
-        <div id="sheetsConfigSaveStatus" style="font-size: 11.5px; text-align: center; margin-top: 5px; color: #059669; font-weight: 700; display: none;">
-          ✅ Sozlamalar saqlandi!
-        </div>
+      <!-- Tariff Switcher Bar -->
+      <div class="tariff-switcher-bar" id="tariffSwitcherBar">
+        <button type="button" class="tariff-btn active" data-tariff="rezident">🇺🇿 Rezident</button>
+        <button type="button" class="tariff-btn" data-tariff="norezident">🌐 No Rezident</button>
+        <button type="button" class="tariff-btn" data-tariff="sugurta">📄 Sug'urta / Order</button>
       </div>
 
-      <!-- Sheets Boshqaruv Tugmalari -->
-      <div class="sheets-actions-wrap">
-        <div class="sheets-status-pill" id="sheetsLoadedStatusPill">
-          <i class="fa-solid fa-cloud-arrow-down"></i> <span id="sheetsStatusText">Sheets-dan ID lar yuklanmagan</span>
+      <!-- Categories Filter Tabs -->
+      <div class="category-tabs" id="categoryTabs">
+        <button type="button" class="tab-btn active" data-cat="ALL">Barchasi <span class="tab-count" id="count-ALL">168</span></button>
+        <button type="button" class="tab-btn" data-cat="MRT">MRT <span class="tab-count" id="count-MRT">65</span></button>
+        <button type="button" class="tab-btn" data-cat="MSKT">MSKT <span class="tab-count" id="count-MSKT">24</span></button>
+        <button type="button" class="tab-btn" data-cat="Rentgen">Rentgen <span class="tab-count" id="count-Rentgen">40</span></button>
+        <button type="button" class="tab-btn" data-cat="UTT">UTT <span class="tab-count" id="count-UTT">34</span></button>
+        <button type="button" class="tab-btn" data-cat="EKG">EKG <span class="tab-count" id="count-EKG">3</span></button>
+        <button type="button" class="tab-btn" data-cat="Boshqa">Boshqa <span class="tab-count" id="count-Boshqa">2</span></button>
+      </div>
+
+      <!-- Extra Filter Tags (Contrast, Injector) -->
+      <div class="filter-subbar">
+        <div class="filter-chips">
+          <button type="button" class="chip-filter" id="toggleContrastFilter">💉 Kontrastli</button>
+          <button type="button" class="chip-filter" id="toggleInjectorFilter">⚡ Injektorli</button>
         </div>
-        <div class="sheets-btns-grid">
-          <button type="button" class="btn btn-secondary btn-sm" id="btnFetchSheetsIds">
-            <i class="fa-solid fa-file-import"></i> 1. ID larni Yuklash
-          </button>
-          <button type="button" class="btn btn-success btn-sm" id="btnExportToSheets" disabled>
-            <i class="fa-solid fa-file-export"></i> 3. Sheets-ga Yozish
-          </button>
-        </div>
-        <button type="button" class="btn btn-gradient btn-block" id="btnAutoSyncAll">
-          <i class="fa-solid fa-bolt"></i> ⚡ Avtomatik Hammasini Bajarish (1 ➡️ 2 ➡️ 3)
-        </button>
+        <div class="filter-results-info" id="filterResultsInfo">168 ta xizmat</div>
       </div>
     </div>
 
-    <!-- 3. PARAMETRLAR / FILTRLAR -->
-    <div class="card-box">
-      <!-- Sana Oralig'i (1 oylik yoki oraliq) -->
-      <div class="form-group">
-        <div class="label-row">
-          <label>
-            <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> <strong>Hisobot Davri (Tasdiqlangan sana):</strong>
-          </label>
-        </div>
-        <div class="date-range-row">
-          <div class="date-input-col">
-            <span class="sub-label">Dan (Boshlanish):</span>
-            <input type="date" id="reportStartDateInput" class="form-control">
-          </div>
-          <span class="date-range-sep">—</span>
-          <div class="date-input-col">
-            <span class="sub-label">Gacha (Tugash):</span>
-            <input type="date" id="reportEndDateInput" class="form-control">
-          </div>
-        </div>
-        <div class="quick-date-btns">
-          <button type="button" class="btn-date-quick" id="btnDateThisMonth">📅 1 Oylik (Bu oy)</button>
-          <button type="button" class="btn-date-quick" id="btnDateLastMonth">O'tgan oy</button>
-          <button type="button" class="btn-date-quick active" id="btnDateToday">Bugun</button>
-          <button type="button" class="btn-date-quick" id="btnDateYesterday">Kecha</button>
-          <button type="button" class="btn-date-quick" id="btnDateAll">Barcha sanalar</button>
-        </div>
+    <!-- SERVICES LIST CONTAINER -->
+    <main class="services-viewport" id="servicesViewport">
+      <div class="services-list" id="servicesList">
+        <!-- Rendered by JS -->
       </div>
+    </main>
 
-      <!-- Shifokor tanlash -->
-      <div class="form-group">
-        <div class="label-row">
-          <label for="doctorSelect">
-            <i class="fa-solid fa-user-doctor" style="color: #10b981;"></i> <strong>Qabul Qiluvchi Shifokor:</strong>
-          </label>
-          <button type="button" class="btn-text-action" id="btnAutoDetectDoctor" title="Karmed sahifasidagi shifokorlarni avtomatik aniqlash">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Sahifadan olish
+    <!-- STICKY FOOTER / CALCULATOR -->
+    <footer class="calc-footer" id="calcFooter">
+      <div class="calc-hint" id="calcHint">
+        <span class="hint-icon">💡</span> Bir nechta xizmatni belgilab jami narxini hisoblang
+      </div>
+      <div class="calc-active" id="calcActive" style="display: none;">
+        <div class="calc-left">
+          <span class="calc-badge" id="calcCount">0 ta xizmat</span>
+          <div class="calc-sum-wrap">
+            <span class="calc-sum-lbl">Jami:</span>
+            <span class="calc-sum-val" id="calcTotal">0 so'm</span>
+          </div>
+        </div>
+        <div class="calc-actions">
+          <button type="button" class="btn-calc-action btn-copy-calc" id="btnCopyCalc" title="Ro'yxat va jami summani nusxalash">
+            📋 Nusxalash
+          </button>
+          <button type="button" class="btn-calc-action btn-reset-calc" id="btnResetCalc" title="Barcha belgilashlarni bekor qilish">
+            ✕ Tozalash
           </button>
         </div>
-        <select id="doctorSelect" class="form-control">
-          <option value="">-- Barcha Shifokorlar (Umumiy sanash) --</option>
-          <optgroup label="🏥 UTT Shifokorlari">
-            <option value="Kurbanova Sevinch Musayevna">Kurbanova Sevinch Musayevna (UTT 2 - 54 XONA)</option>
-            <option value="Xusanova Feruza Ikromjonovna">Xusanova Feruza Ikromjonovna (UTT 9 - 50 XONA)</option>
-            <option value="Yulchiyeva Nodira Siddikovna">Yulchiyeva Nodira Siddikovna (UTT)</option>
-            <option value="Juravlev Igor Ivanovich">Juravlev Igor Ivanovich (UTT 1 - 53 XONA)</option>
-            <option value="Abidjanov Alisher Maxamataliyevich">Abidjanov Alisher Maxamataliyevich (UTT 3 - 46 XONA)</option>
-            <option value="Ziyayeva Zarina Abduganiyevna">Ziyayeva Zarina Abduganiyevna (UTT 4 - 47 XONA)</option>
-            <option value="Xoshimova Lola Kabulovna">Xoshimova Lola Kabulovna (UTT 5 - 48 XONA)</option>
-            <option value="Toirova Shaxlo Oybek qizi">Toirova Shaxlo Oybek qizi (UTT 6 - 52 XONA)</option>
-            <option value="Asadova Dildoraxon Asatullayevna">Asadova Dildoraxon Asatullayevna (UTT 7 - 45 XONA)</option>
-            <option value="Saidbayeva Zulfiya Yergeshovna">Saidbayeva Zulfiya Yergeshovna (UTT 8 - 49 XONA)</option>
-            <option value="Xudayberdiyeva Nigora Nizamovna">Xudayberdiyeva Nigora Nizamovna (UTT 10 - 51 XONA)</option>
-            <option value="Turatov Hojiakbar Shavkat ogli">Turatov Hojiakbar Shavkat ogli (UTT)</option>
-          </optgroup>
-          <optgroup label="📋 Sahifadagi Boshqa Shifokorlar" id="detectedDoctorsGroup" style="display:none;"></optgroup>
-        </select>
       </div>
-
-      <!-- Skanerlash Sozlamalari -->
-      <div class="options-row">
-        <label class="checkbox-label" title="Faqat Sheets-dan yuklangan Bemor ID lar bo'yicha qidirish">
-          <input type="checkbox" id="chkOnlySheetsIds" checked>
-          <span>Sheets ID bo'yicha filter</span>
-        </label>
-        <label class="checkbox-label" title="Qabul qiluvchi ustuni tanlangan vrach bilan mos kelishini tekshirish">
-          <input type="checkbox" id="chkStrictDoctorMatch" checked>
-          <span>Qabul qiluvchini tekshirish</span>
-        </label>
-        <label class="checkbox-label" title="Barcha sahifalarni avtomatik varaqlab sanab chiqish">
-          <input type="checkbox" id="chkAutoPagination" checked>
-          <span>Ko'p sahifali avto-varaqlash</span>
-        </label>
-      </div>
-
-      <!-- Asosiy skanerlash tugmasi -->
-      <button type="button" class="btn btn-primary btn-block" id="btnStartScan">
-        <i class="fa-solid fa-magnifying-glass-chart"></i> 2. Karmed Jadvalini Skanerlash & Yig'ish
-      </button>
-    </div>
-
-    <!-- 4. SKANERLASH PROGRESSI & NATIJALARI -->
-    <div id="scanResultsSection" style="display: none;">
-      <!-- Progress indikator -->
-      <div class="progress-box" id="scanProgressBox">
-        <div class="progress-text" id="scanProgressText">
-          <i class="fa-solid fa-spinner fa-spin"></i> Jadval skanerlanmoqda...
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="scanProgressFill" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- KPI Kartochkalari -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-label"><i class="fa-solid fa-users"></i> Bemorlar:</span>
-          <strong class="kpi-value" id="resPatientCount">0</strong>
-        </div>
-        <div class="kpi-card highlight">
-          <span class="kpi-label"><i class="fa-solid fa-microscope"></i> Sohalar / Tekshiruvlar:</span>
-          <strong class="kpi-value" id="resServiceCount">0</strong>
-        </div>
-      </div>
-
-      <!-- Jami Summa Kartochkasi -->
-      <div class="summa-banner" id="resTotalSummaBanner">
-        <span><i class="fa-solid fa-money-bill-wave"></i> Jami Hisoblangan Summa:</span>
-        <strong id="resTotalSummaValue">0 so'm</strong>
-      </div>
-
-      <!-- Kodlar bo'yicha taqsimot -->
-      <div class="breakdown-card">
-        <div class="breakdown-header">
-          <span><i class="fa-solid fa-tags"></i> Tekshiruv Kodlari Taqsimoti:</span>
-        </div>
-        <div class="badges-wrap" id="resCodesBadgesWrap"></div>
-      </div>
-
-      <!-- Bemorlar ro'yxati (Accordion / Preview) -->
-      <div class="preview-card">
-        <div class="preview-header" id="btnTogglePreview">
-          <span><i class="fa-solid fa-list-ol"></i> Bemorlar & Xizmatlar Reyestri (<span id="resListCount">0</span> ta)</span>
-          <i class="fa-solid fa-chevron-down" id="previewChevron"></i>
-        </div>
-        <div class="preview-body" id="previewBody">
-          <div class="patients-scroll-list" id="resPatientsList"></div>
-        </div>
-      </div>
-
-      <!-- Saqlash Tugmalari -->
-      <div class="action-footer">
-        <button type="button" class="btn btn-success btn-block" id="btnSaveToSheetsDirect">
-          <i class="fa-solid fa-file-excel"></i> Natijalarni Google Sheets-ga Saqlash
-        </button>
-        <button type="button" class="btn btn-outline btn-block" id="btnSaveToFirebase" style="margin-top:6px; font-size:12px;">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Firebase Bazasiga ham Saqlash
-        </button>
-      </div>
-    </div>
-
-    <!-- 5. FOOTER & LINK TO ACCOUNTANT PORTAL -->
-    <footer class="popup-footer">
-      <a href="http://localhost:3000/app6-hisobchi/index.html" target="_blank" class="footer-portal-link" id="linkOpenAccountantPortal">
-        <i class="fa-solid fa-chart-line"></i> <strong>Hisobchi Tahlil Portalini Ochish</strong> <i class="fa-solid fa-arrow-up-right-from-square"></i>
-      </a>
     </footer>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast-popup" id="toastPopup">Nusxalandi!</div>
   </div>
 
   <script src="popup.js"></script>

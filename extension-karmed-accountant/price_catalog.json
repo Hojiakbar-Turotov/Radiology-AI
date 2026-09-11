@@ -1,0 +1,3693 @@
+[
+  {
+    "code": "R62",
+    "sheetNum": "1",
+    "name": "ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+    "nameLatin": "JIGAR, O'T QOPI, OShQOZON OSTI BEZI, TALOQ",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R63",
+    "sheetNum": "2",
+    "name": "ДОППЛЕР ( РТД+энергетик) ЖИГАР, ЎТ ҚОПИ, ОШҚОЗОН ОСТИ БЕЗИ, ТАЛОҚ",
+    "nameLatin": "DOPPLER ( RTD+energetik) JIGAR, O'T QOPI, OShQOZON OSTI BEZI, TALOQ",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 192000,
+    "priceFormatted": "192 000 so'm",
+    "prices": {
+      "rezident": 192000,
+      "norezident": 307200,
+      "sugurta": 188160
+    },
+    "pricesFormatted": {
+      "rezident": "192 000 so'm",
+      "norezident": "307 200 so'm",
+      "sugurta": "188 160 so'm"
+    }
+  },
+  {
+    "code": "R64",
+    "sheetNum": "3",
+    "name": "У Т Т БУЙРАКЛАР",
+    "nameLatin": "U T T BUYRAKLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R65",
+    "sheetNum": "4",
+    "name": "ДОППЛЕР (РТД + энергетик) БУЙРАКЛАР",
+    "nameLatin": "DOPPLER (RTD + energetik) BUYRAKLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R66",
+    "sheetNum": "5",
+    "name": "СИЙДИК ПУФАГИ",
+    "nameLatin": "SIYDIK PUFAGI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 93000,
+    "priceFormatted": "93 000 so'm",
+    "prices": {
+      "rezident": 93000,
+      "norezident": 148800,
+      "sugurta": 91140
+    },
+    "pricesFormatted": {
+      "rezident": "93 000 so'm",
+      "norezident": "148 800 so'm",
+      "sugurta": "91 140 so'm"
+    }
+  },
+  {
+    "code": "R67",
+    "sheetNum": "6",
+    "name": "СИЙДИК ПУФАГИ, БАЧАДОН ВА ТУХУМДОНЛАР",
+    "nameLatin": "SIYDIK PUFAGI, BAChADON VA TUXUMDONLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R68",
+    "sheetNum": "7",
+    "name": "ДОППЛЕР (РТД + энергетик) БАЧАДОН ВА ТУХУМДОНЛАР",
+    "nameLatin": "DOPPLER (RTD + energetik) BAChADON VA TUXUMDONLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R69",
+    "sheetNum": "8",
+    "name": "СИЙДИК ҚОПИ ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+    "nameLatin": "SIYDIK QOPI PROSTATA BEZI, URUG' PUFAKChALARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R70",
+    "sheetNum": "9",
+    "name": "ДОППЛЕР (РТД + энергетик) СИЙДИК ҚОПИ, ПРОСТАТА БЕЗИ, УРУҒ ПУФАКЧАЛАРИ",
+    "nameLatin": "DOPPLER (RTD + energetik) SIYDIK QOPI, PROSTATA BEZI, URUG' PUFAKChALARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R71",
+    "sheetNum": "10",
+    "name": "ЁРҒОҚ АЪЗОЛАРИ",
+    "nameLatin": "YoRG'OQ A'ZOLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R72",
+    "sheetNum": "11",
+    "name": "ДОППЛЕР (РТД + энергетик) ЁРҒОҚ АЪЗОЛАРИ",
+    "nameLatin": "DOPPLER (RTD + energetik) YoRG'OQ A'ZOLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R73",
+    "sheetNum": "12",
+    "name": "СУТ БЕЗЛАРИ",
+    "nameLatin": "SUT BEZLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R74",
+    "sheetNum": "13",
+    "name": "ДОППЛЕР (РТД + энергетик) СУТ БЕЗЛАРИ",
+    "nameLatin": "DOPPLER (RTD + energetik) SUT BEZLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R75",
+    "sheetNum": "14",
+    "name": "ҚАЛҚОНСИМОН БЕЗИ",
+    "nameLatin": "QALQONSIMON BEZI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R76",
+    "sheetNum": "15",
+    "name": "ДОППЛЕР (РТД + энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+    "nameLatin": "DOPPLER (RTD + energetik) QALQONSIMON BEZI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R77",
+    "sheetNum": "16",
+    "name": "ДОППЛЕР (РТД + энергетик) ЮМШОҚ ТЎҚИМА",
+    "nameLatin": "DOPPLER (RTD + energetik) YuMShOQ TO'QIMA",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R78",
+    "sheetNum": "17",
+    "name": "ПЕРИФЕРИК ЛИМФА ТУГУНЛАР",
+    "nameLatin": "PERIFERIK LIMFA TUGUNLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R79",
+    "sheetNum": "18",
+    "name": "ҚОРИН ПАРДА ОРТИ ЛИМФА ТУГУНЛАРИ",
+    "nameLatin": "QORIN PARDA ORTI LIMFA TUGUNLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R80",
+    "sheetNum": "19",
+    "name": "ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+    "nameLatin": "ORBITA VA KO'Z OLMALARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R81",
+    "sheetNum": "20",
+    "name": "ДОППЛЕР ( РТД+энергетик) ОРБИТА ВА КЎЗ ОЛМАЛАРИ",
+    "nameLatin": "DOPPLER ( RTD+energetik) ORBITA VA KO'Z OLMALARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R82",
+    "sheetNum": "21",
+    "name": "ПЛЕВРА БЎШЛИҚЛАРИ",
+    "nameLatin": "PLEVRA BO'ShLIQLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R83",
+    "sheetNum": "22",
+    "name": "ҚОРИН БЎШЛИҒИ ВА КИЧИК ЧАНОК БЎШЛИҒИДА ЭРКИН СУЮҚЛИК МИҚДОРИ",
+    "nameLatin": "QORIN BO'ShLIG'I VA KIChIK ChANOK BO'ShLIG'IDA ERKIN SUYuQLIK MIQDORI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R84",
+    "sheetNum": "23",
+    "name": "ДОППЛЕР (ЦДК + энергетик) ТРАНСВАГИНАЛ ТЕКШИРУВИ (ТВ УЗИ) Бачадон ва тухумдонлар",
+    "nameLatin": "DOPPLER (TsDK + energetik) TRANSVAGINAL TEKShIRUVI (TV UZI) Bachadon va tuxumdonlar",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 196000,
+    "priceFormatted": "196 000 so'm",
+    "prices": {
+      "rezident": 196000,
+      "norezident": 313600,
+      "sugurta": 192080
+    },
+    "pricesFormatted": {
+      "rezident": "196 000 so'm",
+      "norezident": "313 600 so'm",
+      "sugurta": "192 080 so'm"
+    }
+  },
+  {
+    "code": "R85",
+    "sheetNum": "24",
+    "name": "ТРАНСВАГИНАЛ ТЕКШИРУВИ (ТВ УТТ) Бачадон ва тухумдонлар",
+    "nameLatin": "TRANSVAGINAL TEKShIRUVI (TV UTT) Bachadon va tuxumdonlar",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 163000,
+    "priceFormatted": "163 000 so'm",
+    "prices": {
+      "rezident": 163000,
+      "norezident": 260800,
+      "sugurta": 159740
+    },
+    "pricesFormatted": {
+      "rezident": "163 000 so'm",
+      "norezident": "260 800 so'm",
+      "sugurta": "159 740 so'm"
+    }
+  },
+  {
+    "code": "R86",
+    "sheetNum": "25",
+    "name": "ТРАНСРЕКТАЛ ТЕКШИРУВИ (ТР УТТ) простата бези",
+    "nameLatin": "TRANSREKTAL TEKShIRUVI (TR UTT) prostata bezi",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 163000,
+    "priceFormatted": "163 000 so'm",
+    "prices": {
+      "rezident": 163000,
+      "norezident": 260800,
+      "sugurta": 159740
+    },
+    "pricesFormatted": {
+      "rezident": "163 000 so'm",
+      "norezident": "260 800 so'm",
+      "sugurta": "159 740 so'm"
+    }
+  },
+  {
+    "code": "R87",
+    "sheetNum": "26",
+    "name": "ОЁҚ ҚОН ТОМИРЛАРДАГИ ТРОМБНИ АНИҚЛАШ",
+    "nameLatin": "OYoQ QON TOMIRLARDAGI TROMBNI ANIQLASh",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R88",
+    "sheetNum": "27",
+    "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) СУТ БЕЗЛАРИ",
+    "nameLatin": "KOMPRESSION SONOELASTOGRAFIYa (DOPPLER RTD +energetik) SUT BEZLARI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 192000,
+    "priceFormatted": "192 000 so'm",
+    "prices": {
+      "rezident": 192000,
+      "norezident": 307200,
+      "sugurta": 188160
+    },
+    "pricesFormatted": {
+      "rezident": "192 000 so'm",
+      "norezident": "307 200 so'm",
+      "sugurta": "188 160 so'm"
+    }
+  },
+  {
+    "code": "R89",
+    "sheetNum": "28",
+    "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ҚАЛҚОНСИМОН БЕЗИ",
+    "nameLatin": "KOMPRESSION SONOELASTOGRAFIYa (DOPPLER RTD +energetik) QALQONSIMON BEZI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 192000,
+    "priceFormatted": "192 000 so'm",
+    "prices": {
+      "rezident": 192000,
+      "norezident": 307200,
+      "sugurta": 188160
+    },
+    "pricesFormatted": {
+      "rezident": "192 000 so'm",
+      "norezident": "307 200 so'm",
+      "sugurta": "188 160 so'm"
+    }
+  },
+  {
+    "code": "R90",
+    "sheetNum": "29",
+    "name": "КОМПРЕССИОН СОНОЭЛАСТОГРАФИЯ (ДОППЛЕР РТД +энергетик) ЮМШОҚ ТЎҚИМА",
+    "nameLatin": "KOMPRESSION SONOELASTOGRAFIYa (DOPPLER RTD +energetik) YuMShOQ TO'QIMA",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 192000,
+    "priceFormatted": "192 000 so'm",
+    "prices": {
+      "rezident": 192000,
+      "norezident": 307200,
+      "sugurta": 188160
+    },
+    "pricesFormatted": {
+      "rezident": "192 000 so'm",
+      "norezident": "307 200 so'm",
+      "sugurta": "188 160 so'm"
+    }
+  },
+  {
+    "code": "R91",
+    "sheetNum": "30",
+    "name": "ЮМШОҚ ТЎҚИМА",
+    "nameLatin": "YuMShOQ TO'QIMA",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 126000,
+    "priceFormatted": "126 000 so'm",
+    "prices": {
+      "rezident": 126000,
+      "norezident": 201600,
+      "sugurta": 123480
+    },
+    "pricesFormatted": {
+      "rezident": "126 000 so'm",
+      "norezident": "201 600 so'm",
+      "sugurta": "123 480 so'm"
+    }
+  },
+  {
+    "code": "R92",
+    "sheetNum": "31",
+    "name": "СУТ БЕЗЛАР ВА ҚЎЛТИҚ ОСТИ ЛИМФА ТУГУНЛАР",
+    "nameLatin": "SUT BEZLAR VA QO'LTIQ OSTI LIMFA TUGUNLAR",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R93",
+    "sheetNum": "32",
+    "name": "ПУНКЦИОН БИОПСИЯ У Т Т НАЗОРАТИ ОСТИДА",
+    "nameLatin": "PUNKTsION BIOPSIYa U T T NAZORATI OSTIDA",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 460000,
+    "priceFormatted": "460 000 so'm",
+    "prices": {
+      "rezident": 460000,
+      "norezident": 736000,
+      "sugurta": 450800
+    },
+    "pricesFormatted": {
+      "rezident": "460 000 so'm",
+      "norezident": "736 000 so'm",
+      "sugurta": "450 800 so'm"
+    }
+  },
+  {
+    "code": "R4812",
+    "sheetNum": "33",
+    "name": "БЎЙИН ҚОН ТОМИРЛАРИ ДОППЛЕРОГРАФИЯСИ",
+    "nameLatin": "BO'YIN QON TOMIRLARI DOPPLEROGRAFIYaSI",
+    "category": "UTT",
+    "modality": "UTT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 159000,
+    "priceFormatted": "159 000 so'm",
+    "prices": {
+      "rezident": 159000,
+      "norezident": 254400,
+      "sugurta": 155820
+    },
+    "pricesFormatted": {
+      "rezident": "159 000 so'm",
+      "norezident": "254 400 so'm",
+      "sugurta": "155 820 so'm"
+    }
+  },
+  {
+    "code": "R94",
+    "sheetNum": "1",
+    "name": "ШИФОКОР МАСЛАҲАТИ (рентген тасвирни изоҳлаш билан)",
+    "nameLatin": "ShIFOKOR MASLAHATI (rentgen tasvirni izohlash bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 135000,
+    "priceFormatted": "135 000 so'm",
+    "prices": {
+      "rezident": 135000,
+      "norezident": 216000,
+      "sugurta": 132300
+    },
+    "pricesFormatted": {
+      "rezident": "135 000 so'm",
+      "norezident": "216 000 so'm",
+      "sugurta": "132 300 so'm"
+    }
+  },
+  {
+    "code": "R95",
+    "sheetNum": "2",
+    "name": "КЎКРАК ҚАФАСИ R-СКОПИЯ",
+    "nameLatin": "KO'KRAK QAFASI R-SKOPIYa",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 180000,
+    "priceFormatted": "180 000 so'm",
+    "prices": {
+      "rezident": 180000,
+      "norezident": 288000,
+      "sugurta": 176400
+    },
+    "pricesFormatted": {
+      "rezident": "180 000 so'm",
+      "norezident": "288 000 so'm",
+      "sugurta": "176 400 so'm"
+    }
+  },
+  {
+    "code": "R96",
+    "sheetNum": "3",
+    "name": "КЎКРАК ҚАФАСИ R-ГРАФИЯСИ",
+    "nameLatin": "KO'KRAK QAFASI R-GRAFIYaSI",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 219000,
+    "priceFormatted": "219 000 so'm",
+    "prices": {
+      "rezident": 219000,
+      "norezident": 350400,
+      "sugurta": 214620
+    },
+    "pricesFormatted": {
+      "rezident": "219 000 so'm",
+      "norezident": "350 400 so'm",
+      "sugurta": "214 620 so'm"
+    }
+  },
+  {
+    "code": "R97",
+    "sheetNum": "4",
+    "name": "КОНТРАСТЛИ ОШҚОЗОН R-СКОПИЯ, ТАСВИР БИЛАН",
+    "nameLatin": "KONTRASTLI OShQOZON R-SKOPIYa, TASVIR BILAN",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 401000,
+    "priceFormatted": "401 000 so'm",
+    "prices": {
+      "rezident": 401000,
+      "norezident": 641600,
+      "sugurta": 392980
+    },
+    "pricesFormatted": {
+      "rezident": "401 000 so'm",
+      "norezident": "641 600 so'm",
+      "sugurta": "392 980 so'm"
+    }
+  },
+  {
+    "code": "R98",
+    "sheetNum": "5",
+    "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯ (БАРИЙ)",
+    "nameLatin": "KONTRASTLI QIZILO'NGACh R-SKOPIYa (BARIY)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 311000,
+    "priceFormatted": "311 000 so'm",
+    "prices": {
+      "rezident": 311000,
+      "norezident": 497600,
+      "sugurta": 304780
+    },
+    "pricesFormatted": {
+      "rezident": "311 000 so'm",
+      "norezident": "497 600 so'm",
+      "sugurta": "304 780 so'm"
+    }
+  },
+  {
+    "code": "R99",
+    "sheetNum": "6",
+    "name": "КОНТРАСТЛИ ҚИЗИЛЎНГАЧ R-СКОПИЯСИ, ТАРКИБИДА ЙОД САҚЛОВЧИ, СУВДА ЭРИЙДИГАН (контраст билан)",
+    "nameLatin": "KONTRASTLI QIZILO'NGACh R-SKOPIYaSI, TARKIBIDA YOD SAQLOVChI, SUVDA ERIYDIGAN (kontrast bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 229000,
+    "priceFormatted": "229 000 so'm",
+    "prices": {
+      "rezident": 229000,
+      "norezident": 366400,
+      "sugurta": 224420
+    },
+    "pricesFormatted": {
+      "rezident": "229 000 so'm",
+      "norezident": "366 400 so'm",
+      "sugurta": "224 420 so'm"
+    }
+  },
+  {
+    "code": "R100",
+    "sheetNum": "7",
+    "name": "ҚИЗИЛЎНГАЧ R-СКОПИЯСИ (тасвир билан)",
+    "nameLatin": "QIZILO'NGACh R-SKOPIYaSI (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 244000,
+    "priceFormatted": "244 000 so'm",
+    "prices": {
+      "rezident": 244000,
+      "norezident": 390400,
+      "sugurta": 239120
+    },
+    "pricesFormatted": {
+      "rezident": "244 000 so'm",
+      "norezident": "390 400 so'm",
+      "sugurta": "239 120 so'm"
+    }
+  },
+  {
+    "code": "R101",
+    "sheetNum": "8",
+    "name": "ИРРИГОСКОПИЯ (диск билан)",
+    "nameLatin": "IRRIGOSKOPIYa (disk bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 625000,
+    "priceFormatted": "625 000 so'm",
+    "prices": {
+      "rezident": 625000,
+      "norezident": 1000000,
+      "sugurta": 612500
+    },
+    "pricesFormatted": {
+      "rezident": "625 000 so'm",
+      "norezident": "1 000 000 so'm",
+      "sugurta": "612 500 so'm"
+    }
+  },
+  {
+    "code": "R102",
+    "sheetNum": "9",
+    "name": "ИРРИГОСКОПИЯ (тасвир билан)",
+    "nameLatin": "IRRIGOSKOPIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 696000,
+    "priceFormatted": "696 000 so'm",
+    "prices": {
+      "rezident": 696000,
+      "norezident": 1113600,
+      "sugurta": 682080
+    },
+    "pricesFormatted": {
+      "rezident": "696 000 so'm",
+      "norezident": "1 113 600 so'm",
+      "sugurta": "682 080 so'm"
+    }
+  },
+  {
+    "code": "R103",
+    "sheetNum": "10",
+    "name": "ИРРИГОСКОПИЯ КОЛОСТОМА ОРКАЛИ",
+    "nameLatin": "IRRIGOSKOPIYa KOLOSTOMA ORKALI",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 617000,
+    "priceFormatted": "617 000 so'm",
+    "prices": {
+      "rezident": 617000,
+      "norezident": 987200,
+      "sugurta": 604660
+    },
+    "pricesFormatted": {
+      "rezident": "617 000 so'm",
+      "norezident": "987 200 so'm",
+      "sugurta": "604 660 so'm"
+    }
+  },
+  {
+    "code": "R104",
+    "sheetNum": "11",
+    "name": "ПРОКТОГРАММА",
+    "nameLatin": "PROKTOGRAMMA",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 465000,
+    "priceFormatted": "465 000 so'm",
+    "prices": {
+      "rezident": 465000,
+      "norezident": 744000,
+      "sugurta": 455700
+    },
+    "pricesFormatted": {
+      "rezident": "465 000 so'm",
+      "norezident": "744 000 so'm",
+      "sugurta": "455 700 so'm"
+    }
+  },
+  {
+    "code": "R105",
+    "sheetNum": "12",
+    "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (диск билан)",
+    "nameLatin": "ANOPROKTOGRAFIYa BARIY BILAN (disk bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 369000,
+    "priceFormatted": "369 000 so'm",
+    "prices": {
+      "rezident": 369000,
+      "norezident": 590400,
+      "sugurta": 361620
+    },
+    "pricesFormatted": {
+      "rezident": "369 000 so'm",
+      "norezident": "590 400 so'm",
+      "sugurta": "361 620 so'm"
+    }
+  },
+  {
+    "code": "R106",
+    "sheetNum": "13",
+    "name": "АНОПРОКТОГРАФИЯ БАРИЙ БИЛАН (тасвир билан)",
+    "nameLatin": "ANOPROKTOGRAFIYa BARIY BILAN (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 387000,
+    "priceFormatted": "387 000 so'm",
+    "prices": {
+      "rezident": 387000,
+      "norezident": 619200,
+      "sugurta": 379260
+    },
+    "pricesFormatted": {
+      "rezident": "387 000 so'm",
+      "norezident": "619 200 so'm",
+      "sugurta": "379 260 so'm"
+    }
+  },
+  {
+    "code": "R107",
+    "sheetNum": "14",
+    "name": "КОНТРАСЛИ АНОПРОКТОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ (диск билан)",
+    "nameLatin": "KONTRASLI ANOPROKTOGRAFIYa TARKIBIDA YOD SAQLOVChI,SUVDA ERIYDIGAN KONTRAST (disk bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 362000,
+    "priceFormatted": "362 000 so'm",
+    "prices": {
+      "rezident": 362000,
+      "norezident": 579200,
+      "sugurta": 354760
+    },
+    "pricesFormatted": {
+      "rezident": "362 000 so'm",
+      "norezident": "579 200 so'm",
+      "sugurta": "354 760 so'm"
+    }
+  },
+  {
+    "code": "R108",
+    "sheetNum": "15",
+    "name": "ОХҚТ БАРИЙЛИ ПАССАЖ ҚИЛИШ, РЕНТГЕНОСКОПИЯ (диск билан)",
+    "nameLatin": "OXQT BARIYLI PASSAJ QILISh, RENTGENOSKOPIYa (disk bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 935000,
+    "priceFormatted": "935 000 so'm",
+    "prices": {
+      "rezident": 935000,
+      "norezident": 1496000,
+      "sugurta": 916300
+    },
+    "pricesFormatted": {
+      "rezident": "935 000 so'm",
+      "norezident": "1 496 000 so'm",
+      "sugurta": "916 300 so'm"
+    }
+  },
+  {
+    "code": "R109",
+    "sheetNum": "16",
+    "name": "ОХҚТ БАРИЙЛИ ПАССАЖ ҚИЛИШ, РЕНТГЕНОСКОПИЯ (тасвир билан)",
+    "nameLatin": "OXQT BARIYLI PASSAJ QILISh, RENTGENOSKOPIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 954000,
+    "priceFormatted": "954 000 so'm",
+    "prices": {
+      "rezident": 954000,
+      "norezident": 1526400,
+      "sugurta": 934920
+    },
+    "pricesFormatted": {
+      "rezident": "954 000 so'm",
+      "norezident": "1 526 400 so'm",
+      "sugurta": "934 920 so'm"
+    }
+  },
+  {
+    "code": "R110",
+    "sheetNum": "17",
+    "name": "БОШ ЧАНОҒИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+    "nameLatin": "BOSh ChANOG'INI 2 ta PROEKTsIYaDA TASVIRGA OLISh",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 335000,
+    "priceFormatted": "335 000 so'm",
+    "prices": {
+      "rezident": 335000,
+      "norezident": 536000,
+      "sugurta": 328300
+    },
+    "pricesFormatted": {
+      "rezident": "335 000 so'm",
+      "norezident": "536 000 so'm",
+      "sugurta": "328 300 so'm"
+    }
+  },
+  {
+    "code": "R111",
+    "sheetNum": "18",
+    "name": "БЎЙИН УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+    "nameLatin": "BO'YIN UMURTQALARINI 2 ta PROEKTsIYaDA TASVIRGA OLISh",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 335000,
+    "priceFormatted": "335 000 so'm",
+    "prices": {
+      "rezident": 335000,
+      "norezident": 536000,
+      "sugurta": 328300
+    },
+    "pricesFormatted": {
+      "rezident": "335 000 so'm",
+      "norezident": "536 000 so'm",
+      "sugurta": "328 300 so'm"
+    }
+  },
+  {
+    "code": "R112",
+    "sheetNum": "19",
+    "name": "КЎКРАК ҚАФАСИ УМУРТҚАЛАРИНИ 2 та ПРОЕКЦИЯДА ТАСВИРГА ОЛИШ",
+    "nameLatin": "KO'KRAK QAFASI UMURTQALARINI 2 ta PROEKTsIYaDA TASVIRGA OLISh",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 323000,
+    "priceFormatted": "323 000 so'm",
+    "prices": {
+      "rezident": 323000,
+      "norezident": 516800,
+      "sugurta": 316540
+    },
+    "pricesFormatted": {
+      "rezident": "323 000 so'm",
+      "norezident": "516 800 so'm",
+      "sugurta": "316 540 so'm"
+    }
+  },
+  {
+    "code": "R113",
+    "sheetNum": "20",
+    "name": "ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+    "nameLatin": "TOS SUYaKLARINI RENTGEN GRAFIYaSI",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 323000,
+    "priceFormatted": "323 000 so'm",
+    "prices": {
+      "rezident": 323000,
+      "norezident": 516800,
+      "sugurta": 316540
+    },
+    "pricesFormatted": {
+      "rezident": "323 000 so'm",
+      "norezident": "516 800 so'm",
+      "sugurta": "316 540 so'm"
+    }
+  },
+  {
+    "code": "R114",
+    "sheetNum": "21",
+    "name": "НАЙСИМОН СУЯКЛАР 2 та ПРОЕКЦИЯДА РЕНТГЕН ГРАФИЯГА ОЛИШ",
+    "nameLatin": "NAYSIMON SUYaKLAR 2 ta PROEKTsIYaDA RENTGEN GRAFIYaGA OLISh",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 335000,
+    "priceFormatted": "335 000 so'm",
+    "prices": {
+      "rezident": 335000,
+      "norezident": 536000,
+      "sugurta": 328300
+    },
+    "pricesFormatted": {
+      "rezident": "335 000 so'm",
+      "norezident": "536 000 so'm",
+      "sugurta": "328 300 so'm"
+    }
+  },
+  {
+    "code": "R115",
+    "sheetNum": "22",
+    "name": "БОЛАЛАРДА ТОС СУЯКЛАРИНИ РЕНТГЕН ГРАФИЯСИ",
+    "nameLatin": "BOLALARDA TOS SUYaKLARINI RENTGEN GRAFIYaSI",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 289000,
+    "priceFormatted": "289 000 so'm",
+    "prices": {
+      "rezident": 289000,
+      "norezident": 462400,
+      "sugurta": 283220
+    },
+    "pricesFormatted": {
+      "rezident": "289 000 so'm",
+      "norezident": "462 400 so'm",
+      "sugurta": "283 220 so'm"
+    }
+  },
+  {
+    "code": "R116",
+    "sheetNum": "23",
+    "name": "R-ТАСВИР БИЛАН БУРУН ЁНДОШ БЎШЛИҚЛАРИ",
+    "nameLatin": "R-TASVIR BILAN BURUN YoNDOSh BO'ShLIQLARI",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 289000,
+    "priceFormatted": "289 000 so'm",
+    "prices": {
+      "rezident": 289000,
+      "norezident": 462400,
+      "sugurta": 283220
+    },
+    "pricesFormatted": {
+      "rezident": "289 000 so'm",
+      "norezident": "462 400 so'm",
+      "sugurta": "283 220 so'm"
+    }
+  },
+  {
+    "code": "R117",
+    "sheetNum": "24",
+    "name": "ҚОРИН БЎШЛИҒИ РЕНТГЕНОГРАФИЯСИ (диск билан)",
+    "nameLatin": "QORIN BO'ShLIG'I RENTGENOGRAFIYaSI (disk bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 188000,
+    "priceFormatted": "188 000 so'm",
+    "prices": {
+      "rezident": 188000,
+      "norezident": 300800,
+      "sugurta": 184240
+    },
+    "pricesFormatted": {
+      "rezident": "188 000 so'm",
+      "norezident": "300 800 so'm",
+      "sugurta": "184 240 so'm"
+    }
+  },
+  {
+    "code": "R118",
+    "sheetNum": "25",
+    "name": "ҚОРИН БЎШЛИГИ РЕНТГЕНОГРАФИЯСИ (тасвир билан)",
+    "nameLatin": "QORIN BO'ShLIGI RENTGENOGRAFIYaSI (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 298000,
+    "priceFormatted": "298 000 so'm",
+    "prices": {
+      "rezident": 298000,
+      "norezident": 476800,
+      "sugurta": 292040
+    },
+    "pricesFormatted": {
+      "rezident": "298 000 so'm",
+      "norezident": "476 800 so'm",
+      "sugurta": "292 040 so'm"
+    }
+  },
+  {
+    "code": "R119",
+    "sheetNum": "26",
+    "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан, дискда)",
+    "nameLatin": "EKSKRETORNAYa UROGRAFIYa (kontrast bilan, diskda)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 471000,
+    "priceFormatted": "471 000 so'm",
+    "prices": {
+      "rezident": 471000,
+      "norezident": 753600,
+      "sugurta": 461580
+    },
+    "pricesFormatted": {
+      "rezident": "471 000 so'm",
+      "norezident": "753 600 so'm",
+      "sugurta": "461 580 so'm"
+    }
+  },
+  {
+    "code": "R120",
+    "sheetNum": "27",
+    "name": "ЭКСКРЕТОРНАЯ УРОГРАФИЯ (контраст билан) (тасвир билан)",
+    "nameLatin": "EKSKRETORNAYa UROGRAFIYa (kontrast bilan) (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 490000,
+    "priceFormatted": "490 000 so'm",
+    "prices": {
+      "rezident": 490000,
+      "norezident": 784000,
+      "sugurta": 480200
+    },
+    "pricesFormatted": {
+      "rezident": "490 000 so'm",
+      "norezident": "784 000 so'm",
+      "sugurta": "480 200 so'm"
+    }
+  },
+  {
+    "code": "R121",
+    "sheetNum": "28",
+    "name": "АНТЕГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН (контраст билан)",
+    "nameLatin": "ANTEGRADNAYa PIELOURETEROGRAFIYa TARKIBIDA YOD SAQLOVChI,SUVDA ERIYDIGAN (kontrast bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 341000,
+    "priceFormatted": "341 000 so'm",
+    "prices": {
+      "rezident": 341000,
+      "norezident": 545600,
+      "sugurta": 334180
+    },
+    "pricesFormatted": {
+      "rezident": "341 000 so'm",
+      "norezident": "545 600 so'm",
+      "sugurta": "334 180 so'm"
+    }
+  },
+  {
+    "code": "R122",
+    "sheetNum": "29",
+    "name": "РЕТРОГРАДНАЯ ПИЕЛОУРЕТЕРОГРАФИЯ ТАРКИБИДА ЙОД САҚЛОВЧИ,СУВДА ЭРИЙДИГАН КОНТРАСТ БИЛАН",
+    "nameLatin": "RETROGRADNAYa PIELOURETEROGRAFIYa TARKIBIDA YOD SAQLOVChI,SUVDA ERIYDIGAN KONTRAST BILAN",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R123",
+    "sheetNum": "30",
+    "name": "ЦИСТОГРАФИЯ (контраст билан)",
+    "nameLatin": "TsISTOGRAFIYa (kontrast bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R124",
+    "sheetNum": "31",
+    "name": "ФИСТУЛОГРАФИЯ",
+    "nameLatin": "FISTULOGRAFIYa",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R125",
+    "sheetNum": "32",
+    "name": "СИАЛОГРАФИЯ (тасвир билан)",
+    "nameLatin": "SIALOGRAFIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R126",
+    "sheetNum": "33",
+    "name": "ХОЛАНГИОГРАФИЯ (тасвир билан)",
+    "nameLatin": "XOLANGIOGRAFIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R127",
+    "sheetNum": "34",
+    "name": "АНТЕГРАД ХОЛАНГИОГРАФИЯ",
+    "nameLatin": "ANTEGRAD XOLANGIOGRAFIYa",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 359000,
+    "priceFormatted": "359 000 so'm",
+    "prices": {
+      "rezident": 359000,
+      "norezident": 574400,
+      "sugurta": 351820
+    },
+    "pricesFormatted": {
+      "rezident": "359 000 so'm",
+      "norezident": "574 400 so'm",
+      "sugurta": "351 820 so'm"
+    }
+  },
+  {
+    "code": "R128",
+    "sheetNum": "35",
+    "name": "ГИСТЕРОСАЛЬПИНГОГРАФИЯ (контраст билан)",
+    "nameLatin": "GISTEROSALPINGOGRAFIYa (kontrast bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 341000,
+    "priceFormatted": "341 000 so'm",
+    "prices": {
+      "rezident": 341000,
+      "norezident": 545600,
+      "sugurta": 334180
+    },
+    "pricesFormatted": {
+      "rezident": "341 000 so'm",
+      "norezident": "545 600 so'm",
+      "sugurta": "334 180 so'm"
+    }
+  },
+  {
+    "code": "R129",
+    "sheetNum": "36",
+    "name": "МАММОГРАФИЯ ДИСК БИЛАН",
+    "nameLatin": "MAMMOGRAFIYa DISK BILAN",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 213000,
+    "priceFormatted": "213 000 so'm",
+    "prices": {
+      "rezident": 213000,
+      "norezident": 340800,
+      "sugurta": 208740
+    },
+    "pricesFormatted": {
+      "rezident": "213 000 so'm",
+      "norezident": "340 800 so'm",
+      "sugurta": "208 740 so'm"
+    }
+  },
+  {
+    "code": "R130",
+    "sheetNum": "37",
+    "name": "МАММОГРАФИЯ (тасвир билан)",
+    "nameLatin": "MAMMOGRAFIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 237000,
+    "priceFormatted": "237 000 so'm",
+    "prices": {
+      "rezident": 237000,
+      "norezident": 379200,
+      "sugurta": 232260
+    },
+    "pricesFormatted": {
+      "rezident": "237 000 so'm",
+      "norezident": "379 200 so'm",
+      "sugurta": "232 260 so'm"
+    }
+  },
+  {
+    "code": "R131",
+    "sheetNum": "38",
+    "name": "ДУКТОГРАФИЯ (тасвир билан)",
+    "nameLatin": "DUKTOGRAFIYa (tasvir bilan)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 397000,
+    "priceFormatted": "397 000 so'm",
+    "prices": {
+      "rezident": 397000,
+      "norezident": 635200,
+      "sugurta": 389060
+    },
+    "pricesFormatted": {
+      "rezident": "397 000 so'm",
+      "norezident": "635 200 so'm",
+      "sugurta": "389 060 so'm"
+    }
+  },
+  {
+    "code": "R132",
+    "sheetNum": "39",
+    "name": "РЕНТГЕН СКОПИЯ ОРКАЛИ БИОПСИЯ ОЛИШ",
+    "nameLatin": "RENTGEN SKOPIYa ORKALI BIOPSIYa OLISh",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 351000,
+    "priceFormatted": "351 000 so'm",
+    "prices": {
+      "rezident": 351000,
+      "norezident": 561600,
+      "sugurta": 343980
+    },
+    "pricesFormatted": {
+      "rezident": "351 000 so'm",
+      "norezident": "561 600 so'm",
+      "sugurta": "343 980 so'm"
+    }
+  },
+  {
+    "code": "R133",
+    "sheetNum": "1",
+    "name": "Компьютер томография шифокори консультацияси",
+    "nameLatin": "Kompyuter tomografiya shifokori konsultatsiyasi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 188000,
+    "priceFormatted": "188 000 so'm",
+    "prices": {
+      "rezident": 188000,
+      "norezident": 300800,
+      "sugurta": 184240
+    },
+    "pricesFormatted": {
+      "rezident": "188 000 so'm",
+      "norezident": "300 800 so'm",
+      "sugurta": "184 240 so'm"
+    }
+  },
+  {
+    "code": "R134",
+    "sheetNum": "2",
+    "name": "Бош мия МСКТ текшируви (контраст моддасиз)",
+    "nameLatin": "Bosh miya MSKT tekshiruvi (kontrast moddasiz)",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R135",
+    "sheetNum": "3",
+    "name": "Бош мия МСКТ текшируви (вена ичи контраст модда билан)",
+    "nameLatin": "Bosh miya MSKT tekshiruvi (vena ichi kontrast modda bilan)",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R136",
+    "sheetNum": "4",
+    "name": "Гипофиз безининг контраст моддасиз МСКТ текшируви",
+    "nameLatin": "Gipofiz bezining kontrast moddasiz MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R137",
+    "sheetNum": "5",
+    "name": "Гипофиз безининг вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Gipofiz bezining vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R138",
+    "sheetNum": "6",
+    "name": "Бош-бўйин контраст моддасиз МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги) Бурун ён бушлиглари/ Огиз-бурун-халкум/ Орбита/Чакка сохаси",
+    "nameLatin": "Bosh-bo'yin kontrast moddasiz MSKT tekshiruvi (burun yon bushligi,og'iz-burun-xalkum,orbitalar,chakka suyagi) Burun yon bushliglari/ Ogiz-burun-xalkum/ Orbita/Chakka soxasi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R139",
+    "sheetNum": "7",
+    "name": "1) Бош-бўйин вена ичи контраст моддаси билан МСКТ текшируви (бурун ён бушлиги,оғиз-бурун-халкум,орбиталар,чакка суяги)",
+    "nameLatin": "1) Bosh-bo'yin vena ichi kontrast moddasi bilan MSKT tekshiruvi (burun yon bushligi,og'iz-burun-xalkum,orbitalar,chakka suyagi)",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R140",
+    "sheetNum": "8",
+    "name": "Кўкрак қафаси органларини контраст моддасиз МСКТ текшируви",
+    "nameLatin": "Ko'krak qafasi organlarini kontrast moddasiz MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R141",
+    "sheetNum": "9",
+    "name": "Кўкрак кафаси органларини контраст моддаси билан МСКТ текшируви Per os",
+    "nameLatin": "Ko'krak kafasi organlarini kontrast moddasi bilan MSKT tekshiruvi Per os",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 435000,
+    "priceFormatted": "435 000 so'm",
+    "prices": {
+      "rezident": 435000,
+      "norezident": 696000,
+      "sugurta": 426300
+    },
+    "pricesFormatted": {
+      "rezident": "435 000 so'm",
+      "norezident": "696 000 so'm",
+      "sugurta": "426 300 so'm"
+    }
+  },
+  {
+    "code": "R142",
+    "sheetNum": "10",
+    "name": "Кўкрак кафаси органларини вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Ko'krak kafasi organlarini vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R143",
+    "sheetNum": "11",
+    "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддасиз МСКТ текшируви",
+    "nameLatin": "Qorin bo'shlig'i va qorin pardaorti a'zolarini kontrast moddasiz MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R144",
+    "sheetNum": "12",
+    "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+    "nameLatin": "Qorin bo'shlig'i va qorin pardaorti a'zolarini kontrast moddasi bilan MSKT tekshiruvi Per os",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 435000,
+    "priceFormatted": "435 000 so'm",
+    "prices": {
+      "rezident": 435000,
+      "norezident": 696000,
+      "sugurta": 426300
+    },
+    "pricesFormatted": {
+      "rezident": "435 000 so'm",
+      "norezident": "696 000 so'm",
+      "sugurta": "426 300 so'm"
+    }
+  },
+  {
+    "code": "R145",
+    "sheetNum": "13",
+    "name": "Қорин бўшлиғи ва қорин пардаорти аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Qorin bo'shlig'i va qorin pardaorti a'zolarini vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R146",
+    "sheetNum": "14",
+    "name": "Кичик тос аъзоларини контраст моддасиз МСКТ текшируви",
+    "nameLatin": "Kichik tos a'zolarini kontrast moddasiz MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R147",
+    "sheetNum": "15",
+    "name": "Кичик тос аъзоларини контраст моддаси билан МСКТ текшируви Per os",
+    "nameLatin": "Kichik tos a'zolarini kontrast moddasi bilan MSKT tekshiruvi Per os",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 435000,
+    "priceFormatted": "435 000 so'm",
+    "prices": {
+      "rezident": 435000,
+      "norezident": 696000,
+      "sugurta": 426300
+    },
+    "pricesFormatted": {
+      "rezident": "435 000 so'm",
+      "norezident": "696 000 so'm",
+      "sugurta": "426 300 so'm"
+    }
+  },
+  {
+    "code": "R148",
+    "sheetNum": "16",
+    "name": "Кичик тос аъзоларини вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Kichik tos a'zolarini vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R149",
+    "sheetNum": "17",
+    "name": "Буйрак усти безини контраст моддасиз МСКТ текшируви",
+    "nameLatin": "Buyrak usti bezini kontrast moddasiz MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 386000,
+    "priceFormatted": "386 000 so'm",
+    "prices": {
+      "rezident": 386000,
+      "norezident": 617600,
+      "sugurta": 378280
+    },
+    "pricesFormatted": {
+      "rezident": "386 000 so'm",
+      "norezident": "617 600 so'm",
+      "sugurta": "378 280 so'm"
+    }
+  },
+  {
+    "code": "R150",
+    "sheetNum": "18",
+    "name": "Буйрак усти безини вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Buyrak usti bezini vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R151",
+    "sheetNum": "19",
+    "name": "Умуртқа поғонаси (1-булими) ни контраст моддасиз МСКТ текшируви Буйин умурткалари/ кукрак умурткалари/ бел-думгаза умурткалари/ Дум умуркалари/ Тос-чанок суяклари",
+    "nameLatin": "Umurtqa pog'onasi (1-bulimi) ni kontrast moddasiz MSKT tekshiruvi Buyin umurtkalari/ kukrak umurtkalari/ bel-dumgaza umurtkalari/ Dum umurkalari/ Tos-chanok suyaklari",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 424000,
+    "priceFormatted": "424 000 so'm",
+    "prices": {
+      "rezident": 424000,
+      "norezident": 678400,
+      "sugurta": 415520
+    },
+    "pricesFormatted": {
+      "rezident": "424 000 so'm",
+      "norezident": "678 400 so'm",
+      "sugurta": "415 520 so'm"
+    }
+  },
+  {
+    "code": "R152",
+    "sheetNum": "20",
+    "name": "Умуртқа поғонаси (1-бўлими) ни вена ичи контраст моддаси билан МСКТ текшируви",
+    "nameLatin": "Umurtqa pog'onasi (1-bo'limi) ni vena ichi kontrast moddasi bilan MSKT tekshiruvi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R153",
+    "sheetNum": "21",
+    "name": "Бўғимлар МСКТ текшируви(1 сохани)",
+    "nameLatin": "Bo'g'imlar MSKT tekshiruvi(1 soxani)",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 421000,
+    "priceFormatted": "421 000 so'm",
+    "prices": {
+      "rezident": 421000,
+      "norezident": 673600,
+      "sugurta": 412580
+    },
+    "pricesFormatted": {
+      "rezident": "421 000 so'm",
+      "norezident": "673 600 so'm",
+      "sugurta": "412 580 so'm"
+    }
+  },
+  {
+    "code": "R154",
+    "sheetNum": "22",
+    "name": "Қўл ва оёқларнинг контраст моддасиз МСКТ текшируви кафт / кафтғтирсак бугими/ тирсак/ тирсак бугими/ елка суяги/ елка бугими/ умров суяги / Чанок-Сон бугими/ тизза, /сон сохаси/ болдир сохаси/ болди--товон бугими/ оёк кафт сохаси",
+    "nameLatin": "Qo'l va oyoqlarning kontrast moddasiz MSKT tekshiruvi kaft / kaftg'tirsak bugimi/ tirsak/ tirsak bugimi/ elka suyagi/ elka bugimi/ umrov suyagi / Chanok-Son bugimi/ tizza, /son soxasi/ boldir soxasi/ boldi--tovon bugimi/ oyok kaft soxasi",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 421000,
+    "priceFormatted": "421 000 so'm",
+    "prices": {
+      "rezident": 421000,
+      "norezident": 673600,
+      "sugurta": 412580
+    },
+    "pricesFormatted": {
+      "rezident": "421 000 so'm",
+      "norezident": "673 600 so'm",
+      "sugurta": "412 580 so'm"
+    }
+  },
+  {
+    "code": "R155",
+    "sheetNum": "23",
+    "name": "Қўл ва оёқларнинг вена ичи контраст моддаси билан МСКТ текшируви (1 соха)",
+    "nameLatin": "Qo'l va oyoqlarning vena ichi kontrast moddasi bilan MSKT tekshiruvi (1 soxa)",
+    "category": "MSKT",
+    "modality": "MSKT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 868000,
+    "priceFormatted": "868 000 so'm",
+    "prices": {
+      "rezident": 868000,
+      "norezident": 1388800,
+      "sugurta": 850640
+    },
+    "pricesFormatted": {
+      "rezident": "868 000 so'm",
+      "norezident": "1 388 800 so'm",
+      "sugurta": "850 640 so'm"
+    }
+  },
+  {
+    "code": "R156",
+    "sheetNum": "1",
+    "name": "МРТ шифокори консультацияси",
+    "nameLatin": "MRT shifokori konsultatsiyasi",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 188000,
+    "priceFormatted": "188 000 so'm",
+    "prices": {
+      "rezident": 188000,
+      "norezident": 300800,
+      "sugurta": 184240
+    },
+    "pricesFormatted": {
+      "rezident": "188 000 so'm",
+      "norezident": "300 800 so'm",
+      "sugurta": "184 240 so'm"
+    }
+  },
+  {
+    "code": "R157",
+    "sheetNum": "2",
+    "name": "Бош мия МРТ контрастсиз",
+    "nameLatin": "Bosh miya MRT kontrastsiz",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 433000,
+    "priceFormatted": "433 000 so'm",
+    "prices": {
+      "rezident": 433000,
+      "norezident": 692800,
+      "sugurta": 424340
+    },
+    "pricesFormatted": {
+      "rezident": "433 000 so'm",
+      "norezident": "692 800 so'm",
+      "sugurta": "424 340 so'm"
+    }
+  },
+  {
+    "code": "R158",
+    "sheetNum": "3",
+    "name": "Бош мия МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "Bosh miya MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2060000,
+    "priceFormatted": "2 060 000 so'm",
+    "prices": {
+      "rezident": 2060000,
+      "norezident": 3296000,
+      "sugurta": 2018800
+    },
+    "pricesFormatted": {
+      "rezident": "2 060 000 so'm",
+      "norezident": "3 296 000 so'm",
+      "sugurta": "2 018 800 so'm"
+    }
+  },
+  {
+    "code": "R159",
+    "sheetNum": "3.1",
+    "name": "Бош мия МРТ контраст билан",
+    "nameLatin": "Bosh miya MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1137000,
+    "priceFormatted": "1 137 000 so'm",
+    "prices": {
+      "rezident": 1137000,
+      "norezident": 1819200,
+      "sugurta": 1114260
+    },
+    "pricesFormatted": {
+      "rezident": "1 137 000 so'm",
+      "norezident": "1 819 200 so'm",
+      "sugurta": "1 114 260 so'm"
+    }
+  },
+  {
+    "code": "R160",
+    "sheetNum": "4",
+    "name": "Бош мия МРТ + трактография контрастсиз",
+    "nameLatin": "Bosh miya MRT + traktografiya kontrastsiz",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 546000,
+    "priceFormatted": "546 000 so'm",
+    "prices": {
+      "rezident": 546000,
+      "norezident": 873600,
+      "sugurta": 535080
+    },
+    "pricesFormatted": {
+      "rezident": "546 000 so'm",
+      "norezident": "873 600 so'm",
+      "sugurta": "535 080 so'm"
+    }
+  },
+  {
+    "code": "R161",
+    "sheetNum": "5",
+    "name": "Гипофиз МРТ/МРТ гипофиз+контраст",
+    "nameLatin": "Gipofiz MRT/MRT gipofiz+kontrast",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1125000,
+    "priceFormatted": "1 125 000 so'm",
+    "prices": {
+      "rezident": 1125000,
+      "norezident": 1800000,
+      "sugurta": 1102500
+    },
+    "pricesFormatted": {
+      "rezident": "1 125 000 so'm",
+      "norezident": "1 800 000 so'm",
+      "sugurta": "1 102 500 so'm"
+    }
+  },
+  {
+    "code": "R162",
+    "sheetNum": "6",
+    "name": "Бош мия ангиография МРТ (шприц-инжекторда)",
+    "nameLatin": "Bosh miya angiografiya MRT (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": true,
+    "price": 2067000,
+    "priceFormatted": "2 067 000 so'm",
+    "prices": {
+      "rezident": 2067000,
+      "norezident": 3307200,
+      "sugurta": 2025660
+    },
+    "pricesFormatted": {
+      "rezident": "2 067 000 so'm",
+      "norezident": "3 307 200 so'm",
+      "sugurta": "2 025 660 so'm"
+    }
+  },
+  {
+    "code": "R163",
+    "sheetNum": "6.1",
+    "name": "Бош мия ангиография МРТ: МРА/МРВ",
+    "nameLatin": "Bosh miya angiografiya MRT: MRA/MRV",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1234000,
+    "priceFormatted": "1 234 000 so'm",
+    "prices": {
+      "rezident": 1234000,
+      "norezident": 1974400,
+      "sugurta": 1209320
+    },
+    "pricesFormatted": {
+      "rezident": "1 234 000 so'm",
+      "norezident": "1 974 400 so'm",
+      "sugurta": "1 209 320 so'm"
+    }
+  },
+  {
+    "code": "R164",
+    "sheetNum": "7",
+    "name": "Кўз ва орбита МРТ",
+    "nameLatin": "Ko'z va orbita MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R165",
+    "sheetNum": "8",
+    "name": "Естахевий най ва ички қулоқ МРТ",
+    "nameLatin": "Estaxeviy nay va ichki quloq MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R166",
+    "sheetNum": "9",
+    "name": "Бўйин умуртқалари МРТ",
+    "nameLatin": "Bo'yin umurtqalari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 546000,
+    "priceFormatted": "546 000 so'm",
+    "prices": {
+      "rezident": 546000,
+      "norezident": 873600,
+      "sugurta": 535080
+    },
+    "pricesFormatted": {
+      "rezident": "546 000 so'm",
+      "norezident": "873 600 so'm",
+      "sugurta": "535 080 so'm"
+    }
+  },
+  {
+    "code": "R167",
+    "sheetNum": "10",
+    "name": "Кўкрак умуртқалари МРТ",
+    "nameLatin": "Ko'krak umurtqalari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R168",
+    "sheetNum": "11",
+    "name": "Бел умуртқалари МРТ",
+    "nameLatin": "Bel umurtqalari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 546000,
+    "priceFormatted": "546 000 so'm",
+    "prices": {
+      "rezident": 546000,
+      "norezident": 873600,
+      "sugurta": 535080
+    },
+    "pricesFormatted": {
+      "rezident": "546 000 so'm",
+      "norezident": "873 600 so'm",
+      "sugurta": "535 080 so'm"
+    }
+  },
+  {
+    "code": "R169",
+    "sheetNum": "12",
+    "name": "Бутун умуртқа МРТ",
+    "nameLatin": "Butun umurtqa MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1107000,
+    "priceFormatted": "1 107 000 so'm",
+    "prices": {
+      "rezident": 1107000,
+      "norezident": 1771200,
+      "sugurta": 1084860
+    },
+    "pricesFormatted": {
+      "rezident": "1 107 000 so'm",
+      "norezident": "1 771 200 so'm",
+      "sugurta": "1 084 860 so'm"
+    }
+  },
+  {
+    "code": "R170",
+    "sheetNum": "13",
+    "name": "Спинал канал ва жигар нервлари МРТ",
+    "nameLatin": "Spinal kanal va jigar nervlari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R171",
+    "sheetNum": "14",
+    "name": "Бўйин қон томирлари ангиография МРТ (шприц-инжекторда)",
+    "nameLatin": "Bo'yin qon tomirlari angiografiya MRT (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": true,
+    "price": 2067000,
+    "priceFormatted": "2 067 000 so'm",
+    "prices": {
+      "rezident": 2067000,
+      "norezident": 3307200,
+      "sugurta": 2025660
+    },
+    "pricesFormatted": {
+      "rezident": "2 067 000 so'm",
+      "norezident": "3 307 200 so'm",
+      "sugurta": "2 025 660 so'm"
+    }
+  },
+  {
+    "code": "R172",
+    "sheetNum": "14.1",
+    "name": "Бўйин қон томирлари ангиография МРТ МРА",
+    "nameLatin": "Bo'yin qon tomirlari angiografiya MRT MRA",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R173",
+    "sheetNum": "15",
+    "name": "Юрак МРТ контрастсиз",
+    "nameLatin": "Yurak MRT kontrastsiz",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 546000,
+    "priceFormatted": "546 000 so'm",
+    "prices": {
+      "rezident": 546000,
+      "norezident": 873600,
+      "sugurta": 535080
+    },
+    "pricesFormatted": {
+      "rezident": "546 000 so'm",
+      "norezident": "873 600 so'm",
+      "sugurta": "535 080 so'm"
+    }
+  },
+  {
+    "code": "R174",
+    "sheetNum": "16",
+    "name": "Юрак қон томирлари ангиография МРТ (шприц-инжекторда)",
+    "nameLatin": "Yurak qon tomirlari angiografiya MRT (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": true,
+    "price": 2067000,
+    "priceFormatted": "2 067 000 so'm",
+    "prices": {
+      "rezident": 2067000,
+      "norezident": 3307200,
+      "sugurta": 2025660
+    },
+    "pricesFormatted": {
+      "rezident": "2 067 000 so'm",
+      "norezident": "3 307 200 so'm",
+      "sugurta": "2 025 660 so'm"
+    }
+  },
+  {
+    "code": "R175",
+    "sheetNum": "16.1",
+    "name": "Юрак қон томирлари ангиография МРТ",
+    "nameLatin": "Yurak qon tomirlari angiografiya MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R4896",
+    "sheetNum": "17",
+    "name": "Қорин бўшлиғи МРТ",
+    "nameLatin": "Qorin bo'shlig'i MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R177",
+    "sheetNum": "18",
+    "name": "Жигар МРТ контрастсиз",
+    "nameLatin": "Jigar MRT kontrastsiz",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R178",
+    "sheetNum": "19",
+    "name": "Жигар МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "Jigar MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2067000,
+    "priceFormatted": "2 067 000 so'm",
+    "prices": {
+      "rezident": 2067000,
+      "norezident": 3307200,
+      "sugurta": 2025660
+    },
+    "pricesFormatted": {
+      "rezident": "2 067 000 so'm",
+      "norezident": "3 307 200 so'm",
+      "sugurta": "2 025 660 so'm"
+    }
+  },
+  {
+    "code": "R179",
+    "sheetNum": "19.1",
+    "name": "Жигар МРТ контраст билан",
+    "nameLatin": "Jigar MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R180",
+    "sheetNum": "20",
+    "name": "Ошқозон ости бези МРТ",
+    "nameLatin": "Oshqozon osti bezi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R181",
+    "sheetNum": "21",
+    "name": "Буйраклар ва сийдик чиқариш йўллари МРТ/ контраст билан",
+    "nameLatin": "Buyraklar va siydik chiqarish yo'llari MRT/ kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R182",
+    "sheetNum": "22",
+    "name": "Кичик чаноқ аъзолари МРТ",
+    "nameLatin": "Kichik chanoq a'zolari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R183",
+    "sheetNum": "23",
+    "name": "Елка бўғими МРТ",
+    "nameLatin": "Elka bo'g'imi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R184",
+    "sheetNum": "24",
+    "name": "Қўл- кафт бўғими МРТ",
+    "nameLatin": "Qo'l- kaft bo'g'imi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R185",
+    "sheetNum": "25",
+    "name": "Тизза бўғими МРТ",
+    "nameLatin": "Tizza bo'g'imi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R186",
+    "sheetNum": "26",
+    "name": "Тирсак бўғими МРТ",
+    "nameLatin": "Tirsak bo'g'imi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R187",
+    "sheetNum": "27",
+    "name": "Товон/ болдир-товон бугими",
+    "nameLatin": "Tovon/ boldir-tovon bugimi",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R188",
+    "sheetNum": "28",
+    "name": "Чаноқ сон бўғими МРТ",
+    "nameLatin": "Chanoq son bo'g'imi MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R189",
+    "sheetNum": "29",
+    "name": "Чаноқ сон бўғими МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "Chanoq son bo'g'imi MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R190",
+    "sheetNum": "29.1",
+    "name": "Чаноқ сон бўғими МРТ контраст билан",
+    "nameLatin": "Chanoq son bo'g'imi MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R191",
+    "sheetNum": "30",
+    "name": "Сут безлари МРТ контрастсиз",
+    "nameLatin": "Sut bezlari MRT kontrastsiz",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R192",
+    "sheetNum": "31",
+    "name": "Сут безлари МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "Sut bezlari MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R193",
+    "sheetNum": "31.1",
+    "name": "Сут безлари МРТ контраст билан",
+    "nameLatin": "Sut bezlari MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R194",
+    "sheetNum": "32",
+    "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "O'ng va chap oyoq qon tomirlari MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R195",
+    "sheetNum": "32.1",
+    "name": "Ўнг ва чап оёқ қон томирлари МРТ контраст билан",
+    "nameLatin": "O'ng va chap oyoq qon tomirlari MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R196",
+    "sheetNum": "33",
+    "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан (шприц-инжекторда)",
+    "nameLatin": "O'ng va chap qo'l qon tomirlari MRT kontrast bilan (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R197",
+    "sheetNum": "33.1",
+    "name": "Ўнг ва чап қўл қон томирлари МРТ контраст билан",
+    "nameLatin": "O'ng va chap qo'l qon tomirlari MRT kontrast bilan",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R198",
+    "sheetNum": "34",
+    "name": "Бутун танани скрининг МРТ",
+    "nameLatin": "Butun tanani skrining MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1009000,
+    "priceFormatted": "1 009 000 so'm",
+    "prices": {
+      "rezident": 1009000,
+      "norezident": 1614400,
+      "sugurta": 988820
+    },
+    "pricesFormatted": {
+      "rezident": "1 009 000 so'm",
+      "norezident": "1 614 400 so'm",
+      "sugurta": "988 820 so'm"
+    }
+  },
+  {
+    "code": "R199",
+    "sheetNum": "35",
+    "name": "Синусит ва бурун бўшлиқлари МРТ (Юз-жағ бўғимлари)",
+    "nameLatin": "Sinusit va burun bo'shliqlari MRT (Yuz-jag' bo'g'imlari)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R4920",
+    "sheetNum": "36",
+    "name": "Бўйин юмшок тукималари МРТ",
+    "nameLatin": "Bo'yin yumshok tukimalari MRT",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R201",
+    "sheetNum": "37",
+    "name": "МРТ органов малого таза + в/в контрастирование (шприц-инжекторда)",
+    "nameLatin": "MRT organov malogo taza + v/v kontrastirovanie (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R202",
+    "sheetNum": "37.1",
+    "name": "МРТ органов малого таза + в/в контрастирование",
+    "nameLatin": "MRT organov malogo taza + v/v kontrastirovanie",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1319000,
+    "priceFormatted": "1 319 000 so'm",
+    "prices": {
+      "rezident": 1319000,
+      "norezident": 2110400,
+      "sugurta": 1292620
+    },
+    "pricesFormatted": {
+      "rezident": "1 319 000 so'm",
+      "norezident": "2 110 400 so'm",
+      "sugurta": "1 292 620 so'm"
+    }
+  },
+  {
+    "code": "R203",
+    "sheetNum": "38",
+    "name": "МРТ органов брюшной полости + в/в контрастирование (шприц-инжекторда)",
+    "nameLatin": "MRT organov bryushnoy polosti + v/v kontrastirovanie (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R204",
+    "sheetNum": "38.1",
+    "name": "МРТ органов брюшной полости + в/в контрастирование",
+    "nameLatin": "MRT organov bryushnoy polosti + v/v kontrastirovanie",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1319000,
+    "priceFormatted": "1 319 000 so'm",
+    "prices": {
+      "rezident": 1319000,
+      "norezident": 2110400,
+      "sugurta": 1292620
+    },
+    "pricesFormatted": {
+      "rezident": "1 319 000 so'm",
+      "norezident": "2 110 400 so'm",
+      "sugurta": "1 292 620 so'm"
+    }
+  },
+  {
+    "code": "R205",
+    "sheetNum": "39",
+    "name": "МРТ мягких тканей конечностей (выбранная область, зона исследования до 30 см)",
+    "nameLatin": "MRT myagkix tkaney konechnostey (vibrannaya oblast, zona issledovaniya do 30 sm)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R206",
+    "sheetNum": "40",
+    "name": "МРТ спинного мозга+трактография",
+    "nameLatin": "MRT spinnogo mozga+traktografiya",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R207",
+    "sheetNum": "41",
+    "name": "Дубликат пленки, диска и заключения",
+    "nameLatin": "Dublikat plenki, diska i zaklyucheniya",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 122000,
+    "priceFormatted": "122 000 so'm",
+    "prices": {
+      "rezident": 122000,
+      "norezident": 195200,
+      "sugurta": 119560
+    },
+    "pricesFormatted": {
+      "rezident": "122 000 so'm",
+      "norezident": "195 200 so'm",
+      "sugurta": "119 560 so'm"
+    }
+  },
+  {
+    "code": "R208",
+    "sheetNum": "42",
+    "name": "Дубликат диска (или дополнительный)",
+    "nameLatin": "Dublikat diska (ili dopolnitelniy)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 68000,
+    "priceFormatted": "68 000 so'm",
+    "prices": {
+      "rezident": 68000,
+      "norezident": 108800,
+      "sugurta": 66640
+    },
+    "pricesFormatted": {
+      "rezident": "68 000 so'm",
+      "norezident": "108 800 so'm",
+      "sugurta": "66 640 so'm"
+    }
+  },
+  {
+    "code": "R4929",
+    "sheetNum": "43",
+    "name": "МРТ мягких тканей черепа/ МРТ лицевой части",
+    "nameLatin": "MRT myagkix tkaney cherepa/ MRT litsevoy chasti",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 546000,
+    "priceFormatted": "546 000 so'm",
+    "prices": {
+      "rezident": 546000,
+      "norezident": 873600,
+      "sugurta": 535080
+    },
+    "pricesFormatted": {
+      "rezident": "546 000 so'm",
+      "norezident": "873 600 so'm",
+      "sugurta": "535 080 so'm"
+    }
+  },
+  {
+    "code": "R210",
+    "sheetNum": "44",
+    "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast (шприц-инжекторда)",
+    "nameLatin": "MRT golovnogo mozga i myagkix tkaney golovi T1 + contrast (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": true,
+    "price": 2060000,
+    "priceFormatted": "2 060 000 so'm",
+    "prices": {
+      "rezident": 2060000,
+      "norezident": 3296000,
+      "sugurta": 2018800
+    },
+    "pricesFormatted": {
+      "rezident": "2 060 000 so'm",
+      "norezident": "3 296 000 so'm",
+      "sugurta": "2 018 800 so'm"
+    }
+  },
+  {
+    "code": "R211",
+    "sheetNum": "44.1",
+    "name": "МРТ головного мозга и мягких тканей головы Т1 + contrast",
+    "nameLatin": "MRT golovnogo mozga i myagkix tkaney golovi T1 + contrast",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 1075000,
+    "priceFormatted": "1 075 000 so'm",
+    "prices": {
+      "rezident": 1075000,
+      "norezident": 1720000,
+      "sugurta": 1053500
+    },
+    "pricesFormatted": {
+      "rezident": "1 075 000 so'm",
+      "norezident": "1 720 000 so'm",
+      "sugurta": "1 053 500 so'm"
+    }
+  },
+  {
+    "code": "R212",
+    "sheetNum": "45",
+    "name": "МРТ головного мозга+ безконтрастная МР-артерио и венография",
+    "nameLatin": "MRT golovnogo mozga+ bezkontrastnaya MR-arterio i venografiya",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R213",
+    "sheetNum": "46",
+    "name": "МРТ головного мозга+ режим Fiesta (нейроваскулярные конфликты)",
+    "nameLatin": "MRT golovnogo mozga+ rejim Fiesta (neyrovaskulyarnie konflikti)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R214",
+    "sheetNum": "47",
+    "name": "МРТ головного мозга+ DTI",
+    "nameLatin": "MRT golovnogo mozga+ DTI",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R215",
+    "sheetNum": "48",
+    "name": "МРТ средней трети спинного мозга+позвоночного столба",
+    "nameLatin": "MRT sredney treti spinnogo mozga+pozvonochnogo stolba",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R216",
+    "sheetNum": "49",
+    "name": "МРТ нижней трети спинного мозга+позвоночного столба",
+    "nameLatin": "MRT nijney treti spinnogo mozga+pozvonochnogo stolba",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R217",
+    "sheetNum": "50",
+    "name": "МРТ тазобедренных суставов и подвздошно-крестцовых сочленений",
+    "nameLatin": "MRT tazobedrennix sustavov i podvzdoshno-kresttsovix sochleneniy",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 558000,
+    "priceFormatted": "558 000 so'm",
+    "prices": {
+      "rezident": 558000,
+      "norezident": 892800,
+      "sugurta": 546840
+    },
+    "pricesFormatted": {
+      "rezident": "558 000 so'm",
+      "norezident": "892 800 so'm",
+      "sugurta": "546 840 so'm"
+    }
+  },
+  {
+    "code": "R218",
+    "sheetNum": "51",
+    "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+    "nameLatin": "MRT verxney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R219",
+    "sheetNum": "51.1",
+    "name": "МРТ верхней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+    "nameLatin": "MRT verxney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R220",
+    "sheetNum": "52",
+    "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+    "nameLatin": "MRT sredney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R221",
+    "sheetNum": "52.1",
+    "name": "МРТ средней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+    "nameLatin": "MRT sredney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "R222",
+    "sheetNum": "53",
+    "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование (шприц-инжекторда)",
+    "nameLatin": "MRT nijney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie (shprits-injektorda)",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 2042000,
+    "priceFormatted": "2 042 000 so'm",
+    "prices": {
+      "rezident": 2042000,
+      "norezident": 3267200,
+      "sugurta": 2001160
+    },
+    "pricesFormatted": {
+      "rezident": "2 042 000 so'm",
+      "norezident": "3 267 200 so'm",
+      "sugurta": "2 001 160 so'm"
+    }
+  },
+  {
+    "code": "R223",
+    "sheetNum": "53.1",
+    "name": "МРТ нижней трети спинного мозга+ позвоночного столба + в/в контрастирование",
+    "nameLatin": "MRT nijney treti spinnogo mozga+ pozvonochnogo stolba + v/v kontrastirovanie",
+    "category": "MRT",
+    "modality": "MRT",
+    "isContrast": true,
+    "isInjector": false,
+    "price": 1169000,
+    "priceFormatted": "1 169 000 so'm",
+    "prices": {
+      "rezident": 1169000,
+      "norezident": 1870400,
+      "sugurta": 1145620
+    },
+    "pricesFormatted": {
+      "rezident": "1 169 000 so'm",
+      "norezident": "1 870 400 so'm",
+      "sugurta": "1 145 620 so'm"
+    }
+  },
+  {
+    "code": "X4460",
+    "name": "Холтер мониторинг ёки суткалик ЭКГ",
+    "nameLatin": "Xolter monitoring yoki sutkalik EKG",
+    "category": "EKG",
+    "modality": "ECG",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 242000,
+    "priceFormatted": "242 000 so'm",
+    "prices": {
+      "rezident": 242000,
+      "norezident": 387200,
+      "sugurta": 237160
+    },
+    "pricesFormatted": {
+      "rezident": "242 000 so'm",
+      "norezident": "387 200 so'm",
+      "sugurta": "237 160 so'm"
+    }
+  },
+  {
+    "code": "R232",
+    "name": "ЭКГ (Электрокардиография)",
+    "nameLatin": "EKG (Elektrokardiografiya)",
+    "category": "EKG",
+    "modality": "ECG",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 96000,
+    "priceFormatted": "96 000 so'm",
+    "prices": {
+      "rezident": 96000,
+      "norezident": 153600,
+      "sugurta": 94080
+    },
+    "pricesFormatted": {
+      "rezident": "96 000 so'm",
+      "norezident": "153 600 so'm",
+      "sugurta": "94 080 so'm"
+    }
+  },
+  {
+    "code": "R230",
+    "name": "ЭхоКГ (Эхокардиография)",
+    "nameLatin": "ExoKG (Ehokardiografiya)",
+    "category": "EKG",
+    "modality": "ECG",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 179000,
+    "priceFormatted": "179 000 so'm",
+    "prices": {
+      "rezident": 179000,
+      "norezident": 286400,
+      "sugurta": 175420
+    },
+    "pricesFormatted": {
+      "rezident": "179 000 so'm",
+      "norezident": "286 400 so'm",
+      "sugurta": "175 420 so'm"
+    }
+  },
+  {
+    "code": "R4852",
+    "name": "Маммографик скрининг учун Маммография тасвирларини ўқиш (402-сонли ПҚ асосида)",
+    "nameLatin": "Mammografik skrining uchun Mammografiya tasvirlarini oqish (402-sonli PQ asosida)",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": false,
+    "isInjector": false,
+    "price": 12000,
+    "priceFormatted": "12 000 so'm",
+    "prices": {
+      "rezident": 12000,
+      "norezident": 19200,
+      "sugurta": 12000
+    },
+    "pricesFormatted": {
+      "rezident": "12 000 so'm",
+      "norezident": "19 200 so'm",
+      "sugurta": "12 000 so'm"
+    }
+  },
+  {
+    "code": "R16",
+    "name": "Аортаграфия ва Ангиография Коронаграфия Портография",
+    "nameLatin": "Aortagrafiya Va Angiografiya Koronagrafiya Portografiya",
+    "category": "Rentgen",
+    "modality": "XRAY",
+    "isContrast": true,
+    "isInjector": true,
+    "price": 1917000,
+    "priceFormatted": "1 917 000 so'm",
+    "prices": {
+      "rezident": 1917000,
+      "norezident": 3067200,
+      "sugurta": 1878660
+    },
+    "pricesFormatted": {
+      "rezident": "1 917 000 so'm",
+      "norezident": "3 067 200 so'm",
+      "sugurta": "1 878 660 so'm"
+    }
+  }
+]

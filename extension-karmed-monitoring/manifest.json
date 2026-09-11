@@ -1,0 +1,92 @@
+{
+  "manifest_version": 3,
+  "name": "Karmed Monitoring & So'rovlar Tahlilchisi",
+  "version": "1.2.0",
+  "description": "Karmed (http://192.168.150.111:2025/) serveri bilan barcha tarmoq so'rovlarini kuzatish, avtorizatsiya va bemorlar ro'yxatini tahlil qilish hamda avtomatlashtirish tizimi.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://192.168.150.111:2025/*",
+    "http://192.168.150.111/*",
+    "https://192.168.150.111:2025/*",
+    "http://213.230.91.59:2025/*",
+    "http://213.230.91.59/*",
+    "https://213.230.91.59:2025/*",
+    "*://*.karmed.uz/*",
+    "*://*.kardelen.uz/*"
+  ],
+  "icons": {
+    "16": "icons/logo-onko.png",
+    "48": "icons/logo-onko.png",
+    "128": "icons/logo-onko.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Karmed Monitoring & Tahlilchi",
+    "default_icon": {
+      "16": "icons/logo-onko.png",
+      "48": "icons/logo-onko.png",
+      "128": "icons/logo-onko.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://192.168.150.111:2025/*",
+        "http://192.168.150.111/*",
+        "https://192.168.150.111:2025/*",
+        "http://213.230.91.59:2025/*",
+        "http://213.230.91.59/*",
+        "https://213.230.91.59:2025/*",
+        "*://*.karmed.uz/*",
+        "*://*.kardelen.uz/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "interceptor.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "http://192.168.150.111:2025/*",
+        "http://192.168.150.111/*",
+        "https://192.168.150.111:2025/*",
+        "http://213.230.91.59:2025/*",
+        "http://213.230.91.59/*",
+        "https://213.230.91.59:2025/*",
+        "*://*.karmed.uz/*",
+        "*://*.kardelen.uz/*"
+      ],
+      "all_frames": false,
+      "js": [
+        "analyzer.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "world": "ISOLATED",
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/logo-onko.png",
+        "icons/logo-ssv.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
