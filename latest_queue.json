@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-09-11T07:04:34.214Z",
+  "timestamp": "2026-09-11T07:05:34.467Z",
   "date": "11.09.2026",
   "totalPatients": 169,
   "department": "Ultratovush",
   "statusFilter": "Bekleyen",
   "karmedDirectSync": true,
-  "lastSyncAt": "2026-09-11T07:04:34.214Z",
+  "lastSyncAt": "2026-09-11T07:05:34.467Z",
   "version": "6.0.0",
   "summary": {
-    "totalWaiting": 55,
+    "totalWaiting": 53,
     "totalPatients": 169,
     "byDoctor": {
       "undefined": 4
@@ -167,22 +167,6 @@
           "karmedIndex": 119
         },
         {
-          "patientId": "57464",
-          "dosyaNo": 260105753,
-          "labDosyaId": 2864704,
-          "fullName": "GULXUMOR KOMILOVA",
-          "queueNo": 94,
-          "globalQueueNo": 94,
-          "status": "Kabul Edilen",
-          "statusCode": 4,
-          "registrationTime": "10:09",
-          "room": "Ultratovush-2",
-          "roomTitle": "UTT2-54 XONA",
-          "doctorName": "Kurbanova Sevinch Musayevna",
-          "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-          "karmedIndex": 125
-        },
-        {
           "patientId": "57473",
           "dosyaNo": 260105782,
           "labDosyaId": 2864833,
@@ -215,7 +199,7 @@
           "karmedIndex": 160
         }
       ],
-      "count": 4
+      "count": 3
     },
     {
       "id": "Ultratovush-3",
@@ -339,22 +323,6 @@
           "karmedIndex": 22
         },
         {
-          "patientId": "16102",
-          "dosyaNo": 260105713,
-          "labDosyaId": 2864218,
-          "fullName": "MAXSUDA YAXYAYEVA",
-          "queueNo": 65,
-          "globalQueueNo": 65,
-          "status": "Bekleyen",
-          "statusCode": 1,
-          "registrationTime": "09:33",
-          "room": "Ultratovush-4",
-          "roomTitle": "UTT4-47 XONA",
-          "doctorName": "Ziyayeva Zarina Abduganiyevna",
-          "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-          "karmedIndex": 104
-        },
-        {
           "patientId": "57519",
           "dosyaNo": 260105869,
           "labDosyaId": 2865333,
@@ -419,7 +387,7 @@
           "karmedIndex": 164
         }
       ],
-      "count": 6
+      "count": 5
     },
     {
       "id": "Ultratovush-5",
@@ -1970,8 +1938,8 @@
       "fullName": "MAXSUDA YAXYAYEVA",
       "queueNo": 65,
       "globalQueueNo": 65,
-      "status": "Bekleyen",
-      "statusCode": 1,
+      "status": "Rapor Onaylı",
+      "statusCode": 8,
       "registrationTime": "09:33",
       "room": "Ultratovush-4",
       "roomTitle": "UTT4-47 XONA",
@@ -2434,8 +2402,8 @@
       "fullName": "GULXUMOR KOMILOVA",
       "queueNo": 94,
       "globalQueueNo": 94,
-      "status": "Kabul Edilen",
-      "statusCode": 4,
+      "status": "Rapor Onaylı",
+      "statusCode": 8,
       "registrationTime": "10:09",
       "room": "Ultratovush-2",
       "roomTitle": "UTT2-54 XONA",
@@ -3645,20 +3613,6 @@
     }
   ],
   "activeCalls": {
-    "Ultratovush-2": {
-      "patientId": "57464",
-      "queueNo": 94,
-      "globalQueueNo": 94,
-      "fullName": "GULXUMOR KOMILOVA",
-      "registrationTime": "10:09",
-      "roomKey": "Ultratovush-2",
-      "roomTitle": "UTT2-54 XONA",
-      "doctorName": "Kurbanova Sevinch Musayevna",
-      "source": "karmed_accepted",
-      "status": "accepted",
-      "statusText": "Qabul qilmoqda",
-      "calledAt": "10:09"
-    },
     "Ultratovush-3": {
       "patientId": "57514",
       "queueNo": 125,
