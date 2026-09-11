@@ -1521,11 +1521,385 @@
   }
 
   // =========================================================================
-  // 7. DASTUR BOSHLANISHI
+  // 8. ID KODLARI BO'YICHA MAXSUS REESTR MODULI (v7.1)
+  // =========================================================================
+  let reestrCurrentRows = [];
+  let reestrFilteredRows = [];
+
+  function initCustomReestrModule() {
+    const tabBtnDashboard = document.getElementById('tab-btn-dashboard');
+    const tabBtnReestr = document.getElementById('tab-btn-reestr');
+    const viewDashboard = document.getElementById('view-dashboard');
+    const viewReestr = document.getElementById('view-reestr');
+
+    const textareaIds = document.getElementById('reestr-input-ids');
+    const idsCounter = document.getElementById('reestr-ids-counter');
+    const btnSampleIds = document.getElementById('btn-sample-ids');
+    const btnClearIds = document.getElementById('btn-clear-ids');
+
+    const reestrStartDate = document.getElementById('reestr-start-date');
+    const reestrEndDate = document.getElementById('reestr-end-date');
+    const btnCalcReestr = document.getElementById('btn-calc-reestr');
+    const btnExportReestr = document.getElementById('btn-export-reestr');
+
+    const reestrKpiGrid = document.getElementById('reestr-kpi-grid');
+    const rkpiReqIds = document.getElementById('rkpi-req-ids');
+    const rkpiFoundIds = document.getElementById('rkpi-found-ids');
+    const rkpiServicesCount = document.getElementById('rkpi-services-count');
+    const rkpiOrderSum = document.getElementById('rkpi-order-sum');
+    const rkpiPulliSum = document.getElementById('rkpi-pulli-sum');
+    const rkpiTotalSum = document.getElementById('rkpi-total-sum');
+
+    const reestrTbody = document.getElementById('reestr-tbody');
+    const reestrTfoot = document.getElementById('reestr-tfoot');
+    const reestrRowsCountBadge = document.getElementById('reestr-rows-count-badge');
+    const reestrTableSearch = document.getElementById('reestr-table-search');
+
+    const footOrderli = document.getElementById('reestr-foot-orderli');
+    const footPulli = document.getElementById('reestr-foot-pulli');
+    const footTolangan = document.getElementById('reestr-foot-tolangan');
+    const footJami = document.getElementById('reestr-foot-jami');
+
+    // 1. Tab Switching
+    function switchTab(tabName) {
+      if (tabName === 'reestr') {
+        tabBtnDashboard?.classList.remove('active');
+        tabBtnReestr?.classList.add('active');
+        if (viewDashboard) viewDashboard.style.display = 'none';
+        if (viewReestr) viewReestr.style.display = 'block';
+      } else {
+        tabBtnReestr?.classList.remove('active');
+        tabBtnDashboard?.classList.add('active');
+        if (viewReestr) viewReestr.style.display = 'none';
+        if (viewDashboard) viewDashboard.style.display = 'block';
+      }
+    }
+
+    tabBtnDashboard?.addEventListener('click', () => switchTab('dashboard'));
+    tabBtnReestr?.addEventListener('click', () => switchTab('reestr'));
+
+    // 2. ID Counter & Parsing
+    function parseIdsList(text) {
+      if (!text) return [];
+      return text.split(/[;,\n\r\t\s]+/)
+        .map(s => s.trim().replace(/[^\d]/g, ''))
+        .filter(Boolean);
+    }
+
+    function updateIdCounter() {
+      const ids = parseIdsList(textareaIds ? textareaIds.value : '');
+      const uniqueCount = new Set(ids).size;
+      if (idsCounter) {
+        idsCounter.innerHTML = `Kiritilgan IDlar: <strong>${uniqueCount} ta</strong>`;
+      }
+    }
+
+    textareaIds?.addEventListener('input', updateIdCounter);
+
+    // 3. Sample IDs & Clear
+    btnSampleIds?.addEventListener('click', () => {
+      if (textareaIds) {
+        textareaIds.value = '50443; 40852; 40857; 260020144; 260060508; 51230; 50812';
+        updateIdCounter();
+      }
+    });
+
+    btnClearIds?.addEventListener('click', () => {
+      if (textareaIds) {
+        textareaIds.value = '';
+        updateIdCounter();
+      }
+      reestrCurrentRows = [];
+      reestrFilteredRows = [];
+      renderReestrTable();
+      if (reestrKpiGrid) reestrKpiGrid.style.display = 'none';
+      if (reestrTfoot) reestrTfoot.style.display = 'none';
+      if (reestrRowsCountBadge) reestrRowsCountBadge.textContent = '0 ta yozuv';
+    });
+
+    // 4. Date Presets for Reestr
+    document.querySelectorAll('[data-rpreset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-rpreset]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const p = btn.getAttribute('data-rpreset');
+        if (!reestrStartDate || !reestrEndDate) return;
+
+        if (p === 'august') {
+          reestrStartDate.value = '01.08.2026';
+          reestrEndDate.value = '31.08.2026';
+        } else if (p === 'september') {
+          reestrStartDate.value = '01.09.2026';
+          reestrEndDate.value = '30.09.2026';
+        } else if (p === 'july') {
+          reestrStartDate.value = '01.07.2026';
+          reestrEndDate.value = '31.07.2026';
+        } else if (p === 'june') {
+          reestrStartDate.value = '01.06.2026';
+          reestrEndDate.value = '30.06.2026';
+        } else if (p === 'today') {
+          const t = getTodayString();
+          reestrStartDate.value = t;
+          reestrEndDate.value = t;
+        }
+      });
+    });
+
+    // 5. Execute Calculation (Fetch from Karmed)
+    async function executeReestrCalculation() {
+      const rawText = textareaIds ? textareaIds.value.trim() : '';
+      const ids = parseIdsList(rawText);
+
+      if (ids.length === 0) {
+        alert("Iltimos, hisoblash uchun kamida 1 ta bemor ID yoki karta raqamini kiriting!");
+        textareaIds?.focus();
+        return;
+      }
+
+      const sDate = reestrStartDate ? reestrStartDate.value.trim() : '01.08.2026';
+      const eDate = reestrEndDate ? reestrEndDate.value.trim() : '31.08.2026';
+
+      // Set Loading UI
+      if (btnCalcReestr) {
+        btnCalcReestr.disabled = true;
+        btnCalcReestr.innerHTML = '<span class="btn-icon">⏳</span> Karmeddan yuklanmoqda...';
+      }
+
+      if (reestrTbody) {
+        reestrTbody.innerHTML = `
+          <tr>
+            <td colspan="21" class="reestr-empty-cell">
+              <div class="reestr-empty-prompt">
+                <span class="rep-icon" style="animation: spin 1s infinite linear;">🔄</span>
+                <h4>Karmed tizimidan to'g'ridan-to'g'ri yangi ma'lumotlar olinmoqda...</h4>
+                <p>${ids.length} ta ID bo'yicha ${sDate} dan ${eDate} gacha bo'lgan barcha tekshiruvlar tekshirilmoqda. Iltimos, kuting...</p>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+
+      try {
+        const response = await fetch('/api/admin/custom-reestr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ids: ids,
+            startDate: sDate,
+            endDate: eDate,
+            forceFresh: true
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Karmeddan ma'lumot olishda xatolik yuz berdi");
+        }
+
+        reestrCurrentRows = data.rows || [];
+        reestrFilteredRows = [...reestrCurrentRows];
+
+        // Update KPIs
+        if (reestrKpiGrid) reestrKpiGrid.style.display = 'grid';
+        if (rkpiReqIds) rkpiReqIds.textContent = data.totalRequestedIds;
+        if (rkpiFoundIds) rkpiFoundIds.textContent = `${data.foundIdsCount} ta`;
+        if (rkpiServicesCount) rkpiServicesCount.textContent = `${reestrCurrentRows.length} ta`;
+        if (rkpiOrderSum) rkpiOrderSum.textContent = (data.summary?.totalOrderliFormatted || '0,00') + " so'm";
+        if (rkpiPulliSum) rkpiPulliSum.textContent = (data.summary?.totalPulliFormatted || '0,00') + " so'm";
+        if (rkpiTotalSum) rkpiTotalSum.textContent = (data.summary?.totalJamiFormatted || '0,00') + " so'm";
+
+        renderReestrTable();
+
+        if (data.missingIds && data.missingIds.length > 0) {
+          console.warn('[Reestr] Topilmagan IDlar:', data.missingIds);
+        }
+
+      } catch (err) {
+        console.error('[Reestr Calc Error]:', err);
+        if (reestrTbody) {
+          reestrTbody.innerHTML = `
+            <tr>
+              <td colspan="21" class="reestr-empty-cell">
+                <div class="reestr-empty-prompt">
+                  <span class="rep-icon" style="color:#ef4444;">⚠️</span>
+                  <h4 style="color:#ef4444;">Hisobotni olishda xatolik yuz berdi</h4>
+                  <p>${err.message}</p>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      } finally {
+        if (btnCalcReestr) {
+          btnCalcReestr.disabled = false;
+          btnCalcReestr.innerHTML = '<span class="btn-icon">⚡</span> Karmeddan Hisobotni Olish';
+        }
+      }
+    }
+
+    btnCalcReestr?.addEventListener('click', executeReestrCalculation);
+
+    // 6. Render Reestr Table
+    function renderReestrTable() {
+      if (!reestrTbody) return;
+
+      if (reestrFilteredRows.length === 0) {
+        reestrTbody.innerHTML = `
+          <tr>
+            <td colspan="21" class="reestr-empty-cell">
+              <div class="reestr-empty-prompt">
+                <span class="rep-icon">🔍</span>
+                <h4>Hech qanday ma'lumot topilmadi</h4>
+                <p>Kiritilgan ID kodlar bo'yicha belgilangan muddatda yozuvlar mavjud emas.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        if (reestrTfoot) reestrTfoot.style.display = 'none';
+        if (reestrRowsCountBadge) reestrRowsCountBadge.textContent = '0 ta yozuv';
+        return;
+      }
+
+      let rowsHtml = '';
+      let sumOrderli = 0;
+      let sumPulli = 0;
+      let sumTolangan = 0;
+      let sumJami = 0;
+
+      reestrFilteredRows.forEach((r, idx) => {
+        sumOrderli += (r.orderliUcret || 0);
+        sumPulli += (r.pulliUcret || 0);
+        sumTolangan += (r.tolanganUcret || 0);
+        sumJami += (r.jamiUcret || 0);
+
+        const statusClass = (r.status === 'Rapor Onaylı' || r.status === 'Bajarildi') ? 'badge-completed' : (r.status === 'Bekleyen' ? 'badge-waiting' : 'badge-accepted');
+        const privClass = r.privilegeCategory?.toLowerCase().includes('order') || r.privilegeCategory?.toLowerCase().includes('vaqf') ? 'color:#fbbf24; font-weight:700;' : (r.privilegeCategory?.toLowerCase().includes('no') ? 'color:#f87171;' : 'color:#34d399;');
+
+        rowsHtml += `
+          <tr>
+            <td><strong>${idx + 1}</strong></td>
+            <td><code>${r.id || '-'}</code></td>
+            <td><strong>${r.fullName || '-'}</strong></td>
+            <td>${r.patientType || '-'}</td>
+            <td>${r.serviceCategory || 'Radiologiya'}</td>
+            <td>${r.functionalDept || 'Ultratovush'}</td>
+            <td><strong style="color:#38bdf8;">${r.serviceName || '-'}</strong></td>
+            <td><span class="badge badge-secondary">${r.cardNo || '-'}</span></td>
+            <td>${r.cardType || 'Ambulator'}</td>
+            <td>${r.department || '-'}</td>
+            <td>${r.orderingDoctor || '-'}</td>
+            <td><span style="color:#34d399; font-weight:600;">${r.performingDoctor || '-'}</span></td>
+            <td>${r.dateTime || '-'}</td>
+            <td><span style="${privClass}">${r.privilegeCategory || '-'}</span></td>
+            <td class="col-money order">${r.orderliUcretFormatted || '0,00'}</td>
+            <td class="col-money pulli">${r.pulliUcretFormatted || '0,00'}</td>
+            <td class="col-money tolangan">${r.tolanganUcretFormatted || '0,00'}</td>
+            <td class="col-money jami">${r.jamiUcretFormatted || '0,00'}</td>
+            <td><span class="badge badge-info">${r.paymentMethod || 'Naqd'}</span></td>
+            <td>${r.paymentDate || '-'}</td>
+            <td><span class="status-badge ${statusClass}">${r.status || 'Bajarildi'}</span></td>
+          </tr>
+        `;
+      });
+
+      reestrTbody.innerHTML = rowsHtml;
+
+      // Update footer totals
+      if (reestrTfoot) {
+        reestrTfoot.style.display = '';
+        if (footOrderli) footOrderli.textContent = Number(sumOrderli).toLocaleString('ru-RU') + ',00';
+        if (footPulli) footPulli.textContent = Number(sumPulli).toLocaleString('ru-RU') + ',00';
+        if (footTolangan) footTolangan.textContent = Number(sumTolangan).toLocaleString('ru-RU') + ',00';
+        if (footJami) footJami.textContent = Number(sumJami).toLocaleString('ru-RU') + ',00';
+      }
+
+      if (reestrRowsCountBadge) {
+        reestrRowsCountBadge.textContent = `${reestrFilteredRows.length} ta yozuv`;
+      }
+    }
+
+    // 7. Table Search Filter
+    reestrTableSearch?.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) {
+        reestrFilteredRows = [...reestrCurrentRows];
+      } else {
+        reestrFilteredRows = reestrCurrentRows.filter(r => {
+          return (r.fullName && r.fullName.toLowerCase().includes(q)) ||
+                 (r.id && r.id.toLowerCase().includes(q)) ||
+                 (r.cardNo && r.cardNo.toLowerCase().includes(q)) ||
+                 (r.serviceName && r.serviceName.toLowerCase().includes(q)) ||
+                 (r.performingDoctor && r.performingDoctor.toLowerCase().includes(q)) ||
+                 (r.orderingDoctor && r.orderingDoctor.toLowerCase().includes(q));
+        });
+      }
+      renderReestrTable();
+    });
+
+    // 8. Export to CSV (Excel with UTF-8 BOM)
+    btnExportReestr?.addEventListener('click', () => {
+      if (reestrCurrentRows.length === 0) {
+        alert("Eksport qilish uchun avval hisobotni shakllantiring!");
+        return;
+      }
+
+      const BOM = '\uFEFF';
+      const headers = [
+        '№', 'ID', 'Ism va familiya', 'Тип', 'Xizmat Turi', 'Funktsional xizmat bolimi',
+        'Услуга', '№ Карта', 'Тип Карта', 'Отделения', 'Лечащий врач', 'dr_uygulayan',
+        'Время_tarihi', 'Категория лыгот', 'Orderli_Ucret', 'Pulli_Ucret', 'Tolangan_ucret',
+        'Jami_ucret_toplam', 'Форма оплаты', 'Tolov Sana Tarihi', 'Holati'
+      ];
+
+      let csv = BOM + headers.join(';') + '\n';
+
+      reestrCurrentRows.forEach((r, idx) => {
+        const row = [
+          idx + 1,
+          `"${r.id || ''}"`,
+          `"${(r.fullName || '').replace(/"/g, '""')}"`,
+          `"${r.patientType || ''}"`,
+          `"${r.serviceCategory || 'Radiologiya'}"`,
+          `"${r.functionalDept || 'Ultratovush'}"`,
+          `"${(r.serviceName || '').replace(/"/g, '""')}"`,
+          `"${r.cardNo || ''}"`,
+          `"${r.cardType || 'Ambulator'}"`,
+          `"${(r.department || '').replace(/"/g, '""')}"`,
+          `"${(r.orderingDoctor || '').replace(/"/g, '""')}"`,
+          `"${(r.performingDoctor || '').replace(/"/g, '""')}"`,
+          `"${r.dateTime || ''}"`,
+          `"${r.privilegeCategory || 'Rezident'}"`,
+          `"${r.orderliUcretFormatted || '0,00'}"`,
+          `"${r.pulliUcretFormatted || '0,00'}"`,
+          `"${r.tolanganUcretFormatted || '0,00'}"`,
+          `"${r.jamiUcretFormatted || '0,00'}"`,
+          `"${r.paymentMethod || 'Naqd'}"`,
+          `"${r.paymentDate || ''}"`,
+          `"${r.status || 'Bajarildi'}"`
+        ];
+        csv += row.join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const sDate = reestrStartDate ? reestrStartDate.value.trim() : '01.08.2026';
+      const eDate = reestrEndDate ? reestrEndDate.value.trim() : '31.08.2026';
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Karmed_Vedomost_${sDate}_${eDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  }
+
+  // =========================================================================
+  // 9. DASTUR BOSHLANISHI
   // =========================================================================
   initTheme();
   initMoneyVisibility();
   initEventListeners();
+  initCustomReestrModule();
   fetchPriceCatalog();
 
   // DASTUR BIRINCHI BO'LIB DOIMIY RAVISHTA BUGUNGI KUN MA'LUMOTLARINI YUKLAYDI:

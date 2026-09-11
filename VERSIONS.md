@@ -4,7 +4,32 @@ Ushbu hujjatda loyihaning barcha versiyalari, kiritilgan yangiliklar va ularning
 
 ---
 
-### 🚀 [v7.0.0] — 11.09.2026 (Joriy Faol Versiya)
+### 🚀 [v7.1.0] — 11.09.2026 (Joriy Faol Versiya)
+- **Tavsif:** Admin Panelda ID kodlari va sana oralig'i bo'yicha maxsus hisob-kitob bo'limi, Karmeddan to'g'ridan-to'g'ri (keshlanmagan) jonli qidiruv, Google Sheets 21-ustunli reestri va Excel (CSV UTF-8 BOM) eksporti.
+- **Kiritilgan Yangiliklar va Imkoniyatlar:**
+  1. **Admin Panel Maxsus Reestr Bo'limi (`admin.html`, `admin.js`, `admin.css`):**
+     - Tablar orqali navigatsiya: "Umumiy Analitika Dashborti" va yangi "ID Bo'yicha Maxsus Hisob-Kitob (Google Sheets Reestri)".
+     - Kirish parametrlari: Nuqta-vergul (`;`), vergul yoki qator tashlash orqali ajratilgan bemor ID raqamlari (ProtokolNo va KimlikNo).
+     - Sana oralig'i: `01.08.2026` dan `31.08.2026` gacha yoki istalgan sana (tezkor oylik tugmalar: Avgust, Sentyabr, Iyul, Iyun, Bugun).
+     - "Eskilari saqlanmasin" qat'iy talabi: Har bir so'rovda kesh chetlab o'tilib, faqat kiritilgan ID'lar bo'yicha Karmeddan to'g'ridan-to'g'ri jonli yangilanadi.
+  2. **Google Sheets Reestri bilan 1-ga-1 Mos 21 ta Ustun:**
+     - `№`, `ID`, `Ism va familiya`, `Тип`, `Xizmat Turi`, `Funktsional xizmat bolimi`, `Услуga`, `№ Карта`, `Тип Карта`, `Отделения`, `Лечащий врач`, `dr_uygulayan`, `Время_tarihi`, `Категория лыгот`, `Orderli_Ucret`, `Pulli_Ucret`, `Tolangan_ucret`, `Jami_ucret_toplam`, `Форма оплаты`, `Tolov Sana Tarihi`, `Holati`.
+  3. **Karmed Ko'p Organli Tekshiruvlar va Tariflar Hisobi (`lib/admin-analytics.js`):**
+     - Bemorning har bir a'zosi (`TaniHizmetBilgisiGetir`) bo'yicha alohida qator shakllantiriladi.
+     - Rezident, No Rezident, Sug'urta / Orderli toifalariga mos holda `Orderli_Ucret`, `Pulli_Ucret`, `Tolangan_ucret`, `Jami_ucret_toplam` aniq hisoblanadi.
+     - Bulk qidiruvdan topilmagan bemorlar uchun individual qidiruv fallback mexanizmi.
+  4. **Excel (CSV UTF-8 BOM) Yuklab Olish:**
+     - Excelda ochganda o'zbek va kirill harflari buzilmaydigan UTF-8 BOM (`\uFEFF`) va `;` separatorli eksport.
+     - Boshqaruv panelida real vaqtda jadval ichidan qidiruv va umumiy jami summalarni ko'rsatuvchi 6 ta KPI kartochkasi.
+  5. **Backend Server API (`logger_server.js`):**
+     - `POST /api/admin/custom-reestr` — ID'lar va sana oralig'i bo'yicha hisobot JSON.
+     - `POST / GET /api/admin/custom-reestr-export` — Excel CSV faylni to'g'ridan-to'g'ri yuklab olish.
+- **Tegishli Fayllar:**
+  - `lib/admin-analytics.js`, `logger_server.js`, `public/admin.html`, `public/admin.js`, `public/admin.css`
+
+---
+
+### ✅ [v7.0.0] — 11.09.2026 (Barqaror)
 - **Tavsif:** Git va GitHub doimiy tunnel brokeri, Android TV Smart Failover & 30 minutlik lokal port monitoringi, Shifokor F.I.SH va xona nomi integratsiyasi, Server o'chiq holatda toza TV ekrani.
 - **Kiritilgan Yangiliklar va Imkoniyatlar:**
   1. **Git & GitHub Doimiy Tunnel Brokeri:**

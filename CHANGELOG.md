@@ -1,5 +1,21 @@
 # KARMED RADIOLOGY NAVBAT VA MONITORING TIZIMI — VERSIYALAR TARIXI (CHANGELOG)
 
+## [v7.1.0] - 2026-09-11 (Admin Custom ID Registry & Google Sheets 21-Column Match)
+### Yangiliklar va Imkoniyatlar:
+- **Admin Panel Maxsus Reestr Bo'limi (`/admin.html` -> ID Bo'yicha Maxsus Hisob-Kitob)**:
+  - Bemor ID kodlari (ProtokolNo va KimlikNo) nuqta-vergul (`;`), vergul yoki qatorma-qator kiritiladi.
+  - Belgilangan muddat (masalan, 01.08.2026 dan 31.08.2026 gacha) bo'yicha Karmeddan to'g'ridan-to'g'ri yangi so'rov olinadi.
+  - "Eskilari saqlanmasin" — har bir hisob-kitobda eski kesh ishlatilmaydi, faqat berilgan ID'larning yangi holati olinadi.
+- **Google Sheets bilan 1-ga-1 Mos 21 ta Ustun**:
+  - `№`, `ID`, `Ism va familiya`, `Тип`, `Xizmat Turi`, `Funktsional xizmat bolimi`, `Услуга`, `№ Карта`, `Тип Карта`, `Отделения`, `Лечащий врач`, `dr_uygulayan`, `Время_tarihi`, `Категория лыгот`, `Orderli_Ucret`, `Pulli_Ucret`, `Tolangan_ucret`, `Jami_ucret_toplam`, `Форма оплаты`, `Tolov Sana Tarihi`, `Holati`.
+  - Har bir tekshirilgan organ bo'yicha alohida qator va tegishli tarif (Rezident 159,000, Sug'urta/Orderli 155,820, No-rezident 254,400).
+- **Excel (CSV UTF-8 BOM) Eksport**:
+  - Excelda format va o'zbek/kirill yozuvlari buzilmasligi uchun UTF-8 BOM (`\uFEFF`) va `;` separatorli fayl shakllantirish.
+- **Backend API (`logger_server.js`, `lib/admin-analytics.js`)**:
+  - `POST /api/admin/custom-reestr` va `POST / GET /api/admin/custom-reestr-export`.
+
+---
+
 ## [v7.0.0] - 2026-09-11 (GitHub Dynamic Tunnel Broker & Smart TV APK Failover)
 ### Yangiliklar va Arxitekturaviy Yechimlar:
 - **GitHub Doimiy Tunnel Brokeri (`tunnel_config.json` & `index.html`)**:

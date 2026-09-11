@@ -1,5 +1,5 @@
 /**
- * KARMED RADIOLOGY UTT NAVBAT VA KUNLIK LOGGER SERVER (v7.0.0)
+ * KARMED RADIOLOGY UTT NAVBAT VA KUNLIK LOGGER SERVER (v7.1.0)
  * 
  * Portlar Arxitekturasi:
  * - 9876: Registrator Posti & Asosiy Boshqaruv (index.html, statistika, to'liq boshqaruv)
@@ -1548,8 +1548,8 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       status: 'running',
-      version: '7.0.0',
-      system: 'Karmed Direct Master Sync v7.0.0',
+      version: '7.1.0',
+      system: 'Karmed Direct Master Sync v7.1.0',
       date: dateStr,
       logFile,
       localIps,
@@ -1581,12 +1581,12 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      latestVersion: "7.0.0",
-      versionCode: 700,
+      latestVersion: "7.1.0",
+      versionCode: 710,
       apkFileName: "UTT_TV_Navbat.apk",
       downloadUrl: "/download/UTT_TV_Navbat.apk",
       releaseDate: "11.09.2026",
-      releaseNotes: "v7.0.0: GitHub doimiy tunnel brokeri, avtomatik lokal portga o'tish (har 30 minutda), TV da shifokor F.I.SH va xona nomi ko'rinishi, server o'chiq bo'lganda ham toza xona ko'rinishi.",
+      releaseNotes: "v7.1.0: Admin panelida ID kodlar va sana oralig'i bo'yicha maxsus Karmed hisob-kitob bo'limi (Google Sheets reestri) va Excel eksport.",
       minSupportedVersion: "1.0.0"
     }));
     return;
@@ -1948,6 +1948,76 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ success: false, message: err.message }));
       });
+    return;
+  }
+
+  // N. ID KODLAR BO'YICHA MAXSUS KARMED REESTRI (/api/admin/custom-reestr)
+  if (req.method === 'POST' && pathname === '/api/admin/custom-reestr') {
+    parseJsonBody(req, async (err, body) => {
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: "Noto'g'ri JSON formati" }));
+        return;
+      }
+      try {
+        const ids = (body && body.ids) || '';
+        const startDate = (body && body.startDate) || '01.08.2026';
+        const endDate = (body && body.endDate) || '31.08.2026';
+        const forceFresh = body ? body.forceFresh !== false : true;
+
+        const result = await adminAnalytics.calculateCustomReestrByIds({
+          ids,
+          startDate,
+          endDate,
+          forceFresh
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(result));
+      } catch (calcErr) {
+        console.error('[Custom Reestr Error]:', calcErr);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: calcErr.message }));
+      }
+    });
+    return;
+  }
+
+  // O. ID KODLAR BO'YICHA REESTRNI EXCEL (CSV) EKSPORT QILISH (/api/admin/custom-reestr-export)
+  if ((req.method === 'POST' || req.method === 'GET') && pathname === '/api/admin/custom-reestr-export') {
+    const handleExport = async (ids, startDate, endDate) => {
+      try {
+        const result = await adminAnalytics.calculateCustomReestrByIds({
+          ids,
+          startDate: startDate || '01.08.2026',
+          endDate: endDate || '31.08.2026',
+          forceFresh: false
+        });
+        const csv = adminAnalytics.generateGoogleSheetCsvExport(result.rows);
+        const fileName = `Karmed_Reestr_${startDate}_${endDate}.csv`;
+
+        res.writeHead(200, {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${fileName}"`,
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(csv);
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end("Eksport xatosi: " + err.message);
+      }
+    };
+
+    if (req.method === 'POST') {
+      parseJsonBody(req, (err, body) => {
+        handleExport((body && body.ids) || '', (body && body.startDate), (body && body.endDate));
+      });
+    } else {
+      const ids = parsedUrl.searchParams.get('ids') || '';
+      const startDate = parsedUrl.searchParams.get('startDate') || '01.08.2026';
+      const endDate = parsedUrl.searchParams.get('endDate') || '31.08.2026';
+      handleExport(ids, startDate, endDate);
+    }
     return;
   }
 

@@ -42,6 +42,22 @@
         </div>
       </div>
 
+      <!-- NAVIGATION TABS (DASHBOARD VS CUSTOM REESTR) -->
+      <nav class="admin-nav-tabs">
+        <button type="button" class="nav-tab active" id="tab-btn-dashboard" data-tab="dashboard">
+          <span class="tab-icon">📊</span>
+          <span>Umumiy Analitika Dashborti</span>
+        </button>
+        <button type="button" class="nav-tab" id="tab-btn-reestr" data-tab="reestr">
+          <span class="tab-icon">📋</span>
+          <span>ID Bo'yicha Maxsus Hisob-Kitob (Google Sheets Reestri)</span>
+          <span class="tab-badge-new">v7.1</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- VIEW 1: DASHBOARD WRAPPER -->
+    <div id="view-dashboard" class="admin-view-panel active">
       <!-- FILTER & QUERY CONTROL BAR -->
       <div class="control-bar">
         <div class="date-controls">
@@ -81,9 +97,7 @@
       <div class="cache-banner" id="cache-status-banner">
         <span class="cache-indicator" id="cache-indicator">⚡ Ma'lumot kutilmoqda...</span>
         <span id="auto-refresh-status" style="font-size:12px; margin-left:12px; padding:3px 10px; border-radius:12px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); font-weight:600;">🟢 Jonli avto-yangilanish: Faol (45s)</span>
-        <span class="date-summary" id="date-summary-text">Muddat: Bugun</span>
       </div>
-    </header>
 
     <!-- KPI SUMMARY CARDS (5 METRICS - BOSILGANDA FILTRLANADI) -->
     <section class="kpi-grid">
@@ -484,6 +498,194 @@
       </div>
 
     </main>
+    </div> <!-- END VIEW 1: DASHBOARD -->
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: KARMED ID KODLAR BO'YICHA MAXSUS REESTR & HISOB-KITOB (v7.1)  -->
+    <!-- ===================================================================== -->
+    <div id="view-reestr" class="admin-view-panel" style="display: none;">
+      <!-- INPUT & FILTER PANEL -->
+      <section class="reestr-control-panel">
+        <div class="reestr-panel-header">
+          <div class="rph-title">
+            <span class="rph-icon">📋</span>
+            <div>
+              <h3>KARMED ID KODLARI BO'YICHA MAXSUS HISOB-KITOB & VEDOMOST</h3>
+              <p class="rph-subtitle">Bemor ID yoki Karta raqamlarini kiriting, kerakli oraliqni belgilang (eskilari saqlanmaydi). Ma'lumotlar to'g'ridan-to'g'ri Karmeddan olinadi va rasmiy Google Sheets vedomostiga 1-ga-1 mos ko'rinishda shakllanadi.</p>
+            </div>
+          </div>
+          <div class="rph-links">
+            <a href="https://docs.google.com/spreadsheets/d/19hHEtdoLXN7c09xcLoAb13cNkqjNWPt1ovv4Qd8KzA0/edit?gid=1390129708#gid=1390129708" target="_blank" rel="noopener noreferrer" class="btn-sheet-link" title="Rasmiy Google Sheets jadvalini yangi oynada ochish">
+              <span class="sheet-icon">📗</span> Google Sheets Namunasi
+            </a>
+          </div>
+        </div>
+
+        <div class="reestr-form-grid">
+          <!-- 1. TEXTAREA FOR IDS -->
+          <div class="reestr-ids-box">
+            <div class="rib-header">
+              <label for="reestr-input-ids">
+                <strong>🆔 Bemor ID / Karta raqamlari</strong>
+                <span class="text-muted">(nuqtali vergul <code>;</code>, vergul yoki yangi qator bilan ajrating):</span>
+              </label>
+              <div class="rib-actions">
+                <button type="button" class="btn-sm btn-outline-chip" id="btn-sample-ids">📋 Namuna IDlar</button>
+                <button type="button" class="btn-sm btn-outline-chip btn-danger-chip" id="btn-clear-ids">🧹 Tozalash</button>
+              </div>
+            </div>
+            <textarea id="reestr-input-ids" class="reestr-textarea" rows="4" placeholder="Masalan: 40852; 40857; 50443; 260020144; 260060508; ..."></textarea>
+            <div class="rib-footer">
+              <span class="chip-counter" id="reestr-ids-counter">Kiritilgan IDlar: <strong>0 ta</strong></span>
+              <span class="reestr-clean-badge">⚡ Eskilari saqlanmaydi • Faqat joriy so'rov</span>
+            </div>
+          </div>
+
+          <!-- 2. DATES & ACTIONS -->
+          <div class="reestr-dates-box">
+            <div class="rdb-inputs">
+              <div class="input-group">
+                <label for="reestr-start-date">📅 Boshlanish sanasi:</label>
+                <input type="text" id="reestr-start-date" class="date-input" value="01.08.2026" placeholder="01.08.2026">
+              </div>
+              <div class="input-group">
+                <label for="reestr-end-date">📅 Tugash sanasi:</label>
+                <input type="text" id="reestr-end-date" class="date-input" value="31.08.2026" placeholder="31.08.2026">
+              </div>
+            </div>
+
+            <div class="rdb-presets">
+              <span class="preset-label">Tezkor muddat:</span>
+              <button type="button" class="btn-preset active" data-rpreset="august">Avgust 2026</button>
+              <button type="button" class="btn-preset" data-rpreset="september">Sentabr 2026</button>
+              <button type="button" class="btn-preset" data-rpreset="july">Iyul 2026</button>
+              <button type="button" class="btn-preset" data-rpreset="june">Iyun 2026</button>
+              <button type="button" class="btn-preset" data-rpreset="today">Bugun</button>
+            </div>
+
+            <div class="rdb-actions">
+              <button type="button" class="btn-primary btn-lg" id="btn-calc-reestr">
+                <span class="btn-icon">⚡</span> Karmeddan Hisobotni Olish
+              </button>
+              <button type="button" class="btn-success btn-lg" id="btn-export-reestr" title="Vedomostni Excel formatida yuklab olish">
+                <span class="btn-icon">📥</span> Excelga Yuklab Olish (.csv)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI METRICS SUMMARY FOR REESTR -->
+      <section class="reestr-kpi-grid" id="reestr-kpi-grid" style="display: none;">
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">🎯</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value" id="rkpi-req-ids">0</div>
+            <div class="rkpi-title">So'ralgan IDlar</div>
+          </div>
+        </div>
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">✅</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value text-success" id="rkpi-found-ids">0</div>
+            <div class="rkpi-title">Topilgan Bemorlar</div>
+          </div>
+        </div>
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">🩺</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value text-primary" id="rkpi-services-count">0</div>
+            <div class="rkpi-title">Jami Tekshiruvlar (Qatorlar)</div>
+          </div>
+        </div>
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">📜</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value text-warning" id="rkpi-order-sum">0 so'm</div>
+            <div class="rkpi-title">Orderli / Sug'urta Summasi</div>
+          </div>
+        </div>
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">💵</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value text-purple" id="rkpi-pulli-sum">0 so'm</div>
+            <div class="rkpi-title">Pulli Xizmatlar Summasi</div>
+          </div>
+        </div>
+        <div class="reestr-kpi-card">
+          <div class="rkpi-icon">💰</div>
+          <div class="rkpi-body">
+            <div class="rkpi-value text-emerald" id="rkpi-total-sum">0 so'm</div>
+            <div class="rkpi-title">Jami Hisoblangan Tushum</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA TABLE (21 COLUMNS MATCHING GOOGLE SHEETS) -->
+      <section class="reestr-table-card">
+        <div class="reestr-table-topbar">
+          <div class="rtt-left">
+            <span class="rtt-icon">📊</span>
+            <h4>KARMED TEKSHIRUVLAR REESTRI (21 TA USTUNLI GOOGLE SHEETS FORMULASI)</h4>
+            <span class="badge-count" id="reestr-rows-count-badge">0 ta yozuv</span>
+          </div>
+          <div class="rtt-right">
+            <input type="text" id="reestr-table-search" class="search-input" placeholder="Jadval ichidan qidirish (F.I.SH, organ, vrach, ID)...">
+          </div>
+        </div>
+
+        <div class="reestr-table-scroll-container">
+          <table class="data-table reestr-custom-table" id="reestr-custom-table">
+            <thead>
+              <tr>
+                <th style="min-width: 50px;">№</th>
+                <th style="min-width: 105px;">ID</th>
+                <th style="min-width: 180px;">Ism va familiya</th>
+                <th style="min-width: 130px;">Тип</th>
+                <th style="min-width: 110px;">Xizmat Turi</th>
+                <th style="min-width: 120px;">Funktsional xizmat bo'limi</th>
+                <th style="min-width: 230px;">Услуга</th>
+                <th style="min-width: 90px;">№ Карта</th>
+                <th style="min-width: 100px;">Тип Карта</th>
+                <th style="min-width: 160px;">Отделения</th>
+                <th style="min-width: 160px;">Лечащий врач</th>
+                <th style="min-width: 160px;">dr_uygulayan</th>
+                <th style="min-width: 130px;">Время_tarihi</th>
+                <th style="min-width: 130px;">Категория льгот</th>
+                <th style="min-width: 125px;" class="text-right">Orderli_Ucret</th>
+                <th style="min-width: 125px;" class="text-right">Pulli_Ucret</th>
+                <th style="min-width: 125px;" class="text-right">Tolangan_ucret</th>
+                <th style="min-width: 135px;" class="text-right">Jami_ucret_toplam</th>
+                <th style="min-width: 110px;">Форма оплаты</th>
+                <th style="min-width: 130px;">Tolov Sana Tarihi</th>
+                <th style="min-width: 120px;">Holati</th>
+              </tr>
+            </thead>
+            <tbody id="reestr-tbody">
+              <tr>
+                <td colspan="21" class="reestr-empty-cell">
+                  <div class="reestr-empty-prompt">
+                    <span class="rep-icon">📋</span>
+                    <h4>Hisob-kitob qilish uchun ID kodlarni kiriting</h4>
+                    <p>Yuqoridagi maydonga bemor ID yoki karta raqamlarini kiriting va <strong>"Karmeddan Hisobotni Olish"</strong> tugmasini bosing.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="reestr-tfoot" style="display: none;">
+              <tr class="reestr-footer-row">
+                <td colspan="14" class="text-right"><strong>JAMI YIG'INDI:</strong></td>
+                <td class="text-right total-orderli" id="reestr-foot-orderli">0,00</td>
+                <td class="text-right total-pulli" id="reestr-foot-pulli">0,00</td>
+                <td class="text-right total-tolangan" id="reestr-foot-tolangan">0,00</td>
+                <td class="text-right total-jami" id="reestr-foot-jami">0,00</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+    </div> <!-- END VIEW 2: REESTR -->
 
     <!-- ===================================================================== -->
     <!-- DOCTOR PATIENTS MODAL (BEMORLAR RO'YXATI MODALI)                      -->
