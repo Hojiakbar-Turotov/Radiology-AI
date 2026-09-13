@@ -1020,6 +1020,19 @@ async function searchPatientInKarmed(patientId) {
 
           let labResults = cachedPatientLab;
 
+          let examDuration = 25;
+          try {
+            const servicesCatalog = readJson(SERVICES_FILE, []);
+            const matchedService = servicesCatalog.find(sc => sc.code === sCode);
+            if (matchedService && matchedService.duration) {
+              examDuration = parseInt(matchedService.duration, 10);
+            } else if (modality === 'MSKT') {
+              examDuration = isContrast ? 30 : 20;
+            } else {
+              examDuration = isContrast ? 35 : 25;
+            }
+          } catch (e) {}
+
           eligibleExams.push({
             dosyaId: dosya.Id,
             protokolNo: dosya.ProtokolNo,
@@ -1030,6 +1043,7 @@ async function searchPatientInKarmed(patientId) {
             modality: modality,
             suggestedDevice: suggestedDevice,
             isContrast: isContrast,
+            durationMinutes: examDuration,
             labResults: labResults,
             doctorName: s.IDoktorAdSoyad || s.DoktorAdSoyad || dosya.DosyaDoktoru || '',
             roomName: dosya.AltBolumAdi || dosya.OdaAdi || '',
@@ -1478,6 +1492,7 @@ const server = http.createServer(async (req, res) => {
       let slotInfo = {
         date: body.scheduledDate || new Date().toISOString().split('T')[0],
         startTime: body.scheduledTime || '09:00',
+        finishTime: body.finishTime || null,
         durationMinutes: parseInt(body.durationMinutes || 30, 10),
         deviceId: body.deviceId || 'mrt1'
       };
@@ -1514,7 +1529,7 @@ const server = http.createServer(async (req, res) => {
       if (!slotValidation.valid) {
         return sendJson(res, { success: false, error: slotValidation.error }, 400);
       }
-      slotInfo.finishTime = slotValidation.finishTime;
+      slotInfo.finishTime = slotInfo.finishTime || slotValidation.finishTime || scheduler.minToTime(scheduler.timeToMin(slotInfo.startTime) + slotInfo.durationMinutes);
 
       // Talon raqami: M-001 (MRT) yoki K-001 (MSKT)
       const dayPatients = queue.filter(p => (p.date === slotInfo.date || p.scheduledDate === slotInfo.date));
@@ -1538,7 +1553,8 @@ const server = http.createServer(async (req, res) => {
         date: slotInfo.date,
         scheduledDate: slotInfo.date,
         scheduledTime: slotInfo.startTime,
-        timeSlot: slotInfo.finishTime ? `${slotInfo.startTime} - ${slotInfo.finishTime}` : `${slotInfo.startTime}`,
+        finishTime: slotInfo.finishTime,
+        timeSlot: `${slotInfo.startTime} - ${slotInfo.finishTime}`,
         primaryService: body.serviceName || 'MRT Tekshiruvi',
         serviceCode: body.serviceCode || '',
         isCombined: Boolean(body.isCombined),
@@ -1548,6 +1564,7 @@ const server = http.createServer(async (req, res) => {
         deviceId: slotInfo.deviceId,
         deviceType: slotInfo.deviceId.includes('mskt') ? 'MSKT' : 'MRT',
         status: 'waiting',
+        durationMinutes: slotInfo.durationMinutes,
         estimatedDurationMinutes: slotInfo.durationMinutes,
         preparation: body.isContrast ? 'Och qoringa kelish (kamida 4 soat ovqatlanmaslik) va barcha metall buyumlarni yechish.' : 'Barcha metall buyumlar, soat va telefonni yechish.',
         referringDoctor: body.referringDoctor || '',

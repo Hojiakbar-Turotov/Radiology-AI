@@ -278,12 +278,21 @@ const server = http.createServer(async (req, res) => {
       // Eng yaqin bo'sh slotni hisoblash (agar oldindan berilmagan bo'lsa)
       let slotInfo = {
         date: body.scheduledDate || new Date().toISOString().split('T')[0],
-        startTime: body.scheduledTime || '09:00',
+        startTime: body.scheduledTime || body.startTime || '09:00',
+        finishTime: body.finishTime || body.endTime || null,
         durationMinutes: parseInt(body.durationMinutes || 30, 10),
         deviceId: body.deviceId || 'mrt1'
       };
 
-      if (!body.scheduledTime) {
+      if (slotInfo.finishTime) {
+        const sMin = scheduler.timeToMin(slotInfo.startTime);
+        const fMin = scheduler.timeToMin(slotInfo.finishTime);
+        if (!isNaN(sMin) && !isNaN(fMin) && fMin > sMin) {
+          slotInfo.durationMinutes = fMin - sMin;
+        }
+      }
+
+      if (!body.scheduledTime && !body.startTime) {
         const autoSlot = findNextAvailableSmartSlot(body);
         if (autoSlot.success) {
           slotInfo.date = autoSlot.date;
@@ -305,10 +314,10 @@ const server = http.createServer(async (req, res) => {
 
       // Agar vaqt band bo'lsa yoki ish jadvalidan tashqari bo'lsa:
       if (!slotValidation.valid) {
-        if (body.forceBooking) {
-          // ADMIN IMTIYOZI: Ustma-ust navbatga yozishga ruxsat
+        if (body.forceBooking || body.isCustomTimeOverride || body.isAdmin) {
+          // ADMIN IMTIYOZI: Ustma-ust yoki istisno tariqasida navbatga yozishga ruxsat
           const sMin = scheduler.timeToMin(slotInfo.startTime);
-          const fMin = sMin + slotInfo.durationMinutes;
+          const fMin = slotInfo.finishTime ? scheduler.timeToMin(slotInfo.finishTime) : (sMin + slotInfo.durationMinutes);
           slotInfo.finishTime = scheduler.minToTime(fMin);
         } else {
           return sendJson(res, {
@@ -319,7 +328,7 @@ const server = http.createServer(async (req, res) => {
           }, 400);
         }
       } else {
-        slotInfo.finishTime = slotValidation.finishTime;
+        slotInfo.finishTime = slotInfo.finishTime || slotValidation.finishTime;
       }
 
       // Navbat raqami generatsiyasi (M-001, M-002 yoki K-001)
@@ -360,12 +369,14 @@ const server = http.createServer(async (req, res) => {
         date: slotInfo.date,
         scheduledDate: slotInfo.date,
         scheduledTime: slotInfo.startTime,
+        finishTime: slotInfo.finishTime,
         timeSlot: slotInfo.finishTime ? `${slotInfo.startTime} - ${slotInfo.finishTime}` : `${slotInfo.startTime}`,
         primaryService: body.primaryService || body.serviceName || 'MRT Tekshiruvi',
         isContrast: Boolean(body.isContrast),
         deviceId: slotInfo.deviceId,
         deviceType: slotInfo.deviceId.includes('mskt') ? 'MSKT' : 'MRT',
         status: 'waiting', // waiting -> calling -> in_progress -> completed -> cancelled
+        durationMinutes: slotInfo.durationMinutes,
         estimatedDurationMinutes: slotInfo.durationMinutes,
         estimatedStartTime: `${slotInfo.date}T${slotInfo.startTime}:00.000Z`,
         preparation: body.preparation || (body.isContrast ? 'Och qoringa kelish (kamida 4 soat oldin ovqatlanmaslik) va barcha metall buyumlarni yechish.' : 'Barcha metall buyumlar, soat va telefonni yechish.'),

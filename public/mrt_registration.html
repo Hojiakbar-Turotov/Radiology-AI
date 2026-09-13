@@ -820,14 +820,29 @@
           </select>
         </div>
 
-        <div style="display:flex; gap:10px; margin-bottom:12px;">
-          <div class="form-group" style="flex:1;">
-            <label>Rejalashtirilgan Sana:</label>
+        <div style="display:grid; grid-template-columns: 1.1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group">
+            <label><i class="fa-regular fa-calendar"></i> Sana:</label>
             <input type="date" id="bDate" onchange="check10DaysRuleOnDateChange(); updateSmartSlotForModal();" required>
           </div>
-          <div class="form-group" style="flex:1;">
-            <label>Vaqti:</label>
-            <input type="time" id="bTime" onchange="validateChosenTimeSlot()" required>
+          <div class="form-group">
+            <label><i class="fa-regular fa-clock"></i> Boshlanish Vaqti:</label>
+            <input type="time" id="bTime" onchange="onRegistratorTimeInputChanged()" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-flag-checkered"></i> Tugash Vaqti:</label>
+            <input type="time" id="bEndTime" readonly style="background:#f1f5f9; color:#0f172a; font-weight:800; cursor:not-allowed; border:1.5px solid #cbd5e1;" title="Standart me'yoriy vaqt asosida avtomatik hisoblanadi (Registratorda o'zgartirish huquqi yo'q)">
+          </div>
+        </div>
+
+        <div id="regTimeIntervalNotice" style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; padding:8px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <div>
+            <span style="font-size:11.5px; color:#15803d; font-weight:700;"><i class="fa-solid fa-stopwatch"></i> Rejalashtirilgan oraliq:</span>
+            <div style="font-size:14px; font-weight:900; color:#166534;" id="regTimeDisplay">-</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:11px; color:#15803d; font-weight:600;"><i class="fa-solid fa-lock"></i> Me'yoriy davomiylik:</span>
+            <div style="font-size:13px; font-weight:800; color:#166534;" id="regDurationDisplay">25 daqiqa</div>
           </div>
         </div>
 
@@ -2069,14 +2084,69 @@
       }
     }
 
+    function timeToMin(timeStr) {
+      if (!timeStr || typeof timeStr !== 'string') return 0;
+      const [h, m] = timeStr.trim().split(':').map(Number);
+      return (h || 0) * 60 + (m || 0);
+    }
+
+    function minToTime(totalMin) {
+      const h = Math.floor(totalMin / 60) % 24;
+      const m = totalMin % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function addMinutesToTime(timeStr, mins) {
+      if (!timeStr) return '';
+      const current = timeToMin(timeStr);
+      return minToTime(current + (parseInt(mins, 10) || 0));
+    }
+
+    function getExamExactDuration() {
+      if (!selectedExamData) return 25;
+      if (selectedExamData.isCombined) {
+        return selectedExamData.durationMinutes || 50;
+      }
+      if (selectedExamData.durationMinutes) {
+        return parseInt(selectedExamData.durationMinutes, 10);
+      }
+      const isContrast = document.getElementById("bContrast") ? document.getElementById("bContrast").checked : Boolean(selectedExamData.isContrast);
+      const isMskt = selectedExamData.modality === 'MSKT';
+      if (isMskt) return isContrast ? 30 : 20;
+      return isContrast ? 35 : 25;
+    }
+
+    function syncRegistratorTimes() {
+      const dur = getExamExactDuration();
+      const bTimeEl = document.getElementById("bTime");
+      const bEndTimeEl = document.getElementById("bEndTime");
+      const timeDisp = document.getElementById("regTimeDisplay");
+      const durDisp = document.getElementById("regDurationDisplay");
+
+      if (durDisp) durDisp.innerText = `${dur} daqiqa (Me'yor)`;
+
+      if (bTimeEl && bTimeEl.value) {
+        const endTime = addMinutesToTime(bTimeEl.value, dur);
+        if (bEndTimeEl) bEndTimeEl.value = endTime;
+        if (timeDisp) timeDisp.innerHTML = `<b>${bTimeEl.value}</b> dan <b>${endTime}</b> gacha (${dur} daqiqa)`;
+      } else {
+        if (bEndTimeEl) bEndTimeEl.value = '';
+        if (timeDisp) timeDisp.innerText = '-';
+      }
+    }
+
+    function onRegistratorTimeInputChanged() {
+      syncRegistratorTimes();
+      validateChosenTimeSlot();
+    }
+
     let modalSlotsData = null;
 
     async function updateSmartSlotForModal() {
       if (!selectedExamData) return;
       const deviceId = document.getElementById("bDevice").value;
-      const isContrast = document.getElementById("bContrast").checked;
       const scheduledDate = document.getElementById("bDate").value;
-      const durationMinutes = selectedExamData.durationMinutes || (isContrast ? 40 : 30);
+      const durationMinutes = getExamExactDuration();
 
       const alertEl = document.getElementById("bookingDayStatusAlert");
       const slotsCont = document.getElementById("bookingSlotsContainer");
@@ -2085,6 +2155,8 @@
       const busyList = document.getElementById("bookingBusySlotsList");
       const btnSubmit = document.getElementById("btnSubmitBooking");
       const errBox = document.getElementById("bookingErrorMsg");
+
+      syncRegistratorTimes();
 
       try {
         const res = await fetch("/api/queue/available-slots", {
@@ -2125,15 +2197,22 @@
         // Tavsiya etilgan slotni tanlash
         if (data.recommendedSlot) {
           document.getElementById("bTime").value = data.recommendedSlot;
+          syncRegistratorTimes();
         }
 
-        // Bo'sh slotlar tugmalari
+        // Bo'sh slotlar tugmalari (Boshlanish va tugash vaqti bilan)
         if (data.availableSlots && data.availableSlots.length > 0) {
-          pillsCont.innerHTML = data.availableSlots.slice(0, 18).map(slot => `
-            <button type="button" class="slot-pill ${slot === document.getElementById("bTime").value ? 'active' : ''}" onclick="selectModalTimeSlot('${slot}')">
-              ${slot}
-            </button>
-          `).join('');
+          const dur = getExamExactDuration();
+          pillsCont.innerHTML = data.availableSlots.slice(0, 24).map(slot => {
+            const finish = addMinutesToTime(slot, dur);
+            const isActive = (slot === document.getElementById("bTime").value);
+            return `
+              <button type="button" class="slot-pill ${isActive ? 'active' : ''}" onclick="selectModalTimeSlot('${slot}')" style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px;">
+                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${slot} – ${finish}</span>
+                <span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:1px 5px; border-radius:4px; font-weight:700;">${dur}m</span>
+              </button>
+            `;
+          }).join('');
         } else {
           pillsCont.innerHTML = `<span style="font-size:12px; color:#b91c1c; font-weight:700;">⚠️ Ushbu kunda barcha vaqtlar to'lgan!</span>`;
         }
@@ -2141,7 +2220,7 @@
         // Band vaqtlar (collision haqida xabar)
         if (data.busySlots && data.busySlots.length > 0) {
           busyList.style.display = "block";
-          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.start}-${b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.startTime}-${b.finishTime} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
         } else {
           busyList.style.display = "none";
         }
@@ -2155,8 +2234,9 @@
     function selectModalTimeSlot(slot) {
       document.getElementById("bTime").value = slot;
       document.querySelectorAll("#bookingSlotPills .slot-pill").forEach(p => {
-        p.classList.toggle("active", p.innerText.trim() === slot);
+        p.classList.toggle("active", p.innerText.includes(slot));
       });
+      syncRegistratorTimes();
       validateChosenTimeSlot();
     }
 
@@ -2175,10 +2255,12 @@
         return;
       }
 
+      syncRegistratorTimes();
+
       // Band vaqtlar bilan to'qnashuvni mijoz tomonida ham tekshirish
       if (modalSlotsData.busySlots && modalSlotsData.busySlots.length > 0) {
         const isOverlap = modalSlotsData.busySlots.some(b => {
-          return (chosenTime >= b.start && chosenTime < b.end);
+          return (chosenTime >= b.startTime && chosenTime < b.finishTime);
         });
         if (isOverlap) {
           errBox.style.display = "block";
@@ -2204,6 +2286,10 @@
         return;
       }
 
+      const dur = getExamExactDuration();
+      const startTime = document.getElementById("bTime").value;
+      const finishTime = document.getElementById("bEndTime").value || addMinutesToTime(startTime, dur);
+
       const isCombined = Boolean(selectedExamData.isCombined);
       const payload = {
         patientId: currentPatientData.patientId,
@@ -2227,16 +2313,17 @@
           dosyaId: c.dosyaId,
           protokolNo: c.protokolNo
         })) : null,
-        durationMinutes: selectedExamData.durationMinutes || (document.getElementById("bContrast").checked ? 40 : 30),
+        durationMinutes: dur,
         isContrast: document.getElementById("bContrast").checked,
         deviceId: document.getElementById("bDevice").value,
         scheduledDate: document.getElementById("bDate").value,
-        scheduledTime: document.getElementById("bTime").value,
+        scheduledTime: startTime,
+        finishTime: finishTime,
+        timeSlot: `${startTime} - ${finishTime}`,
         maxAllowedDate: selectedExamData.maxAllowedDate,
         requiresPaymentConfirmation: currentPatientData.requiresPaymentConfirmation,
         paymentConfirmed: document.getElementById("chkPaymentConfirmed").checked,
         patientCategory: currentPatientData.patientCategory,
-        labResults: selectedExamData.labResults || null
       };
 
       const todayStr = new Date().toISOString().split("T")[0];
@@ -2358,7 +2445,7 @@
           <div class="q-item ${statusCls}">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="q-ticket">${escapeHtml(p.ticketNumber)}</span>
-              <span style="font-weight:700; color:var(--muted); font-size:11px;">⏰ ${escapeHtml(p.scheduledTime || '')}</span>
+              <span style="font-weight:800; color:#0369a1; font-size:11.5px;">⏰ ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}</span>
             </div>
             <div style="font-weight:800; color:#0f172a; margin-top:2px;">${escapeHtml(p.patientName)}</div>
             <div style="font-size:11px; color:var(--muted); margin-top:1px;">${escapeHtml(p.primaryService || '')}</div>

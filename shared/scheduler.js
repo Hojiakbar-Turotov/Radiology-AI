@@ -219,6 +219,7 @@ function getAvailableSlotsForDay(dateStr, deviceId, durationMinutes, queue) {
   const currentMin = now.getHours() * 60 + now.getMinutes();
 
   const availableSlots = [];
+  const availableSlotsDetailed = [];
 
   sched.intervals.forEach(inv => {
     const shiftStart = timeToMin(inv.start);
@@ -231,7 +232,16 @@ function getAvailableSlotsForDay(dateStr, deviceId, durationMinutes, queue) {
       const cEnd = candidate + dur;
       const collides = busySlots.some(b => Math.max(candidate, b.startMin) < Math.min(cEnd, b.endMin));
       if (!collides) {
-        availableSlots.push(minToTime(candidate));
+        const sTime = minToTime(candidate);
+        const fTime = minToTime(cEnd);
+        availableSlots.push(sTime);
+        availableSlotsDetailed.push({
+          startTime: sTime,
+          finishTime: fTime,
+          duration: dur,
+          timeSlot: `${sTime} - ${fTime}`,
+          label: `${sTime} – ${fTime} (${dur} daq)`
+        });
       }
     }
   });
@@ -241,6 +251,7 @@ function getAvailableSlotsForDay(dateStr, deviceId, durationMinutes, queue) {
     isOpen: true,
     dayName: sched.dayName,
     reason: '',
+    durationMinutes: dur,
     intervals: sched.intervals,
     busySlots: busySlots.map(b => ({
       ticketNumber: b.ticketNumber,
@@ -251,7 +262,9 @@ function getAvailableSlotsForDay(dateStr, deviceId, durationMinutes, queue) {
       finishTime: b.finishTime
     })),
     availableSlots: availableSlots,
-    recommendedSlot: availableSlots.length > 0 ? availableSlots[0] : null
+    availableSlotsDetailed: availableSlotsDetailed,
+    recommendedSlot: availableSlots.length > 0 ? availableSlots[0] : null,
+    recommendedFinishTime: availableSlots.length > 0 ? minToTime(timeToMin(availableSlots[0]) + dur) : null
   };
 }
 

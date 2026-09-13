@@ -1021,15 +1021,30 @@
           </select>
         </div>
 
-        <div style="display:flex; gap:10px; margin-bottom:12px;">
-          <div class="form-group" style="flex:1;">
-            <label>Rejalashtirilgan Sana:</label>
+        <div style="display:grid; grid-template-columns: 1.1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group">
+            <label><i class="fa-regular fa-calendar"></i> Sana:</label>
             <!-- DIQQAT: Admin uchun min cheklovi YO'Q (oldingi kunlarga yozishi mumkin!) -->
             <input type="date" id="admBDate" onchange="updateSmartSlotForAdminModal()" required>
           </div>
-          <div class="form-group" style="flex:1;">
-            <label>Vaqti:</label>
-            <input type="time" id="admBTime" onchange="validateAdminChosenSlot()" required>
+          <div class="form-group">
+            <label><i class="fa-regular fa-clock"></i> Boshlanish Vaqti:</label>
+            <input type="time" id="admBTime" onchange="onAdminStartTimeChanged()" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-flag-checkered" style="color:#7c3aed;"></i> Tugash Vaqti (Istisno):</label>
+            <input type="time" id="admBEndTime" onchange="onAdminEndTimeChanged()" required style="border:2px solid #8b5cf6; font-weight:800; color:#4c1d95; background:#faf5ff;" title="Admin istisno tariqasida boshlanish va tugash vaqtlarini erkin belgilashi mumkin">
+          </div>
+        </div>
+
+        <div id="admTimeNoticeBox" style="background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12.5px; color:#581c87; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <div>
+            <span style="font-size:11.5px; color:#7e22ce; font-weight:700;"><i class="fa-solid fa-business-time"></i> Belgilangan vaqt oralig'i:</span>
+            <div style="font-size:14px; font-weight:900; color:#4c1d95;" id="admCalculatedTimeText">-</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:11px; color:#7e22ce; font-weight:600;"><i class="fa-solid fa-crown"></i> Admin istisno huquqi:</span>
+            <div style="font-size:13px; font-weight:800; color:#6b21a8;" id="admCalculatedDurText">30 daqiqa</div>
           </div>
         </div>
 
@@ -1550,7 +1565,7 @@
       document.getElementById("tNumber").innerText = pat.patientId || pat.ticketNumber || '-';
       document.getElementById("tPatientName").innerText = pat.patientName || '';
       document.getElementById("tServiceName").innerText = (pat.primaryService || pat.serviceName || '') + (pat.isContrast ? " (KONTRAST BILAN)" : "");
-      document.getElementById("tDateTime").innerText = `📅 ${pat.scheduledDate || pat.date || ''} | ⏰ ${pat.scheduledTime || ''}`;
+      document.getElementById("tDateTime").innerText = `📅 ${pat.scheduledDate || pat.date || ''} | ⏰ ${pat.timeSlot || (pat.finishTime ? `${pat.scheduledTime} – ${pat.finishTime}` : pat.scheduledTime) || ''}`;
       document.getElementById("tDeviceName").innerText = (pat.deviceId || '').toUpperCase();
       document.getElementById("tPreparation").innerText = pat.preparation || "ℹ️ Eslatma: Iltimos, belgilangan vaqtdan 30 daqiqa oldin xona oldida hozir bo'ling. Barcha metall buyumlarni yechish shart.";
       document.getElementById("modalTicket").style.display = "flex";
@@ -1628,7 +1643,7 @@
       padding: 6px 4px;
       text-align: center;
       margin: 8px 0;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 900;
       color: #000000 !important;
       background: #ffffff !important;
@@ -1677,7 +1692,7 @@
   <div class="t-hr"></div>
   <div class="t-time-box">
     ⏰ SANA: ${escapeHtml(p.scheduledDate || p.date || '')}<br>
-    VAQT: ${escapeHtml(p.scheduledTime || '')}
+    VAQT: ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}
   </div>
   <div class="t-row">Bemor: <strong>${escapeHtml(p.patientName || '')}</strong></div>
   <div class="t-row">Bo'lim: <strong>${escapeHtml(p.department || p.patientType || 'Ambulator')}</strong></div>
@@ -1807,6 +1822,9 @@
           </div>
           <div class="pat-name">${escapeHtml(p.patientName)}</div>
           <div class="pat-service">${escapeHtml(p.primaryService)} ${p.isContrast ? '• 💉 Kontrast' : ''}</div>
+          <div style="font-size:11.5px; font-weight:800; color:#0369a1; margin: 3px 0 5px 0;">
+            <i class="fa-regular fa-clock"></i> ⏰ ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}
+          </div>
           <div class="pat-actions">
             ${p.status !== 'calling' ? `<button class="btn btn-small btn-warning" onclick="callPatient('${p.id}')"><i class="fa-solid fa-bell"></i> Chaqirish</button>` : ''}
             ${p.status !== 'in_progress' ? `<button class="btn btn-small btn-success" onclick="setPatientStatus('${p.id}', 'in_progress')"><i class="fa-solid fa-door-open"></i> Xonada</button>` : ''}
@@ -2536,6 +2554,105 @@
       alert(`ℹ️ [${sCode}] ${sName} tekshiruvi javobini chop etish funksiyasi hali tayyor emas.\n\nBemor: ${pat ? pat.fullName : ''}\nHolati: ${ex ? (ex.completedReason || 'O\'tkazilgan') : ''}`);
     }
 
+    function timeToMin(t) {
+      if (!t) return 0;
+      const [h, m] = t.split(':').map(Number);
+      return (h * 60) + (m || 0);
+    }
+
+    function minToTime(m) {
+      const h = Math.floor(m / 60) % 24;
+      const min = m % 60;
+      return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    }
+
+    function addMinutesToTime(timeStr, mins) {
+      if (!timeStr) return '';
+      const current = timeToMin(timeStr);
+      return minToTime(current + (parseInt(mins, 10) || 0));
+    }
+
+    let adminCustomDuration = null;
+
+    function getAdminExamStandardDuration() {
+      if (!adminSelectedExam) return 25;
+      if (adminSelectedExam.isCombined) {
+        return adminSelectedExam.durationMinutes || 50;
+      }
+      if (adminSelectedExam.durationMinutes) {
+        return parseInt(adminSelectedExam.durationMinutes, 10);
+      }
+      const isContrast = document.getElementById("admBContrast") ? document.getElementById("admBContrast").checked : Boolean(adminSelectedExam.isContrast);
+      const isMskt = adminSelectedExam.modality === 'MSKT';
+      if (isMskt) return isContrast ? 30 : 20;
+      return isContrast ? 35 : 25;
+    }
+
+    function syncAdminTimes(forceDefault = false) {
+      const stdDur = getAdminExamStandardDuration();
+      const bTimeEl = document.getElementById("admBTime");
+      const bEndTimeEl = document.getElementById("admBEndTime");
+      const textDisp = document.getElementById("admCalculatedTimeText");
+      const durDisp = document.getElementById("admCalculatedDurText");
+
+      if (forceDefault) {
+        adminCustomDuration = null;
+      }
+
+      const startTime = bTimeEl ? bTimeEl.value : '';
+      if (!startTime) {
+        if (bEndTimeEl) bEndTimeEl.value = '';
+        if (textDisp) textDisp.innerText = '-';
+        if (durDisp) durDisp.innerText = `${stdDur} daqiqa (Me'yor)`;
+        return;
+      }
+
+      if (adminCustomDuration !== null && !forceDefault) {
+        const endTime = (bEndTimeEl && bEndTimeEl.value) ? bEndTimeEl.value : addMinutesToTime(startTime, adminCustomDuration);
+        const startM = timeToMin(startTime);
+        const endM = timeToMin(endTime);
+        const diff = (endM >= startM) ? (endM - startM) : (endM + 1440 - startM);
+        adminCustomDuration = diff;
+        if (bEndTimeEl) bEndTimeEl.value = endTime;
+        if (textDisp) textDisp.innerHTML = `<b>${startTime}</b> dan <b>${endTime}</b> gacha`;
+        if (durDisp) durDisp.innerHTML = `<span style="color:#7c3aed; font-weight:800;"><i class="fa-solid fa-crown"></i> ${diff} daqiqa (Istisno)</span>`;
+      } else {
+        const endTime = addMinutesToTime(startTime, stdDur);
+        if (bEndTimeEl) bEndTimeEl.value = endTime;
+        if (textDisp) textDisp.innerHTML = `<b>${startTime}</b> dan <b>${endTime}</b> gacha (${stdDur} daqiqa)`;
+        if (durDisp) durDisp.innerHTML = `${stdDur} daqiqa (Me'yor)`;
+      }
+    }
+
+    function onAdminStartTimeChanged() {
+      if (adminCustomDuration !== null) {
+        const bTimeEl = document.getElementById("admBTime");
+        const bEndTimeEl = document.getElementById("admBEndTime");
+        if (bTimeEl && bTimeEl.value && bEndTimeEl) {
+          bEndTimeEl.value = addMinutesToTime(bTimeEl.value, adminCustomDuration);
+        }
+      }
+      syncAdminTimes(false);
+      validateAdminChosenSlot();
+    }
+
+    function onAdminEndTimeChanged() {
+      const bTimeEl = document.getElementById("admBTime");
+      const bEndTimeEl = document.getElementById("admBEndTime");
+      if (bTimeEl && bTimeEl.value && bEndTimeEl && bEndTimeEl.value) {
+        const startM = timeToMin(bTimeEl.value);
+        const endM = timeToMin(bEndTimeEl.value);
+        let diff = endM - startM;
+        if (diff <= 0) {
+          diff = 15;
+          bEndTimeEl.value = addMinutesToTime(bTimeEl.value, 15);
+        }
+        adminCustomDuration = diff;
+      }
+      syncAdminTimes(false);
+      validateAdminChosenSlot();
+    }
+
     function openAdminBookingModal(examIdx) {
       if (!window.adminLoadedExams || !window.adminLoadedExams[examIdx]) return;
       const ex = window.adminLoadedExams[examIdx];
@@ -2568,6 +2685,7 @@
         labBox.style.display = "none";
       }
 
+      syncAdminTimes(true);
       updateSmartSlotForAdminModal();
       document.getElementById("modalAdminBooking").style.display = "flex";
     }
@@ -2611,6 +2729,7 @@
       document.getElementById("admCollisionPromptBox").style.display = "none";
       document.getElementById("admBookingErrorMsg").style.display = "none";
 
+      syncAdminTimes(true);
       updateSmartSlotForAdminModal();
       document.getElementById("modalAdminBooking").style.display = "flex";
     }
@@ -2622,15 +2741,16 @@
     async function updateSmartSlotForAdminModal() {
       if (!adminSelectedExam) return;
       const deviceId = document.getElementById("admBDevice").value;
-      const isContrast = document.getElementById("admBContrast").checked;
       const scheduledDate = document.getElementById("admBDate").value;
-      const durationMinutes = adminSelectedExam.durationMinutes || (isContrast ? 40 : 30);
+      const durationMinutes = getAdminExamStandardDuration();
 
       const alertEl = document.getElementById("admDayStatusAlert");
       const slotsCont = document.getElementById("admSlotsContainer");
       const shiftBadge = document.getElementById("admShiftBadge");
       const pillsCont = document.getElementById("admSlotPills");
       const busyList = document.getElementById("admBusySlotsList");
+
+      syncAdminTimes(false);
 
       try {
         const res = await fetch("/api/queue/available-slots", {
@@ -2662,21 +2782,28 @@
 
         if (data.recommendedSlot) {
           document.getElementById("admBTime").value = data.recommendedSlot;
+          syncAdminTimes(false);
         }
 
         if (data.availableSlots && data.availableSlots.length > 0) {
-          pillsCont.innerHTML = data.availableSlots.slice(0, 18).map(slot => `
-            <button type="button" class="slot-pill ${slot === document.getElementById("admBTime").value ? 'active' : ''}" onclick="selectAdminModalTimeSlot('${slot}')">
-              ${slot}
-            </button>
-          `).join('');
+          const stdDur = getAdminExamStandardDuration();
+          pillsCont.innerHTML = data.availableSlots.slice(0, 24).map(slot => {
+            const finish = addMinutesToTime(slot, stdDur);
+            const isActive = (slot === document.getElementById("admBTime").value);
+            return `
+              <button type="button" class="slot-pill ${isActive ? 'active' : ''}" onclick="selectAdminModalTimeSlot('${slot}')" style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px;">
+                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${slot} – ${finish}</span>
+                <span style="font-size:10px; background:#faf5ff; color:#7c3aed; padding:1px 5px; border-radius:4px; font-weight:700;">${stdDur}m</span>
+              </button>
+            `;
+          }).join('');
         } else {
           pillsCont.innerHTML = `<span style="font-size:12px; color:#b91c1c; font-weight:700;">⚠️ Ushbu kunda barcha vaqtlar to'lgan!</span>`;
         }
 
         if (data.busySlots && data.busySlots.length > 0) {
           busyList.style.display = "block";
-          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.start}-${b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.startTime || b.start}-${b.finishTime || b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
         } else {
           busyList.style.display = "none";
         }
@@ -2690,8 +2817,9 @@
     function selectAdminModalTimeSlot(slot) {
       document.getElementById("admBTime").value = slot;
       document.querySelectorAll("#admSlotPills .slot-pill").forEach(p => {
-        p.classList.toggle("active", p.innerText.trim() === slot);
+        p.classList.toggle("active", p.innerText.includes(slot));
       });
+      syncAdminTimes(true);
       validateAdminChosenSlot();
     }
 
@@ -2701,7 +2829,11 @@
       const isForce = document.getElementById("admForceBooking").checked;
 
       if (!isForce && adminModalSlots && adminModalSlots.busySlots && adminModalSlots.busySlots.length > 0) {
-        const isOverlap = adminModalSlots.busySlots.some(b => chosenTime >= b.start && chosenTime < b.end);
+        const isOverlap = adminModalSlots.busySlots.some(b => {
+          const s = b.startTime || b.start;
+          const e = b.finishTime || b.end;
+          return (chosenTime >= s && chosenTime < e);
+        });
         if (isOverlap) {
           errBox.style.display = "block";
           errBox.innerHTML = `⚠️ Diqqat: Bu vaqt (${chosenTime}) band! Ustma-ust yozish uchun pastdagi 'Ustma-ust navbatga yozish' katagini belgilang.`;
@@ -2718,6 +2850,13 @@
       const promptText = document.getElementById("admCollisionPromptText");
       errBox.style.display = "none";
       promptBox.style.display = "none";
+
+      const startTime = document.getElementById("admBTime").value;
+      const finishTime = document.getElementById("admBEndTime").value || addMinutesToTime(startTime, getAdminExamStandardDuration());
+      const startM = timeToMin(startTime);
+      const endM = timeToMin(finishTime);
+      const effectiveDuration = (endM > startM) ? (endM - startM) : getAdminExamStandardDuration();
+      const isCustomOverride = (adminCustomDuration !== null);
 
       const forceBooking = document.getElementById("admForceBooking").checked;
       const payload = {
@@ -2742,11 +2881,14 @@
           dosyaId: c.dosyaId,
           protokolNo: c.protokolNo
         })) : null,
-        durationMinutes: adminSelectedExam.durationMinutes || (document.getElementById("admBContrast").checked ? 40 : 30),
+        durationMinutes: effectiveDuration,
         isContrast: document.getElementById("admBContrast").checked,
         deviceId: document.getElementById("admBDevice").value,
         scheduledDate: document.getElementById("admBDate").value,
-        scheduledTime: document.getElementById("admBTime").value,
+        scheduledTime: startTime,
+        finishTime: finishTime,
+        timeSlot: `${startTime} - ${finishTime}`,
+        isCustomTimeOverride: isCustomOverride,
         forceBooking: forceBooking,
         operatorName: 'Admin'
       };
