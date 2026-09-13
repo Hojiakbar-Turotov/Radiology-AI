@@ -36,6 +36,7 @@ const PRINTER_SETTINGS_FILE = path.join(DATA_DIR, 'printer_settings.json');
 const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json');
 
 const scheduler = require('./shared/scheduler');
+const unifiedCore = require('./shared/unified_core');
 
 const KARMED_USERNAME = 'R5';
 const KARMED_PASSWORD = '17720';
@@ -1389,22 +1390,66 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { success: true, services, consentQuestions });
     }
 
-    // POST /api/karmed/search - Bemor ID bo'yicha qidirish (Yashirin Karmed R5 / 17720)
+    // POST /api/internal/ws-sync - Boshqa portlardan (masalan 9890) kelgan WS sinxronizatsiya
+    if (pathname === '/api/internal/ws-sync' && req.method === 'POST') {
+      return sendJson(res, { success: true });
+    }
+
+    // POST /api/karmed/search - Bemor ID bo'yicha qidirish (Yagona Karmed drayveri)
     if (pathname === '/api/karmed/search' && req.method === 'POST') {
       const body = await readBody(req);
-      const patientId = String(body.patientId || '').trim();
+      const patientId = String(body.patientId || body.query || '').trim();
 
       if (!patientId) {
         return sendJson(res, { success: false, error: "Bemor ID kiritilishi shart" }, 400);
       }
 
       try {
-        const result = await searchPatientInKarmed(patientId);
+        const result = await unifiedCore.searchPatientInKarmed(patientId);
         return sendJson(res, result);
       } catch (err) {
-        console.error("[Karmed Search Error]:", err.message);
+        console.error("[Karmed Search Error on 9891]:", err.message);
         return sendJson(res, { success: false, error: `Karmed aloqa xatosi: ${err.message}` }, 502);
       }
+    }
+
+    // GET /api/devices - Apparatlar ro'yxati
+    if (pathname === '/api/devices' && req.method === 'GET') {
+      const devices = readJson(DEVICES_FILE, unifiedCore.DEFAULT_DEVICES);
+      return sendJson(res, { success: true, devices });
+    }
+
+    // POST /api/devices - Apparat sozlamalarini saqlash
+    if (pathname === '/api/devices' && req.method === 'POST') {
+      const body = await readBody(req);
+      const devices = readJson(DEVICES_FILE, unifiedCore.DEFAULT_DEVICES);
+      if (Array.isArray(body)) {
+        writeJson(DEVICES_FILE, body);
+        unifiedCore.broadcastWs('devices_updated', body);
+        return sendJson(res, { success: true, devices: body, message: "Apparatlar ro'yxati saqlandi" });
+      } else if (body && body.id) {
+        const idx = devices.findIndex(d => d.id === body.id);
+        if (idx !== -1) {
+          devices[idx] = { ...devices[idx], ...body };
+        } else {
+          devices.push(body);
+        }
+        writeJson(DEVICES_FILE, devices);
+        unifiedCore.broadcastWs('devices_updated', devices);
+        return sendJson(res, { success: true, device: devices[idx !== -1 ? idx : devices.length - 1], message: "Apparat sozlamalari saqlandi" });
+      }
+      return sendJson(res, { success: false, error: "Noto'g'ri apparat ma'lumotlari" }, 400);
+    }
+
+    // GET & POST /api/admin/schedules
+    if (pathname === '/api/admin/schedules' && req.method === 'GET') {
+      const schedules = readJson(SCHEDULES_FILE, {});
+      return sendJson(res, { success: true, schedules });
+    }
+    if (pathname === '/api/admin/schedules' && req.method === 'POST') {
+      const body = await readBody(req);
+      writeJson(SCHEDULES_FILE, body);
+      return sendJson(res, { success: true, schedules: body, message: "Ish grafiklari saqlandi!" });
     }
 
     // GET /api/schedules - Ish grafiklarini olish
@@ -1438,13 +1483,13 @@ const server = http.createServer(async (req, res) => {
     // POST /api/queue/smart-slot - Eng yaqin bo'sh slotni hisoblash
     if (pathname === '/api/queue/smart-slot' && req.method === 'POST') {
       const body = await readBody(req);
-      const slot = findNextAvailableSmartSlot(body);
+      const queue = readJson(QUEUE_FILE, []);
+      const slot = scheduler.findNextAvailableSmartSlot(body, queue);
       return sendJson(res, slot);
     }
 
-    // POST /api/queue/book - Navbatga qo'yish (Qoidalar: 10 kunlik muddat + To'lov tasdiqlash)
+    // POST /api/queue/book - Navbatga qo'yish (Yagona drayver)
     if (pathname === '/api/queue/book' && req.method === 'POST') {
-      // 1. Ruxsatni tekshirish
       if (clientPerm.role === 'view_only') {
         return sendJson(res, { success: false, error: "Ushbu kompyuterga faqat kuzatish ruxsati berilgan!" }, 403);
       }
@@ -1454,214 +1499,80 @@ const server = http.createServer(async (req, res) => {
       const session = activeSessions.get(token);
       const operatorName = session ? `${session.username} (${session.name})` : 'Registrator';
 
-      // 2. Qoida: Rezident yoki No-rezident bo'lsa to'lov tasdiqlanishi shart!
-      // STATSIONAR QOIDASI: Statsionar bemorlarda to'lov so'ralmaydi, ular tekshiruvdan keyin to'lashi mumkin!
+      // To'lov tasdiqlanishi shart (Statsionar bundan mustasno)
       if (body.patientType !== 'Statsionar' && body.requiresPaymentConfirmation && body.paymentConfirmed !== true) {
         return sendJson(res, {
           success: false,
-          error: "To'lov amalga oshirilganligi tasdiqlanmadi! OGOHLANTIRISH: To'lov amalga oshirilmasa tekshiruv o'tkazilmaydi."
+          error: "To'lov tasdiqlanmagan! Rezident yoki No-rezident bemorlar uchun avval kassada to'lov qilinishi shart."
         }, 400);
       }
 
-      // 3. Qoida: 10 kundan o'tgan navbat berishlari amalga oshirilmasin!
-      if (body.isOlderThan10Days || (body.diffDays && body.diffDays > 10)) {
-        return sendJson(res, {
-          success: false,
-          error: `⛔ Ushbu tekshiruv ro'yxatga olinganiga 10 kundan oshgan (${body.diffDays || 10} kun)! Qoidaga asosan 10 kundan oshgan so'rovlar uchun navbat berish taqiqlanadi.`
-        }, 400);
-      }
-      if (body.maxAllowedDate && body.scheduledDate) {
-        if (body.scheduledDate > body.maxAllowedDate) {
-          return sendJson(res, {
-            success: false,
-            error: `⛔ Ro'yxatga olingan sanadan 10 kun keyin (${body.maxAllowedDate}) tekshiruvni o'tkazish mumkin emas!`
-          }, 400);
-        }
-      }
+      const resData = unifiedCore.bookPatient(body, operatorName, false);
+      return sendJson(res, resData, resData.statusCode || (resData.success ? 200 : 400));
+    }
 
-      // Qurilma mosligi tekshiruvi:
-      const targetDevId = body.deviceId;
-      const isContrastExam = Boolean(body.isContrast || (body.serviceName && (body.serviceName.toUpperCase().includes('KONTRAST') || body.serviceName.toUpperCase().includes('KM'))));
-      const isMsktExam = (body.modality === 'MSKT') || (body.serviceName && (body.serviceName.toUpperCase().includes('MSKT') || body.serviceName.toUpperCase().includes('KT')));
-      
-      if (isMsktExam && targetDevId !== 'mskt1') {
-        return sendJson(res, {
-          success: false,
-          error: `MSKT tekshiruvi faqat MSKT 1 apparatida o'tkazilishi mumkin!`
-        }, 400);
-      }
-      if (!isMsktExam && targetDevId === 'mskt1') {
-        return sendJson(res, {
-          success: false,
-          error: `MRT tekshiruvi MSKT apparatiga rejalashtirilmaydi! MRT 1 yoki MRT 2 ni tanlang.`
-        }, 400);
-      }
-      if (!isMsktExam && isContrastExam && targetDevId === 'mrt2') {
-        return sendJson(res, {
-          success: false,
-          error: `MRT 2 apparatida injektor mavjud emas va kontrastli tekshiruvlar o'tkazilmaydi! Kontrastli MRT uchun MRT 1 apparatini tanlang.`
-        }, 400);
-      }
-
-      // 4. Qoida: Tekshiruvdan bemor o'tgan bo'lsa qayta navbatga qo'yilmaydi!
-      if (body.isCompleted) {
-        return sendJson(res, {
-          success: false,
-          error: "Ushbu tekshiruvdan bemor allaqachon o'tgan (Karmedda xulosa tasdiqlangan)!"
-        }, 400);
-      }
-
+    // POST /api/queue/call - Bemorni chaqirish
+    if (pathname === '/api/queue/call' && req.method === 'POST') {
+      const body = await readBody(req);
       const queue = readJson(QUEUE_FILE, []);
-      const devices = readJson(DEVICES_FILE, []);
+      const patient = queue.find(p => p.id === body.id);
+      if (!patient) return sendJson(res, { success: false, error: "Bemor topilmadi" }, 404);
 
-      // 5. Qoida: Oldin navbatga qo'yilmaganligi tekshiriladi (Yagona tekshiruv ID bo'yicha)
-      const checkServiceIds = [];
-      if (body.serviceId) checkServiceIds.push(String(body.serviceId));
-      if (Array.isArray(body.serviceIds)) {
-        body.serviceIds.forEach(sid => { if (sid && !checkServiceIds.includes(String(sid))) checkServiceIds.push(String(sid)); });
-      }
-      if (Array.isArray(body.combinedServices)) {
-        body.combinedServices.forEach(cs => { if (cs.serviceId && !checkServiceIds.includes(String(cs.serviceId))) checkServiceIds.push(String(cs.serviceId)); });
-      }
-
-      const incomingCodes = (body.serviceCode || '').split('+').map(x => x.trim()).filter(Boolean);
-
-      const existingActive = queue.find(q => 
-        q.status !== 'cancelled' && q.status !== 'completed' && (
-          (checkServiceIds.length > 0 && (
-            (q.serviceId && checkServiceIds.includes(String(q.serviceId))) ||
-            (Array.isArray(q.serviceIds) && q.serviceIds.some(sid => checkServiceIds.includes(String(sid)))) ||
-            (Array.isArray(q.combinedServices) && q.combinedServices.some(cs => cs.serviceId && checkServiceIds.includes(String(cs.serviceId))))
-          )) ||
-          // Fallback tekshiruv (bemor ID va xizmat kodi bo'yicha)
-          (body.patientId && String(q.patientId) === String(body.patientId) && (
-            incomingCodes.some(code => q.serviceCode && q.serviceCode.split('+').map(x => x.trim()).includes(code))
-          ))
-        )
-      );
-
-      if (existingActive) {
-        return sendJson(res, {
-          success: false,
-          error: `Ushbu tekshiruv allaqachon navbatga qo'yilgan! (Talon № ${existingActive.ticketNumber}, ${existingActive.scheduledDate || existingActive.date} ${existingActive.scheduledTime})`
-        }, 400);
-      }
-
-      let calcDuration = parseInt(body.durationMinutes || 0, 10);
-      if (!calcDuration) {
-        if (body.isCombined && Array.isArray(body.combinedServices) && body.combinedServices.length > 0) {
-          if (body.deviceId === 'mskt1' || body.modality === 'MSKT') {
-            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 30, 10));
-            calcDuration = Math.max(...durs, 30);
-          } else {
-            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 60, 10));
-            calcDuration = durs.reduce((a, b) => a + b, 0);
-          }
-        } else {
-          calcDuration = (body.deviceId === 'mskt1' || body.modality === 'MSKT') ? 30 : 60;
-        }
-      }
-
-      let slotInfo = {
-        date: body.scheduledDate || new Date().toISOString().split('T')[0],
-        startTime: body.scheduledTime || '09:00',
-        finishTime: body.finishTime || null,
-        durationMinutes: calcDuration,
-        deviceId: body.deviceId || 'mrt1'
-      };
-
-      if (!body.scheduledTime) {
-        const autoSlot = findNextAvailableSmartSlot(body);
-        if (autoSlot.success) {
-          slotInfo.date = autoSlot.date;
-          slotInfo.startTime = autoSlot.startTime;
-          slotInfo.finishTime = autoSlot.finishTime;
-          slotInfo.durationMinutes = autoSlot.durationMinutes;
-          slotInfo.deviceId = autoSlot.deviceId;
-        }
-      }
-
-      // 0. Qoida: Registrator uchun o'tgan sanalarga navbat qo'yishni qat'iy taqiqlash
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (slotInfo.date < todayStr) {
-        return sendJson(res, {
-          success: false,
-          error: `⛔ Registratura o'tgan sanaga (${slotInfo.date}) navbat yoza olmaydi! Faqat bugun (${todayStr}) va kelgusi sanalarga navbat berish mumkin.`
-        }, 400);
-      }
-
-      // 6. Qoida: Ish grafigi va to'qnashuvni qat'iy tekshirish (Schedule & Overlap Collision Check)
-      const slotValidation = scheduler.validateBookingSlot(
-        slotInfo.date,
-        slotInfo.startTime,
-        slotInfo.durationMinutes,
-        slotInfo.deviceId,
-        queue
-      );
-
-      if (!slotValidation.valid) {
-        return sendJson(res, { success: false, error: slotValidation.error }, 400);
-      }
-      slotInfo.finishTime = slotInfo.finishTime || slotValidation.finishTime || scheduler.minToTime(scheduler.timeToMin(slotInfo.startTime) + slotInfo.durationMinutes);
-
-      // Talon raqami: M-001 (MRT) yoki K-001 (MSKT)
-      const dayPatients = queue.filter(p => (p.date === slotInfo.date || p.scheduledDate === slotInfo.date));
-      const prefix = slotInfo.deviceId.includes('mskt') ? 'K' : 'M';
-      const seq = dayPatients.length + 1;
-      const ticketNumber = `${prefix}-${String(seq).padStart(3, '0')}`;
-
-      const newPatient = {
-        id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        ticketNumber: ticketNumber,
-        patientName: (body.patientName || 'BEMOR').toUpperCase().trim(),
-        patientId: String(body.patientId || '').trim(),
-        serviceId: body.serviceId || (body.combinedServices && body.combinedServices[0]?.serviceId) || null,
-        serviceIds: checkServiceIds.length > 0 ? checkServiceIds : (body.serviceId ? [String(body.serviceId)] : []),
-        dosyaId: body.dosyaId || (body.combinedServices && body.combinedServices[0]?.dosyaId) || null,
-        protokolNo: body.protokolNo || (body.combinedServices && body.combinedServices[0]?.protokolNo) || null,
-        phone: body.phone || body.phoneNumber || '',
-        birthDate: body.birthDate || '',
-        patientType: body.patientType || 'Ambulator',
-        department: body.department || '',
-        date: slotInfo.date,
-        scheduledDate: slotInfo.date,
-        scheduledTime: slotInfo.startTime,
-        finishTime: slotInfo.finishTime,
-        timeSlot: `${slotInfo.startTime} - ${slotInfo.finishTime}`,
-        primaryService: body.serviceName || 'MRT Tekshiruvi',
-        serviceCode: body.serviceCode || '',
-        isCombined: Boolean(body.isCombined),
-        combinedServices: body.combinedServices || null,
-        isContrast: Boolean(body.isContrast),
-        labResults: body.labResults || null,
-        deviceId: slotInfo.deviceId,
-        deviceType: slotInfo.deviceId.includes('mskt') ? 'MSKT' : 'MRT',
-        status: 'waiting',
-        durationMinutes: slotInfo.durationMinutes,
-        estimatedDurationMinutes: slotInfo.durationMinutes,
-        preparation: body.isContrast ? 'Och qoringa kelish (kamida 4 soat ovqatlanmaslik) va barcha metall buyumlarni yechish.' : 'Barcha metall buyumlar, soat va telefonni yechish.',
-        referringDoctor: body.referringDoctor || '',
-        operatorName: operatorName,
-        paymentConfirmed: Boolean(body.paymentConfirmed),
-        patientCategory: body.patientCategory || "Sug'urta",
-        createdAt: new Date().toISOString()
-      };
-
-      queue.push(newPatient);
+      patient.status = 'calling';
+      patient.calledAt = new Date().toISOString();
       writeJson(QUEUE_FILE, queue);
+      unifiedCore.broadcastWs('patient_called', { patientId: patient.id, patient });
+      return sendJson(res, { success: true, patient, message: `Bemor xonaga chaqirildi (${patient.ticketNumber})` });
+    }
 
-      return sendJson(res, {
-        success: true,
-        patient: newPatient,
-        message: `Bemor navbatga qo'shildi: Talon № ${newPatient.ticketNumber} (${newPatient.scheduledDate}, ${newPatient.scheduledTime})`
-      });
+    // POST /api/queue/status - Holatni o'zgartirish
+    if (pathname === '/api/queue/status' && req.method === 'POST') {
+      const body = await readBody(req);
+      const queue = readJson(QUEUE_FILE, []);
+      const devices = readJson(DEVICES_FILE, unifiedCore.DEFAULT_DEVICES);
+      const patient = queue.find(p => p.id === body.id);
+      if (!patient) return sendJson(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+      patient.status = body.status;
+      patient.updatedAt = new Date().toISOString();
+      const dev = devices.find(d => d.id === patient.deviceId);
+      if (body.status === 'in_progress') {
+        patient.startedAt = new Date().toISOString();
+        if (dev) dev.currentPatientId = patient.id;
+      } else if (body.status === 'completed' || body.status === 'cancelled') {
+        patient.finishedAt = new Date().toISOString();
+        if (dev && dev.currentPatientId === patient.id) dev.currentPatientId = null;
+      }
+      writeJson(QUEUE_FILE, queue);
+      writeJson(DEVICES_FILE, devices);
+      unifiedCore.broadcastWs('queue_updated', { queue, devices });
+      return sendJson(res, { success: true, patient });
+    }
+
+    // POST /api/queue/delete - Bemorni o'chirish
+    if (pathname === '/api/queue/delete' && req.method === 'POST') {
+      const body = await readBody(req);
+      let queue = readJson(QUEUE_FILE, []);
+      const devices = readJson(DEVICES_FILE, unifiedCore.DEFAULT_DEVICES);
+      const idx = queue.findIndex(p => p.id === body.id);
+      if (idx === -1) return sendJson(res, { success: false, error: "Bemor topilmadi" }, 404);
+
+      const deleted = queue.splice(idx, 1)[0];
+      const dev = devices.find(d => d.id === deleted.deviceId);
+      if (dev && dev.currentPatientId === deleted.id) {
+        dev.currentPatientId = null;
+        writeJson(DEVICES_FILE, devices);
+      }
+      writeJson(QUEUE_FILE, queue);
+      unifiedCore.broadcastWs('queue_updated', { queue, devices });
+      return sendJson(res, { success: true, deleted });
     }
 
     // GET /api/queue - Navbatlarni ko'rish
     if (pathname === '/api/queue') {
       const targetDate = parsedUrl.query.date || new Date().toISOString().split('T')[0];
       const allQueue = readJson(QUEUE_FILE, []);
-      const devices = readJson(DEVICES_FILE, []);
+      const devices = readJson(DEVICES_FILE, unifiedCore.DEFAULT_DEVICES);
       const dayQueue = allQueue.filter(p => (p.date === targetDate || p.scheduledDate === targetDate));
 
       return sendJson(res, {
@@ -1681,6 +1592,14 @@ const server = http.createServer(async (req, res) => {
   let reqPath = decodeURI(pathname);
   if (reqPath === '/' || reqPath === '/index.html' || reqPath === '/registration' || reqPath === '/queue') {
     reqPath = '/public/mrt_registration.html';
+  } else if (reqPath === '/control' || reqPath === '/admin' || reqPath === '/doctor') {
+    reqPath = '/public/mrt_control.html';
+  } else if (reqPath === '/tv' || reqPath === '/tv/' || reqPath === '/mrt-tv' || reqPath === '/tablo') {
+    reqPath = '/mrt-tv/index.html';
+  } else if (reqPath === '/style.css' && !fs.existsSync(path.join(ROOT_DIR, 'style.css'))) {
+    reqPath = '/mrt-tv/style.css';
+  } else if (reqPath === '/app.js' && !fs.existsSync(path.join(ROOT_DIR, 'app.js'))) {
+    reqPath = '/mrt-tv/app.js';
   }
 
   const filePath = path.join(ROOT_DIR, reqPath);

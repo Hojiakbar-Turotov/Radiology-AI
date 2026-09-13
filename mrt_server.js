@@ -16,7 +16,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const { exec } = require('child_process');
 const { WebSocketServer, WebSocket } = require('ws');
+
+const unifiedCore = require('./shared/unified_core');
 
 const PORT = parseInt(process.env.PORT || '9890', 10);
 const HOST = '0.0.0.0';
@@ -31,6 +34,7 @@ const ALLOWED_IPS_FILE = path.join(DATA_DIR, 'allowed_ips.json');
 const CONSENT_QUESTIONS_FILE = path.join(DATA_DIR, 'consent_questions.json');
 const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json');
 const BOT_SETTINGS_FILE = path.join(DATA_DIR, 'bot_settings.json');
+const PRINTER_SETTINGS_FILE = path.join(DATA_DIR, 'printer_settings.json');
 
 const scheduler = require('./shared/scheduler');
 const systemMonitor = require('./lib/system_monitor');
@@ -174,6 +178,7 @@ function broadcastWs(type, payload) {
       try { client.send(msg); } catch (e) {}
     }
   }
+  unifiedCore.broadcastWs(type, payload);
 }
 
 // -------------------------------------------------------------
@@ -292,181 +297,8 @@ const server = http.createServer(async (req, res) => {
     // POST /api/queue/book - Aqlli navbatga yozish (Yangi bemor)
     if (req.method === 'POST' && pathname === '/api/queue/book') {
       const body = await readBody(req);
-      const queue = readJson(QUEUE_FILE, []);
-      const devices = readJson(DEVICES_FILE, DEFAULT_DEVICES);
-
-      let calcDuration = parseInt(body.durationMinutes || 0, 10);
-      if (!calcDuration) {
-        if (body.isCombined && Array.isArray(body.combinedServices) && body.combinedServices.length > 0) {
-          if (body.deviceId === 'mskt1' || body.modality === 'MSKT') {
-            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 30, 10));
-            calcDuration = Math.max(...durs, 30);
-          } else {
-            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 60, 10));
-            calcDuration = durs.reduce((a, b) => a + b, 0);
-          }
-        } else {
-          calcDuration = (body.deviceId === 'mskt1' || body.modality === 'MSKT') ? 30 : 60;
-        }
-      }
-
-      // Eng yaqin bo'sh slotni hisoblash (agar oldindan berilmagan bo'lsa)
-      let slotInfo = {
-        date: body.scheduledDate || new Date().toISOString().split('T')[0],
-        startTime: body.scheduledTime || body.startTime || '09:00',
-        finishTime: body.finishTime || body.endTime || null,
-        durationMinutes: calcDuration,
-        deviceId: body.deviceId || 'mrt1'
-      };
-
-      if (slotInfo.finishTime) {
-        const sMin = scheduler.timeToMin(slotInfo.startTime);
-        const fMin = scheduler.timeToMin(slotInfo.finishTime);
-        if (!isNaN(sMin) && !isNaN(fMin) && fMin > sMin) {
-          slotInfo.durationMinutes = fMin - sMin;
-        }
-      }
-
-      if (!body.scheduledTime && !body.startTime) {
-        const autoSlot = findNextAvailableSmartSlot(body);
-        if (autoSlot.success) {
-          slotInfo.date = autoSlot.date;
-          slotInfo.startTime = autoSlot.startTime;
-          slotInfo.finishTime = autoSlot.finishTime;
-          slotInfo.durationMinutes = autoSlot.durationMinutes;
-          slotInfo.deviceId = autoSlot.deviceId;
-        }
-      }
-
-      // 10 kundan oshgan so'rovlarni rad etish (admin forceBooking bo'lmasa)
-      if (!body.forceBooking && (body.isOlderThan10Days || (body.diffDays && body.diffDays > 10))) {
-        return sendJson(res, {
-          success: false,
-          error: `⛔ Ushbu tekshiruv so'rovi ro'yxatga olinganiga 10 kundan oshgan (${body.diffDays || 10} kun)! Qoidaga asosan 10 kundan oshgan so'rovlarga navbat berilmaydi.`
-        }, 400);
-      }
-
-      // Qurilma mosligi tekshiruvi:
-      const targetDevId = slotInfo.deviceId;
-      const isContrastExam = Boolean(body.isContrast || (body.serviceName && (body.serviceName.toUpperCase().includes('KONTRAST') || body.serviceName.toUpperCase().includes('KM'))));
-      const isMsktExam = (body.modality === 'MSKT') || (body.serviceName && (body.serviceName.toUpperCase().includes('MSKT') || body.serviceName.toUpperCase().includes('KT')));
-      
-      if (isMsktExam && targetDevId !== 'mskt1') {
-        return sendJson(res, {
-          success: false,
-          error: `MSKT tekshiruvi faqat MSKT 1 apparatida o'tkazilishi mumkin!`
-        }, 400);
-      }
-      if (!isMsktExam && targetDevId === 'mskt1') {
-        return sendJson(res, {
-          success: false,
-          error: `MRT tekshiruvi MSKT apparatiga rejalashtirilmaydi! MRT 1 yoki MRT 2 ni tanlang.`
-        }, 400);
-      }
-      if (!isMsktExam && isContrastExam && targetDevId === 'mrt2') {
-        return sendJson(res, {
-          success: false,
-          error: `MRT 2 apparatida injektor mavjud emas va kontrastli tekshiruvlar o'tkazilmaydi! Kontrastli MRT uchun MRT 1 apparatini tanlang.`
-        }, 400);
-      }
-
-      // Ish grafigi va to'qnashuvni tekshirish (Schedule & Overlap Collision Check)
-      const slotValidation = scheduler.validateBookingSlot(
-        slotInfo.date,
-        slotInfo.startTime,
-        slotInfo.durationMinutes,
-        slotInfo.deviceId,
-        queue
-      );
-
-      // Agar vaqt band bo'lsa yoki ish jadvalidan tashqari bo'lsa:
-      if (!slotValidation.valid) {
-        if (body.forceBooking || body.isCustomTimeOverride || body.isAdmin) {
-          // ADMIN IMTIYOZI: Ustma-ust yoki istisno tariqasida navbatga yozishga ruxsat
-          const sMin = scheduler.timeToMin(slotInfo.startTime);
-          const fMin = slotInfo.finishTime ? scheduler.timeToMin(slotInfo.finishTime) : (sMin + slotInfo.durationMinutes);
-          slotInfo.finishTime = scheduler.minToTime(fMin);
-        } else {
-          return sendJson(res, {
-            success: false,
-            error: slotValidation.error,
-            collision: true,
-            canForce: true
-          }, 400);
-        }
-      } else {
-        slotInfo.finishTime = slotInfo.finishTime || slotValidation.finishTime;
-      }
-
-      // Navbat raqami generatsiyasi (M-001, M-002 yoki K-001)
-      const dayPatients = queue.filter(p => (p.date === slotInfo.date || p.scheduledDate === slotInfo.date));
-      const prefix = slotInfo.deviceId.includes('mskt') ? 'K' : 'M';
-      const seq = dayPatients.length + 1;
-      const ticketNumber = body.ticketNumber || `${prefix}-${String(seq).padStart(3, '0')}`;
-
-      const checkServiceIds = [];
-      if (body.serviceId) checkServiceIds.push(String(body.serviceId));
-      if (Array.isArray(body.serviceIds)) {
-        body.serviceIds.forEach(sid => { if (sid && !checkServiceIds.includes(String(sid))) checkServiceIds.push(String(sid)); });
-      }
-      if (Array.isArray(body.combinedServices)) {
-        body.combinedServices.forEach(cs => { if (cs.serviceId && !checkServiceIds.includes(String(cs.serviceId))) checkServiceIds.push(String(cs.serviceId)); });
-      }
-
-      const newPatient = {
-        id: body.id || `p_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        ticketNumber: ticketNumber,
-        patientName: (body.patientName || body.fullName || 'BEMOR').toUpperCase().trim(),
-        patientId: String(body.patientId || '').trim(),
-        serviceId: body.serviceId || (body.combinedServices && body.combinedServices[0]?.serviceId) || null,
-        serviceIds: checkServiceIds.length > 0 ? checkServiceIds : (body.serviceId ? [String(body.serviceId)] : []),
-        dosyaId: body.dosyaId || (body.combinedServices && body.combinedServices[0]?.dosyaId) || null,
-        protokolNo: body.protokolNo || (body.combinedServices && body.combinedServices[0]?.protokolNo) || null,
-        serviceCode: body.serviceCode || '',
-        isCombined: Boolean(body.isCombined),
-        combinedServices: body.combinedServices || null,
-        phone: body.phone || body.phoneNumber || '',
-        birthDate: body.birthDate || '',
-        patientType: body.patientType || 'Ambulator', // 'Ambulator' yoki 'Statsionar'
-        department: body.department || '',
-        patientCategory: body.patientCategory || '',
-        requiresPaymentConfirmation: Boolean(body.requiresPaymentConfirmation),
-        paymentConfirmed: Boolean(body.paymentConfirmed),
-        labResults: body.labResults || null,
-        date: slotInfo.date,
-        scheduledDate: slotInfo.date,
-        scheduledTime: slotInfo.startTime,
-        finishTime: slotInfo.finishTime,
-        timeSlot: slotInfo.finishTime ? `${slotInfo.startTime} - ${slotInfo.finishTime}` : `${slotInfo.startTime}`,
-        primaryService: body.primaryService || body.serviceName || 'MRT Tekshiruvi',
-        isContrast: Boolean(body.isContrast),
-        deviceId: slotInfo.deviceId,
-        deviceType: slotInfo.deviceId.includes('mskt') ? 'MSKT' : 'MRT',
-        status: 'waiting', // waiting -> calling -> in_progress -> completed -> cancelled
-        durationMinutes: slotInfo.durationMinutes,
-        estimatedDurationMinutes: slotInfo.durationMinutes,
-        estimatedStartTime: `${slotInfo.date}T${slotInfo.startTime}:00.000Z`,
-        preparation: body.preparation || (body.isContrast ? 'Och qoringa kelish (kamida 4 soat oldin ovqatlanmaslik) va barcha metall buyumlarni yechish.' : 'Barcha metall buyumlar, soat va telefonni yechish.'),
-        referringDoctor: body.referringDoctor || '',
-        operatorName: body.operatorName || 'Admin',
-        isForceBooked: Boolean(body.forceBooking),
-        createdAt: new Date().toISOString()
-      };
-
-      queue.push(newPatient);
-      writeJson(QUEUE_FILE, queue);
-
-      // WebSocket orqali barcha ekranlarga tarqatish
-      broadcastWs('queue_updated', {
-        queue: queue.filter(p => p.date === slotInfo.date),
-        devices: devices
-      });
-
-      return sendJson(res, {
-        success: true,
-        patient: newPatient,
-        message: `Bemor muvaffaqiyatli navbatga qo'shildi: ${newPatient.ticketNumber} (${newPatient.scheduledDate}, ${newPatient.scheduledTime})`
-      });
+      const resData = unifiedCore.bookPatient(body, body.operatorName || 'Admin', true);
+      return sendJson(res, resData, resData.statusCode || (resData.success ? 200 : 400));
     }
 
     // POST /api/queue/call - Bemorni xonaga chaqirish (TV da ovozsiz miltillash)
@@ -811,33 +643,110 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, result);
     }
 
-    // POST /api/karmed/search - Karmed registratura serveridan (9891) qidirish proksisi
+    // POST /api/internal/ws-sync - Boshqa jarayonlardan (masalan 9891) kelgan WS sinxronizatsiya
+    if (req.method === 'POST' && pathname === '/api/internal/ws-sync') {
+      const body = await readBody(req);
+      if (body && body.type) {
+        broadcastWs(body.type, body.payload);
+      }
+      return sendJson(res, { success: true });
+    }
+
+    // POST /api/karmed/search - Karmed bemor qidiruvi (Yagona drayver orqali)
     if (req.method === 'POST' && pathname === '/api/karmed/search') {
       const body = await readBody(req);
-      const postData = JSON.stringify(body);
-      const proxyReq = http.request({
-        hostname: '127.0.0.1',
-        port: 9891,
-        path: '/api/karmed/search',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
+      const patientId = String(body.patientId || body.query || '').trim();
+      if (!patientId) {
+        return sendJson(res, { success: false, error: "Bemor ID kiritilishi shart" }, 400);
+      }
+      try {
+        const result = await unifiedCore.searchPatientInKarmed(patientId);
+        return sendJson(res, result);
+      } catch (err) {
+        console.error("[Karmed Search Error on 9890]:", err.message);
+        return sendJson(res, { success: false, error: `Karmed aloqa xatosi: ${err.message}` }, 502);
+      }
+    }
+
+    // GET /api/exam-configs - Tekshiruvlar sozlamalari va rozilik savollari
+    if (req.method === 'GET' && pathname === '/api/exam-configs') {
+      const services = readJson(SERVICES_FILE, []);
+      const consentQuestions = readJson(CONSENT_QUESTIONS_FILE, []);
+      return sendJson(res, { success: true, services, consentQuestions });
+    }
+
+    // GET /api/printers - O'rnatilgan printerlar ro'yxati
+    if (req.method === 'GET' && pathname === '/api/printers') {
+      const psCmd = 'powershell -NoProfile -Command "Get-CimInstance Win32_Printer | Select-Object Name, Default, PortName | ConvertTo-Json"';
+      exec(psCmd, { timeout: 8000 }, (err, stdout) => {
+        if (err || !stdout) {
+          return sendJson(res, { success: true, printers: [{ name: 'Standart Printer (Tizim)', isDefault: true }] });
         }
-      }, (proxyRes) => {
-        let pBuf = '';
-        proxyRes.on('data', chunk => pBuf += chunk);
-        proxyRes.on('end', () => {
-          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(pBuf);
-        });
+        try {
+          let parsed = JSON.parse(stdout.trim());
+          if (!Array.isArray(parsed)) parsed = [parsed];
+          const printers = parsed.map(p => ({
+            name: p.Name,
+            isDefault: Boolean(p.Default),
+            port: p.PortName
+          }));
+          return sendJson(res, { success: true, printers });
+        } catch (e) {
+          return sendJson(res, { success: true, printers: [{ name: 'Standart Printer (Tizim)', isDefault: true }] });
+        }
       });
-      proxyReq.on('error', (err) => {
-        return sendJson(res, { success: false, found: false, error: "Registratsiya serveri (9891) bilan aloqa xatosi: " + err.message }, 502);
-      });
-      proxyReq.write(postData);
-      proxyReq.end();
       return;
+    }
+
+    // GET & POST /api/printer-settings
+    if (req.method === 'GET' && pathname === '/api/printer-settings') {
+      const settings = readJson(PRINTER_SETTINGS_FILE, { ticketPrinter: '', consentPrinter: '', autoPrint: false });
+      return sendJson(res, { success: true, settings });
+    }
+    if (req.method === 'POST' && pathname === '/api/printer-settings') {
+      const body = await readBody(req);
+      const settings = {
+        ticketPrinter: String(body.ticketPrinter || '').trim(),
+        consentPrinter: String(body.consentPrinter || '').trim(),
+        autoPrint: Boolean(body.autoPrint),
+        updatedAt: new Date().toISOString()
+      };
+      writeJson(PRINTER_SETTINGS_FILE, settings);
+      return sendJson(res, { success: true, settings, message: "Printer sozlamalari saqlandi" });
+    }
+
+    // POST /api/print - Talon yoki rozilik varaqasini chop etish
+    if (req.method === 'POST' && pathname === '/api/print') {
+      const body = await readBody(req);
+      const printerName = String(body.printerName || '').trim();
+      const docType = body.docType || 'ticket';
+      const printText = body.text || '';
+      const printHtml = body.html || '';
+
+      if (printerName && printText) {
+        try {
+          const tempTxtFile = path.join(DATA_DIR, `temp_${docType}_${Date.now()}.txt`);
+          fs.writeFileSync(tempTxtFile, printText, 'utf8');
+          const safePrinter = printerName.replace(/'/g, "''");
+          const psPrintCmd = `powershell -NoProfile -Command "Get-Content -Path '${tempTxtFile}' -Encoding UTF8 | Out-Printer -Name '${safePrinter}'"`;
+          exec(psPrintCmd, { timeout: 10000 }, (err) => {
+            try { if (fs.existsSync(tempTxtFile)) fs.unlinkSync(tempTxtFile); } catch(e) {}
+          });
+        } catch (pe) {}
+      }
+
+      if (printHtml) {
+        try {
+          fs.writeFileSync(path.join(DATA_DIR, `last_${docType}.html`), printHtml, 'utf8');
+        } catch (e) {}
+      }
+
+      return sendJson(res, {
+        success: true,
+        printer: printerName || 'Default',
+        docType: docType,
+        message: printerName ? `Printerga chop etish buyrug'i berildi: ${printerName}` : "Chop etish hujjati tayyorlandi"
+      });
     }
 
     return sendJson(res, { success: false, error: "API yo'li topilmadi" }, 404);
@@ -849,8 +758,13 @@ const server = http.createServer(async (req, res) => {
   let reqPath = decodeURI(pathname);
 
   // Asosiy sahifa (Root) va Admin boshqaruv portaliga yo'naltirish
-  if (reqPath === '/' || reqPath === '/control' || reqPath === '/control/' || reqPath === '/admin' || reqPath === '/doctor' || reqPath === '/registratura') {
+  if (reqPath === '/' || reqPath === '/control' || reqPath === '/control/' || reqPath === '/admin' || reqPath === '/doctor') {
     reqPath = '/public/mrt_control.html';
+  }
+
+  // Registratura portaliga yo'naltirish
+  if (reqPath === '/registration' || reqPath === '/registration/' || reqPath === '/reg' || reqPath === '/registratura') {
+    reqPath = '/public/mrt_registration.html';
   }
 
   // TV Tabloga yo'naltirish
@@ -915,6 +829,7 @@ const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
   wsClients.add(ws);
+  unifiedCore.registerWsClient(ws);
 
   // Boshlang'ich navbatni uzatish
   const todayStr = new Date().toISOString().split('T')[0];
@@ -941,8 +856,14 @@ wss.on('connection', (ws) => {
     } catch (e) {}
   });
 
-  ws.on('close', () => wsClients.delete(ws));
-  ws.on('error', () => wsClients.delete(ws));
+  ws.on('close', () => {
+    wsClients.delete(ws);
+    unifiedCore.removeWsClient(ws);
+  });
+  ws.on('error', () => {
+    wsClients.delete(ws);
+    unifiedCore.removeWsClient(ws);
+  });
 });
 
 // -------------------------------------------------------------
@@ -950,9 +871,9 @@ wss.on('connection', (ws) => {
 // -------------------------------------------------------------
 server.listen(PORT, HOST, () => {
   console.log('================================================================================');
-  console.log('  🧲 KARMED MRT & MSKT AQLLI NAVBAT SERVERI (v7.2.0)');
-  console.log(`  🌐 Port: ${PORT}`);
+  console.log('  🧲 KARMED MRT & MSKT YAGONA SERVER (Port 9890)');
+  console.log(`  🌐 Boshqaruv Portali (Admin):     http://localhost:${PORT}/control`);
+  console.log(`  📝 Registratura Portali:          http://localhost:${PORT}/registration`);
   console.log(`  📺 Kutish Zali TV Tablosi:        http://localhost:${PORT}/tv`);
-  console.log(`  👩‍💼 Aqlli Navbat & Boshqaruv:     http://localhost:${PORT}/control`);
   console.log('================================================================================');
 });

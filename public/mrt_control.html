@@ -477,6 +477,9 @@
         <i class="fa-solid fa-clock"></i> <span id="lblTimeFormat">24-Soatlik</span>
       </button>
       <span id="liveClock" style="font-size:13px; font-weight:700; color:var(--text-muted);">--:--:--</span>
+      <a href="/registration" class="btn btn-small" style="background:#0284c7; color:#fff; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Registratura Portaliga o'tish">
+        <i class="fa-solid fa-user-pen"></i> <span>Registratura Portali</span>
+      </a>
       <a href="/tv" target="_blank" class="btn-link-tv" title="Kutish zalidagi TV Tabloni ochish">
         <i class="fa-solid fa-tv"></i> <span>Kutish Zali TV Tablosi</span>
       </a>
@@ -1901,8 +1904,9 @@
           </div>
           <div class="pat-name">${escapeHtml(p.patientName)}</div>
           <div class="pat-service">${escapeHtml(p.primaryService)} ${p.isContrast ? '• 💉 Kontrast' : ''}</div>
-          <div style="font-size:11.5px; font-weight:800; color:#0369a1; margin: 3px 0 5px 0;">
-            <i class="fa-regular fa-clock"></i> ⏰ ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:11.5px; margin: 3px 0 5px 0;">
+            <span style="font-weight:800; color:#0369a1;"><i class="fa-regular fa-clock"></i> ⏰ ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}</span>
+            <span style="padding:2px 6px; border-radius:4px; font-weight:800; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;"><i class="fa-solid fa-stopwatch"></i> ${p.durationMinutes || (p.deviceId === 'mskt1' ? 30 : 60)} daq</span>
           </div>
           <div class="pat-actions">
             ${p.status !== 'calling' ? `<button class="btn btn-small btn-warning" onclick="callPatient('${p.id}')"><i class="fa-solid fa-bell"></i> Chaqirish</button>` : ''}
@@ -2566,8 +2570,11 @@
                     <i class="fa-solid fa-calendar-check"></i> Birga Navbatga Qo'yish (${combinedDur} daq)
                   </button>
                 </div>
-                <div style="font-size:12px; color:#475569; margin-top:6px;">
-                  Sana: <b>${escapeHtml(first.registrationDate)}</b> | Modallik: <b>${escapeHtml(first.modality)}</b> ${hasContrast ? '💉 Kontrastli' : ''}
+                <div style="font-size:12.5px; color:#166534; margin-top:6px; font-weight:700; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                  <span><i class="fa-regular fa-clock"></i> Birlashtirilgan seans: <b>${combinedDur} daqiqa</b> ${first.modality === 'MSKT' ? "(eng uzun vaqt olindi)" : "(vaqtlar qo'shildi)"}</span>
+                  <span>Sana: <b>${escapeHtml(first.registrationDate)}</b></span>
+                  <span>Modallik: <b>${escapeHtml(first.modality)}</b></span>
+                  ${hasContrast ? '<span style="color:#7e22ce;">💉 Kontrastli</span>' : ''}
                 </div>
               </div>
             `;
@@ -2648,7 +2655,11 @@
                 </div>
               </div>
 
-              <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:11.5px;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:11.5px; align-items:center;">
+                ${isMskt 
+                  ? `<span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;"><i class="fa-regular fa-clock"></i> Standart vaqt: <b>30 daqiqa</b></span>`
+                  : `<span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;"><i class="fa-regular fa-clock"></i> Standart vaqt: <b>60 daqiqa</b></span>`
+                }
                 ${isContrast ? '<span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#fae8ff; color:#86198f;">💉 Kontrastli</span>' : '<span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f1f5f9; color:#475569;">Kontrastsiz</span>'}
                 <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Ro'yxat: ${escapeHtml(ex.registrationDate)} (${ex.diffDays} kun oldin)</span>
                 <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Holat: <b>${escapeHtml(ex.dosyaStatus || ex.serviceStatus)}</b></span>
@@ -2802,14 +2813,16 @@
 
       adminSelectedExam = ex;
 
+      const isMskt = (ex.modality === 'MSKT');
+      const isContrast = Boolean(ex.isContrast);
+      const stdDur = isMskt ? 30 : 60;
+
       document.getElementById("admModalPatName").innerText = adminCurrentPatient.fullName;
       document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
-      document.getElementById("admModalExamName").innerText = `[${ex.serviceCode}] ${ex.serviceName}`;
+      document.getElementById("admModalExamName").innerHTML = `[${escapeHtml(ex.serviceCode)}] ${escapeHtml(ex.serviceName)} <span style="display:inline-block; margin-left:8px; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:800; background:${isMskt ? '#fff7ed; color:#c2410c; border:1px solid #fed7aa;' : '#e0f2fe; color:#0369a1; border:1px solid #bae6fd;'}"><i class="fa-regular fa-clock"></i> Standart vaqt: <b>${stdDur} daqiqa</b></span>`;
 
       // Qurilmalarni moslikka qarab saralash va o'chirish:
       const devSelect = document.getElementById("admBDevice");
-      const isMskt = (ex.modality === 'MSKT');
-      const isContrast = Boolean(ex.isContrast);
 
       for (let opt of devSelect.options) {
         if (isMskt) {
@@ -2912,7 +2925,7 @@
 
       document.getElementById("admModalPatName").innerText = adminCurrentPatient.fullName;
       document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
-      document.getElementById("admModalExamName").innerText = `📦 ${combinedCodes} — ${combinedTitle} (${matching.length} ta birga)`;
+      document.getElementById("admModalExamName").innerHTML = `📦 ${escapeHtml(combinedCodes)} — ${escapeHtml(combinedTitle)} (${matching.length} ta birga) <span style="display:inline-block; margin-left:8px; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:800; background:#f0fdf4; color:#166534; border:1px solid #86efac;"><i class="fa-regular fa-clock"></i> Jami seans: <b>${combinedDuration} daqiqa</b> ${isMskt ? "(eng uzun vaqt)" : "(qo'shilgan)"}</span>`;
 
       const devSelect = document.getElementById("admBDevice");
       for (let opt of devSelect.options) {
