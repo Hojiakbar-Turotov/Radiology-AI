@@ -517,9 +517,10 @@
 
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; color:var(--text-muted);">
         <span>⚡ Tezkor namunalar:</span>
-        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('2552')">2552 (F.Azimova)</button>
-        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('17720')">17720 (A.Xusanov)</button>
-        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('104523')">104523</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px; font-weight:700;" onclick="quickSearchAdmin('2551')">2551 (M.Ashurov - 7 ta yo'llanma)</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px; font-weight:700;" onclick="quickSearchAdmin('2553')">2553 (O.Xudoyberganova - 6 ta yo'llanma)</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px; font-weight:700;" onclick="quickSearchAdmin('2555')">2555 (P.Saxiboyeva)</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px; font-weight:700;" onclick="quickSearchAdmin('1002')">1002 (G.Raximova)</button>
         <span style="margin-left:auto; font-size:11.5px; color:#64748b;">Karmed Onkologiya tizimidan to'g'ridan-to'g'ri izlash</span>
       </div>
 
@@ -527,7 +528,7 @@
         <i class="fa-solid fa-circle-notch fa-spin"></i> Karmed tizimidan bemor va tekshiruvlar qidirilmoqda...
       </div>
 
-      <div id="adminSearchError" style="display:none; margin-top:12px; padding:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; color:#dc2626; font-size:13px; font-weight:700;"></div>
+      <div id="adminSearchError" style="display:none; margin-top:12px; padding:14px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; color:#991b1b; font-size:13px;"></div>
     </div>
 
     <!-- 2. Bemor kartochkasi & Tekshiruvlar ro'yxati -->
@@ -2315,6 +2316,20 @@
       }
     }
 
+    function switchToManualBooking() {
+      const query = document.getElementById("adminSearchInput").value.trim();
+      const area = document.getElementById("adminManualFormArea");
+      const btnText = document.getElementById("btnManualToggleText");
+      area.style.display = "block";
+      if (btnText) btnText.innerText = "Qo'lda Kiritishni Yopish";
+      if (/^\d+$/.test(query)) {
+        document.getElementById("pId").value = query;
+      } else if (query) {
+        document.getElementById("pName").value = query;
+      }
+      area.scrollIntoView({ behavior: 'smooth' });
+    }
+
     function quickSearchAdmin(id) {
       document.getElementById("adminSearchInput").value = id;
       searchPatientAdmin();
@@ -2344,8 +2359,18 @@
         const data = await res.json();
         loading.style.display = "none";
 
-        if (!data.success || !data.patient) {
-          errBox.innerText = data.error || "Bemor Karmed tizimida topilmadi";
+        const isFound = (data.found === true || data.success === true) && Boolean(data.patient);
+        if (!isFound) {
+          const errMsg = data.error || data.message || `Bemor ID: ${query} Karmed tizimida topilmadi`;
+          errBox.innerHTML = `
+            <div style="font-weight:800; font-size:14px; margin-bottom:6px;">⚠️ ${escapeHtml(errMsg)}</div>
+            <div style="font-size:12.5px; color:#64748b; margin-bottom:10px;">
+              Bemor Karmed bazasida hali ro'yxatga olinmagan bo'lishi yoki ID raqami boshqacha bo'lishi mumkin.
+            </div>
+            <button type="button" class="btn btn-primary" onclick="switchToManualBooking()" style="font-size:13px; padding:8px 16px;">
+              <i class="fa-solid fa-user-plus"></i> Ushbu bemor uchun qo'lda navbat ochish
+            </button>
+          `;
           errBox.style.display = "block";
           return;
         }
@@ -2354,7 +2379,12 @@
         renderAdminPatient(data.patient, data.eligibleExams || []);
       } catch (err) {
         loading.style.display = "none";
-        errBox.innerText = "Server bilan aloqa xatosi: " + err.message;
+        errBox.innerHTML = `
+          <div style="font-weight:800; font-size:14px; margin-bottom:6px;">⚠️ Server bilan aloqa xatosi: ${escapeHtml(err.message)}</div>
+          <button type="button" class="btn btn-primary" onclick="switchToManualBooking()" style="font-size:13px; padding:8px 16px; margin-top:8px;">
+            <i class="fa-solid fa-user-plus"></i> Bemor ma'lumotlarini qo'lda kiritish
+          </button>
+        `;
         errBox.style.display = "block";
       }
     }

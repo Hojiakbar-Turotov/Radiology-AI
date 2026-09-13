@@ -1,5 +1,85 @@
 [
   {
+    "id": "ev_1789311024549_zm2f",
+    "timestamp": "2026-09-13T14:50:24.549Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789311024548_se8c",
+    "timestamp": "2026-09-13T14:50:24.548Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789311009544_27te",
+    "timestamp": "2026-09-13T14:50:09.544Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789311009544_a0k1",
+    "timestamp": "2026-09-13T14:50:09.544Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310994537_9bys",
+    "timestamp": "2026-09-13T14:49:54.537Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310994536_3bxh",
+    "timestamp": "2026-09-13T14:49:54.536Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310979524_jy9t",
+    "timestamp": "2026-09-13T14:49:39.524Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310979524_htir",
+    "timestamp": "2026-09-13T14:49:39.524Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310964524_r0p4",
+    "timestamp": "2026-09-13T14:49:24.524Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789310964523_4ypf",
+    "timestamp": "2026-09-13T14:49:24.523Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
     "id": "ev_1789308398146_mzux",
     "timestamp": "2026-09-13T14:06:38.145Z",
     "component": "monitor_agent",

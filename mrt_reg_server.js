@@ -733,14 +733,18 @@ async function searchPatientInKarmed(patientId) {
   let session = await getActiveKarmedSession();
 
   async function performSearch(tok, cookie, host) {
+    const cleanId = String(patientId).trim();
+    const isPinfl = /^\d{12,14}$/.test(cleanId);
+    const searchTur = isPinfl ? 'PINFL' : 'Bemor ID';
+    const searchTurVal = isPinfl ? '1' : '0';
     const currentYear = new Date().getFullYear().toString();
     const params = new URLSearchParams();
     params.set('submitDirectEventConfig', JSON.stringify({ config: { extraParams: { aDosyaDurumu: null, aHizliAra: true } } }));
     params.set('cbYil', currentYear);
     params.set('_cbYil_state', JSON.stringify([{ value: currentYear, text: currentYear, index: 1 }]));
-    params.set('cbHizliAramaTur', 'Bemor ID');
-    params.set('_cbHizliAramaTur_state', JSON.stringify([{ value: '0', text: 'Bemor ID', index: 0 }]));
-    params.set('tfHizliAramaDeger', String(patientId).trim());
+    params.set('cbHizliAramaTur', searchTur);
+    params.set('_cbHizliAramaTur_state', JSON.stringify([{ value: searchTurVal, text: searchTur, index: isPinfl ? 1 : 0 }]));
+    params.set('tfHizliAramaDeger', cleanId);
     params.set('BaslangicDt', '01.01.2025');
     params.set('BitisDt', '31.12.2026');
     params.set('cbBolum', '');
@@ -797,7 +801,12 @@ async function searchPatientInKarmed(patientId) {
   }
 
   if (!pList || pList.length === 0) {
-    return { found: false, message: `Bemor ID: ${patientId} Karmed tizimida topilmadi` };
+    return {
+      success: false,
+      found: false,
+      error: `Bemor ID: ${patientId} Karmed tizimida topilmadi`,
+      message: `Bemor ID: ${patientId} Karmed tizimida topilmadi`
+    };
   }
 
   // Bemor asosiy ma'lumotlari
@@ -1046,6 +1055,7 @@ async function searchPatientInKarmed(patientId) {
   }
 
   return {
+    success: true,
     found: true,
     patient: patientInfo,
     eligibleExams: eligibleExams,

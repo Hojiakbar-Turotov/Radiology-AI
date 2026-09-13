@@ -381,6 +381,9 @@ function getDeviceQueueInlineKeyboard(deviceId, userRole) {
     };
   }
   const liveWebAppUrl = getLiveWebAppUrl();
+  const ghPagesUrl = "https://hojiakbar-turotov.github.io/Radiology-AI/control.html";
+  const directTunnelUrl = (liveWebAppUrl.includes('trycloudflare.com')) ? liveWebAppUrl : `https://eau-jose-adware-flux.trycloudflare.com/control`;
+
   return {
     inline_keyboard: [
       [
@@ -391,7 +394,8 @@ function getDeviceQueueInlineKeyboard(deviceId, userRole) {
         { text: "✅ Yakunlash", callback_data: `finish_curr_${deviceId}` }
       ],
       [
-        { text: "🚀 Admin Panel (Web App)", web_app: { url: liveWebAppUrl } },
+        { text: "🚀 📱 Web App", web_app: { url: ghPagesUrl } },
+        { text: "🌐 Brauzerda", url: directTunnelUrl },
         { text: "🔄 Yangilash", callback_data: `lab_${devKey}` }
       ],
       [
@@ -458,10 +462,14 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
       `🏥 <b>MRT & MSKT Boshqaruv Administratsiyasi (Port 9890)</b>\n\n` +
       `Quyidagi <b>Web App</b> tugmasi orqali to'liq <b>Admin Boshqaruv Paneli</b>ni bevosita Telegram ichida ochishingiz yoki quyidagi tezkor tugmalar orqali navbatlarni boshqarishingiz mumkin:`;
 
+    const ghPagesUrl = "https://hojiakbar-turotov.github.io/Radiology-AI/control.html";
+    const directTunnelUrl = (liveWebAppUrl.includes('trycloudflare.com')) ? liveWebAppUrl : `https://eau-jose-adware-flux.trycloudflare.com/control`;
+
     const inlineKeyboard = {
       inline_keyboard: [
         [
-          { text: "🚀 📱 Admin Panelni Ochish (Web App)", web_app: { url: liveWebAppUrl } }
+          { text: "🚀 📱 Admin Web App (Telegram)", web_app: { url: ghPagesUrl } },
+          { text: "🌐 Brauzerda Ochish", url: directTunnelUrl }
         ],
         [
           { text: "🧲 1-MRT Navbati", callback_data: "lab_mrt1" },
@@ -488,12 +496,13 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
     const replyKeyboard = {
       keyboard: [
         [
-          { text: "🚀 Admin Panel (Web App)", web_app: { url: liveWebAppUrl } }
+          { text: "🚀 Admin Web App", web_app: { url: ghPagesUrl } },
+          { text: "📊 Bugungi Statistika" }
         ],
         [
-          { text: "📊 Bugungi Statistika" },
           { text: "🧲 1-MRT" },
-          { text: "⚡ MSKT" }
+          { text: "⚡ MSKT" },
+          { text: "🩺 Tizim Salomatligi" }
         ]
       ],
       resize_keyboard: true
@@ -902,6 +911,12 @@ async function processUpdate(update) {
   if (text === "⚡ MSKT") {
     const kText = formatDeviceQueueMessage('mskt1', '1-MSKT Xonasi');
     await sendTelegramMessage(chatId, kText, { parse_mode: "HTML" });
+    return;
+  }
+  if (text === "🩺 Tizim Salomatligi" || text === "🩺 Tizim Monitoringi") {
+    const report = await systemMonitor.checkSystemHealth();
+    const hText = formatSystemHealthMessage(report);
+    await sendTelegramMessage(chatId, hText, { parse_mode: "HTML" });
     return;
   }
 
