@@ -2544,6 +2544,17 @@
             const combinedCodes = groupExams.map(x => x.serviceCode).join('+');
             const hasContrast = groupExams.some(x => x.isContrast);
 
+            const isMskt = (first.modality === 'MSKT');
+            let combinedDur = 60;
+            if (isMskt) {
+              const durs = groupExams.map(x => parseInt(x.durationMinutes || 30, 10));
+              combinedDur = Math.max(...durs, 30);
+            } else {
+              const durs = groupExams.map(x => parseInt(x.durationMinutes || 60, 10));
+              combinedDur = durs.reduce((s, d) => s + d, 0);
+              if (combinedDur < 60) combinedDur = 60;
+            }
+
             html += `
               <div style="background:#f0fdf4; border:2px solid #86efac; border-radius:12px; padding:14px 16px; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -2552,7 +2563,7 @@
                     <span style="font-size:15px; font-weight:900; color:#0f172a;">${escapeHtml(combinedTitle)}</span>
                   </div>
                   <button type="button" class="btn btn-primary btn-small" onclick="openAdminCombinedBookingModal('${escapeHtml(gKey)}')">
-                    <i class="fa-solid fa-calendar-check"></i> Birga Navbatga Qo'yish (50 daq)
+                    <i class="fa-solid fa-calendar-check"></i> Birga Navbatga Qo'yish (${combinedDur} daq)
                   </button>
                 </div>
                 <div style="font-size:12px; color:#475569; margin-top:6px;">
@@ -2691,17 +2702,27 @@
     let adminCustomDuration = null;
 
     function getAdminExamStandardDuration() {
-      if (!adminSelectedExam) return 25;
+      if (!adminSelectedExam) return 60;
       if (adminSelectedExam.isCombined) {
-        return adminSelectedExam.durationMinutes || 50;
+        if (adminSelectedExam.durationMinutes) {
+          return parseInt(adminSelectedExam.durationMinutes, 10);
+        }
+        if (adminSelectedExam.childExams && adminSelectedExam.childExams.length > 0) {
+          if (adminSelectedExam.childExams[0]?.modality === 'MSKT') {
+            const durs = adminSelectedExam.childExams.map(e => parseInt(e.durationMinutes || 30, 10));
+            return Math.max(...durs, 30);
+          } else {
+            const durs = adminSelectedExam.childExams.map(e => parseInt(e.durationMinutes || 60, 10));
+            return durs.reduce((s, d) => s + d, 0);
+          }
+        }
+        return (adminSelectedExam.modality === 'MSKT') ? 30 : 60;
       }
       if (adminSelectedExam.durationMinutes) {
         return parseInt(adminSelectedExam.durationMinutes, 10);
       }
-      const isContrast = document.getElementById("admBContrast") ? document.getElementById("admBContrast").checked : Boolean(adminSelectedExam.isContrast);
       const isMskt = adminSelectedExam.modality === 'MSKT';
-      if (isMskt) return isContrast ? 30 : 20;
-      return isContrast ? 35 : 25;
+      return isMskt ? 30 : 60;
     }
 
     function syncAdminTimes(forceDefault = false) {
@@ -2866,15 +2887,26 @@
       const hasContrast = matching.some(x => x.isContrast);
       const isMskt = (first.modality === 'MSKT');
 
+      let combinedDuration = 60;
+      if (isMskt) {
+        const durs = matching.map(x => parseInt(x.durationMinutes || 30, 10));
+        combinedDuration = Math.max(...durs, 30);
+      } else {
+        const durs = matching.map(x => parseInt(x.durationMinutes || 60, 10));
+        combinedDuration = durs.reduce((s, d) => s + d, 0);
+        if (combinedDuration < 60) combinedDuration = 60;
+      }
+
       adminSelectedExam = {
         isCombined: true,
+        modality: first.modality,
         serviceName: combinedTitle,
         shortServiceName: combinedTitle,
         serviceCode: combinedCodes,
         serviceIds: matching.map(m => m.serviceId).filter(Boolean),
         childExams: matching,
         suggestedDevice: first.suggestedDevice || (isMskt ? 'mskt1' : (hasContrast ? 'mrt1' : 'mrt2')),
-        durationMinutes: 50,
+        durationMinutes: combinedDuration,
         isContrast: hasContrast
       };
 

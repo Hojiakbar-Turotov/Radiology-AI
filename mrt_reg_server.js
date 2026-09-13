@@ -1038,16 +1038,12 @@ async function searchPatientInKarmed(patientId) {
 
           let labResults = cachedPatientLab;
 
-          let examDuration = 25;
+          let examDuration = (modality === 'MSKT') ? 30 : 60;
           try {
             const servicesCatalog = readJson(SERVICES_FILE, []);
             const matchedService = servicesCatalog.find(sc => sc.code === sCode);
-            if (matchedService && matchedService.duration) {
+            if (matchedService && matchedService.duration && matchedService.duration !== 20 && matchedService.duration !== 25 && matchedService.duration !== 35 && matchedService.duration !== 45) {
               examDuration = parseInt(matchedService.duration, 10);
-            } else if (modality === 'MSKT') {
-              examDuration = isContrast ? 30 : 20;
-            } else {
-              examDuration = isContrast ? 35 : 25;
             }
           } catch (e) {}
 
@@ -1432,7 +1428,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const targetDate = body.date || body.scheduledDate;
       const deviceId = body.deviceId || 'mrt1';
-      const durationMinutes = parseInt(body.durationMinutes || 30, 10);
+      const durationMinutes = parseInt(body.durationMinutes || (deviceId === 'mskt1' ? 30 : 60), 10);
       const queue = readJson(QUEUE_FILE, []);
 
       const result = scheduler.getAvailableSlotsForDay(targetDate, deviceId, durationMinutes, queue);
@@ -1551,11 +1547,26 @@ const server = http.createServer(async (req, res) => {
         }, 400);
       }
 
+      let calcDuration = parseInt(body.durationMinutes || 0, 10);
+      if (!calcDuration) {
+        if (body.isCombined && Array.isArray(body.combinedServices) && body.combinedServices.length > 0) {
+          if (body.deviceId === 'mskt1' || body.modality === 'MSKT') {
+            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 30, 10));
+            calcDuration = Math.max(...durs, 30);
+          } else {
+            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 60, 10));
+            calcDuration = durs.reduce((a, b) => a + b, 0);
+          }
+        } else {
+          calcDuration = (body.deviceId === 'mskt1' || body.modality === 'MSKT') ? 30 : 60;
+        }
+      }
+
       let slotInfo = {
         date: body.scheduledDate || new Date().toISOString().split('T')[0],
         startTime: body.scheduledTime || '09:00',
         finishTime: body.finishTime || null,
-        durationMinutes: parseInt(body.durationMinutes || 30, 10),
+        durationMinutes: calcDuration,
         deviceId: body.deviceId || 'mrt1'
       };
 

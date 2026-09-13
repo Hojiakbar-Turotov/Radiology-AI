@@ -1601,6 +1601,18 @@
       const isAnyQueued = exams.some(e => e.isAlreadyQueued);
       const firstQueued = exams.find(e => e.isAlreadyQueued && e.existingQueueInfo);
 
+      let combinedDuration = 60;
+      if (group.modality === 'MSKT') {
+        // Agar bir nechta MSKT tekshiruvlari bir vaqtda navbatga qo'yilsa eng uzun vaqt hisobga olinsin
+        const durations = exams.map(e => parseInt(e.durationMinutes || 30, 10));
+        combinedDuration = Math.max(...durations, 30);
+      } else {
+        // Agar MRT tekshiruvlaridan bir nechtasi navbatga qo'yilsa vaqtlar qo'shilib navbat yozilsin
+        const durations = exams.map(e => parseInt(e.durationMinutes || 60, 10));
+        combinedDuration = durations.reduce((sum, d) => sum + d, 0);
+        if (combinedDuration < 60) combinedDuration = 60;
+      }
+
       const compatibleDevices = isContrast ? ['mrt1'] : (group.modality === 'MSKT' ? ['mskt1'] : ['mrt2', 'mrt1']);
 
       return {
@@ -1618,7 +1630,7 @@
         isContrast: isContrast,
         suggestedDevice: suggestedDevice,
         compatibleDevices: compatibleDevices,
-        durationMinutes: 50,
+        durationMinutes: combinedDuration,
         registrationDate: group.date,
         maxAllowedDate: maxAllowedDate,
         isOlderThan10Days: isOlderThan10Days,
@@ -1938,7 +1950,7 @@
             <span style="background:${isOlderThan10 ? '#ef4444' : '#0284c7'}; color:#fff; font-size:11.5px; font-weight:900; padding:4px 10px; border-radius:6px; letter-spacing:0.4px;">
               <i class="fa-solid fa-layer-group"></i> BIRGALIKDA O'TKAZILADIGAN TEKSHIRUVLAR (${cEx.itemsCount} TA TEKSHIRUV BIRGA)
             </span>
-            <span style="font-size:12px; font-weight:800; color:#0369a1;"><i class="fa-regular fa-clock"></i> Birlashtirilgan seans: 50 daqiqa</span>
+            <span style="font-size:12px; font-weight:800; color:#0369a1;"><i class="fa-regular fa-clock"></i> Birlashtirilgan seans: ${cEx.durationMinutes} daqiqa</span>
           </div>
 
           ${warn10Days}
@@ -2043,7 +2055,7 @@
       document.getElementById("bPatientName").innerText = currentPatientData.fullName;
       document.getElementById("bPatientId").innerText = `ID: ${currentPatientData.patientId}`;
       document.getElementById("bExamName").innerText = `📦 ${cEx.serviceCode} — ${cEx.shortServiceName} (${cEx.itemsCount} ta tekshiruv birga)`;
-      document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${cEx.registrationDate} | Ruxsat etilgan oxirgi sana: ${cEx.maxAllowedDate} | Birlashtirilgan seans: 50 daqiqa`;
+      document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${cEx.registrationDate} | Ruxsat etilgan oxirgi sana: ${cEx.maxAllowedDate} | Birlashtirilgan seans: ${cEx.durationMinutes} daqiqa`;
 
       // Qurilmalarni moslik bo'yicha cheklash
       const isMskt = (cEx.modality === 'MSKT');
@@ -2343,17 +2355,27 @@
     }
 
     function getExamExactDuration() {
-      if (!selectedExamData) return 25;
+      if (!selectedExamData) return 60;
       if (selectedExamData.isCombined) {
-        return selectedExamData.durationMinutes || 50;
+        if (selectedExamData.durationMinutes) {
+          return parseInt(selectedExamData.durationMinutes, 10);
+        }
+        if (selectedExamData.childExams && selectedExamData.childExams.length > 0) {
+          if (selectedExamData.modality === 'MSKT') {
+            const durs = selectedExamData.childExams.map(e => parseInt(e.durationMinutes || 30, 10));
+            return Math.max(...durs, 30);
+          } else {
+            const durs = selectedExamData.childExams.map(e => parseInt(e.durationMinutes || 60, 10));
+            return durs.reduce((s, d) => s + d, 0);
+          }
+        }
+        return selectedExamData.modality === 'MSKT' ? 30 : 60;
       }
       if (selectedExamData.durationMinutes) {
         return parseInt(selectedExamData.durationMinutes, 10);
       }
-      const isContrast = document.getElementById("bContrast") ? document.getElementById("bContrast").checked : Boolean(selectedExamData.isContrast);
       const isMskt = selectedExamData.modality === 'MSKT';
-      if (isMskt) return isContrast ? 30 : 20;
-      return isContrast ? 35 : 25;
+      return isMskt ? 30 : 60;
     }
 
     function syncRegistratorTimes() {

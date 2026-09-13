@@ -295,12 +295,27 @@ const server = http.createServer(async (req, res) => {
       const queue = readJson(QUEUE_FILE, []);
       const devices = readJson(DEVICES_FILE, DEFAULT_DEVICES);
 
+      let calcDuration = parseInt(body.durationMinutes || 0, 10);
+      if (!calcDuration) {
+        if (body.isCombined && Array.isArray(body.combinedServices) && body.combinedServices.length > 0) {
+          if (body.deviceId === 'mskt1' || body.modality === 'MSKT') {
+            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 30, 10));
+            calcDuration = Math.max(...durs, 30);
+          } else {
+            const durs = body.combinedServices.map(c => parseInt(c.durationMinutes || 60, 10));
+            calcDuration = durs.reduce((a, b) => a + b, 0);
+          }
+        } else {
+          calcDuration = (body.deviceId === 'mskt1' || body.modality === 'MSKT') ? 30 : 60;
+        }
+      }
+
       // Eng yaqin bo'sh slotni hisoblash (agar oldindan berilmagan bo'lsa)
       let slotInfo = {
         date: body.scheduledDate || new Date().toISOString().split('T')[0],
         startTime: body.scheduledTime || body.startTime || '09:00',
         finishTime: body.finishTime || body.endTime || null,
-        durationMinutes: parseInt(body.durationMinutes || 30, 10),
+        durationMinutes: calcDuration,
         deviceId: body.deviceId || 'mrt1'
       };
 
@@ -789,11 +804,40 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const targetDate = body.date || body.scheduledDate;
       const deviceId = body.deviceId || 'mrt1';
-      const durationMinutes = parseInt(body.durationMinutes || 30, 10);
+      const durationMinutes = parseInt(body.durationMinutes || (deviceId === 'mskt1' ? 30 : 60), 10);
       const queue = readJson(QUEUE_FILE, []);
 
       const result = scheduler.getAvailableSlotsForDay(targetDate, deviceId, durationMinutes, queue);
       return sendJson(res, result);
+    }
+
+    // POST /api/karmed/search - Karmed registratura serveridan (9891) qidirish proksisi
+    if (req.method === 'POST' && pathname === '/api/karmed/search') {
+      const body = await readBody(req);
+      const postData = JSON.stringify(body);
+      const proxyReq = http.request({
+        hostname: '127.0.0.1',
+        port: 9891,
+        path: '/api/karmed/search',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }, (proxyRes) => {
+        let pBuf = '';
+        proxyRes.on('data', chunk => pBuf += chunk);
+        proxyRes.on('end', () => {
+          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(pBuf);
+        });
+      });
+      proxyReq.on('error', (err) => {
+        return sendJson(res, { success: false, found: false, error: "Registratsiya serveri (9891) bilan aloqa xatosi: " + err.message }, 502);
+      });
+      proxyReq.write(postData);
+      proxyReq.end();
+      return;
     }
 
     return sendJson(res, { success: false, error: "API yo'li topilmadi" }, 404);

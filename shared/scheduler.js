@@ -285,10 +285,9 @@ function findNextAvailableSmartSlot(input, queue) {
     }
   }
 
-  let duration = parseInt(input.durationMinutes || 30, 10);
-  if (!input.durationMinutes) {
-    if (isContrast && duration < 35) duration = 40;
-    if (deviceType === 'MSKT' && duration > 25) duration = 20;
+  let duration = parseInt(input.durationMinutes || 0, 10);
+  if (!duration) {
+    duration = (deviceType === 'MSKT') ? 30 : 60;
   }
 
   const now = new Date();
