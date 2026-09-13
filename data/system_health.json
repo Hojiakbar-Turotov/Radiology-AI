@@ -1,0 +1,69 @@
+{
+  "overallStatus": "HEALTHY",
+  "checkedAt": "2026-09-13T14:09:53.272Z",
+  "services": {
+    "adminServer": {
+      "name": "Admin Server (Port 9890)",
+      "status": "UP",
+      "latencyMs": 1,
+      "statusCode": 200,
+      "error": null,
+      "checkedAt": "2026-09-13T14:09:53.272Z"
+    },
+    "regServerLocal": {
+      "name": "Registratura Server (Port 9891 - LAN)",
+      "status": "UP",
+      "latencyMs": 2,
+      "statusCode": 200,
+      "error": null,
+      "checkedAt": "2026-09-13T14:09:53.272Z"
+    },
+    "regSecurityBarrier": {
+      "name": "Registratura Tashqi Tarmoq Himoyasi",
+      "status": "SECURED",
+      "statusCode": 403,
+      "checkedAt": "2026-09-13T14:09:53.272Z"
+    },
+    "cloudflareTunnel": {
+      "name": "Cloudflare HTTPS Tunnel",
+      "url": "https://eau-jose-adware-flux.trycloudflare.com",
+      "status": "ONLINE",
+      "externalLatencyMs": 265,
+      "statusCode": 200,
+      "error": null,
+      "checkedAt": "2026-09-13T14:09:53.272Z"
+    },
+    "telegramBot": {
+      "name": "Telegram Bot API (@Radiodiagnostika_bot)",
+      "status": "ACTIVE",
+      "latencyMs": 267,
+      "botUsername": "Radiodiagnostika_bot",
+      "checkedAt": "2026-09-13T14:09:53.272Z"
+    },
+    "systemResources": {
+      "uptimeSeconds": 196,
+      "osUptimeHours": "102.7",
+      "memoryHeapUsedMb": 8,
+      "memoryRssMb": 59,
+      "freeMemMb": 8350,
+      "totalMemMb": 16073,
+      "cpuCores": 12,
+      "loadAvg": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "recentIncidentsCount": 0,
+  "latestIncidents": [
+    {
+      "id": "ev_1789308398146_mzux",
+      "timestamp": "2026-09-13T14:06:38.145Z",
+      "component": "monitor_agent",
+      "level": "INFO",
+      "message": "24/7 Monitoring agenti muvaffaqiyatli ishga tushirildi",
+      "details": {}
+    }
+  ]
+}

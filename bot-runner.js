@@ -25,6 +25,7 @@ const BOT_SETTINGS_FILE = path.join(ROOT_DIR, 'data', 'bot_settings.json');
 const TUNNEL_CONFIG_FILE = path.join(ROOT_DIR, 'tunnel_config.json');
 const TUNNEL_STATUS_FILE = path.join(ROOT_DIR, 'data', 'tunnel_status.json');
 const SCHEDULES_FILE = path.join(ROOT_DIR, 'data', 'schedules.json');
+const systemMonitor = require('./lib/system_monitor');
 
 // -------------------------------------------------------------
 // FOYDALANUVCHILAR VA SOZLAMALAR BAZASI
@@ -400,6 +401,48 @@ function getDeviceQueueInlineKeyboard(deviceId, userRole) {
   };
 }
 
+function formatSystemHealthMessage(report) {
+  const admin = report.services.adminServer;
+  const reg = report.services.regServerLocal;
+  const regSec = report.services.regSecurityBarrier;
+  const tunnel = report.services.cloudflareTunnel;
+  const bot = report.services.telegramBot;
+  const res = report.services.systemResources;
+
+  const statusEmoji = report.overallStatus === 'HEALTHY' ? '🟢' : (report.overallStatus === 'DEGRADED' ? '🟡' : '🔴');
+  
+  let txt = `🩺 <b>TIZIM MONITORINGI VA SALOMATLIK (${statusEmoji} ${report.overallStatus})</b>\n`;
+  txt += `<i>Tekshirilgan vaqt: ${new Date(report.checkedAt).toLocaleTimeString('uz-UZ')}</i>\n`;
+  txt += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+  txt += `🧲 <b>Admin Server (Port 9890):</b> ${admin.status === 'UP' ? '🟢 ISHLAMOQDA' : '🔴 TO\'XTAGAN'} (${admin.latencyMs}ms)\n`;
+  txt += `🏥 <b>Registratura (Port 9891):</b> ${reg.status === 'UP' ? '🟢 ISHLAMOQDA (LAN)' : '🔴 TO\'XTAGAN'}\n`;
+  txt += `🛡️ <b>LAN Xavfsizlik:</b> ${regSec.status === 'SECURED' ? '🟢 QAT\'IY HIMOYA (403)' : '⚠️ OGOHLANTIRISH'}\n`;
+  
+  if (tunnel && tunnel.status === 'ONLINE') {
+    txt += `🌐 <b>Cloudflare Tunnel:</b> 🟢 JONLI (${tunnel.externalLatencyMs}ms)\n`;
+    txt += `   🔗 <code>${escapeHtml(tunnel.url)}</code>\n`;
+  } else {
+    txt += `🌐 <b>Cloudflare Tunnel:</b> 🔴 UZILGAN\n`;
+  }
+
+  txt += `🤖 <b>Telegram Bot:</b> ${bot.status === 'ACTIVE' ? '🟢 FAOL' : '🔴 XATOLIK'} (@${bot.botUsername})\n\n`;
+
+  txt += `💻 <b>Xotira (RAM):</b> ${res.memoryHeapUsedMb} MB (Heap) / ${res.memoryRssMb} MB (RSS)\n`;
+  txt += `⏱️ <b>Uptime:</b> ${Math.floor(res.uptimeSeconds / 60)} daqiqa (OS: ${res.osUptimeHours} soat)\n`;
+  txt += `⚠️ <b>Faol Insidentlar:</b> ${report.recentIncidentsCount} ta\n`;
+
+  if (report.latestIncidents && report.latestIncidents.length > 0) {
+    txt += `\n📋 <b>So'nggi hodisalar:</b>\n`;
+    report.latestIncidents.slice(0, 3).forEach(inc => {
+      const icon = inc.level === 'CRITICAL' ? '🚨' : (inc.level === 'ERROR' ? '❌' : '⚠️');
+      txt += `${icon} [${inc.level}] <i>${escapeHtml(inc.message)}</i>\n`;
+    });
+  }
+
+  return txt;
+}
+
 // -------------------------------------------------------------
 // INTERFEYS VA TUGMALAR (ADMIN, LABORANT, BEMOR)
 // -------------------------------------------------------------
@@ -431,6 +474,9 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
         [
           { text: "👥 Foydalanuvchilar & Rollar", callback_data: "admin_users_info" },
           { text: "⏰ Bugungi Ish Grafigi", callback_data: "admin_schedule_info" }
+        ],
+        [
+          { text: "🩺 Tizim Monitoringi & Salomatlik", callback_data: "admin_monitor_info" }
         ],
         [
           { text: "🌐 Cloudflare Tunnel & GitHub", callback_data: "admin_tunnel_info" },
@@ -686,6 +732,27 @@ async function processUpdate(update) {
       return;
     }
 
+    // Tizim Monitoringi va Salomatlik
+    if (data === "admin_monitor_info") {
+      await answerCallbackQuery(cb.id, "🩺 Diagnostika o'tkazilmoqda...");
+      const report = await systemMonitor.checkSystemHealth();
+      const txt = formatSystemHealthMessage(report);
+      const kb = {
+        inline_keyboard: [
+          [
+            { text: "🚀 Admin Panel (Web App)", web_app: { url: getLiveWebAppUrl() } },
+            { text: "🔄 Qayta Tekshirish", callback_data: "admin_monitor_info" }
+          ],
+          [
+            { text: "⚡ Tunnelni Qayta Boshlash", callback_data: "admin_restart_tunnel" },
+            { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+          ]
+        ]
+      };
+      await sendTelegramMessage(chatId, txt, { parse_mode: "HTML", reply_markup: kb });
+      return;
+    }
+
     // Bugungi Ish Grafigi
     if (data === "admin_schedule_info") {
       let sched = {};
@@ -876,6 +943,31 @@ async function processUpdate(update) {
       );
       return;
     }
+  }
+
+  // Tizim monitoringi va diagnostikasi: /status, /health, /monitor
+  if (text === "/status" || text === "/health" || text === "/monitor") {
+    const user = getOrUpdateUser(fromInfo, false);
+    if (user.role !== 'admin') {
+      await sendTelegramMessage(chatId, "⚠️ <i>Tizim monitoringi faqat Administratorlar uchun ochiq. /admin [parol] bilan kiring.</i>", { parse_mode: "HTML" });
+      return;
+    }
+    const report = await systemMonitor.checkSystemHealth();
+    const sTxt = formatSystemHealthMessage(report);
+    const kb = {
+      inline_keyboard: [
+        [
+          { text: "🚀 Admin Panel (Web App)", web_app: { url: getLiveWebAppUrl() } },
+          { text: "🔄 Qayta Tekshirish", callback_data: "admin_monitor_info" }
+        ],
+        [
+          { text: "⚡ Tunnelni Qayta Boshlash", callback_data: "admin_restart_tunnel" },
+          { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+        ]
+      ]
+    };
+    await sendTelegramMessage(chatId, sTxt, { parse_mode: "HTML", reply_markup: kb });
+    return;
   }
 
   // WebApp URL sozlash buyrug'i: /setwebapp <url>

@@ -33,6 +33,7 @@ const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json');
 const BOT_SETTINGS_FILE = path.join(DATA_DIR, 'bot_settings.json');
 
 const scheduler = require('./shared/scheduler');
+const systemMonitor = require('./lib/system_monitor');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -179,6 +180,12 @@ function broadcastWs(type, payload) {
 // ASOSIY HTTP SERVER
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
+  const startTime = Date.now();
+  const clientIp = req.headers['cf-connecting-ip'] || 
+                   (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) || 
+                   (req.socket.remoteAddress ? req.socket.remoteAddress.replace('::ffff:', '') : 'unknown');
+  const userAgent = req.headers['user-agent'] || '';
+
   // CORS Preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
@@ -189,8 +196,9 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  try {
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
 
   // =========================================================================
   // 1. REST API
@@ -204,8 +212,25 @@ const server = http.createServer(async (req, res) => {
         service: 'Karmed MRT & MSKT Smart Queue Server',
         port: PORT,
         timestamp: new Date().toISOString(),
-        version: '7.2.0'
+        version: '7.3.0'
       });
+    }
+
+    // GET /api/monitor/health - To'liq tizim diagnostikasi va salomatligi
+    if (req.method === 'GET' && pathname === '/api/monitor/health') {
+      try {
+        const report = await systemMonitor.checkSystemHealth();
+        return sendJson(res, { success: true, ...report });
+      } catch (monErr) {
+        return sendJson(res, { success: false, error: monErr.message }, 500);
+      }
+    }
+
+    // GET /api/monitor/events - So'nggi qayd etilgan xatoliklar va insidentlar
+    if (req.method === 'GET' && pathname === '/api/monitor/events') {
+      const limit = parseInt(parsedUrl.query.limit || '50', 10);
+      const events = systemMonitor.getRecentEvents(limit);
+      return sendJson(res, { success: true, count: events.length, events });
     }
 
     // GET /api/devices - Apparatlar ro'yxati
@@ -732,7 +757,8 @@ const server = http.createServer(async (req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      systemMonitor.recordRequestMetric('mrt_server', req.method, reqPath, 404, Date.now() - startTime, clientIp, userAgent);
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
       res.end(`<h1>404 - Fayl topilmadi (${reqPath})</h1>`, 'utf-8');
     } else {
       res.writeHead(200, {
@@ -742,6 +768,18 @@ const server = http.createServer(async (req, res) => {
       res.end(content);
     }
   });
+  } catch (uncaughtErr) {
+    const duration = Date.now() - startTime;
+    systemMonitor.recordRequestMetric('mrt_server', req.method, req.url, 500, duration, clientIp, userAgent);
+    systemMonitor.logIncident('mrt_server', 'CRITICAL', `Kutilmagan server xatosi: ${uncaughtErr.message}`, {
+      method: req.method,
+      url: req.url,
+      clientIp,
+      userAgent: (userAgent || '').substring(0, 120),
+      stack: uncaughtErr.stack
+    });
+    return sendJson(res, { success: false, error: "Server ichki xatosi: " + uncaughtErr.message }, 500);
+  }
 });
 
 // -------------------------------------------------------------
