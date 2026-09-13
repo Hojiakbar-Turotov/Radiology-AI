@@ -1,6 +1,6 @@
 {
   "overallStatus": "HEALTHY",
-  "checkedAt": "2026-09-13T16:29:27.544Z",
+  "checkedAt": "2026-09-13T16:35:57.764Z",
   "services": {
     "adminServer": {
       "name": "Admin Server (Port 9890)",
@@ -8,7 +8,7 @@
       "latencyMs": 1,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T16:29:27.544Z"
+      "checkedAt": "2026-09-13T16:35:57.764Z"
     },
     "regServerLocal": {
       "name": "Registratura Server (Port 9891 - LAN)",
@@ -16,36 +16,36 @@
       "latencyMs": 1,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T16:29:27.544Z"
+      "checkedAt": "2026-09-13T16:35:57.764Z"
     },
     "regSecurityBarrier": {
       "name": "Registratura Tashqi Tarmoq Himoyasi",
       "status": "SECURED",
       "statusCode": 403,
-      "checkedAt": "2026-09-13T16:29:27.544Z"
+      "checkedAt": "2026-09-13T16:35:57.764Z"
     },
     "cloudflareTunnel": {
       "name": "Cloudflare HTTPS Tunnel",
       "url": "https://eau-jose-adware-flux.trycloudflare.com",
       "status": "ONLINE",
-      "externalLatencyMs": 270,
+      "externalLatencyMs": 1098,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T16:29:27.544Z"
+      "checkedAt": "2026-09-13T16:35:57.764Z"
     },
     "telegramBot": {
       "name": "Telegram Bot API (@Radiodiagnostika_bot)",
       "status": "ACTIVE",
-      "latencyMs": 331,
+      "latencyMs": 272,
       "botUsername": "Radiodiagnostika_bot",
-      "checkedAt": "2026-09-13T16:29:27.544Z"
+      "checkedAt": "2026-09-13T16:35:57.764Z"
     },
     "systemResources": {
-      "uptimeSeconds": 8570,
-      "osUptimeHours": "105.0",
-      "memoryHeapUsedMb": 12,
-      "memoryRssMb": 70,
-      "freeMemMb": 7870,
+      "uptimeSeconds": 8961,
+      "osUptimeHours": "105.2",
+      "memoryHeapUsedMb": 9,
+      "memoryRssMb": 65,
+      "freeMemMb": 7871,
       "totalMemMb": 16073,
       "cpuCores": 12,
       "loadAvg": [

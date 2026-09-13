@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-09-13T16:29:35.621Z",
+  "timestamp": "2026-09-13T16:35:55.717Z",
   "date": "13.09.2026",
   "totalPatients": 0,
   "department": "Ultratovush",
   "statusFilter": "Bekleyen",
   "karmedDirectSync": true,
-  "lastSyncAt": "2026-09-13T16:29:35.621Z",
+  "lastSyncAt": "2026-09-13T16:35:55.717Z",
   "version": "6.0.0",
   "summary": {
     "totalWaiting": 0,

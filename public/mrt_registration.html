@@ -623,17 +623,11 @@
         </div>
 
         <form class="search-box" onsubmit="handleSearch(event)">
-          <input type="text" id="inputPatientId" class="search-input" placeholder="Bemor ID raqamini kiriting (masalan: 75)..." autofocus required>
+          <input type="text" id="inputPatientId" class="search-input" placeholder="Bemor ID raqami yoki JSHSHIR (PINFL) kiriting..." autofocus required>
           <button type="submit" class="btn-search" id="btnSearch">
             <i class="fa-solid fa-search"></i> <span>Qidirish</span>
           </button>
         </form>
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(17235)">⭐ 17235 (J.Abdijabbarova - Kreatinin/Mochevina)</button>
-          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(75)">75 (A.Alimov)</button>
-          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(80)">80 (Bemor)</button>
-        </div>
 
         <div id="searchLoader" style="display:none; text-align:center; padding:16px; color:var(--primary); font-weight:700;">
           <i class="fa-solid fa-circle-notch fa-spin"></i> Karmed RBYS tizimidan ma'lumotlar tortilmoqda...
