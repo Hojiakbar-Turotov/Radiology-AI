@@ -1149,9 +1149,37 @@
       if (banner) {
         if (isExternal || apiBase) {
           banner.style.display = "flex";
-          if (lbl) lbl.innerText = apiBase || "Belgilanmagan (Lokal rejim)";
+          if (lbl) lbl.innerText = apiBase || "Avtomatik qidirilmoqda...";
         } else {
           banner.style.display = "none";
+        }
+      }
+    }
+
+    async function autoDiscoverTunnelUrl() {
+      // Agar sahifa GitHub Pages orqali ochilgan bo'lsa, GitHub dagi tunnel_config.json dan
+      // joriy faol Cloudflare tunnel manzilini avtomatik olib ulanadi!
+      if (window.location.hostname.includes('github.io')) {
+        try {
+          const res = await fetch('https://raw.githubusercontent.com/Hojiakbar-Turotov/Radiology-AI/main/tunnel_config.json?t=' + Date.now());
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.mrt_mskt && data.mrt_mskt.onlineApiUrl) {
+              const liveApi = data.mrt_mskt.onlineApiUrl.replace(/\/$/, '');
+              const prev = localStorage.getItem('MRT_API_BASE');
+              if (prev !== liveApi) {
+                console.log("[GitHub Tunnel Broker] Jonli backend manzili yangilandi:", liveApi);
+                localStorage.setItem('MRT_API_BASE', liveApi);
+                checkApiHostNotice();
+                // Navbatni yangilash
+                const curDate = document.getElementById("queueDateSelect") ? document.getElementById("queueDateSelect").value : "";
+                if (curDate) loadQueue(curDate);
+                initWebSocket();
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("[GitHub Tunnel Broker] Tunnel qidiruvida xatolik:", err);
         }
       }
     }
@@ -1174,6 +1202,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       checkApiHostNotice();
+      autoDiscoverTunnelUrl();
       startLiveClock();
       setQueueDateToday();
       calculateSmartSlot();

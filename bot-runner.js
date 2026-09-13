@@ -21,12 +21,28 @@ const ROOT_DIR = __dirname;
 const USERS_FILE = path.join(ROOT_DIR, 'data', 'bot_users.json');
 const QUEUE_FILE = path.join(ROOT_DIR, 'data', 'mrt_queue.json');
 const DEVICES_FILE = path.join(ROOT_DIR, 'data', 'devices.json');
-
 const BOT_SETTINGS_FILE = path.join(ROOT_DIR, 'data', 'bot_settings.json');
+const TUNNEL_CONFIG_FILE = path.join(ROOT_DIR, 'tunnel_config.json');
+const TUNNEL_STATUS_FILE = path.join(ROOT_DIR, 'data', 'tunnel_status.json');
+const SCHEDULES_FILE = path.join(ROOT_DIR, 'data', 'schedules.json');
 
 // -------------------------------------------------------------
 // FOYDALANUVCHILAR VA SOZLAMALAR BAZASI
 // -------------------------------------------------------------
+function getLiveWebAppUrl() {
+  try {
+    if (fs.existsSync(TUNNEL_CONFIG_FILE)) {
+      const tc = JSON.parse(fs.readFileSync(TUNNEL_CONFIG_FILE, 'utf8'));
+      if (tc && tc.mrt_mskt && tc.mrt_mskt.onlineControlUrl) {
+        return tc.mrt_mskt.onlineControlUrl;
+      }
+    }
+  } catch (e) {}
+  const bs = loadBotSettings();
+  if (bs && bs.webAppUrl) return bs.webAppUrl;
+  return "https://hojiakbar-turotov.github.io/Radiology-AI/control.html";
+}
+
 function loadBotSettings() {
   try {
     if (fs.existsSync(BOT_SETTINGS_FILE)) {
@@ -253,25 +269,156 @@ function formatGeneralStatsMessage() {
 }
 
 // -------------------------------------------------------------
+// NAVBAT BO'YICHA ADMIN AMALLARI (TELEGRAM ORQALI BOSHQARISH)
+// -------------------------------------------------------------
+async function callNextPatient(deviceId) {
+  try {
+    const queue = getTodayQueue().filter(p => p.deviceId === deviceId);
+    const nextPat = queue.find(p => p.status === 'waiting');
+    if (!nextPat) return { success: false, message: "Navbatda kutayotgan bemor yo'q" };
+
+    try {
+      const res = await fetch("http://localhost:9890/api/queue/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: nextPat.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        return { success: true, message: `${nextPat.patientName} (ID: ${nextPat.ticketNumber || nextPat.patientId}) chaqirildi!` };
+      }
+    } catch (netErr) {}
+
+    // Fallback: Faylni to'g'ridan-to'g'ri yangilash
+    const all = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
+    const p = all.find(x => x.id === nextPat.id);
+    if (p) {
+      all.forEach(x => { if (x.deviceId === deviceId && x.status === 'calling') x.status = 'waiting'; });
+      p.status = 'calling';
+      p.calledAt = new Date().toISOString();
+      fs.writeFileSync(QUEUE_FILE, JSON.stringify(all, null, 2), 'utf8');
+      return { success: true, message: `${nextPat.patientName} chaqirildi!` };
+    }
+    return { success: false, message: "Bemor topilmadi" };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+async function startExamPatient(deviceId) {
+  try {
+    const queue = getTodayQueue().filter(p => p.deviceId === deviceId);
+    const pat = queue.find(p => p.status === 'calling') || queue.find(p => p.status === 'waiting');
+    if (!pat) return { success: false, message: "Chaqirilgan yoki navbatdagi bemor yo'q" };
+
+    try {
+      const res = await fetch("http://localhost:9890/api/queue/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pat.id, status: "in_progress" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        return { success: true, message: `${pat.patientName} tekshiruvga kirdi!` };
+      }
+    } catch (netErr) {}
+
+    const all = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
+    const p = all.find(x => x.id === pat.id);
+    if (p) {
+      p.status = 'in_progress';
+      p.startTime = new Date().toISOString();
+      fs.writeFileSync(QUEUE_FILE, JSON.stringify(all, null, 2), 'utf8');
+      return { success: true, message: `${pat.patientName} tekshiruvga kirdi!` };
+    }
+    return { success: false, message: "Bemor topilmadi" };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+async function finishExamPatient(deviceId) {
+  try {
+    const queue = getTodayQueue().filter(p => p.deviceId === deviceId);
+    const pat = queue.find(p => p.status === 'in_progress');
+    if (!pat) return { success: false, message: "Hozirda tekshirilayotgan bemor yo'q" };
+
+    try {
+      const res = await fetch("http://localhost:9890/api/queue/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pat.id, status: "completed" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        return { success: true, message: `${pat.patientName} tekshiruvi yakunlandi!` };
+      }
+    } catch (netErr) {}
+
+    const all = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
+    const p = all.find(x => x.id === pat.id);
+    if (p) {
+      p.status = 'completed';
+      p.completedAt = new Date().toISOString();
+      fs.writeFileSync(QUEUE_FILE, JSON.stringify(all, null, 2), 'utf8');
+      return { success: true, message: `${pat.patientName} tekshiruvi yakunlandi!` };
+    }
+    return { success: false, message: "Bemor topilmadi" };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function getDeviceQueueInlineKeyboard(deviceId, userRole) {
+  const devKey = (deviceId === 'mskt1') ? 'mskt' : deviceId;
+  if (userRole !== 'admin') {
+    return {
+      inline_keyboard: [
+        [{ text: "🔄 Yangilash", callback_data: `lab_${devKey}` }],
+        [{ text: "🔙 Asosiy Menyu", callback_data: "restart_bot" }]
+      ]
+    };
+  }
+  const liveWebAppUrl = getLiveWebAppUrl();
+  return {
+    inline_keyboard: [
+      [
+        { text: "🔔 Navbatdagini Chaqirish", callback_data: `call_next_${deviceId}` }
+      ],
+      [
+        { text: "🚪 Xonada (Boshlash)", callback_data: `start_curr_${deviceId}` },
+        { text: "✅ Yakunlash", callback_data: `finish_curr_${deviceId}` }
+      ],
+      [
+        { text: "🚀 Admin Panel (Web App)", web_app: { url: liveWebAppUrl } },
+        { text: "🔄 Yangilash", callback_data: `lab_${devKey}` }
+      ],
+      [
+        { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+      ]
+    ]
+  };
+}
+
+// -------------------------------------------------------------
 // INTERFEYS VA TUGMALAR (ADMIN, LABORANT, BEMOR)
 // -------------------------------------------------------------
 async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
   const user = getOrUpdateUser(fromInfo, isResetToUser);
   const firstName = escapeHtml(fromInfo.first_name || "Foydalanuvchi");
-  const settings = loadBotSettings();
-  const webAppUrl = settings.webAppUrl || "https://hojiakbar-turotov.github.io/Radiology-AI/control.html";
+  const liveWebAppUrl = getLiveWebAppUrl();
 
   if (user.role === 'admin') {
-    // 1. ADMIN MENYUSI (WEB APP BILAN)
+    // 1. ADMIN MENYUSI (WEB APP VA TO'LIQ INLINE BOSHQARUV)
     const text = 
       `👑 <b>Assalomu alaykum, Hurmatli Administrator ${firstName}!</b>\n\n` +
-      `🏥 <b>Sizga MRT / MSKT Boshqaruv Administratsiyasi to'liq biriktirilgan.</b>\n\n` +
-      `Quyidagi <b>Web App</b> tugmasi orqali to'liq <b>Admin Boshqaruv Paneli</b>ni bevosita Telegram ichida ochishingiz, bemorlarni navbatga yozishingiz, laboratoriya natijalari, ish grafiklari va sozlamalarni to'liq boshqarishingiz mumkin:`;
+      `🏥 <b>MRT & MSKT Boshqaruv Administratsiyasi (Port 9890)</b>\n\n` +
+      `Quyidagi <b>Web App</b> tugmasi orqali to'liq <b>Admin Boshqaruv Paneli</b>ni bevosita Telegram ichida ochishingiz yoki quyidagi tezkor tugmalar orqali navbatlarni boshqarishingiz mumkin:`;
 
     const inlineKeyboard = {
       inline_keyboard: [
         [
-          { text: "🚀 📱 Admin Panelni Ochish (Web App)", web_app: { url: webAppUrl } }
+          { text: "🚀 📱 Admin Panelni Ochish (Web App)", web_app: { url: liveWebAppUrl } }
         ],
         [
           { text: "🧲 1-MRT Navbati", callback_data: "lab_mrt1" },
@@ -282,10 +429,11 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
           { text: "📊 Bugungi Statistika", callback_data: "lab_stats" }
         ],
         [
-          { text: "👥 Foydalanuvchilar Ro'yxati", callback_data: "admin_users_info" },
-          { text: "⚙️ WebApp Havolasi", callback_data: "admin_webapp_info" }
+          { text: "👥 Foydalanuvchilar & Rollar", callback_data: "admin_users_info" },
+          { text: "⏰ Bugungi Ish Grafigi", callback_data: "admin_schedule_info" }
         ],
         [
+          { text: "🌐 Cloudflare Tunnel & GitHub", callback_data: "admin_tunnel_info" },
           { text: "🔄 Yangilash", callback_data: "admin_refresh" }
         ]
       ]
@@ -294,7 +442,7 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
     const replyKeyboard = {
       keyboard: [
         [
-          { text: "🚀 Admin Panel (Web App)", web_app: { url: webAppUrl } }
+          { text: "🚀 Admin Panel (Web App)", web_app: { url: liveWebAppUrl } }
         ],
         [
           { text: "📊 Bugungi Statistika" },
@@ -418,15 +566,197 @@ async function processUpdate(update) {
       const labs = users.filter(u => u.role === 'laborant');
       const regular = users.filter(u => u.role === 'user');
 
-      let txt = `👥 <b>BOT FOYDALANUVCHILARI STATISTIKASI:</b>\n\n`;
-      txt += `👑 <b>Adminlar (${admins.length} nafar):</b>\n`;
+      let txt = `👥 <b>BOT FOYDALANUVCHILARI & ROLLAR BOSHQARUVI:</b>\n\n`;
+      txt += `👑 <b>Adminlar (${admins.length}):</b>\n`;
       admins.forEach(a => txt += `• ${escapeHtml(a.fullName)} (${escapeHtml(a.username)})\n`);
-      txt += `\n👨‍⚕️ <b>Laborantlar (${labs.length} nafar):</b>\n`;
+      txt += `\n👨‍⚕️ <b>Laborantlar (${labs.length}):</b>\n`;
       labs.forEach(l => txt += `• ${escapeHtml(l.fullName)} (${escapeHtml(l.username)})\n`);
-      txt += `\n👤 <b>Oddiy foydalanuvchilar:</b> ${regular.length} nafar\n`;
-      txt += `📌 <i>Jami ro'yxatdagilar: ${users.length} nafar.</i>`;
+      txt += `\n👤 <b>Bemorlar / Oddiy:</b> ${regular.length} nafar\n`;
+      txt += `\n💡 <i>Foydalanuvchi huquqini o'zgartirish uchun pastdagi tugmalardan foydalaning:</i>`;
 
-      await sendTelegramMessage(chatId, txt, { parse_mode: "HTML" });
+      // Build inline action rows for non-admin users (up to 8)
+      const userButtons = [];
+      users.slice(0, 8).forEach(u => {
+        const uLabel = (u.fullName || String(u.id)).substring(0, 14);
+        const roleIcon = u.role === 'admin' ? '👑' : (u.role === 'laborant' ? '👨‍⚕️' : '👤');
+        userButtons.push([
+          { text: `${roleIcon} ${uLabel}`, callback_data: `info_u_${u.id}` },
+          { text: "👑 Admin", callback_data: `set_role_admin_${u.id}` },
+          { text: "👨‍⚕️ Lab", callback_data: `set_role_lab_${u.id}` },
+          { text: "👤 Bekor", callback_data: `set_role_user_${u.id}` }
+        ]);
+      });
+
+      userButtons.push([
+        { text: "🔄 Yangilash", callback_data: "admin_users_info" },
+        { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+      ]);
+
+      await sendTelegramMessage(chatId, txt, { parse_mode: "HTML", reply_markup: { inline_keyboard: userButtons } });
+      return;
+    }
+
+    if (data.startsWith("set_role_")) {
+      const user = getOrUpdateUser(fromInfo, false);
+      if (user.role !== 'admin') {
+        await answerCallbackQuery(cb.id, "⚠️ Faqat Administrator uchun!");
+        return;
+      }
+      const parts = data.split("_"); // set, role, (admin|lab|user), id
+      const targetRole = parts[2] === 'lab' ? 'laborant' : (parts[2] === 'admin' ? 'admin' : 'user');
+      const targetId = parts[3];
+
+      const users = loadBotUsers();
+      const targetUser = users.find(u => String(u.id) === String(targetId));
+      if (targetUser) {
+        targetUser.role = targetRole;
+        targetUser.updatedAt = new Date().toISOString();
+        saveBotUsers(users);
+        await answerCallbackQuery(cb.id, `✅ ${targetUser.fullName || targetId} roli: ${targetRole}`);
+      } else {
+        await answerCallbackQuery(cb.id, "❌ Foydalanuvchi topilmadi");
+      }
+      return;
+    }
+
+    if (data.startsWith("info_u_")) {
+      const uId = data.replace("info_u_", "");
+      const users = loadBotUsers();
+      const u = users.find(x => String(x.id) === String(uId));
+      if (u) {
+        await answerCallbackQuery(cb.id, `ID: ${u.id} | ${u.fullName} | Roli: ${u.role || 'user'}`);
+      }
+      return;
+    }
+
+    // Cloudflare Tunnel va GitHub Holati
+    if (data === "admin_tunnel_info") {
+      let tunnelCfg = {};
+      try {
+        if (fs.existsSync(TUNNEL_CONFIG_FILE)) {
+          tunnelCfg = JSON.parse(fs.readFileSync(TUNNEL_CONFIG_FILE, 'utf8'));
+        }
+      } catch (e) {}
+
+      let tunnelStat = {};
+      try {
+        if (fs.existsSync(TUNNEL_STATUS_FILE)) {
+          tunnelStat = JSON.parse(fs.readFileSync(TUNNEL_STATUS_FILE, 'utf8'));
+        }
+      } catch (e) {}
+
+      const onlineUrl = (tunnelCfg.mrt_mskt && tunnelCfg.mrt_mskt.onlineControlUrl) || (tunnelStat.controlUrl) || "Kutilmoqda...";
+      const gitStatus = tunnelStat.gitPushStatus || "Kutilmoqda";
+      const liveWebAppUrl = getLiveWebAppUrl();
+
+      const txt = 
+        `🌐 <b>CLOUDFLARE TUNNEL & GITHUB BROKER HOLATI:</b>\n\n` +
+        `📱 <b>Online Admin (HTTPS):</b>\n<code>${escapeHtml(onlineUrl)}</code>\n\n` +
+        `💻 <b>Lokal Admin (LAN):</b>\n<code>http://localhost:9890/control</code>\n\n` +
+        `🔒 <b>Registratura Serveri (LAN):</b>\n<code>http://localhost:9891</code>\n<i>(Faqat ichki Wi-Fi/LAN tarmog'ida ishlaydi, tashqi tunneldan yopiq)</i>\n\n` +
+        `🐙 <b>GitHub Config:</b>\n<a href="https://raw.githubusercontent.com/Hojiakbar-Turotov/Radiology-AI/main/tunnel_config.json">tunnel_config.json</a>\n` +
+        `📊 <b>GitHub Push Holati:</b> <code>${escapeHtml(gitStatus)}</code>\n` +
+        `⏰ <b>Oxirgi yangilanish:</b> ${tunnelStat.updatedAt ? new Date(tunnelStat.updatedAt).toLocaleTimeString('uz-UZ') : '-'}`;
+
+      const kb = {
+        inline_keyboard: [
+          [
+            { text: "🚀 Admin Panel (Web App)", web_app: { url: liveWebAppUrl } }
+          ],
+          [
+            { text: "🔄 Tunnelni Qayta Ishga Tushirish", callback_data: "admin_restart_tunnel" }
+          ],
+          [
+            { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+          ]
+        ]
+      };
+
+      await sendTelegramMessage(chatId, txt, { parse_mode: "HTML", reply_markup: kb });
+      return;
+    }
+
+    if (data === "admin_restart_tunnel") {
+      await answerCallbackQuery(cb.id, "⚡ Tunnel qayta tekshirilmoqda...");
+      try {
+        const { exec } = require('child_process');
+        exec('node mrt_tunnel_agent.js', { cwd: ROOT_DIR });
+      } catch (e) {}
+      await sendTelegramMessage(chatId, "✅ <i>Cloudflare Tunnel yangilanmoqda va GitHub brokeriga yuborilmoqda...</i>", { parse_mode: "HTML" });
+      return;
+    }
+
+    // Bugungi Ish Grafigi
+    if (data === "admin_schedule_info") {
+      let sched = {};
+      try {
+        if (fs.existsSync(SCHEDULES_FILE)) {
+          sched = JSON.parse(fs.readFileSync(SCHEDULES_FILE, 'utf8'));
+        }
+      } catch (e) {}
+
+      const dayIdx = new Date().getDay();
+      const dayKey = String(dayIdx);
+      const dayNames = { "1": "Dushanba", "2": "Seshanba", "3": "Chorshanba", "4": "Payshanba", "5": "Juma", "6": "Shanba", "0": "Yakshanba" };
+      const dayCfg = (sched.weeklySchedule && sched.weeklySchedule[dayKey]) || { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] };
+
+      let txt = `⏰ <b>BUGUNGI ISH GRAFIGI (${dayNames[dayKey]}):</b>\n\n`;
+      txt += `📋 <b>Holat:</b> ${dayCfg.isOpen ? '✅ Ish kuni' : '⛔ Dam olish kuni'}\n`;
+      if (dayCfg.isOpen && dayCfg.intervals && dayCfg.intervals.length > 0) {
+        txt += `🕒 <b>Smenalar:</b>\n`;
+        dayCfg.intervals.forEach((inv, i) => {
+          txt += `   ${i + 1}. <b>${inv.start} — ${inv.end}</b>\n`;
+        });
+      } else {
+        txt += `<i>Bugun apparatlarda ish soatlari kiritilmagan.</i>\n`;
+      }
+
+      const kb = {
+        inline_keyboard: [
+          [
+            { text: "🚀 Grafikni Tahrirlash (Web App)", web_app: { url: getLiveWebAppUrl() } }
+          ],
+          [
+            { text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }
+          ]
+        ]
+      };
+
+      await sendTelegramMessage(chatId, txt, { parse_mode: "HTML", reply_markup: kb });
+      return;
+    }
+
+    // Navbat bo'yicha tezkor amallar (Chaqirish / Xonada / Yakunlash)
+    if (data.startsWith("call_next_") || data.startsWith("start_curr_") || data.startsWith("finish_curr_")) {
+      const user = getOrUpdateUser(fromInfo, false);
+      if (user.role !== 'admin') {
+        await answerCallbackQuery(cb.id, "⚠️ Faqat Administrator uchun!");
+        return;
+      }
+
+      let resAction = null;
+      let devId = null;
+      if (data.startsWith("call_next_")) {
+        devId = data.replace("call_next_", "");
+        resAction = await callNextPatient(devId);
+      } else if (data.startsWith("start_curr_")) {
+        devId = data.replace("start_curr_", "");
+        resAction = await startExamPatient(devId);
+      } else if (data.startsWith("finish_curr_")) {
+        devId = data.replace("finish_curr_", "");
+        resAction = await finishExamPatient(devId);
+      }
+
+      if (resAction && resAction.success) {
+        await answerCallbackQuery(cb.id, `✅ ${resAction.message}`);
+      } else {
+        await answerCallbackQuery(cb.id, `⚠️ ${resAction ? resAction.message : 'Amal bajarilmadi'}`);
+      }
+
+      const devName = (devId === 'mskt1') ? '1-MSKT Xonasi' : ((devId === 'mrt2') ? '2-MRT Xonasi (1.5 Tesla)' : '1-MRT Xonasi (1.5 Tesla)');
+      const text = formatDeviceQueueMessage(devId, devName);
+      const keyboard = getDeviceQueueInlineKeyboard(devId, user.role);
+      await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: keyboard });
       return;
     }
 
@@ -436,21 +766,30 @@ async function processUpdate(update) {
       return;
     }
 
-    // Laborant yoki Admin amallari
+    // Laborant yoki Admin amallari (Navbat ko'rish)
     const user = getOrUpdateUser(fromInfo, false);
     if (user.role === 'laborant' || user.role === 'admin') {
       if (data === "lab_mrt1") {
         const text = formatDeviceQueueMessage('mrt1', '1-MRT Xonasi (1.5 Tesla)');
-        await sendTelegramMessage(chatId, text, { parse_mode: "HTML" });
+        const keyboard = getDeviceQueueInlineKeyboard('mrt1', user.role);
+        await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: keyboard });
       } else if (data === "lab_mrt2") {
         const text = formatDeviceQueueMessage('mrt2', '2-MRT Xonasi (1.5 Tesla)');
-        await sendTelegramMessage(chatId, text, { parse_mode: "HTML" });
+        const keyboard = getDeviceQueueInlineKeyboard('mrt2', user.role);
+        await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: keyboard });
       } else if (data === "lab_mskt") {
         const text = formatDeviceQueueMessage('mskt1', '1-MSKT Xonasi');
-        await sendTelegramMessage(chatId, text, { parse_mode: "HTML" });
+        const keyboard = getDeviceQueueInlineKeyboard('mskt1', user.role);
+        await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: keyboard });
       } else if (data === "lab_stats") {
         const text = formatGeneralStatsMessage();
-        await sendTelegramMessage(chatId, text, { parse_mode: "HTML" });
+        const kb = {
+          inline_keyboard: [
+            [{ text: "🚀 Admin Panel (Web App)", web_app: { url: getLiveWebAppUrl() } }],
+            [{ text: "🔙 Asosiy Menyu", callback_data: "admin_refresh" }]
+          ]
+        };
+        await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: kb });
       }
     } else {
       if (data.startsWith('lab_')) {

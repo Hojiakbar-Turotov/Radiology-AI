@@ -1077,6 +1077,53 @@ const server = http.createServer(async (req, res) => {
 
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
+
+  // =========================================================================
+  // 0. QAT'IY QOIDA: REGISTRATURA FAQAT SHIFOХONA LOKAL TARMOG'IDA (LAN) ISHLAYDI!
+  //    Masofaviy Cloudflare tunnel, ngrok yoki public proksilar orqali kirish taqiqlanadi!
+  // =========================================================================
+  const hostHdr = (req.headers['host'] || '').toLowerCase();
+  const isTunnelRequest = Boolean(
+    req.headers['cf-connecting-ip'] || 
+    req.headers['cf-ray'] || 
+    hostHdr.includes('trycloudflare.com') || 
+    hostHdr.includes('ngrok') || 
+    hostHdr.includes('github.io')
+  );
+
+  if (isTunnelRequest) {
+    if (pathname.startsWith('/api/')) {
+      return sendJson(res, {
+        success: false,
+        error: "⛔ Registratura agenti faqat shifoxona lokal tarmog'ida (LAN) ishlaydi! Masofaviy tunnel orqali kirish taqiqlangan."
+      }, 403);
+    }
+    res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(`
+      <!DOCTYPE html>
+      <html lang="uz">
+      <head>
+        <meta charset="utf-8">
+        <title>403 Taqiqlangan (Faqat Lokal Tarmoq)</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f8fafc; margin:0; }
+          .box { background:#ffffff; border:2px solid #ef4444; border-radius:16px; padding:32px; max-width:480px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.08); }
+          h2 { color:#b91c1c; margin-bottom:12px; }
+          p { color:#475569; font-size:14px; line-height:1.5; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h2>⛔ 403: Ruxsat berilmagan</h2>
+          <p><b>Registratura Serveri (Port 9891)</b> faqat shifoxona <b>ichki lokal tarmog'ida (LAN)</b> ishlashga ruxsat etilgan.</p>
+          <p style="color:#ef4444; font-weight:700; margin-top:12px;">Masofaviy tunnel orqali registratsiya oynasiga kirish qat'iyan taqiqlangan.</p>
+          <p style="font-size:12px; color:#94a3b8; margin-top:20px;">Shifoxona ichki tarmog'iga ulanib, <code>http://10.34.14.33:9891</code> orqali kiring.</p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+
   const clientPerm = checkClientIpPermission(req);
 
   // =========================================================================
