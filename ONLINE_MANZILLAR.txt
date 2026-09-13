@@ -1,0 +1,19 @@
+===============================================================================
+  🏥 RIO va RIOATM MRT & MSKT ADMIN PORTALI — JONLI CLOUDFLARE TUNNEL
+  Yangilangan vaqt: 13.09.2026, 18:38:44
+===============================================================================
+
+📱 TELEGRAM WEB APP MANZILI (ADMIN):
+   https://eau-jose-adware-flux.trycloudflare.com/control
+
+💻 LOKAL TARMOQ MANZILLARI:
+   • Admin Portali:       http://localhost:9890/control
+   • Registratura (LAN):  http://localhost:9891
+   • TV Tablo:            http://localhost:9890/tv
+
+🌐 GITHUB TUNNEL BROKER:
+   https://raw.githubusercontent.com/Hojiakbar-Turotov/Radiology-AI/main/tunnel_config.json
+
+⚠️ DIQQAT: Registratura (9891) xavfsizlik nuqtai nazaridan faqat shifoxona
+ichki lokal tarmog'ida ishlaydi, tashqi tunnel orqali kirish taqiqlangan!
+===============================================================================

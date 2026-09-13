@@ -53,6 +53,9 @@ function updateConfigFiles(tunnelUrl) {
   config.mrt_mskt.telegramBot = "@Radiodiagnostika_bot";
 
   fs.writeFileSync(TUNNEL_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+  try {
+    fs.writeFileSync(path.join(ROOT_DIR, 'docs', 'tunnel_config.json'), JSON.stringify(config, null, 2), 'utf8');
+  } catch (e) {}
 
   // 2. data/bot_settings.json
   let botSettings = { webAppUrl: `${tunnelUrl}/control`, adminPassword: "15420" };
@@ -113,7 +116,7 @@ function triggerGitPush() {
     console.log('[GIT-PUSH] 🚀 Tunnel manzili GitHub omboriga push qilinmoqda...');
 
     const git = getGitExecutable();
-    const gitCmd = `${git} add tunnel_config.json data/bot_settings.json && ${git} commit -m "chore: auto-update MRT Cloudflare tunnel URL" && ${git} push origin main`;
+    const gitCmd = `${git} add tunnel_config.json docs/tunnel_config.json data/bot_settings.json && ${git} commit -m "chore: auto-update MRT Cloudflare tunnel URL" && ${git} push origin main`;
 
     exec(gitCmd, { cwd: ROOT_DIR }, (err, stdout, stderr) => {
       isPushing = false;
