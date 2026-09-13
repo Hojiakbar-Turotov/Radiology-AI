@@ -638,7 +638,12 @@ const server = http.createServer(async (req, res) => {
         let respData = '';
         pRes.on('data', chunk => { respData += chunk; });
         pRes.on('end', () => {
-          res.writeHead(pRes.statusCode, { 'Content-Type': 'application/json' });
+          res.writeHead(pRes.statusCode, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With'
+          });
           res.end(respData);
         });
       });
