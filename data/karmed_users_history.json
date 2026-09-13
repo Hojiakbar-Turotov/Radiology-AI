@@ -1,16 +1,44 @@
 {
-  "lastUpdated": "2026-09-12T14:11:26.459Z",
-  "totalSnapshots": 114,
+  "lastUpdated": "2026-09-13T16:18:41.643Z",
+  "totalSnapshots": 153,
   "users": {
     "R5": {
       "username": "R5",
       "fullName": "Foydalanuvchi (R5)",
       "firstSeen": "2026-09-09T08:49:55.308Z",
-      "lastSeen": "2026-09-12T14:11:26.459Z",
+      "lastSeen": "2026-09-13T16:14:18.845Z",
       "lastSessionId": "5za3n303np0krcgubhyixzje",
-      "lastLoginBilgi": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boEt%2f8LbmrryPI9hv%2fmoziaOwdPKwJWIL0urryJb1WLQ8tW4UREf7y70bS%2bDRNscTFXwGjbP8OikAPCLUDNW%2fgVBeFAUF4nRsDU6wIk7bkeETM0BbxvuoW0M1i5HLiQMHN7EPwxo7Oo8lLEAOE6N0gxgTzVGYE0hSuNjkekVCGUOJQn4eKpU9mVu4WBlQYRfZzsIfmwb6k3y4R%2fmSACbEr9RhwIS07q2B3ud",
-      "snapshotsCount": 73,
+      "lastLoginBilgi": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIooF5fRBoxt5FWDgNhEYYbezw5kr4sbEzTOEheL9jjvy3eUUrLmiFenPtfrzEEU%2begEw6Ov25ncbbXQEYByAZCcZVBrK2Ejp3J%2f2RKvJeIuRH2cT9SE4qQHHao7VoiWNTmg42I%2bXLZYu8wSnnBmw9mk0WgMOsVp81WZCWi2fUWUrgPt8Fu%2b23KIZeoSPxDUWCq%2bVOIPVHID%2b1QAlPxaaeyL1nJPiXgXf5x",
+      "snapshotsCount": 77,
       "history": [
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:14:18.845Z",
+          "file": "session_R5_2026-09-13T16-14-18-845Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T15:11:23.276Z",
+          "file": "session_R5_2026-09-13T15-11-23-276Z.json"
+        },
+        {
+          "fullName": "Turatov Hojiakbar Shavkat ogli",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:23.261Z",
+          "file": "session_R5_2026-09-13T15-11-23-261Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:12.969Z",
+          "file": "session_R5_2026-09-13T15-11-12-969Z.json"
+        },
         {
           "fullName": "Foydalanuvchi (R5)",
           "sessionId": "5za3n303np0krcgubhyixzje",
@@ -332,34 +360,6 @@
           "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
           "timestamp": "2026-09-10T08:14:09.816Z",
           "file": "session_R5_2026-09-10T08-14-09-816Z.json"
-        },
-        {
-          "fullName": "Turatov Hojiakbar Shavkat ogli",
-          "sessionId": "30l3iarvqpzedx4oosshnavo",
-          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
-          "timestamp": "2026-09-10T08:12:43.563Z",
-          "file": "session_R5_2026-09-10T08-12-43-563Z.json"
-        },
-        {
-          "fullName": "Turatov Hojiakbar Shavkat ogli",
-          "sessionId": "30l3iarvqpzedx4oosshnavo",
-          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
-          "timestamp": "2026-09-10T08:12:43.556Z",
-          "file": "session_R5_2026-09-10T08-12-43-556Z.json"
-        },
-        {
-          "fullName": "Turatov Hojiakbar Shavkat ogli",
-          "sessionId": "eoupjpikngkzschvmwrpjmt4",
-          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
-          "timestamp": "2026-09-10T03:45:36.003Z",
-          "file": "session_R5_2026-09-10T03-45-36-003Z.json"
-        },
-        {
-          "fullName": "Turatov Hojiakbar Shavkat ogli",
-          "sessionId": "dgmdqdihvcfnuw1wc3ounway",
-          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
-          "timestamp": "2026-09-09T10:03:32.909Z",
-          "file": "session_R5_2026-09-09T10-03-32-909Z.json"
         }
       ]
     },
@@ -367,11 +367,18 @@
       "username": "R",
       "fullName": "Foydalanuvchi (R5)",
       "firstSeen": "2026-09-09T08:50:35.981Z",
-      "lastSeen": "2026-09-12T14:09:55.708Z",
+      "lastSeen": "2026-09-13T15:11:14.560Z",
       "lastSessionId": "5za3n303np0krcgubhyixzje",
-      "lastLoginBilgi": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boEt%2f8LbmrryPI9hv%2fmoziaOwdPKwJWIL0urryJb1WLQ8tW4UREf7y70bS%2bDRNscTFXwGjbP8OikAPD8pez6%2bYj6dOAhrRHGyddx0xrE3%2byUzL236U%2fQRGn57v8%2fq8rEiwMVfZSWvJpmKyWC1TeGdGi20tHB93Fh0Gle0toh5%2bXKZ%2fsCjY83S90VqD%2fG8l4do7kl8Gj1Q01TywI4KgV5c7ekLwQCl2eKWacu",
-      "snapshotsCount": 9,
+      "lastLoginBilgi": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boEt%2f8LbmrryPI9hv%2fmoziaOwdPKwJWIL0urryJb1WLQ8tW4UREf7y70bUrwGlt%2f%2feUgRmKnTMIYler75leUQiGNffCiKx3QbSjxyPZPDPdG9VvwNe6pN5%2bYVNnB5yYhS0cgA6byML0dAaQwqMiq3ybWbJgFCcauRMTd5DePvC8yqtu%2fkhfIj0fbaalZH8dB2BM%2fNDcBqULNyWRBGiHjOpBI7xuNNjQqzan1",
+      "snapshotsCount": 10,
       "history": [
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:14.560Z",
+          "file": "session_R_2026-09-13T15-11-14-560Z.json"
+        },
         {
           "fullName": "Foydalanuvchi (R5)",
           "sessionId": "5za3n303np0krcgubhyixzje",
@@ -441,11 +448,25 @@
       "username": "R1",
       "fullName": "Foydalanuvchi (R5)",
       "firstSeen": "2026-09-09T08:50:54.832Z",
-      "lastSeen": "2026-09-09T09:48:05.424Z",
-      "lastSessionId": "dkigmaek3oepzx1otzyc0y03",
-      "lastLoginBilgi": "N1ab2%2fhFy2jyZ6D4Rvwcev8xVvWnC4jI3jJfCQC0QwAYP4mQvJxAnj%2bERnOY0z3dXh7dg9TdtyPr79AH7rfGsA0Y56ULBCHDMZ5XijmCMAgoszCmFyNh6piYxdo0sdrEDHzn5G0MKIFEmM6wXmKSqnFELBkSRdbs8b1dmNGzlMZ1gsw47JUZTu1L6Gwcp%2f5IsUvjWrRZ4KeoofeXoIbrldIneqUd8K9iGK1QHA7dFqlX2Z%2fokzWuhUH76uC1jzgR",
-      "snapshotsCount": 2,
+      "lastSeen": "2026-09-13T15:11:16.558Z",
+      "lastSessionId": "5za3n303np0krcgubhyixzje",
+      "lastLoginBilgi": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boEt%2f8LbmrryPI9hv%2fmoziaOwdPKwJWIL0urryJb1WLQ8tW4UREf7y70bUrwGlt%2f%2feUgRmKnTMIYler75leUQiGNffCiKx3QbSjxyPZPDPdG9VvwNe6pN5%2bYVNnB5yYhS0cgA6byML0dAaQwqMiq3ybWbJgFCcauRMTd5DePvC8yqtu%2fkhfIj0fbaalZH8dB2BM%2fNDcBqULNyWRBGiHjOpBI7xuNNjQqzan1",
+      "snapshotsCount": 4,
       "history": [
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:16.558Z",
+          "file": "session_R1_2026-09-13T15-11-16-558Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:14.924Z",
+          "file": "session_R1_2026-09-13T15-11-14-924Z.json"
+        },
         {
           "fullName": "Foydalanuvchi (R5)",
           "sessionId": "dkigmaek3oepzx1otzyc0y03",
@@ -464,13 +485,20 @@
     },
     "R18": {
       "username": "R18",
-      "fullName": "Pazliyev Sardor",
+      "fullName": "Foydalanuvchi (R5)",
       "firstSeen": "2026-09-09T08:50:54.944Z",
-      "lastSeen": "2026-09-09T10:04:56.822Z",
-      "lastSessionId": "rgatdv3zbqnf3mcnqohmiyt3",
-      "lastLoginBilgi": "N1ab2%2fhFy2jyZ6D4Rvwcev8xVvWnC4jI3jJfCQC0QwAYP4mQvJxAnj%2bERnOY0z3dXh7dg9TdtyPr79AH7rfGsA0Y56ULBCHDMZ5XijmCMAiaSfKEHNlCpbYNfF2fzcZkeFbICjHQs1HuhCT2%2fLyBqYUEnjZdbAMbuLIZR90Mukp6JYKYC%2fwkdirbwRljNIiOXTtuYedvEl0cgPk0PuBFHHV8Mu0BPB34asjrphJNm94o9NXCrOEjDIS8ZdWpBJf7",
-      "snapshotsCount": 14,
+      "lastSeen": "2026-09-13T15:11:15.027Z",
+      "lastSessionId": "5za3n303np0krcgubhyixzje",
+      "lastLoginBilgi": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boEt%2f8LbmrryPI9hv%2fmoziaOwdPKwJWIL0urryJb1WLQ8tW4UREf7y70bUrwGlt%2f%2feUgRmKnTMIYler75leUQiGNffCiKx3QbSjxyPZPDPdG9VvwNe6pN5%2bYVNnB5yYhS0cgA6byML0dAaQwqMiq3ybWbJgFCcauRMTd5DePvC8yqtu%2fkhfIj0fbaalZH8dB2BM%2fNDcBqULNyWRBGiHjOpBI7xuNNjQqzan1",
+      "snapshotsCount": 15,
       "history": [
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:15.027Z",
+          "file": "session_R18_2026-09-13T15-11-15-027Z.json"
+        },
         {
           "fullName": "Pazliyev Sardor",
           "sessionId": "rgatdv3zbqnf3mcnqohmiyt3",
@@ -746,6 +774,234 @@
           "loginBilgiSnippet": "TOKEN_JURAVLEV_1788945201298_abcdef...",
           "timestamp": "2026-09-09T09:13:21.300Z",
           "file": "session_U1_2026-09-09T09-13-21-300Z.json"
+        }
+      ]
+    },
+    "R17": {
+      "username": "R17",
+      "fullName": "Foydalanuvchi (R5)",
+      "firstSeen": "2026-09-13T15:11:17.089Z",
+      "lastSeen": "2026-09-13T16:18:41.643Z",
+      "lastSessionId": "5za3n303np0krcgubhyixzje",
+      "lastLoginBilgi": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIooF5fRBoxt5FWDgNhEYYbezw5kr4sbEzTOEheL9jjvy3eUUrLmiFenPtfrzEEU%2begEw6Ov25ncbbXQEYByAZCcZVBrK2Ejp3J%2f2RKvJeIuRH2cT9SE4qQHHao7VoiWNTmg42I%2bXLZYu8wSnnBmw9mk0WgMOsVp81WZCWi2fUWUrgPt8Fu%2b23KIZeoSPxDUWCq%2bVOIPVHID%2b1QAlPxaaeyL1nJPiXgXf5x",
+      "snapshotsCount": 31,
+      "history": [
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:41.643Z",
+          "file": "session_R17_2026-09-13T16-18-41-643Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:41.641Z",
+          "file": "session_R17_2026-09-13T16-18-41-641Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:36.701Z",
+          "file": "session_R17_2026-09-13T16-18-36-701Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:36.700Z",
+          "file": "session_R17_2026-09-13T16-18-36-700Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:29.827Z",
+          "file": "session_R17_2026-09-13T16-18-29-827Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:29.825Z",
+          "file": "session_R17_2026-09-13T16-18-29-825Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:12.582Z",
+          "file": "session_R17_2026-09-13T16-18-12-582Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:18:12.581Z",
+          "file": "session_R17_2026-09-13T16-18-12-581Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:17:24.482Z",
+          "file": "session_R17_2026-09-13T16-17-24-482Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:17:24.481Z",
+          "file": "session_R17_2026-09-13T16-17-24-481Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:14:19.542Z",
+          "file": "session_R17_2026-09-13T16-14-19-542Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:14:19.541Z",
+          "file": "session_R17_2026-09-13T16-14-19-541Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:14:02.552Z",
+          "file": "session_R17_2026-09-13T16-14-02-552Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T16:14:02.550Z",
+          "file": "session_R17_2026-09-13T16-14-02-550Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.770Z",
+          "file": "session_R17_2026-09-13T15-11-43-770Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.769Z",
+          "file": "session_R17_2026-09-13T15-11-43-769Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.769Z",
+          "file": "session_R17_2026-09-13T15-11-43-769Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.768Z",
+          "file": "session_R17_2026-09-13T15-11-43-768Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.768Z",
+          "file": "session_R17_2026-09-13T15-11-43-768Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.767Z",
+          "file": "session_R17_2026-09-13T15-11-43-767Z.json"
+        },
+        {
+          "fullName": "Turatov Hojiakbar Shavkat ogli",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.766Z",
+          "file": "session_R17_2026-09-13T15-11-43-766Z.json"
+        },
+        {
+          "fullName": "Turatov Hojiakbar Shavkat ogli",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.766Z",
+          "file": "session_R17_2026-09-13T15-11-43-766Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.765Z",
+          "file": "session_R17_2026-09-13T15-11-43-765Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.765Z",
+          "file": "session_R17_2026-09-13T15-11-43-765Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.764Z",
+          "file": "session_R17_2026-09-13T15-11-43-764Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:43.763Z",
+          "file": "session_R17_2026-09-13T15-11-43-763Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T15:11:33.027Z",
+          "file": "session_R17_2026-09-13T15-11-33-027Z.json"
+        },
+        {
+          "fullName": "Gulomov Miraziz",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T15:11:33.026Z",
+          "file": "session_R17_2026-09-13T15-11-33-026Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T15:11:24.112Z",
+          "file": "session_R17_2026-09-13T15-11-24-112Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "N1ab2%2fhFy2jyZ6D4RvwcekQLCrubOpIoo...",
+          "timestamp": "2026-09-13T15:11:24.111Z",
+          "file": "session_R17_2026-09-13T15-11-24-111Z.json"
+        },
+        {
+          "fullName": "Foydalanuvchi (R5)",
+          "sessionId": "5za3n303np0krcgubhyixzje",
+          "loginBilgiSnippet": "m%2fn8WTjMHYd684c9O6YIxrthXa4y%2boE...",
+          "timestamp": "2026-09-13T15:11:17.089Z",
+          "file": "session_R17_2026-09-13T15-11-17-089Z.json"
         }
       ]
     }

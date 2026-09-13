@@ -1,6 +1,6 @@
 {
   "overallStatus": "HEALTHY",
-  "checkedAt": "2026-09-13T14:54:39.684Z",
+  "checkedAt": "2026-09-13T16:29:27.544Z",
   "services": {
     "adminServer": {
       "name": "Admin Server (Port 9890)",
@@ -8,7 +8,7 @@
       "latencyMs": 1,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T14:54:39.684Z"
+      "checkedAt": "2026-09-13T16:29:27.544Z"
     },
     "regServerLocal": {
       "name": "Registratura Server (Port 9891 - LAN)",
@@ -16,36 +16,36 @@
       "latencyMs": 1,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T14:54:39.684Z"
+      "checkedAt": "2026-09-13T16:29:27.544Z"
     },
     "regSecurityBarrier": {
       "name": "Registratura Tashqi Tarmoq Himoyasi",
       "status": "SECURED",
       "statusCode": 403,
-      "checkedAt": "2026-09-13T14:54:39.684Z"
+      "checkedAt": "2026-09-13T16:29:27.544Z"
     },
     "cloudflareTunnel": {
       "name": "Cloudflare HTTPS Tunnel",
       "url": "https://eau-jose-adware-flux.trycloudflare.com",
       "status": "ONLINE",
-      "externalLatencyMs": 346,
+      "externalLatencyMs": 270,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T14:54:39.684Z"
+      "checkedAt": "2026-09-13T16:29:27.544Z"
     },
     "telegramBot": {
       "name": "Telegram Bot API (@Radiodiagnostika_bot)",
       "status": "ACTIVE",
-      "latencyMs": 352,
+      "latencyMs": 331,
       "botUsername": "Radiodiagnostika_bot",
-      "checkedAt": "2026-09-13T14:54:39.684Z"
+      "checkedAt": "2026-09-13T16:29:27.544Z"
     },
     "systemResources": {
-      "uptimeSeconds": 2882,
-      "osUptimeHours": "103.5",
-      "memoryHeapUsedMb": 9,
-      "memoryRssMb": 65,
-      "freeMemMb": 8269,
+      "uptimeSeconds": 8570,
+      "osUptimeHours": "105.0",
+      "memoryHeapUsedMb": 12,
+      "memoryRssMb": 70,
+      "freeMemMb": 7870,
       "totalMemMb": 16073,
       "cpuCores": 12,
       "loadAvg": [
@@ -57,6 +57,46 @@
   },
   "recentIncidentsCount": 0,
   "latestIncidents": [
+    {
+      "id": "ev_1789316667381_by7u",
+      "timestamp": "2026-09-13T16:24:27.381Z",
+      "component": "mrt_reg_server",
+      "level": "WARN",
+      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "details": {}
+    },
+    {
+      "id": "ev_1789316667380_3oyo",
+      "timestamp": "2026-09-13T16:24:27.380Z",
+      "component": "mrt_reg_server",
+      "level": "WARN",
+      "message": "Registratura (9891) javob bermayapti: 0",
+      "details": {}
+    },
+    {
+      "id": "ev_1789316652377_gkxt",
+      "timestamp": "2026-09-13T16:24:12.377Z",
+      "component": "mrt_reg_server",
+      "level": "WARN",
+      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "details": {}
+    },
+    {
+      "id": "ev_1789316652376_ohh3",
+      "timestamp": "2026-09-13T16:24:12.376Z",
+      "component": "mrt_reg_server",
+      "level": "WARN",
+      "message": "Registratura (9891) javob bermayapti: 0",
+      "details": {}
+    },
+    {
+      "id": "ev_1789313481361_urxc",
+      "timestamp": "2026-09-13T15:31:21.361Z",
+      "component": "bot",
+      "level": "WARN",
+      "message": "Telegram Bot API ulanishida xatolik: Connection timed out",
+      "details": {}
+    },
     {
       "id": "ev_1789311024549_zm2f",
       "timestamp": "2026-09-13T14:50:24.549Z",
@@ -95,46 +135,6 @@
       "component": "mrt_reg_server",
       "level": "WARN",
       "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
-      "details": {}
-    },
-    {
-      "id": "ev_1789310994536_3bxh",
-      "timestamp": "2026-09-13T14:49:54.536Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
-      "details": {}
-    },
-    {
-      "id": "ev_1789310979524_jy9t",
-      "timestamp": "2026-09-13T14:49:39.524Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
-      "details": {}
-    },
-    {
-      "id": "ev_1789310979524_htir",
-      "timestamp": "2026-09-13T14:49:39.524Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
-      "details": {}
-    },
-    {
-      "id": "ev_1789310964524_r0p4",
-      "timestamp": "2026-09-13T14:49:24.524Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
-      "details": {}
-    },
-    {
-      "id": "ev_1789310964523_4ypf",
-      "timestamp": "2026-09-13T14:49:24.523Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
       "details": {}
     }
   ]

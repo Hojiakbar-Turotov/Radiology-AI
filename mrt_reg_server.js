@@ -586,7 +586,7 @@ function searchLabInTrafficLogs(kimlikId) {
 }
 
 // Karmeddan qon tahlillarini (Kreatinin va Mochevina) olish
-async function fetchPatientLabResults(kimlikId, onkayitId, token, cookie, host) {
+async function fetchPatientLabResults(kimlikId, onkayitIds, token, cookie, host) {
   try {
     // 1. Avval monitoring eksteshn tutgan trafikdan tekshirish
     const trafficLab = searchLabInTrafficLogs(kimlikId);
@@ -602,122 +602,125 @@ async function fetchPatientLabResults(kimlikId, onkayitId, token, cookie, host) 
     const activeToken = r5Prof.loginBilgi || token || '';
     const activeHost = host || KARMED_HOSTS[0];
 
-    const pObj = {
-      '__EVENTTARGET': 'ctl00$ResourceManagerX',
-      '__EVENTARGUMENT': 'OrtakDmOrtakSayfalar|public|LabSonucUrlGetir',
-      '__VIEWSTATEGENERATOR': '5DE5E74B',
-      'hdnKrmdLoginBilgi': decodeURIComponent(activeToken || ''),
-      'submitDirectEventConfig': JSON.stringify({
-        config: {
-          extraParams: { aOnKayitId: onkayitId || 0, aKimlikId: parseInt(kimlikId, 10) }
-        }
-      })
-    };
-    const pData = new URLSearchParams(pObj).toString();
-    const urlRes = await karmedRawRequest({
-      hostname: activeHost,
-      port: KARMED_PORT,
-      path: '/Radiology/Rbys.aspx?action=LabSonucUrlGetir',
-      method: 'POST',
-      headers: {
-        'Cookie': activeCookie,
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Ext-Net': 'delta=true',
-        'action': 'LabSonucUrlGetir',
-        'Referer': `http://${activeHost}:${KARMED_PORT}/Radiology/Rbys.aspx`,
-        'Content-Length': Buffer.byteLength(pData),
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    }, pData, 8000);
+    const onKayitList = Array.isArray(onkayitIds) ? onkayitIds : [onkayitIds || 0];
 
-    const m = urlRes.body.match(/\/Lis\/UI\/OrtakFrames\/LBYSOnkayitSonucGosterPage\.aspx\?[^"\']+/);
-    if (!m) {
-      return { found: false, message: "Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!" };
-    }
-    const targetPath = m[0].replace(/&amp;/g, '&');
-
-    // DosyaListele chaqirib haqiqiy laboratoriya fayl Id (DosyaId / aLdSiraNo) ni olish
-    let ldSiraNo = null;
-    try {
-      const dosyaListObj = {
-        '__EVENTTARGET': 'ResourceManager1',
-        '__EVENTARGUMENT': '-|public|DosyaListele',
-        '__VIEWSTATEGENERATOR': 'EB15314C',
+    for (const onkId of onKayitList) {
+      const pObj = {
+        '__EVENTTARGET': 'ctl00$ResourceManagerX',
+        '__EVENTARGUMENT': 'OrtakDmOrtakSayfalar|public|LabSonucUrlGetir',
+        '__VIEWSTATEGENERATOR': '5DE5E74B',
         'hdnKrmdLoginBilgi': decodeURIComponent(activeToken || ''),
-        'submitDirectEventConfig': JSON.stringify({ config: { extraParams: {} } }),
-        'CmbTumDosyalar': 'Barcha fayllar'
+        'submitDirectEventConfig': JSON.stringify({
+          config: {
+            extraParams: { aOnKayitId: parseInt(onkId, 10) || 0, aKimlikId: parseInt(kimlikId, 10) }
+          }
+        })
       };
-      const dlData = new URLSearchParams(dosyaListObj).toString();
-      const dlRes = await karmedRawRequest({
+      const pData = new URLSearchParams(pObj).toString();
+      const urlRes = await karmedRawRequest({
         hostname: activeHost,
         port: KARMED_PORT,
-        path: targetPath + '&action=DosyaListele',
+        path: '/Radiology/Rbys.aspx?action=LabSonucUrlGetir',
         method: 'POST',
         headers: {
           'Cookie': activeCookie,
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest',
           'X-Ext-Net': 'delta=true',
-          'action': 'DosyaListele',
-          'Referer': `http://${activeHost}:${KARMED_PORT}${targetPath}`,
-          'Content-Length': Buffer.byteLength(dlData),
+          'action': 'LabSonucUrlGetir',
+          'Referer': `http://${activeHost}:${KARMED_PORT}/Radiology/Rbys.aspx`,
+          'Content-Length': Buffer.byteLength(pData),
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-      }, dlData, 8000);
+      }, pData, 8000);
 
-      const mLabDosya = dlRes.body.match(/App\.StoreLabDosya\.proxy\.data\s*=\s*(\[.*?\]);/s);
-      if (mLabDosya) {
-        const labFiles = safeParseExtNetJson(mLabDosya[1]) || [];
-        if (labFiles.length > 0 && labFiles[0].DosyaId) {
-          ldSiraNo = labFiles[0].DosyaId;
-        }
-      }
-    } catch (dlErr) {}
+      const m = urlRes.body.match(/\/Lis\/UI\/OrtakFrames\/LBYSOnkayitSonucGosterPage\.aspx\?[^"\']+/);
+      if (!m) continue;
+      const targetPath = m[0].replace(/&amp;/g, '&');
 
-    if (!ldSiraNo) ldSiraNo = 2836545; // zaxira
+      // DosyaListele chaqirib barcha laboratoriya fayllari ro'yxatini olish
+      try {
+        const dosyaListObj = {
+          '__EVENTTARGET': 'ResourceManager1',
+          '__EVENTARGUMENT': '-|public|DosyaListele',
+          '__VIEWSTATEGENERATOR': 'EB15314C',
+          'hdnKrmdLoginBilgi': decodeURIComponent(activeToken || ''),
+          'submitDirectEventConfig': JSON.stringify({ config: { extraParams: {} } }),
+          'CmbTumDosyalar': 'Barcha fayllar'
+        };
+        const dlData = new URLSearchParams(dosyaListObj).toString();
+        const dlRes = await karmedRawRequest({
+          hostname: activeHost,
+          port: KARMED_PORT,
+          path: targetPath + '&action=DosyaListele',
+          method: 'POST',
+          headers: {
+            'Cookie': activeCookie,
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Ext-Net': 'delta=true',
+            'action': 'DosyaListele',
+            'Referer': `http://${activeHost}:${KARMED_PORT}${targetPath}`,
+            'Content-Length': Buffer.byteLength(dlData),
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        }, dlData, 8000);
 
-    // DetayGoster chaqirish
-    const dObj = {
-      '__EVENTTARGET': 'ResourceManager1',
-      '__EVENTARGUMENT': '-|public|DetayGoster',
-      '__VIEWSTATEGENERATOR': 'EB15314C',
-      'hdnKrmdLoginBilgi': decodeURIComponent(activeToken || ''),
-      'submitDirectEventConfig': JSON.stringify({
-        config: {
-          extraParams: {
-            aLdSiraNo: ldSiraNo,
-            aUyusturucuGorunsun: false
+        const mLabDosya = dlRes.body.match(/App\.StoreLabDosya\.proxy\.data\s*=\s*(\[.*?\]);/s);
+        if (mLabDosya) {
+          const labFiles = safeParseExtNetJson(mLabDosya[1]) || [];
+          // Eng yangi laboratoriya fayllaridan boshlab tekshirish
+          labFiles.sort((a, b) => (b.DosyaId || 0) - (a.DosyaId || 0));
+
+          for (const lf of labFiles) {
+            if (!lf.DosyaId) continue;
+            const dObj = {
+              '__EVENTTARGET': 'ResourceManager1',
+              '__EVENTARGUMENT': '-|public|DetayGoster',
+              '__VIEWSTATEGENERATOR': 'EB15314C',
+              'hdnKrmdLoginBilgi': decodeURIComponent(activeToken || ''),
+              'submitDirectEventConfig': JSON.stringify({
+                config: {
+                  extraParams: {
+                    aLdSiraNo: lf.DosyaId,
+                    aUyusturucuGorunsun: false
+                  }
+                }
+              })
+            };
+            const dData = new URLSearchParams(dObj).toString();
+            const dRes = await karmedRawRequest({
+              hostname: activeHost,
+              port: KARMED_PORT,
+              path: targetPath + '&action=DetayGoster',
+              method: 'POST',
+              headers: {
+                'Cookie': activeCookie,
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Ext-Net': 'delta=true',
+                'action': 'DetayGoster',
+                'Referer': `http://${activeHost}:${KARMED_PORT}${targetPath}`,
+                'Content-Length': Buffer.byteLength(dData),
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+              }
+            }, dData, 8000);
+
+            const dataMatch = dRes.body.match(/App\.StoreLda\.proxy\.data\s*=\s*(\[.*?\]);/s);
+            if (dataMatch) {
+              const tests = safeParseExtNetJson(dataMatch[1]);
+              if (tests) {
+                const resLab = extractLabFromTests(tests);
+                if (resLab) {
+                  console.log(`[Karmed Lab Live] Bemor ID ${kimlikId}: Kreatinin ${resLab.kreatinin?.value}, Mochevina ${resLab.mochevina?.value} (LabDosya: ${lf.DosyaId})`);
+                  return resLab;
+                }
+              }
+            }
           }
         }
-      })
-    };
-    const dData = new URLSearchParams(dObj).toString();
-    const dRes = await karmedRawRequest({
-      hostname: activeHost,
-      port: KARMED_PORT,
-      path: targetPath + '&action=DetayGoster',
-      method: 'POST',
-      headers: {
-        'Cookie': activeCookie,
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Ext-Net': 'delta=true',
-        'action': 'DetayGoster',
-        'Referer': `http://${activeHost}:${KARMED_PORT}${targetPath}`,
-        'Content-Length': Buffer.byteLength(dData),
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    }, dData, 8000);
-
-    const dataMatch = dRes.body.match(/App\.StoreLda\.proxy\.data\s*=\s*(\[.*?\]);/s);
-    if (dataMatch) {
-      const unescaped = dataMatch[1].replace(/\\"/g, '"').replace(/new Date\([^)]+\)/g, '"2026-09-09"');
-      const tests = JSON.parse(unescaped);
-      const resLab = extractLabFromTests(tests);
-      if (resLab) {
-        console.log(`[Karmed Lab Live] Bemor ID ${kimlikId}: Kreatinin ${resLab.kreatinin?.value}, Mochevina ${resLab.mochevina?.value}`);
-        return resLab;
+      } catch (dlErr) {
+        console.warn(`[Karmed Lab File Warn] OnKayitId ${onkId}:`, dlErr.message);
       }
     }
 
@@ -861,8 +864,19 @@ async function searchPatientInKarmed(patientId) {
   patientInfo.patientCategory = patientCategory;
   patientInfo.requiresPaymentConfirmation = requiresPayment;
 
-  // Qon tahlillari kesh
+  // Qon tahlillari (Kreatinin va Mochevina)ni LBYS laboratoriyadan olish
+  const allOnKayitIds = Array.from(new Set(
+    pList.map(p => p.OnKayitId).filter(Boolean)
+  )).reverse();
+  if (allOnKayitIds.length === 0) allOnKayitIds.push(0);
+
   let cachedPatientLab = null;
+  try {
+    cachedPatientLab = await fetchPatientLabResults(patientInfo.patientId, allOnKayitIds, session.token, session.cookie, session.host);
+  } catch (lbErr) {
+    cachedPatientLab = { found: false, message: "Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!" };
+  }
+  patientInfo.labResults = cachedPatientLab;
 
   // Joriy navbat ro'yxatini yuklash (allaqachon navbatga qo'yilgan yoki o'tganligini tekshirish uchun)
   const currentQueue = readJson(QUEUE_FILE, []);
@@ -1004,17 +1018,7 @@ async function searchPatientInKarmed(patientId) {
             }
           }
 
-          let labResults = null;
-          if (isContrast) {
-            if (!cachedPatientLab) {
-              try {
-                cachedPatientLab = await fetchPatientLabResults(patientInfo.patientId, dosya.OnKayitId || dosya.Id, session.token, session.cookie, session.host);
-              } catch (lbErr) {
-                cachedPatientLab = { found: false, message: "Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!" };
-              }
-            }
-            labResults = cachedPatientLab;
-          }
+          let labResults = cachedPatientLab;
 
           eligibleExams.push({
             dosyaId: dosya.Id,
@@ -1050,9 +1054,14 @@ async function searchPatientInKarmed(patientId) {
     }
   }
 
-  if (cachedPatientLab) {
-    patientInfo.labResults = cachedPatientLab;
-  }
+  // Tartiblash:
+  // 1. O'tkazilmagan (kutilayotgan) tekshiruvlar birinchi o'rinda chiqsin
+  // 2. O'tkazilgan tekshiruvlar esa keyin chiqsin
+  eligibleExams.sort((a, b) => {
+    if (!a.isCompleted && b.isCompleted) return -1;
+    if (a.isCompleted && !b.isCompleted) return 1;
+    return new Date(b.registrationDate) - new Date(a.registrationDate);
+  });
 
   return {
     success: true,

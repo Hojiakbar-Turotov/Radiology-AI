@@ -629,6 +629,12 @@
           </button>
         </form>
 
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(17235)">⭐ 17235 (J.Abdijabbarova - Kreatinin/Mochevina)</button>
+          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(75)">75 (A.Alimov)</button>
+          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:12px; font-weight:700; cursor:pointer;" onclick="searchPatient(80)">80 (Bemor)</button>
+        </div>
+
         <div id="searchLoader" style="display:none; text-align:center; padding:16px; color:var(--primary); font-weight:700;">
           <i class="fa-solid fa-circle-notch fa-spin"></i> Karmed RBYS tizimidan ma'lumotlar tortilmoqda...
         </div>
@@ -656,6 +662,7 @@
           <div id="pCardStatsionarNotice" style="display:none; margin-top:8px; font-size:12px; font-weight:800; color:#15803d; background:#ecfdf5; border:1px solid #a7f3d0; padding:6px 10px; border-radius:6px;">
             <i class="fa-solid fa-bed-pulse"></i> 🏥 Statsionar bemor (To'lov tekshiruvdan so'ng to'lanadi, oldindan to'lov talab etilmaydi)
           </div>
+          <div id="regPatientLabSummary" style="display:none; margin-top:10px; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:8px; padding:10px 14px;"></div>
         </div>
 
         <!-- MRT va MSKT Tekshiruvlari Ro'yxati -->
@@ -1410,6 +1417,32 @@
         document.getElementById("pCardStatsionarNotice").style.display = "none";
       }
 
+      const labSummaryBox = document.getElementById("regPatientLabSummary");
+      if (labSummaryBox) {
+        if (p.labResults && p.labResults.found) {
+          const kr = p.labResults.kreatinin;
+          const moch = p.labResults.mochevina;
+          labSummaryBox.style.display = "block";
+          labSummaryBox.innerHTML = `
+            <div style="font-weight:900; font-size:13px; color:#7e22ce; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-flask-vial"></i> Qon Tahlillari Natijasi (LBYS Laboratoriya):
+            </div>
+            <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; font-size:13px; color:#3b0764;">
+              <div>🩸 Kreatinin: <b>${kr ? escapeHtml(kr.value) : '-'}</b> <span style="font-size:11.5px; color:#7e22ce;">(${kr ? escapeHtml(kr.reference) : ''})</span></div>
+              <div>🩸 Mochevina: <b>${moch ? escapeHtml(moch.value) : '-'}</b> <span style="font-size:11.5px; color:#7e22ce;">(${moch ? escapeHtml(moch.reference) : ''})</span></div>
+              <div style="color:#581c87; font-weight:700;">📅 Topshirilgan sana: <b>${kr ? escapeHtml(kr.date || '') : ''} (${kr ? kr.daysAgo : 0} kun oldin)</b></div>
+            </div>
+          `;
+        } else {
+          labSummaryBox.style.display = "block";
+          labSummaryBox.innerHTML = `
+            <div style="font-size:12px; color:#64748b;">
+              <i class="fa-solid fa-flask"></i> Qon tahlillari: <i>Oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi</i>
+            </div>
+          `;
+        }
+      }
+
       document.getElementById("patientCard").style.display = "block";
     }
 
@@ -1559,12 +1592,17 @@
       if (ex.isCompleted) {
         statusBorderStyle = 'border-left: 5px solid #10b981;';
         actionAreaHtml = `
-          <div class="badge-status-completed">
-            <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
-            <div>
-              <div style="font-weight:900;">Tekshiruvdan o'tgan</div>
-              <div style="font-size:11px; opacity:0.9;">${escapeHtml(ex.completedReason || 'Karmedda xulosa tasdiqlangan')}</div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div class="badge-status-completed" style="padding:4px 10px;">
+              <i class="fa-solid fa-circle-check" style="font-size:14px;"></i>
+              <div>
+                <div style="font-weight:900; font-size:12px;">O'tkazilgan</div>
+                <div style="font-size:10.5px; opacity:0.9;">${escapeHtml(ex.completedReason || 'Xulosa tasdiqlangan')}</div>
+              </div>
             </div>
+            <button type="button" class="btn btn-small" style="background:#0284c7; color:#fff; font-weight:800; padding:6px 14px; border-radius:6px; cursor:pointer;" onclick="printExamReport(${idx})">
+              <i class="fa-solid fa-print"></i> O'tkazildi, Javobini Chop Etish
+            </button>
           </div>
         `;
       } else if (ex.isAlreadyQueued && ex.existingQueueInfo) {
@@ -1684,12 +1722,17 @@
 
       if (cEx.isAllCompleted) {
         combinedActionHtml = `
-          <div class="badge-status-completed" style="padding:8px 16px;">
-            <i class="fa-solid fa-circle-check" style="font-size:18px;"></i>
-            <div>
-              <div style="font-weight:900; font-size:13px;">Barcha tekshiruvlardan o'tgan</div>
-              <div style="font-size:11px; opacity:0.9;">Karmedda xulosalar tasdiqlangan</div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div class="badge-status-completed" style="padding:6px 14px;">
+              <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
+              <div>
+                <div style="font-weight:900; font-size:12.5px;">Barcha tekshiruvlardan o'tgan</div>
+                <div style="font-size:11px; opacity:0.9;">Karmedda xulosalar tasdiqlangan</div>
+              </div>
             </div>
+            <button type="button" class="btn btn-small" style="background:#0284c7; color:#fff; font-weight:800; padding:6px 14px; border-radius:6px; cursor:pointer;" onclick="alert('ℹ️ Barcha tekshiruvlar o\\'tkazilgan. Javobini chop etish funksiyasi hali tayyor emas.')">
+              <i class="fa-solid fa-print"></i> O'tkazildi, Javobini Chop Etish
+            </button>
           </div>
         `;
       } else if (cEx.isAllQueued && cEx.existingQueueInfo) {
@@ -1803,6 +1846,13 @@
         container.style.display = "none";
         if (textSpan) textSpan.innerHTML = `<i class="fa-solid fa-calendar-days"></i> Alohida kunlarga navbatga qo'yish ▼`;
       }
+    function printExamReport(idx) {
+      const ex = window.loadedEligibleExams && window.loadedEligibleExams[idx];
+      const pat = currentPatientData;
+      const sName = ex ? ex.serviceName : 'Tekshiruv';
+      const sCode = ex ? ex.serviceCode : '';
+
+      alert(`ℹ️ [${sCode}] ${sName} tekshiruvi javobini chop etish funksiyasi hali tayyor emas.\n\nBemor: ${pat ? pat.fullName : ''}\nHolati: ${ex ? (ex.completedReason || 'O\'tkazilgan') : ''}`);
     }
 
     function openCombinedBookingModal(groupKey) {

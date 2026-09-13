@@ -1,5 +1,45 @@
 [
   {
+    "id": "ev_1789316667381_by7u",
+    "timestamp": "2026-09-13T16:24:27.381Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789316667380_3oyo",
+    "timestamp": "2026-09-13T16:24:27.380Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789316652377_gkxt",
+    "timestamp": "2026-09-13T16:24:12.377Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789316652376_ohh3",
+    "timestamp": "2026-09-13T16:24:12.376Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789313481361_urxc",
+    "timestamp": "2026-09-13T15:31:21.361Z",
+    "component": "bot",
+    "level": "WARN",
+    "message": "Telegram Bot API ulanishida xatolik: Connection timed out",
+    "details": {}
+  },
+  {
     "id": "ev_1789311024549_zm2f",
     "timestamp": "2026-09-13T14:50:24.549Z",
     "component": "mrt_reg_server",
