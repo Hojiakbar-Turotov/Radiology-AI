@@ -262,18 +262,64 @@
 
     /* Modal */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 999;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px 12px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .modal-card {
       background: #ffffff;
       border-radius: 16px;
-      max-width: 480px;
-      width: 90%;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 560px;
+      width: 100%;
+      padding: 20px 18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      margin: auto;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+
+    /* Modal ichki zamonaviy scrollbar */
+    .modal-card::-webkit-scrollbar {
+      width: 6px;
+    }
+    .modal-card::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 6px;
+    }
+    .modal-card::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 6px;
+    }
+    .modal-card::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
+    @media (max-width: 600px) {
+      .modal-overlay {
+        padding: 8px 6px;
+        align-items: flex-start;
+      }
+      .modal-card {
+        padding: 16px 12px;
+        max-height: calc(100dvh - 16px);
+        border-radius: 12px;
+      }
+      .modal-date-time-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
     }
     .ticket-print-box {
       border: 2px dashed #000000;
@@ -991,12 +1037,12 @@
   <!-- ========================================================================= -->
   <div id="modalAdminBooking" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeAdminBookingModal()">
     <div class="modal-card" style="max-width:560px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1.5px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1.5px solid var(--border); position:sticky; top:-20px; background:#ffffff; z-index:20; margin-top:-4px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <i class="fa-solid fa-calendar-check" style="color:var(--primary); font-size:18px;"></i>
           <h3 style="font-size:17px; font-weight:900; color:var(--text);">Navbatga Qo'yish (Admin Rejimi)</h3>
         </div>
-        <button style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);" onclick="closeAdminBookingModal()">&times;</button>
+        <button style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted); padding:2px 8px;" onclick="closeAdminBookingModal()">&times;</button>
       </div>
 
       <!-- Admin Imtiyozi Xabari (Past dates & Force booking allowed) -->
@@ -1021,7 +1067,7 @@
           </select>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1.1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div class="modal-date-time-grid" style="display:grid; grid-template-columns: 1.1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
           <div class="form-group">
             <label><i class="fa-regular fa-calendar"></i> Sana:</label>
             <!-- DIQQAT: Admin uchun min cheklovi YO'Q (oldingi kunlarga yozishi mumkin!) -->
@@ -1095,9 +1141,9 @@
           </button>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-          <button type="button" class="btn" style="background:#e2e8f0; color:#334155;" onclick="closeAdminBookingModal()">Bekor qilish</button>
-          <button type="submit" class="btn btn-primary" id="btnAdminSubmitBooking">
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; position:sticky; bottom:-20px; background:#ffffff; padding-top:12px; padding-bottom:4px; border-top:1px solid #e2e8f0; z-index:20; margin-bottom:-4px;">
+          <button type="button" class="btn" style="background:#e2e8f0; color:#334155; padding:10px 18px;" onclick="closeAdminBookingModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" id="btnAdminSubmitBooking" style="padding:10px 22px;">
             <i class="fa-solid fa-check"></i> Navbatga Kiritish
           </button>
         </div>

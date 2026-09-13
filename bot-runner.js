@@ -144,6 +144,24 @@ async function sendTelegramMessage(chatId, text, options = {}) {
   }
 }
 
+async function setTelegramMenuButton(chatId = null, webAppUrl = "https://hojiakbar-turotov.github.io/Radiology-AI/control.html") {
+  try {
+    const payload = {
+      menu_button: {
+        type: "web_app",
+        text: "🚀 Admin Panel",
+        web_app: { url: webAppUrl }
+      }
+    };
+    if (chatId) payload.chat_id = chatId;
+    await fetch(`${TG_API_BASE}/setChatMenuButton`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {}
+}
+
 async function answerCallbackQuery(callbackQueryId, text = "") {
   try {
     await fetch(`${TG_API_BASE}/answerCallbackQuery`, {
@@ -509,10 +527,8 @@ async function sendMainMenu(chatId, fromInfo, isResetToUser = false) {
     };
 
     await sendTelegramMessage(chatId, text, { parse_mode: "HTML", reply_markup: inlineKeyboard });
-    await sendTelegramMessage(chatId, "👇 <i>Tezkor kirish uchun pastki menyuda ham Web App tugmasi faollashtirildi.</i>", {
-      parse_mode: "HTML",
-      reply_markup: replyKeyboard
-    });
+    // Asinxron tarzda Telegram chat menyu tugmasini WebApp ga sozlash (ikkinchi ortiqcha xabar yubormaslik uchun)
+    setTelegramMenuButton(chatId, ghPagesUrl);
     return;
   } else if (user.role === 'laborant') {
     // 2. LABORANT MENYUSI
@@ -1083,8 +1099,10 @@ async function startPolling() {
   console.log("  • data/bot_users.json ro'yxatga olish");
   console.log("  • Qayta /start bosilganda xavfsiz oddiy foydalanuvchiga tushirish");
   console.log("  • Laborantlar uchun jonli MRT 1, MRT 2 va MSKT navbati");
-  console.log("  • Har kuni soat 08:00 da kunlik eslatma");
   console.log("================================================================================");
+  
+  // Bot ishga tushganda Telegram WebApp menyu tugmasini sozlash
+  setTelegramMenuButton();
 
   while (isPolling) {
     try {
