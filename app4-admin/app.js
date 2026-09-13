@@ -327,7 +327,8 @@ function switchAdminSection(sectionName, btnEl) {
     users: "secUsers",
     services: "secServices",
     audit: "secAudit",
-    reports: "secReports"
+    reports: "secReports",
+    botUsers: "secBotUsers"
   };
 
   const targetId = secMap[sectionName];
@@ -345,6 +346,7 @@ function switchAdminSection(sectionName, btnEl) {
   }
   if (sectionName === "liveQueue") renderLiveQueueMatrix();
   if (sectionName === "schedulingRules") renderSchedulingRulesTable();
+  if (sectionName === "botUsers") loadAdminBotUsers();
 }
 
 function switchUsersSubTab(subTabName, btnEl) {
@@ -1770,4 +1772,85 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// 12. TELEGRAM BOT FOYDALANUVCHILARI BOSHQARUVI
+let adminBotUsersList = [];
+
+async function loadAdminBotUsers() {
+  try {
+    const res = await fetch("/api/bot/users");
+    const data = await res.json();
+    if (data.success && Array.isArray(data.users)) {
+      adminBotUsersList = data.users;
+      const badge = document.getElementById("badgeBotUsersCount");
+      if (badge) badge.innerText = adminBotUsersList.length;
+      renderAdminBotUsersTable();
+    }
+  } catch (e) {
+    console.warn("Bot users fetch error:", e);
+  }
+}
+
+function renderAdminBotUsersTable() {
+  const tbody = document.getElementById("adminBotUsersTableBody");
+  if (!tbody) return;
+
+  const query = (document.getElementById("searchBotUserInput")?.value || "").toLowerCase().trim();
+  let list = adminBotUsersList;
+
+  if (query) {
+    list = list.filter(u => 
+      String(u.id).toLowerCase().includes(query) ||
+      String(u.fullName || '').toLowerCase().includes(query) ||
+      String(u.username || '').toLowerCase().includes(query)
+    );
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">Bot foydalanuvchilari topilmadi.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(u => {
+    const isLab = (u.role === 'laborant');
+    const lastSeen = u.lastSeen ? new Date(u.lastSeen).toLocaleString('uz-UZ') : '-';
+    return `
+      <tr>
+        <td><code>${escapeHtml(u.id)}</code></td>
+        <td><strong>${escapeHtml(u.fullName || 'Noma\'lum')}</strong></td>
+        <td><span style="color: #0284c7; font-weight: 700;">${escapeHtml(u.username || '-')}</span></td>
+        <td>
+          <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; ${isLab ? 'background: #ecfdf5; color: #059669; border: 1px solid rgba(5,150,105,0.3);' : 'background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;'}">
+            ${isLab ? '👨‍⚕️ Laborant' : '👤 Bemor / Foydalanuvchi'}
+          </span>
+        </td>
+        <td style="font-size: 12px; color: #64748b;">${lastSeen}</td>
+        <td style="text-align: right;">
+          ${isLab 
+            ? `<button class="btn btn-sm btn-danger" onclick="setAdminBotUserRole('${u.id}', 'user')"><i class="fa-solid fa-user-xmark"></i> Rolni Bekor Qilish</button>`
+            : `<button class="btn btn-sm btn-success" onclick="setAdminBotUserRole('${u.id}', 'laborant')"><i class="fa-solid fa-user-check"></i> Laborant Qilish</button>`
+          }
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function setAdminBotUserRole(id, role) {
+  try {
+    const res = await fetch("/api/bot/set-role", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, role })
+    });
+    const result = await res.json();
+    if (result.success) {
+      loadAdminBotUsers();
+    } else {
+      alert("Xatolik: " + result.error);
+    }
+  } catch (err) {
+    alert("Xatolik: " + err.message);
+  }
 }

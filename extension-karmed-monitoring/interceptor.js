@@ -203,14 +203,21 @@
 
   function dispatchToContentScript(eventPayload) {
     try {
-      window.postMessage({
+      const msg = {
         source: 'KARMED_MONITOR_PAGE',
         type: 'NETWORK_EVENT',
         data: {
           ...eventPayload,
           profile: currentProfile
         }
-      }, '*');
+      };
+      window.postMessage(msg, '*');
+      if (window.top && window.top !== window) {
+        try { window.top.postMessage(msg, '*'); } catch(e){}
+      }
+      if (window.parent && window.parent !== window && window.parent !== window.top) {
+        try { window.parent.postMessage(msg, '*'); } catch(e){}
+      }
     } catch (e) {
       console.warn('[Karmed Monitor] postMessage xatosi:', e);
     }

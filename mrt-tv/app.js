@@ -3,7 +3,7 @@
  */
 
 let ws = null;
-let audioEnabled = true;
+let audioEnabled = false; // Foydalanuvchi talabi: Ovozli e'lon shart emas, vizual miltillash yetarli
 let currentQueue = [];
 let currentDevices = [];
 
@@ -13,13 +13,16 @@ document.addEventListener("DOMContentLoaded", () => {
   connectWebSocket();
   fetchInitialQueue();
 
-  document.getElementById("btnAudioToggle").addEventListener("click", () => {
-    audioEnabled = !audioEnabled;
-    const btn = document.getElementById("btnAudioToggle");
-    btn.innerHTML = audioEnabled 
-      ? '<i class="fa-solid fa-volume-high"></i> Ovozli E\'lon: Faol' 
-      : '<i class="fa-solid fa-volume-xmark" style="color:#ef4444;"></i> Ovozli E\'lon: O\'chirilgan';
-  });
+  const audioBtn = document.getElementById("btnAudioToggle");
+  if (audioBtn) {
+    audioBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Ovoz: O\'chirilgan (Vizual)';
+    audioBtn.addEventListener("click", () => {
+      audioEnabled = !audioEnabled;
+      audioBtn.innerHTML = audioEnabled 
+        ? '<i class="fa-solid fa-volume-high"></i> Ovozli E\'lon: Faol' 
+        : '<i class="fa-solid fa-bell-slash"></i> Ovoz: O\'chirilgan (Vizual)';
+    });
+  }
 
   // Brauzerda avtomatik ovoz blokirovkasini yechish (foydalanuvchi bir marta ekranga bossa)
   document.body.addEventListener("click", () => {

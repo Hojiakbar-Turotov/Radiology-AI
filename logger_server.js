@@ -628,7 +628,7 @@ function writeToDailyLog(message) {
     const rootLog = path.join(ROOT_DIR, 'logger.me');
     fs.appendFileSync(rootLog, line, 'utf8');
   } catch (e) {
-    console.error('[Log Write Error]:', e);
+    // EPIPE yoki fayl xatoliklarini tinch o'tkazib yuboramiz
   }
 }
 
@@ -2021,6 +2021,49 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     return;
   }
 
+  // P. TELEGRAM BOT FOYDALANUVCHILARI RO'YXATI (/api/bot/users)
+  if (req.method === 'GET' && pathname === '/api/bot/users') {
+    const usersFile = path.join(ROOT_DIR, 'data', 'bot_users.json');
+    let users = [];
+    try {
+      if (fs.existsSync(usersFile)) {
+        users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+      }
+    } catch (e) {}
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ success: true, users }));
+    return;
+  }
+
+  // Q. TELEGRAM BOT FOYDALANUVCHISI ROLINI O'ZGARTIRISH (/api/bot/set-role)
+  if (req.method === 'POST' && pathname === '/api/bot/set-role') {
+    parseJsonBody(req, (err, body) => {
+      const usersFile = path.join(ROOT_DIR, 'data', 'bot_users.json');
+      let users = [];
+      try {
+        if (fs.existsSync(usersFile)) {
+          users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        }
+      } catch (e) {}
+
+      const user = users.find(u => String(u.id) === String(body && body.id));
+      if (!user) {
+        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        return res.end(JSON.stringify({ success: false, error: "Bot foydalanuvchisi topilmadi" }));
+      }
+
+      user.role = (body && body.role === 'laborant') ? 'laborant' : 'user';
+      user.updatedAt = new Date().toISOString();
+      try {
+        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf8');
+      } catch (e) {}
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ success: true, user, message: `Foydalanuvchi roli ${user.role} ga o'zgartirildi` }));
+    });
+    return;
+  }
+
   // I1. MOBIL AGENT AUTENTIFIKATSIYASI (/api/mobile-agent/login)
   // Foydalanuvchi login va paroli to'g'ridan-to'g'ri Karmed tizimiga yo'llanadi,
   // faqat Karmed ijobiy javob bergandan keyin profil F.I.SH va sessiya olinadi.
@@ -3130,11 +3173,16 @@ serverMobileMrt.listen(PORT_MOBILE_MRT, HOST, () => {
 
 // Xatoliklarni ushlab qolish
 process.on('uncaughtException', (err) => {
-  console.error('[Uncaught Exception]:', err);
-  writeToDailyLog(`[CRITICAL_ERROR] Uncaught Exception: ${err.message}\n${err.stack}`);
+  if (err && (err.code === 'EPIPE' || err.message?.includes('EPIPE'))) return;
+  try {
+    console.error('[Uncaught Exception]:', err);
+  } catch (e) {}
+  writeToDailyLog(`[CRITICAL_ERROR] Uncaught Exception: ${err ? err.message : ''}\n${err ? err.stack : ''}`);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('[Unhandled Rejection]:', reason);
+  try {
+    console.error('[Unhandled Rejection]:', reason);
+  } catch (e) {}
   writeToDailyLog(`[CRITICAL_ERROR] Unhandled Rejection: ${reason}`);
 });

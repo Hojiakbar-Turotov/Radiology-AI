@@ -287,6 +287,7 @@
 
   // 4. UI YARATISH (SUZUVCHI PANEL VA TIZIMLI TABLAR)
   function createFloatingInspector() {
+    if (window !== window.top) return; // Faqat asosiy ekranda panel ochilsin
     const badge = document.createElement('div');
     badge.id = 'karmed-monitor-badge';
     badge.innerHTML = `

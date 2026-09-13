@@ -63,7 +63,7 @@
         "*://*.karmed.uz/*",
         "*://*.kardelen.uz/*"
       ],
-      "all_frames": false,
+      "all_frames": true,
       "js": [
         "analyzer.js",
         "content.js"

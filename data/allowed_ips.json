@@ -1,0 +1,26 @@
+{
+  "allowed": [
+    {
+      "ip": "127.0.0.1",
+      "name": "Server (Localhost IPv4)",
+      "role": "full",
+      "status": "approved",
+      "approvedAt": "2026-09-12T17:28:00.000Z"
+    },
+    {
+      "ip": "::1",
+      "name": "Server (Localhost IPv6)",
+      "role": "full",
+      "status": "approved",
+      "approvedAt": "2026-09-12T17:28:00.000Z"
+    },
+    {
+      "ip": "10.34.14.33",
+      "name": "Server Asosiy Kompyuter (Lokal)",
+      "role": "full",
+      "status": "approved",
+      "approvedAt": "2026-09-12T17:28:00.000Z"
+    }
+  ],
+  "pending": []
+}

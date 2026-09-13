@@ -1,0 +1,2808 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRT & MSKT Navbatga Qo'yish va Kuzatish Portali (Port 9891)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 70px; min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-box { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { font-size: 28px; color: var(--primary); }
+    .brand-title { font-size: 17px; font-weight: 900; color: var(--text); }
+    .brand-sub { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    
+    .topbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .ip-badge { background: #f8fafc; border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+    .ip-badge b { color: #0284c7; }
+    .operator-pill { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .btn-logout { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .btn-logout:hover { background: #fecaca; }
+
+    /* Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+    }
+    @media (max-width: 1024px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .card-title { font-size: 16px; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+    /* Search Box */
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .btn-search {
+      padding: 12px 24px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn-search:hover { background: var(--primary-dark); }
+
+    /* Patient Card */
+    .patient-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .p-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .p-name { font-size: 17px; font-weight: 900; color: #0f172a; }
+    .p-id { font-family: monospace; font-size: 14px; font-weight: 800; color: var(--primary); background: #e0f2fe; padding: 2px 8px; border-radius: 6px; }
+    .p-info-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+    .p-info-row strong { color: var(--text); }
+    .cat-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; }
+    .cat-insurance { background: #dcfce7; color: #166534; }
+    .cat-paid { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .cat-foreign { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* Exam Cards */
+    .exam-list { display: flex; flex-direction: column; gap: 10px; }
+    .exam-card {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px 16px;
+      transition: all 0.2s;
+    }
+    .exam-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1); }
+    .exam-title { font-size: 15px; font-weight: 900; color: #0f172a; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .exam-badges { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+    .badge-tag { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+    .tag-mrt { background: #e0f2fe; color: #0369a1; }
+    .tag-mskt { background: #fef3c7; color: #b45309; }
+    .tag-contrast { background: #fae8ff; color: #86198f; }
+
+    /* Warnings */
+    .warn-box-5days {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .danger-box-10days {
+      background: #fef2f2;
+      border: 1.5px solid #f87171;
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .payment-warn-box {
+      background: #fff1f2;
+      border: 1.5px solid #fda4af;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .payment-warn-title { font-size: 13px; font-weight: 900; color: #e11d48; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .payment-checkbox-label { font-size: 13px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .payment-checkbox-label input { width: 18px; height: 18px; accent-color: #e11d48; }
+
+    /* Statsionar Info Box */
+    .statsionar-notice-box {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      color: #15803d;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Kontrastli tekshiruv qon tahlillari bloki */
+    .contrast-lab-box {
+      background: #faf5ff;
+      border: 1.5px solid #d8b4fe;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 8px;
+    }
+    .contrast-lab-title {
+      font-size: 12.5px;
+      font-weight: 900;
+      color: #7e22ce;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .contrast-lab-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 640px) {
+      .contrast-lab-grid { grid-template-columns: 1fr; }
+    }
+    .lab-item {
+      background: #ffffff;
+      border: 1px solid #e9d5ff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      position: relative;
+    }
+    .lab-name { font-size: 12px; font-weight: 900; color: #4b5563; }
+    .lab-val { font-size: 14px; color: #111827; margin: 2px 0; }
+    .lab-ref { font-size: 11.5px; color: #6b7280; font-weight: normal; }
+    .lab-date { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .lab-days { font-weight: 700; color: #374151; }
+    .lab-ok-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      background: #dcfce7;
+      color: #166534;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .lab-warn-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .contrast-lab-missing {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: #92400e;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .badge-status-completed {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1.5px solid #a7f3d0;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.1);
+    }
+    .badge-status-queued {
+      display: inline-flex;
+      flex-direction: column;
+      background: #fffbeb;
+      color: #92400e;
+      border: 1.5px solid #fde68a;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
+    }
+    .exam-id-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 700;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Booking Form Controls */
+    .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12.5px; font-weight: 700; color: var(--text); }
+    .form-group input, .form-group select {
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+
+    /* Live Queue Columns */
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .queue-grid { grid-template-columns: 1fr; }
+    }
+    .queue-col {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .queue-col-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .q-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 12.5px;
+    }
+    .q-item-calling { background: #fef3c7; border-color: #f59e0b; }
+    .q-item-inprogress { background: #dcfce7; border-color: #10b981; }
+    .q-ticket { font-family: monospace; font-weight: 900; color: var(--primary); font-size: 14px; }
+
+    /* Floating Notice (Bu yerda klizma qilinmaydi) */
+    .floating-notice {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 999;
+      pointer-events: auto;
+      letter-spacing: 0.3px;
+    }
+    .floating-notice i { color: #38bdf8; font-size: 15px; }
+
+    .slot-pill {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1.5px solid #86efac;
+      background: #f0fdf4;
+      color: #166534;
+      transition: all 0.15s;
+    }
+    .slot-pill:hover {
+      background: #dcfce7;
+      transform: translateY(-1px);
+    }
+    .slot-pill.active {
+      background: #0284c7 !important;
+      border-color: #0284c7 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.3);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+      animation: popIn 0.2s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #047857; }
+
+    /* Live Refresh Badge */
+    .live-refresh-badge {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      color: #166534;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    .btn-icon-refresh {
+      background: none;
+      border: none;
+      color: #166534;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 4px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: transform 0.2s;
+    }
+    .btn-icon-refresh:hover { transform: rotate(45deg); color: #059669; }
+
+    /* Topbar buttons */
+    .btn-settings {
+      background: #f8fafc;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-settings:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+    /* Queue Action Buttons */
+    .q-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #cbd5e1;
+    }
+    .btn-q-print {
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-q-print:hover {
+      background: #e0f2fe;
+      border-color: #0284c7;
+      color: #0284c7;
+    }
+
+    /* Settings Tabs */
+    .settings-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 4px;
+    }
+    .settings-tab-btn {
+      background: none;
+      border: none;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.2s;
+    }
+    .settings-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #f0f9ff;
+    }
+    .settings-tab-pane { display: none; }
+    .settings-tab-pane.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand-box">
+      <i class="fa-solid fa-hospital brand-icon"></i>
+      <div>
+        <div class="brand-title">MRT & MSKT NAVBATGA QO'YISH PORTALI</div>
+        <div class="brand-sub">Karmed RBYS Jonli Integratsiyasi (Port 9891)</div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="live-refresh-badge" title="Har 1 minutda avtomatik yangilanadi">
+        <span class="pulse-dot"></span>
+        <span>Jonli: <b id="timerCountdown">60s</b></span>
+        <button type="button" class="btn-icon-refresh" onclick="manualRefreshQueue()" title="Hozir yangilash">
+          <i class="fa-solid fa-rotate"></i>
+        </button>
+      </div>
+
+      <div class="ip-badge" id="clientIpBadge">🖥️ IP: <b>Yuklanmoqda...</b></div>
+      
+      <div id="operatorSection" style="display:none; align-items:center; gap:8px;">
+        <div class="operator-pill">
+          <i class="fa-solid fa-user-check"></i>
+          <span id="activeOpName">TB1 — Saida'lo</span>
+        </div>
+        <button type="button" class="btn-settings" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> Sozlamalar</button>
+        <button type="button" class="btn-logout" onclick="logoutOperator()"><i class="fa-solid fa-right-from-bracket"></i> Chiqish</button>
+      </div>
+
+      <button id="btnLoginPrompt" class="btn btn-primary btn-small" onclick="openLoginModal()" style="display:none;">
+        <i class="fa-solid fa-key"></i> Xodim Kirishi
+      </button>
+    </div>
+  </header>
+
+  <!-- ASOSIY ISHCHI BO'LIM -->
+  <main class="main-grid">
+    
+    <!-- CHAP USTUN: QIDIRUV VA NAVBATGA YOZISH -->
+    <section>
+      <!-- Bemor Qidirish Kartasi -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--primary);"></i>
+            <span>Bemor ID Bo'yicha Karmeddan Qidirish</span>
+          </div>
+        </div>
+
+        <form class="search-box" onsubmit="handleSearch(event)">
+          <input type="text" id="inputPatientId" class="search-input" placeholder="Bemor ID raqamini kiriting (masalan: 75)..." autofocus required>
+          <button type="submit" class="btn-search" id="btnSearch">
+            <i class="fa-solid fa-search"></i> <span>Qidirish</span>
+          </button>
+        </form>
+
+        <div id="searchLoader" style="display:none; text-align:center; padding:16px; color:var(--primary); font-weight:700;">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Karmed RBYS tizimidan ma'lumotlar tortilmoqda...
+        </div>
+
+        <div id="searchError" style="display:none; background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; padding:12px; border-radius:8px; font-size:13.5px; font-weight:700; margin-bottom:12px;"></div>
+
+        <!-- Bemor Ma'lumotlari Kartochkasi -->
+        <div id="patientCard" class="patient-card">
+          <div class="p-header">
+            <div>
+              <div class="p-name" id="pCardName">ALIMOV ANVAR SHOKIROVICH</div>
+              <div style="font-size:12.5px; color:var(--muted); margin-top:2px;" id="pCardDept">Torokal onkojarroxlik (Statsionar)</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="p-id" id="pCardId">ID: 75</div>
+              <div style="margin-top:6px;"><span id="pCardCatBadge" class="cat-badge cat-insurance">Sug'urta</span></div>
+            </div>
+          </div>
+          <div class="p-info-row">
+            <div>Yoshi: <strong id="pCardAge">23 yosh</strong></div>
+            <div>Jinsi: <strong id="pCardGender">Erkak</strong></div>
+            <div>Tug'ilgan sana: <strong id="pCardBirth">18.02.2003</strong></div>
+            <div>Telefon: <strong id="pCardPhone" style="color:var(--primary);">-</strong></div>
+          </div>
+          <div id="pCardStatsionarNotice" style="display:none; margin-top:8px; font-size:12px; font-weight:800; color:#15803d; background:#ecfdf5; border:1px solid #a7f3d0; padding:6px 10px; border-radius:6px;">
+            <i class="fa-solid fa-bed-pulse"></i> 🏥 Statsionar bemor (To'lov tekshiruvdan so'ng to'lanadi, oldindan to'lov talab etilmaydi)
+          </div>
+        </div>
+
+        <!-- MRT va MSKT Tekshiruvlari Ro'yxati -->
+        <div id="examsContainer" style="display:none;">
+          <div style="font-size:14px; font-weight:900; color:var(--text); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fa-solid fa-x-ray" style="color:var(--primary);"></i> Mavjud MRT va MSKT Tekshiruvlari:</span>
+            <span style="font-size:11.5px; color:var(--muted);">Faqat tomografiya ruxsat etilgan</span>
+          </div>
+
+          <div id="examsList" class="exam-list"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- O'NG USTUN: JONLI NAVBAT MONITORINGI -->
+    <section>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-list-check" style="color:var(--primary);"></i>
+            <span>Jonli Navbat Kuzatuvi (Laborant & Registratura)</span>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input type="date" id="queueDateInput" onchange="loadQueue(this.value)" style="padding:4px 8px; border:1.5px solid var(--border); border-radius:6px; font-size:12px; font-weight:700;">
+            <button class="btn btn-primary btn-small" onclick="loadQueue()"><i class="fa-solid fa-rotate"></i></button>
+          </div>
+        </div>
+
+        <div class="queue-grid">
+          
+          <!-- 1-MRT -->
+          <div class="queue-col">
+            <div class="queue-col-title">
+              <span>🧲 1-MRT (1.5T)</span>
+              <span id="badgeMrt1Count" style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:10px; font-size:11px;">0</span>
+            </div>
+            <div id="colMrt1List" style="display:flex; flex-direction:column; gap:6px;">
+              <div style="color:var(--muted); font-size:12px; text-align:center; padding:10px;">Bemorlar yo'q</div>
+            </div>
+          </div>
+
+          <!-- 2-MRT -->
+          <div class="queue-col">
+            <div class="queue-col-title">
+              <span>🧲 2-MRT (1.5T)</span>
+              <span id="badgeMrt2Count" style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:10px; font-size:11px;">0</span>
+            </div>
+            <div id="colMrt2List" style="display:flex; flex-direction:column; gap:6px;">
+              <div style="color:var(--muted); font-size:12px; text-align:center; padding:10px;">Bemorlar yo'q</div>
+            </div>
+          </div>
+
+          <!-- MSKT 1 -->
+          <div class="queue-col">
+            <div class="queue-col-title">
+              <span>⚡ MSKT 1</span>
+              <span id="badgeMskt1Count" style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:10px; font-size:11px;">0</span>
+            </div>
+            <div id="colMskt1List" style="display:flex; flex-direction:column; gap:6px;">
+              <div style="color:var(--muted); font-size:12px; text-align:center; padding:10px;">Bemorlar yo'q</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SUZUVCHI OYNA (BU YERDA KLIZMA QILINMAYDI) -->
+  <div class="floating-notice">
+    <i class="fa-solid fa-circle-info"></i>
+    <span>Bu yerda klizma qilinmaydi</span>
+  </div>
+
+  <!-- OPERATOR LOGIN MODALI -->
+  <div id="modalLogin" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div style="text-align:center; margin-bottom:16px;">
+        <i class="fa-solid fa-user-shield" style="font-size:42px; color:var(--primary); margin-bottom:8px;"></i>
+        <h3 style="font-size:18px; font-weight:900;">Xodim Avtorizatsiyasi</h3>
+        <p style="font-size:12.5px; color:var(--muted); margin-top:4px;">Navbatga bemor yozish uchun o'z hisobingizni tanlang</p>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label for="selectOp">Xodimni Tanlang:</label>
+          <select id="selectOp" required>
+            <option value="TB1">TB1 — Saida'lo</option>
+            <option value="TB2">TB2 — Nigora</option>
+            <option value="TB3">TB3 — Isfandiyor</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="inputOpPass">Maxfiy So'z (Parol):</label>
+          <input type="password" id="inputOpPass" placeholder="Parol kiriting..." required>
+        </div>
+
+        <div id="loginErrorMsg" style="display:none; color:#dc2626; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Tizimga Kirish
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- NAVBATGA QO'YISH MODALI -->
+  <div id="modalBooking" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeBookingModal()">
+    <div class="modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1.5px solid var(--border);">
+        <h3 style="font-size:17px; font-weight:900; color:var(--primary);">
+          <i class="fa-solid fa-calendar-plus"></i> Navbatga Qo'yish
+        </h3>
+        <button style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--muted);" onclick="closeBookingModal()">&times;</button>
+      </div>
+
+      <!-- 10 kunlik qoida ogohlantirishi (DANGER) -->
+      <div id="book10DaysAlert" class="danger-box-10days" style="display:none;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:20px;"></i>
+        <div>
+          <div>⛔ DIQQAT! Ro'yxatga olingan sanadan 10 kun keyin tekshiruvni o'tkazish mumkin emas!</div>
+          <div style="font-size:11.5px; font-weight:700; margin-top:2px;" id="book10DaysLimitText"></div>
+        </div>
+      </div>
+
+      <!-- Rezident / Norezident To'lov Tasdiqlash Bloki -->
+      <div id="paymentConfirmBox" class="payment-warn-box" style="display:none;">
+        <div class="payment-warn-title">
+          <i class="fa-solid fa-hand-holding-dollar"></i>
+          <span>OGOHLANTIRISH: To'lov amalga oshirilmasa tekshiruv o'tkazilmaydi!</span>
+        </div>
+        <label class="payment-checkbox-label">
+          <input type="checkbox" id="chkPaymentConfirmed" onchange="validateBookingRequirements()">
+          <span>To'lov qilinganligi tasdiqlandi (Kvitansiya / Chek mavjud)</span>
+        </label>
+      </div>
+
+      <!-- Statsionar To'lov Xabari -->
+      <div id="statsionarNoticeBox" class="statsionar-notice-box" style="display:none;">
+        <i class="fa-solid fa-bed-pulse" style="font-size:18px;"></i>
+        <div>🏥 <b>Statsionar bemor:</b> To'lov tekshiruvdan keyin to'lanadi. Oldindan to'lov tasdiqlash talab etilmaydi.</div>
+      </div>
+
+      <form id="bookingForm" onsubmit="submitBooking(event)">
+        <div style="background:#f8fafc; padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:13px;">
+          <div>Bemor: <strong id="bPatientName">-</strong> (<span id="bPatientId">-</span>)</div>
+          <div style="margin-top:2px;">Tekshiruv: <strong id="bExamName" style="color:var(--primary);">-</strong></div>
+          <div style="margin-top:2px; font-size:12px; color:var(--muted);" id="bRegDateInfo">-</div>
+          <div id="modalContrastLabInfo" style="display:none; margin-top:8px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Apparatni Tanlang:</label>
+          <select id="bDevice" onchange="updateSmartSlotForModal()">
+            <option value="mrt1">🧲 MRT 1 (1.5 Tesla - Injektorli, Kontrastli/Oddiy)</option>
+            <option value="mrt2">🧲 MRT 2 (1.5 Tesla - Kontrastsiz)</option>
+            <option value="mskt1">⚡ MSKT 1 (Kompyuter Tomografiyasi)</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:12px;">
+          <div class="form-group" style="flex:1;">
+            <label>Rejalashtirilgan Sana:</label>
+            <input type="date" id="bDate" onchange="check10DaysRuleOnDateChange(); updateSmartSlotForModal();" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Vaqti:</label>
+            <input type="time" id="bTime" onchange="validateChosenTimeSlot()" required>
+          </div>
+        </div>
+
+        <!-- Ish vaqti va Bo'sh/Band vaqtlar xabardorligi -->
+        <div id="bookingScheduleNoticeBox" style="margin-bottom:12px; font-size:12.5px;">
+          <div id="bookingDayStatusAlert" style="display:none; padding:8px 12px; border-radius:8px; margin-bottom:8px; font-weight:700;"></div>
+          
+          <div id="bookingSlotsContainer" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-weight:800; color:#0f172a;"><i class="fa-solid fa-clock" style="color:var(--primary);"></i> Tavsiya etilgan bo'sh vaqtlar:</span>
+              <span id="bookingShiftHoursBadge" style="font-size:11px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:6px;"></span>
+            </div>
+            <div id="bookingSlotPills" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; max-height:100px; overflow-y:auto;"></div>
+            <div id="bookingBusySlotsList" style="font-size:11px; color:#991b1b; display:none; border-top:1px dashed #cbd5e1; padding-top:6px; margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="bContrast" onchange="updateSmartSlotForModal()" style="width:16px; height:16px;">
+            <span>Kontrast modda yuborish talab etiladi</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Bemor Telefoni:</label>
+          <input type="tel" id="bPhone" placeholder="+998 90 123 45 67">
+        </div>
+
+        <div id="bookingErrorMsg" style="display:none; color:#dc2626; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+          <button type="button" class="btn" style="background:#e2e8f0; color:#334155;" onclick="closeBookingModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitBooking">
+            <i class="fa-solid fa-check"></i> Navbatga Kiritish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SOZLAMALAR MODALI (XODIM PROFILI VA PRINTERLAR) -->
+  <div id="modalSettings" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSettingsModal()">
+    <div class="modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:8px; border-bottom:1.5px solid var(--border);">
+        <h3 style="font-size:17px; font-weight:900; color:var(--text); display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-gear" style="color:var(--primary);"></i> Tizim Sozlamalari
+        </h3>
+        <button style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--muted);" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <!-- TABS -->
+      <div class="settings-tabs">
+        <button type="button" class="settings-tab-btn active" id="tabBtnProfile" onclick="switchSettingsTab('profile')">
+          <i class="fa-solid fa-user-pen"></i> Xodim Profili
+        </button>
+        <button type="button" class="settings-tab-btn" id="tabBtnPrinters" onclick="switchSettingsTab('printers')">
+          <i class="fa-solid fa-print"></i> Printerlar & Chop Etish
+        </button>
+      </div>
+
+      <!-- TAB 1: XODIM PROFILI -->
+      <div id="tabPaneProfile" class="settings-tab-pane active">
+        <form onsubmit="handleProfileSave(event)">
+          <div class="form-group">
+            <label>Xodim Identifikatori (Login):</label>
+            <input type="text" id="setOpUsername" readonly style="background:#f1f5f9; color:#64748b; font-weight:800;">
+          </div>
+          <div class="form-group">
+            <label>F.I.SH. (To'liq ism):</label>
+            <input type="text" id="setOpFullName" required placeholder="Ism va familiyangizni kiriting">
+          </div>
+          <div class="form-group">
+            <label>Joriy Parol:</label>
+            <input type="password" id="setOpOldPass" required placeholder="Joriy parolni tasdiqlang">
+          </div>
+          <div class="form-group">
+            <label>Yangi Parol (ixtiyoriy):</label>
+            <input type="password" id="setOpNewPass" placeholder="O'zgartirmaslik uchun bo'sh qoldiring">
+          </div>
+          <div class="form-group">
+            <label>Yangi Parolni Qayta Kiriting:</label>
+            <input type="password" id="setOpNewPassConfirm" placeholder="Yangi parolni takrorlang">
+          </div>
+
+          <div id="profileSaveMsg" style="display:none; padding:8px 12px; border-radius:6px; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Yopish</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveProfile">
+              <i class="fa-solid fa-floppy-disk"></i> Profilni Saqlash
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- TAB 2: PRINTERLAR VA CHOP ETISH -->
+      <div id="tabPanePrinters" class="settings-tab-pane">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="font-size:12px; color:var(--muted); font-weight:700;">
+            <i class="fa-solid fa-laptop"></i> Registrator agenti orqali avtomatik chop etish
+          </span>
+          <button type="button" class="btn btn-secondary btn-small" onclick="loadPrintersList()" style="font-size:11.5px; padding:4px 8px;">
+            <i class="fa-solid fa-rotate"></i> Printerlarni yangilash
+          </button>
+        </div>
+
+        <form onsubmit="handlePrinterSettingsSave(event)">
+          <div class="form-group">
+            <label for="setTicketPrinter"><i class="fa-solid fa-ticket"></i> Navbat Taloni Uchun Printer:</label>
+            <select id="setTicketPrinter">
+              <option value="">Standart Printer (Tizim)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="setConsentPrinter"><i class="fa-solid fa-file-contract"></i> Rozilik Anketasi Uchun Printer:</label>
+            <select id="setConsentPrinter">
+              <option value="">Standart Printer (Tizim)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:8px; margin-top:10px;">
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; font-weight:800; color:#0f172a;">
+              <input type="checkbox" id="setAutoPrint" style="width:18px; height:18px; margin-top:1px; accent-color:var(--primary);">
+              <div>
+                <span>Navbatga yozilganda avtomatik chop etish</span>
+                <div style="font-size:11.5px; font-weight:normal; color:var(--muted); margin-top:2px;">
+                  Agar yoqilsa, bemor navbatga muvaffaqiyatli kiritilishi bilanoq navbat taloni kompyuter agenti orqali avtomatik chiqariladi.
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div style="display:flex; gap:8px; margin:14px 0 10px 0;">
+            <button type="button" class="btn btn-secondary" onclick="testPrintTicket()" style="flex:1; font-size:12px; padding:8px;">
+              <i class="fa-solid fa-print"></i> Test Talon
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="testPrintConsent()" style="flex:1; font-size:12px; padding:8px;">
+              <i class="fa-solid fa-file-signature"></i> Test Anketa
+            </button>
+          </div>
+
+          <div id="printerSaveMsg" style="display:none; padding:8px 12px; border-radius:6px; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Yopish</button>
+            <button type="submit" class="btn btn-primary" id="btnSavePrinters">
+              <i class="fa-solid fa-floppy-disk"></i> Printerlarni Saqlash
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NAVBATGA QO'YISH MUVAFFAQIYATLI YAKUNLANGANDA CHIQADIGAN MODAL -->
+  <div id="modalBookingSuccess" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeBookingSuccessModal()">
+    <div class="modal-card" style="max-width:500px; text-align:center;">
+      <div style="font-size:48px; color:var(--success); margin-bottom:8px;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h3 style="font-size:20px; font-weight:900; color:#0f172a; margin-bottom:4px;">Navbatga Muvaffaqiyatli Qo'yildi!</h3>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Bemor ro'yxatga olindi va jadvalga kiritildi</p>
+
+      <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:14px; text-align:left; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+          <span style="font-size:13px; color:#000000; font-weight:800;">Bemor ID:</span>
+          <span id="succTicketNum" style="font-size:26px; font-weight:900; color:#000000; font-family:monospace;">-</span>
+        </div>
+        <div style="font-size:13px; margin-bottom:4px;">Bemor: <b id="succPatientName">-</b></div>
+        <div style="font-size:13px; margin-bottom:4px;">Tekshiruv: <b id="succExamName" style="color:#0369a1;">-</b></div>
+        <div style="font-size:13px; margin-bottom:4px;">Apparat: <b id="succDeviceName">-</b></div>
+        <div style="font-size:13px;">Sana va Vaqt: <b id="succDateTime">-</b></div>
+      </div>
+
+      <div id="succAutoPrintNotice" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:8px 12px; border-radius:8px; font-size:12.5px; font-weight:800; margin-bottom:14px;">
+        <i class="fa-solid fa-print"></i> Talon registrator agenti orqali avtomatik chop etishga yuborildi!
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-primary" onclick="printLastTicket()" style="flex:1; padding:12px;">
+            <i class="fa-solid fa-print"></i> Talonni Chop Etish
+          </button>
+          <button type="button" class="btn btn-success" onclick="printLastConsent()" style="flex:1; padding:12px;">
+            <i class="fa-solid fa-file-signature"></i> Rozilik Anketasi
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="closeBookingSuccessModal()" style="width:100%;">
+          Yopish va Davom Etish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentOperator = null;
+    let currentPatientData = null;
+    let selectedExamData = null;
+    let clientIpRole = 'full';
+    let printerSettings = { ticketPrinter: '', consentPrinter: '', autoPrint: false };
+    let availablePrinters = [];
+    let examConfigs = { services: [], consentQuestions: [] };
+    let queueMap = {};
+    let lastBookedPatient = null;
+    let refreshTimerInterval = null;
+    let refreshSecondsLeft = 60;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("queueDateInput").value = today;
+
+      await checkAuthAndIp();
+      await loadPrinterSettings();
+      await loadExamConfigs();
+      loadQueue();
+      startRefreshTimer();
+    });
+
+    // -------------------------------------------------------------
+    // HAR 1 MINUTDA JONLI YANGILANISH (TIMER)
+    // -------------------------------------------------------------
+    function startRefreshTimer() {
+      if (refreshTimerInterval) clearInterval(refreshTimerInterval);
+      refreshSecondsLeft = 60;
+      updateTimerBadge();
+
+      refreshTimerInterval = setInterval(() => {
+        refreshSecondsLeft--;
+        if (refreshSecondsLeft <= 0) {
+          loadQueue(document.getElementById("queueDateInput").value);
+          refreshSecondsLeft = 60;
+        }
+        updateTimerBadge();
+      }, 1000);
+    }
+
+    function resetTimer() {
+      refreshSecondsLeft = 60;
+      updateTimerBadge();
+    }
+
+    function updateTimerBadge() {
+      const el = document.getElementById("timerCountdown");
+      if (el) el.innerText = `${refreshSecondsLeft}s`;
+    }
+
+    function manualRefreshQueue() {
+      loadQueue(document.getElementById("queueDateInput").value);
+      resetTimer();
+    }
+
+    // -------------------------------------------------------------
+    // AUTH & IP CHECK
+    // -------------------------------------------------------------
+    async function checkAuthAndIp() {
+      try {
+        const token = localStorage.getItem("op_token");
+        const res = await fetch("/api/auth/me", {
+          headers: token ? { "X-Operator-Token": token } : {}
+        });
+        const data = await res.json();
+
+        document.getElementById("clientIpBadge").innerHTML = `🖥️ IP: <b>${escapeHtml(data.clientIp)}</b>`;
+        clientIpRole = data.role || 'full';
+
+        if (data.authenticated && data.operator) {
+          currentOperator = data.operator;
+          document.getElementById("operatorSection").style.display = "flex";
+          document.getElementById("btnLoginPrompt").style.display = "none";
+          document.getElementById("activeOpName").innerText = `${currentOperator.username} — ${currentOperator.name}`;
+          closeLoginModal();
+        } else {
+          document.getElementById("operatorSection").style.display = "none";
+          document.getElementById("btnLoginPrompt").style.display = "inline-flex";
+          openLoginModal();
+        }
+      } catch (e) {
+        console.error("Auth check error:", e);
+      }
+    }
+
+    function openLoginModal() { document.getElementById("modalLogin").style.display = "flex"; }
+    function closeLoginModal() { document.getElementById("modalLogin").style.display = "none"; }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById("selectOp").value;
+      const password = document.getElementById("inputOpPass").value;
+      const errBox = document.getElementById("loginErrorMsg");
+      errBox.style.display = "none";
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem("op_token", data.token);
+          await checkAuthAndIp();
+        } else {
+          errBox.innerText = data.error || "Login yoki parol xato!";
+          errBox.style.display = "block";
+        }
+      } catch (err) {
+        errBox.innerText = "Server bilan aloqa xatosi";
+        errBox.style.display = "block";
+      }
+    }
+
+    async function logoutOperator() {
+      const token = localStorage.getItem("op_token");
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "X-Operator-Token": token }
+        });
+      }
+      localStorage.removeItem("op_token");
+      currentOperator = null;
+      checkAuthAndIp();
+    }
+
+    // -------------------------------------------------------------
+    // SOZLAMALAR MODALI (XODIM PROFILI VA PRINTERLAR)
+    // -------------------------------------------------------------
+    function openSettingsModal() {
+      if (!currentOperator) {
+        alert("Sozlamalarni ochish uchun avval xodim hisobiga kiring!");
+        openLoginModal();
+        return;
+      }
+      document.getElementById("setOpUsername").value = currentOperator.username || '';
+      document.getElementById("setOpFullName").value = currentOperator.name || '';
+      document.getElementById("setOpOldPass").value = '';
+      document.getElementById("setOpNewPass").value = '';
+      document.getElementById("setOpNewPassConfirm").value = '';
+      document.getElementById("profileSaveMsg").style.display = 'none';
+      document.getElementById("printerSaveMsg").style.display = 'none';
+
+      loadPrintersList();
+      switchSettingsTab('profile');
+      document.getElementById("modalSettings").style.display = 'flex';
+    }
+
+    function closeSettingsModal() {
+      document.getElementById("modalSettings").style.display = 'none';
+    }
+
+    function switchSettingsTab(tab) {
+      document.getElementById("tabBtnProfile").classList.toggle("active", tab === 'profile');
+      document.getElementById("tabBtnPrinters").classList.toggle("active", tab === 'printers');
+      document.getElementById("tabPaneProfile").classList.toggle("active", tab === 'profile');
+      document.getElementById("tabPanePrinters").classList.toggle("active", tab === 'printers');
+    }
+
+    async function handleProfileSave(e) {
+      e.preventDefault();
+      const token = localStorage.getItem("op_token");
+      if (!token) return alert("Sessiya tugagan, iltimos qayta kiring");
+
+      const fullName = document.getElementById("setOpFullName").value.trim();
+      const oldPassword = document.getElementById("setOpOldPass").value;
+      const newPassword = document.getElementById("setOpNewPass").value;
+      const confirmPassword = document.getElementById("setOpNewPassConfirm").value;
+      const msgBox = document.getElementById("profileSaveMsg");
+
+      if (newPassword && newPassword !== confirmPassword) {
+        msgBox.innerText = "Yangi kiritilgan parollar bir-biriga mos kelmadi!";
+        msgBox.style.background = "#fef2f2";
+        msgBox.style.color = "#991b1b";
+        msgBox.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Operator-Token": token
+          },
+          body: JSON.stringify({ oldPassword, newPassword, newName: fullName })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msgBox.innerText = "✅ " + data.message;
+          msgBox.style.background = "#ecfdf5";
+          msgBox.style.color = "#065f46";
+          msgBox.style.display = "block";
+          if (currentOperator) currentOperator.name = fullName;
+          document.getElementById("activeOpName").innerText = `${currentOperator.username} — ${fullName}`;
+          setTimeout(() => { closeSettingsModal(); }, 1200);
+        } else {
+          msgBox.innerText = data.error || "Xatolik yuz berdi";
+          msgBox.style.background = "#fef2f2";
+          msgBox.style.color = "#991b1b";
+          msgBox.style.display = "block";
+        }
+      } catch (err) {
+        msgBox.innerText = "Server xatosi: " + err.message;
+        msgBox.style.background = "#fef2f2";
+        msgBox.style.color = "#991b1b";
+        msgBox.style.display = "block";
+      }
+    }
+
+    async function loadPrintersList() {
+      try {
+        const res = await fetch("/api/printers");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.printers)) {
+          availablePrinters = data.printers;
+          const ticketSel = document.getElementById("setTicketPrinter");
+          const consentSel = document.getElementById("setConsentPrinter");
+
+          let opts = '<option value="">Standart Printer (Tizim)</option>';
+          data.printers.forEach(p => {
+            const isDef = p.isDefault ? ' [Standart]' : '';
+            opts += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}${isDef}</option>`;
+          });
+
+          ticketSel.innerHTML = opts;
+          consentSel.innerHTML = opts;
+
+          if (printerSettings.ticketPrinter) ticketSel.value = printerSettings.ticketPrinter;
+          if (printerSettings.consentPrinter) consentSel.value = printerSettings.consentPrinter;
+        }
+      } catch (e) {
+        console.error("Printers fetch error:", e);
+      }
+    }
+
+    async function loadPrinterSettings() {
+      try {
+        const res = await fetch("/api/printer-settings");
+        const data = await res.json();
+        if (data.success && data.settings) {
+          printerSettings = data.settings;
+          const chk = document.getElementById("setAutoPrint");
+          if (chk) chk.checked = Boolean(printerSettings.autoPrint);
+        }
+      } catch (e) {
+        console.error("Printer settings load error:", e);
+      }
+    }
+
+    async function handlePrinterSettingsSave(e) {
+      e.preventDefault();
+      const ticketPrinter = document.getElementById("setTicketPrinter").value;
+      const consentPrinter = document.getElementById("setConsentPrinter").value;
+      const autoPrint = document.getElementById("setAutoPrint").checked;
+      const msgBox = document.getElementById("printerSaveMsg");
+
+      try {
+        const res = await fetch("/api/printer-settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticketPrinter, consentPrinter, autoPrint })
+        });
+        const data = await res.json();
+        if (data.success) {
+          printerSettings = data.settings;
+          msgBox.innerText = "✅ Printer sozlamalari muvaffaqiyatli saqlandi!";
+          msgBox.style.background = "#ecfdf5";
+          msgBox.style.color = "#065f46";
+          msgBox.style.display = "block";
+          setTimeout(() => { closeSettingsModal(); }, 1200);
+        } else {
+          msgBox.innerText = data.error || "Xatolik";
+          msgBox.style.background = "#fef2f2";
+          msgBox.style.color = "#991b1b";
+          msgBox.style.display = "block";
+        }
+      } catch (err) {
+        msgBox.innerText = "Server xatosi: " + err.message;
+        msgBox.style.background = "#fef2f2";
+        msgBox.style.color = "#991b1b";
+        msgBox.style.display = "block";
+      }
+    }
+
+    async function loadExamConfigs() {
+      try {
+        const res = await fetch("/api/exam-configs");
+        const data = await res.json();
+        if (data.success) {
+          examConfigs = data;
+        }
+      } catch (e) {
+        console.error("Exam configs load error:", e);
+      }
+    }
+
+    async function searchPatient(pId) {
+      if (!pId) return;
+      document.getElementById("inputPatientId").value = pId;
+      const fakeEvent = { preventDefault: () => {} };
+      await handleSearch(fakeEvent);
+    }
+
+    // -------------------------------------------------------------
+    // KARMEDDAN BEMOR QIDIRISH (FAQAT MRT / MSKT)
+    // -------------------------------------------------------------
+    async function handleSearch(e) {
+      e.preventDefault();
+      const pId = document.getElementById("inputPatientId").value.trim();
+      if (!pId) return;
+
+      const loader = document.getElementById("searchLoader");
+      const errBox = document.getElementById("searchError");
+      const pCard = document.getElementById("patientCard");
+      const examsCont = document.getElementById("examsContainer");
+      const btn = document.getElementById("btnSearch");
+
+      loader.style.display = "block";
+      errBox.style.display = "none";
+      pCard.style.display = "none";
+      examsCont.style.display = "none";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/karmed/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patientId: pId })
+        });
+        const data = await res.json();
+        loader.style.display = "none";
+        btn.disabled = false;
+
+        if (!data.found) {
+          errBox.innerText = data.message || "Bemor topilmadi";
+          errBox.style.display = "block";
+          return;
+        }
+
+        currentPatientData = data.patient;
+        renderPatientCard(data.patient);
+
+        if (!data.hasEligibleExams || data.eligibleExams.length === 0) {
+          errBox.innerHTML = `⚠️ <b>${escapeHtml(data.patient.fullName)}</b> Karmed tizimida topildi, biroq unga <b>MRT</b> yoki <b>MSKT</b> tekshiruviga yo'llanma berilmagan.`;
+          errBox.style.display = "block";
+          return;
+        }
+
+        renderExamsList(data.eligibleExams);
+        examsCont.style.display = "block";
+
+      } catch (err) {
+        loader.style.display = "none";
+        btn.disabled = false;
+        errBox.innerText = "Karmed serveri bilan aloqa xatosi: " + err.message;
+        errBox.style.display = "block";
+      }
+    }
+
+    function renderPatientCard(p) {
+      document.getElementById("pCardName").innerText = p.fullName;
+      document.getElementById("pCardId").innerText = `ID: ${p.patientId}`;
+      document.getElementById("pCardDept").innerText = `${p.department || 'Bo\'lim ko\'rsatilmagan'} (${p.patientType || 'Ambulator'})`;
+      document.getElementById("pCardAge").innerText = p.age ? `${p.age} yosh` : '-';
+      document.getElementById("pCardGender").innerText = p.gender || '-';
+      document.getElementById("pCardBirth").innerText = p.birthDate || '-';
+      document.getElementById("pCardPhone").innerText = p.phone || 'Karmedda kiritilmagan';
+
+      const catBadge = document.getElementById("pCardCatBadge");
+      const isStatsionar = p.patientType === 'Statsionar';
+
+      if (isStatsionar) {
+        catBadge.innerText = "🏥 Statsionar (To'lov tekshiruvdan so'ng)";
+        catBadge.className = "cat-badge cat-insurance";
+        document.getElementById("pCardStatsionarNotice").style.display = "block";
+      } else {
+        catBadge.innerText = p.patientCategory || "Sug'urta";
+        catBadge.className = "cat-badge " + (p.patientCategory.includes("No-rezident") ? "cat-foreign" : (p.patientCategory.includes("Rezident") ? "cat-paid" : "cat-insurance"));
+        document.getElementById("pCardStatsionarNotice").style.display = "none";
+      }
+
+      document.getElementById("patientCard").style.display = "block";
+    }
+
+    function renderExamsList(exams) {
+      const container = document.getElementById("examsList");
+      window.loadedEligibleExams = exams;
+      window.combinedExamsMap = {};
+
+      // Bitta sana va modallikdagi tekshiruvlarni guruhlash
+      const groups = {};
+      exams.forEach((ex, idx) => {
+        const groupKey = `${ex.registrationDate}_${ex.modality}`;
+        if (!groups[groupKey]) {
+          groups[groupKey] = {
+            groupKey: groupKey,
+            date: ex.registrationDate,
+            modality: ex.modality,
+            items: []
+          };
+        }
+        groups[groupKey].items.push({ exam: ex, index: idx });
+      });
+
+      let html = '';
+      Object.values(groups).forEach(group => {
+        if (group.items.length > 1) {
+          // Bitta sanada 2 yoki undan ortiq tekshiruv: Birinchi ko'rinishda BIRGA
+          const combinedExam = buildCombinedExam(group);
+          html += renderCombinedExamCard(combinedExam, group);
+        } else {
+          // Yagona tekshiruv
+          html += renderSingleExamCard(group.items[0].exam, group.items[0].index, false);
+        }
+      });
+
+      container.innerHTML = html;
+    }
+
+    function buildCombinedExam(group) {
+      const exams = group.items.map(x => x.exam);
+      const isContrast = exams.some(e => e.isContrast);
+      const serviceCodes = exams.map(e => e.serviceCode).join(' + ');
+      const serviceNames = exams.map(e => `[${e.serviceCode}] ${e.serviceName}`).join(' va ');
+      const shortServiceNames = exams.map(e => e.serviceName).join(' + ');
+      const suggestedDevice = exams.some(e => e.suggestedDevice === 'mrt1') ? 'mrt1' : (exams[0].suggestedDevice || 'mrt1');
+      const isOlderThan5Days = exams.some(e => e.isOlderThan5Days);
+      const maxAllowedDate = exams[0].maxAllowedDate;
+      const diffDays = exams[0].diffDays;
+      const labResults = exams.find(e => e.labResults && e.labResults.found)?.labResults || exams.find(e => e.labResults)?.labResults || null;
+
+      const isAllCompleted = exams.every(e => e.isCompleted);
+      const isAnyCompleted = exams.some(e => e.isCompleted);
+      const isAllQueued = exams.every(e => e.isAlreadyQueued);
+      const isAnyQueued = exams.some(e => e.isAlreadyQueued);
+      const firstQueued = exams.find(e => e.isAlreadyQueued && e.existingQueueInfo);
+
+      return {
+        isCombined: true,
+        groupKey: group.groupKey,
+        itemsCount: exams.length,
+        modality: group.modality,
+        serviceId: exams[0].serviceId,
+        serviceIds: exams.map(e => e.serviceId),
+        dosyaId: exams[0].dosyaId,
+        protokolNo: exams[0].protokolNo,
+        serviceCode: serviceCodes,
+        serviceName: serviceNames,
+        shortServiceName: shortServiceNames,
+        isContrast: isContrast,
+        suggestedDevice: suggestedDevice,
+        durationMinutes: 50,
+        registrationDate: group.date,
+        maxAllowedDate: maxAllowedDate,
+        isOlderThan5Days: isOlderThan5Days,
+        diffDays: diffDays,
+        labResults: labResults,
+        doctorName: exams.map(e => e.doctorName).filter(Boolean).join(', '),
+        roomName: exams[0].roomName,
+        childExams: exams,
+        isAllCompleted: isAllCompleted,
+        isAnyCompleted: isAnyCompleted,
+        isAllQueued: isAllQueued,
+        isAnyQueued: isAnyQueued,
+        existingQueueInfo: firstQueued ? firstQueued.existingQueueInfo : null
+      };
+    }
+
+    function renderSingleExamCard(ex, idx, isNested = false) {
+      const isMskt = ex.modality === 'MSKT';
+      const tagMod = isMskt ? '<span class="badge-tag tag-mskt">⚡ MSKT</span>' : '<span class="badge-tag tag-mrt">🧲 MRT</span>';
+      const tagContrast = ex.isContrast ? '<span class="badge-tag tag-contrast">💉 Kontrastli</span>' : '';
+
+      // 5 kundan oshganlik ogohlantirishi
+      const warn5Days = ex.isOlderThan5Days 
+        ? `<div class="warn-box-5days"><i class="fa-solid fa-triangle-exclamation"></i> Karmedda ro'yxatga olinganiga 5 kundan oshgan (${ex.diffDays} kun oldin yozilgan)!</div>`
+        : '';
+
+      // Kontrastli tekshiruv uchun qon tahlillari (Kreatinin va Mochevina)
+      let labHtml = '';
+      if (ex.isContrast) {
+        if (ex.labResults && ex.labResults.found) {
+          const kr = ex.labResults.kreatinin;
+          const moch = ex.labResults.mochevina;
+          labHtml = `
+            <div class="contrast-lab-box">
+              <div class="contrast-lab-title">
+                <i class="fa-solid fa-flask-vial"></i>
+                <span>Kontrast uchun oxirgi topshirilgan qon tahlillari (Karmed LBYS):</span>
+              </div>
+              <div class="contrast-lab-grid">
+                ${kr ? `
+                  <div class="lab-item">
+                    <div class="lab-name">🧪 Kreatinin:</div>
+                    <div class="lab-val"><b>${escapeHtml(kr.value)}</b> <span class="lab-ref">(Norma: ${escapeHtml(kr.reference)})</span></div>
+                    <div class="lab-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(kr.date || '-')} <span class="lab-days">(${kr.daysAgo} kun oldin topshirilgan)</span></div>
+                    ${kr.daysAgo > 30 ? '<span class="lab-warn-badge">⚠️ > 30 kun oldin topshirilgan</span>' : '<span class="lab-ok-badge">✅ Yangi tahlil</span>'}
+                  </div>
+                ` : '<div class="lab-item"><div class="lab-name">🧪 Kreatinin:</div><div style="font-size:12px; color:#9ca3af;">Tahlil topilmadi</div></div>'}
+                ${moch ? `
+                  <div class="lab-item">
+                    <div class="lab-name">🧪 Mochevina:</div>
+                    <div class="lab-val"><b>${escapeHtml(moch.value)}</b> <span class="lab-ref">(Norma: ${escapeHtml(moch.reference)})</span></div>
+                    <div class="lab-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(moch.date || '-')} <span class="lab-days">(${moch.daysAgo} kun oldin topshirilgan)</span></div>
+                    ${moch.daysAgo > 30 ? '<span class="lab-warn-badge">⚠️ > 30 kun oldin topshirilgan</span>' : '<span class="lab-ok-badge">✅ Yangi tahlil</span>'}
+                  </div>
+                ` : '<div class="lab-item"><div class="lab-name">🧪 Mochevina:</div><div style="font-size:12px; color:#9ca3af;">Tahlil topilmadi</div></div>'}
+              </div>
+            </div>
+          `;
+        } else {
+          labHtml = `
+            <div class="contrast-lab-missing">
+              <i class="fa-solid fa-triangle-exclamation" style="color:#d97706; font-size:16px; margin-top:2px;"></i>
+              <div>
+                <b>⚠️ Diqqat:</b> Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
+                <div style="font-size:11.5px; color:#78350f; margin-top:2px;">(Kontrast modda yuborishdan oldin bemorning buyrak ko'rsatkichlarini tekshirish tavsiya etiladi)</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Tugma yoki Holat belgisi
+      let actionAreaHtml = '';
+      let statusBorderStyle = '';
+
+      if (ex.isCompleted) {
+        statusBorderStyle = 'border-left: 5px solid #10b981;';
+        actionAreaHtml = `
+          <div class="badge-status-completed">
+            <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
+            <div>
+              <div style="font-weight:900;">Tekshiruvdan o'tgan</div>
+              <div style="font-size:11px; opacity:0.9;">${escapeHtml(ex.completedReason || 'Karmedda xulosa tasdiqlangan')}</div>
+            </div>
+          </div>
+        `;
+      } else if (ex.isAlreadyQueued && ex.existingQueueInfo) {
+        statusBorderStyle = 'border-left: 5px solid #f59e0b;';
+        const qInfo = ex.existingQueueInfo;
+        actionAreaHtml = `
+          <div class="badge-status-queued">
+            <div><i class="fa-solid fa-clock-rotate-left"></i> <b>Allaqachon navbatga qo'yilgan</b></div>
+            <div style="font-size:11px; margin-top:3px;">
+              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(qInfo.scheduledTime || '-')})</b>
+            </div>
+            <div style="font-size:10.5px; opacity:0.85; margin-top:1px;">Qurilma: <b>${escapeHtml((qInfo.deviceId || '').toUpperCase())}</b> (${escapeHtml(qInfo.statusText || qInfo.status)})</div>
+          </div>
+        `;
+      } else {
+        statusBorderStyle = isNested ? '' : 'border-left: 5px solid #0284c7;';
+        const btnText = isNested ? '<i class="fa-solid fa-calendar-plus"></i> Alohida navbatga qo\'yish' : '<i class="fa-solid fa-calendar-plus"></i> Navbatga qo\'yish';
+        actionAreaHtml = `
+          <button class="btn btn-primary btn-small" onclick="openBookingModal(${idx})">
+            ${btnText}
+          </button>
+        `;
+      }
+
+      const cardStyle = isNested 
+        ? `background:#ffffff; border:1.5px solid #cbd5e1; margin-bottom:6px; box-shadow:none; ${statusBorderStyle}` 
+        : statusBorderStyle;
+
+      return `
+        <div class="exam-card" style="${cardStyle}">
+          <div class="exam-title" style="align-items:center;">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:3px;">
+                <span style="font-weight:800; font-size:14.5px;">[${escapeHtml(ex.serviceCode || 'R')}] ${escapeHtml(ex.serviceName)}</span>
+              </div>
+              <div style="font-size:11.5px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="exam-id-badge" title="Karmed yagona tekshiruv ID"><i class="fa-solid fa-hashtag"></i> ID: ${escapeHtml(String(ex.serviceId))}</span>
+                <span>Protokol: №${escapeHtml(String(ex.protokolNo))}</span>
+                ${ex.mrrsSiraNo ? `<span>• Navbat №: ${escapeHtml(String(ex.mrrsSiraNo))}</span>` : ''}
+              </div>
+            </div>
+            <div style="margin-left:12px;">
+              ${actionAreaHtml}
+            </div>
+          </div>
+          <div class="exam-badges">
+            ${tagMod}
+            ${tagContrast}
+            <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Xona: ${escapeHtml(ex.roomName || 'Tomografiya')}</span>
+            <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Vrach: ${escapeHtml(ex.doctorName || '-')}</span>
+            <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Sana: ${escapeHtml(ex.registrationDate)}</span>
+          </div>
+          ${warn5Days}
+          ${labHtml}
+        </div>
+      `;
+    }
+
+    function renderCombinedExamCard(cEx, group) {
+      window.combinedExamsMap[cEx.groupKey] = cEx;
+
+      const isMskt = cEx.modality === 'MSKT';
+      const tagMod = isMskt ? '<span class="badge-tag tag-mskt">⚡ MSKT</span>' : '<span class="badge-tag tag-mrt">🧲 MRT</span>';
+      const tagContrast = cEx.isContrast ? '<span class="badge-tag tag-contrast">💉 Kontrastli (Injektor)</span>' : '';
+
+      const warn5Days = cEx.isOlderThan5Days 
+        ? `<div class="warn-box-5days"><i class="fa-solid fa-triangle-exclamation"></i> Karmedda ro'yxatga olinganiga 5 kundan oshgan (${cEx.diffDays} kun oldin yozilgan)!</div>`
+        : '';
+
+      let labHtml = '';
+      if (cEx.isContrast) {
+        if (cEx.labResults && cEx.labResults.found) {
+          const kr = cEx.labResults.kreatinin;
+          const moch = cEx.labResults.mochevina;
+          labHtml = `
+            <div class="contrast-lab-box">
+              <div class="contrast-lab-title">
+                <i class="fa-solid fa-flask-vial"></i>
+                <span>Kontrast uchun oxirgi topshirilgan qon tahlillari (Karmed LBYS):</span>
+              </div>
+              <div class="contrast-lab-grid">
+                ${kr ? `
+                  <div class="lab-item">
+                    <div class="lab-name">🧪 Kreatinin:</div>
+                    <div class="lab-val"><b>${escapeHtml(kr.value)}</b> <span class="lab-ref">(Norma: ${escapeHtml(kr.reference)})</span></div>
+                    <div class="lab-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(kr.date || '-')} <span class="lab-days">(${kr.daysAgo} kun oldin)</span></div>
+                    ${kr.daysAgo > 30 ? '<span class="lab-warn-badge">⚠️ > 30 kun oldin</span>' : '<span class="lab-ok-badge">✅ Yangi</span>'}
+                  </div>
+                ` : ''}
+                ${moch ? `
+                  <div class="lab-item">
+                    <div class="lab-name">🧪 Mochevina:</div>
+                    <div class="lab-val"><b>${escapeHtml(moch.value)}</b> <span class="lab-ref">(Norma: ${escapeHtml(moch.reference)})</span></div>
+                    <div class="lab-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(moch.date || '-')} <span class="lab-days">(${moch.daysAgo} kun oldin)</span></div>
+                    ${moch.daysAgo > 30 ? '<span class="lab-warn-badge">⚠️ > 30 kun oldin</span>' : '<span class="lab-ok-badge">✅ Yangi</span>'}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        } else {
+          labHtml = `
+            <div class="contrast-lab-missing">
+              <i class="fa-solid fa-triangle-exclamation" style="color:#d97706; font-size:16px; margin-top:2px;"></i>
+              <div>
+                <b>⚠️ Diqqat:</b> Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
+                <div style="font-size:11.5px; color:#78350f; margin-top:2px;">(Kontrast modda yuborishdan oldin bemorning buyrak ko'rsatkichlarini tekshirish tavsiya etiladi)</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // To'plam uchun harakat tugmasi yoki holat
+      let combinedActionHtml = '';
+      let partialWarningHtml = '';
+
+      if (cEx.isAllCompleted) {
+        combinedActionHtml = `
+          <div class="badge-status-completed" style="padding:8px 16px;">
+            <i class="fa-solid fa-circle-check" style="font-size:18px;"></i>
+            <div>
+              <div style="font-weight:900; font-size:13px;">Barcha tekshiruvlardan o'tgan</div>
+              <div style="font-size:11px; opacity:0.9;">Karmedda xulosalar tasdiqlangan</div>
+            </div>
+          </div>
+        `;
+      } else if (cEx.isAllQueued && cEx.existingQueueInfo) {
+        const qInfo = cEx.existingQueueInfo;
+        combinedActionHtml = `
+          <div class="badge-status-queued" style="padding:8px 14px;">
+            <div><i class="fa-solid fa-clock-rotate-left"></i> <b>Allaqachon birga navbatga qo'yilgan</b></div>
+            <div style="font-size:11.5px; margin-top:3px;">
+              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(qInfo.scheduledTime || '-')})</b>
+            </div>
+            <div style="font-size:11px; opacity:0.85;">Qurilma: <b>${escapeHtml((qInfo.deviceId || '').toUpperCase())}</b> (${escapeHtml(qInfo.statusText || qInfo.status)})</div>
+          </div>
+        `;
+      } else if (cEx.isAnyCompleted || cEx.isAnyQueued) {
+        partialWarningHtml = `
+          <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12.5px; color:#92400e; display:flex; align-items:center; gap:10px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#d97706;"></i>
+            <div>
+              <b>Diqqat:</b> Ushbu to'plamdagi ba'zi tekshiruvlar allaqachon o'tgan yoki navbatga qo'yilgan. Qolgan tekshiruvlarni pastdagi <b>"Alohida kunlarga navbatga qo'yish"</b> tugmasi orqali yozing.
+            </div>
+          </div>
+        `;
+        combinedActionHtml = `
+          <button class="btn btn-secondary" onclick="toggleSeparateExams('${cEx.groupKey}', true)" style="white-space:nowrap; padding:10px 16px; font-size:13px; font-weight:700;">
+            <i class="fa-solid fa-calendar-days"></i> Qolgan tekshiruvlarni ko'rish ▼
+          </button>
+        `;
+      } else {
+        combinedActionHtml = `
+          <button class="btn btn-primary" onclick="openCombinedBookingModal('${cEx.groupKey}')" style="white-space:nowrap; padding:10px 18px; font-size:13.5px; box-shadow:0 4px 12px rgba(2,132,199,0.3); align-self:center;">
+            <i class="fa-solid fa-layer-group"></i> Birga navbatga qo'yish
+          </button>
+        `;
+      }
+
+      const separateCardsHtml = group.items.map(item => {
+        return renderSingleExamCard(item.exam, item.index, true);
+      }).join('');
+
+      return `
+        <div class="exam-card" style="border: 2px solid #0284c7; background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 60%); box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <span style="background:#0284c7; color:#fff; font-size:11.5px; font-weight:900; padding:4px 10px; border-radius:6px; letter-spacing:0.4px;">
+              <i class="fa-solid fa-layer-group"></i> BIRGALIKDA O'TKAZILADIGAN TEKSHIRUVLAR (${cEx.itemsCount} TA TEKSHIRUV BIRGA)
+            </span>
+            <span style="font-size:12px; font-weight:800; color:#0369a1;"><i class="fa-regular fa-clock"></i> Birlashtirilgan seans: 50 daqiqa</span>
+          </div>
+
+          ${partialWarningHtml}
+
+          <div class="exam-title" style="font-size:15px; line-height:1.45; align-items:flex-start; margin-bottom:10px;">
+            <div style="flex:1;">
+              ${group.items.map((it, i) => `
+                <div style="font-weight:800; color:#0f172a; margin-bottom:6px; display:flex; flex-direction:column; gap:2px;">
+                  <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+                    <span style="color:#0284c7; font-weight:900;">${i+1}. [${escapeHtml(it.exam.serviceCode)}]</span>
+                    <span>${escapeHtml(it.exam.serviceName)}</span>
+                    ${it.exam.isCompleted ? '<span class="badge-tag" style="background:#ecfdf5; color:#065f46; font-size:11px; font-weight:800;"><i class="fa-solid fa-circle-check"></i> O\'tgan</span>' : (it.exam.isAlreadyQueued ? `<span class="badge-tag" style="background:#fffbeb; color:#92400e; font-size:11px; font-weight:800;"><i class="fa-solid fa-clock-rotate-left"></i> Navbatda: ${it.exam.existingQueueInfo?.ticketNumber}</span>` : '')}
+                  </div>
+                  <div style="font-size:11px; color:#64748b; font-weight:600; margin-left:20px; display:flex; align-items:center; gap:6px;">
+                    <span class="exam-id-badge"><i class="fa-solid fa-hashtag"></i> ID: ${escapeHtml(String(it.exam.serviceId))}</span>
+                    <span>• Protokol: №${escapeHtml(String(it.exam.protokolNo))}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="margin-left:12px;">
+              ${combinedActionHtml}
+            </div>
+          </div>
+
+          <div class="exam-badges">
+            ${tagMod}
+            ${tagContrast}
+            <span class="badge-tag" style="background:#e0f2fe; color:#0369a1; font-weight:800;">📦 To'plam: ${cEx.itemsCount} ta tekshiruv</span>
+            <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Sana: ${escapeHtml(cEx.registrationDate)}</span>
+            <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Vrach: ${escapeHtml(cEx.doctorName || '-')}</span>
+          </div>
+
+          ${warn5Days}
+          ${labHtml}
+
+          <!-- Alohida kunlarga navbatga qo'yish bo'limi -->
+          <div style="margin-top:14px; padding-top:10px; border-top:1.5px dashed #cbd5e1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:12px; color:#475569; font-weight:700;">
+              <i class="fa-solid fa-arrows-split-up-and-left" style="color:#0284c7;"></i> Shifokor yoki bemor talabiga ko'ra tekshiruvlarni alohida kunlarga qo'ymoqchimisiz?
+            </span>
+            <button type="button" class="btn btn-small" onclick="toggleSeparateExams('${cEx.groupKey}')" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#1e293b; font-size:12px; padding:6px 14px;">
+              <span id="toggleText_${cEx.groupKey}"><i class="fa-solid fa-calendar-days"></i> Alohida kunlarga navbatga qo'yish ▼</span>
+            </button>
+          </div>
+
+          <!-- Ichki alohida kartalar ro'yxati -->
+          <div id="separateExams_${cEx.groupKey}" style="display:none; margin-top:12px; padding:12px; background:#f8fafc; border-radius:10px; border:1.5px solid #e2e8f0; flex-direction:column; gap:8px;">
+            <div style="font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">
+              <i class="fa-solid fa-list-ol"></i> Har bir tekshiruvni alohida kunga navbatga yozish:
+            </div>
+            ${separateCardsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleSeparateExams(groupKey, forceOpen = false) {
+      const container = document.getElementById("separateExams_" + groupKey);
+      const textSpan = document.getElementById("toggleText_" + groupKey);
+      if (forceOpen || container.style.display === "none" || container.style.display === "") {
+        container.style.display = "flex";
+        if (textSpan) textSpan.innerHTML = `<i class="fa-solid fa-chevron-up"></i> Alohida ro'yxatni yopish ▲`;
+      } else {
+        container.style.display = "none";
+        if (textSpan) textSpan.innerHTML = `<i class="fa-solid fa-calendar-days"></i> Alohida kunlarga navbatga qo'yish ▼`;
+      }
+    }
+
+    function openCombinedBookingModal(groupKey) {
+      const cEx = window.combinedExamsMap[groupKey];
+      if (!cEx) return;
+
+      if (!currentOperator) {
+        alert("Navbatga qo'yishdan oldin xodim hisobi bilan kiring!");
+        openLoginModal();
+        return;
+      }
+
+      if (clientIpRole === 'view_only') {
+        alert("Ushbu kompyuterga faqat kuzatish ruxsati berilgan! Navbatga yozish mumkin emas.");
+        return;
+      }
+
+      selectedExamData = cEx;
+
+      document.getElementById("bPatientName").innerText = currentPatientData.fullName;
+      document.getElementById("bPatientId").innerText = `ID: ${currentPatientData.patientId}`;
+      document.getElementById("bExamName").innerText = `📦 ${cEx.serviceCode} — ${cEx.shortServiceName} (${cEx.itemsCount} ta tekshiruv birga)`;
+      document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${cEx.registrationDate} | Ruxsat etilgan oxirgi sana: ${cEx.maxAllowedDate} | Birlashtirilgan seans: 50 daqiqa`;
+
+      document.getElementById("bDevice").value = cEx.suggestedDevice || 'mrt1';
+      document.getElementById("bContrast").checked = Boolean(cEx.isContrast);
+
+      // Telefon raqamini o'rnatish
+      document.getElementById("bPhone").value = currentPatientData.phone || '';
+
+      const today = new Date().toISOString().split("T")[0];
+      const bDateEl = document.getElementById("bDate");
+      bDateEl.min = today;
+      bDateEl.value = today;
+
+      // To'lov tasdiqlash bloki
+      const payBox = document.getElementById("paymentConfirmBox");
+      const statBox = document.getElementById("statsionarNoticeBox");
+      const chkPay = document.getElementById("chkPaymentConfirmed");
+
+      if (currentPatientData.patientType === 'Statsionar') {
+        payBox.style.display = "none";
+        statBox.style.display = "flex";
+        chkPay.checked = true;
+      } else if (currentPatientData.requiresPaymentConfirmation) {
+        payBox.style.display = "block";
+        statBox.style.display = "none";
+        chkPay.checked = false;
+      } else {
+        payBox.style.display = "none";
+        statBox.style.display = "none";
+        chkPay.checked = true;
+      }
+
+      // Kontrastli qon ko'rsatkichlari modalda
+      const modalLabInfo = document.getElementById("modalContrastLabInfo");
+      if (cEx.isContrast) {
+        if (cEx.labResults && cEx.labResults.found) {
+          const kr = cEx.labResults.kreatinin;
+          const moch = cEx.labResults.mochevina;
+          modalLabInfo.innerHTML = `
+            <div style="background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; font-size:11.5px;">
+              <span style="font-weight:800; color:#7e22ce;">🧪 Qon tahlillari:</span>
+              ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (${kr.daysAgo} kun oldin); ` : ''}
+              ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (${moch.daysAgo} kun oldin)` : ''}
+            </div>
+          `;
+          modalLabInfo.style.display = "block";
+        } else {
+          modalLabInfo.innerHTML = `
+            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:6px 10px; font-size:11.5px; color:#b45309; font-weight:700;">
+              ⚠️ Diqqat: Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
+            </div>
+          `;
+          modalLabInfo.style.display = "block";
+        }
+      } else {
+        modalLabInfo.style.display = "none";
+      }
+
+      check10DaysRuleOnDateChange();
+      updateSmartSlotForModal();
+      document.getElementById("modalBooking").style.display = "flex";
+    }
+
+    // -------------------------------------------------------------
+    // BOOKING MODAL VA QOIDALAR
+    // -------------------------------------------------------------
+    function openBookingModal(examIdx) {
+      if (!currentOperator) {
+        alert("Navbatga qo'yishdan oldin xodim hisobi bilan kiring!");
+        openLoginModal();
+        return;
+      }
+
+      if (clientIpRole === 'view_only') {
+        alert("Ushbu kompyuterga faqat kuzatish ruxsati berilgan! Navbatga yozish mumkin emas.");
+        return;
+      }
+
+      const ex = window.loadedEligibleExams[examIdx];
+      selectedExamData = ex;
+
+      document.getElementById("bPatientName").innerText = currentPatientData.fullName;
+      document.getElementById("bPatientId").innerText = `ID: ${currentPatientData.patientId}`;
+      document.getElementById("bExamName").innerText = `[${ex.serviceCode}] ${ex.serviceName}`;
+      document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${ex.registrationDate} | Ruxsat etilgan oxirgi sana: ${ex.maxAllowedDate}`;
+
+      document.getElementById("bDevice").value = ex.suggestedDevice || 'mrt1';
+      document.getElementById("bContrast").checked = Boolean(ex.isContrast);
+
+      // Telefon raqamini o'rnatish
+      document.getElementById("bPhone").value = currentPatientData.phone || '';
+
+      const today = new Date().toISOString().split("T")[0];
+      const bDateEl = document.getElementById("bDate");
+      bDateEl.min = today;
+      bDateEl.value = today;
+
+      // 1. To'lov tasdiqlash qoidasi (Statsionar bemorlar uchun so'ralmaydi!)
+      const payBox = document.getElementById("paymentConfirmBox");
+      const statBox = document.getElementById("statsionarNoticeBox");
+      const chkPay = document.getElementById("chkPaymentConfirmed");
+
+      if (currentPatientData.patientType === 'Statsionar') {
+        payBox.style.display = "none";
+        statBox.style.display = "flex";
+        chkPay.checked = true;
+      } else if (currentPatientData.requiresPaymentConfirmation) {
+        payBox.style.display = "block";
+        statBox.style.display = "none";
+        chkPay.checked = false;
+      } else {
+        payBox.style.display = "none";
+        statBox.style.display = "none";
+        chkPay.checked = true;
+      }
+
+      // Kontrastli qon ko'rsatkichlari (Modal ichida)
+      const modalLabInfo = document.getElementById("modalContrastLabInfo");
+      if (ex.isContrast) {
+        if (ex.labResults && ex.labResults.found) {
+          const kr = ex.labResults.kreatinin;
+          const moch = ex.labResults.mochevina;
+          modalLabInfo.innerHTML = `
+            <div style="background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; font-size:11.5px;">
+              <span style="font-weight:800; color:#7e22ce;">🧪 Qon tahlillari:</span>
+              ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (${kr.daysAgo} kun oldin); ` : ''}
+              ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (${moch.daysAgo} kun oldin)` : ''}
+            </div>
+          `;
+          modalLabInfo.style.display = "block";
+        } else {
+          modalLabInfo.innerHTML = `
+            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:6px 10px; font-size:11.5px; color:#b45309; font-weight:700;">
+              ⚠️ Diqqat: Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
+            </div>
+          `;
+          modalLabInfo.style.display = "block";
+        }
+      } else {
+        modalLabInfo.style.display = "none";
+      }
+
+      // 2. 10 kunlik qoida tekshiruvi
+      check10DaysRuleOnDateChange();
+
+      // Aqlli slotni hisoblash
+      updateSmartSlotForModal();
+
+      document.getElementById("modalBooking").style.display = "flex";
+    }
+
+    function closeBookingModal() {
+      document.getElementById("modalBooking").style.display = "none";
+    }
+
+    function check10DaysRuleOnDateChange() {
+      if (!selectedExamData) return;
+      const chosenDate = document.getElementById("bDate").value;
+      const todayStr = new Date().toISOString().split("T")[0];
+      const maxDate = selectedExamData.maxAllowedDate;
+      const alertBox = document.getElementById("book10DaysAlert");
+      const limitText = document.getElementById("book10DaysLimitText");
+
+      // O'tgan sanaga navbat qo'yish taqiqlangan!
+      if (chosenDate < todayStr) {
+        limitText.innerText = `⛔ O'tgan kunga (${chosenDate}) navbat yozish taqiqlangan! Faqat bugun (${todayStr}) yoki kelgusi kunlarni tanlang.`;
+        alertBox.style.display = "flex";
+        validateBookingRequirements();
+        return;
+      }
+
+      if (chosenDate > maxDate) {
+        limitText.innerText = `Ushbu tekshiruv ${selectedExamData.registrationDate} da ro'yxatga olingan. 10 kunlik muddat: ${maxDate} da tugagan!`;
+        alertBox.style.display = "flex";
+      } else {
+        alertBox.style.display = "none";
+      }
+
+      validateBookingRequirements();
+    }
+
+    function validateBookingRequirements() {
+      const btnSubmit = document.getElementById("btnSubmitBooking");
+      const chosenDate = document.getElementById("bDate").value;
+      const todayStr = new Date().toISOString().split("T")[0];
+      const maxDate = selectedExamData ? selectedExamData.maxAllowedDate : '9999-12-31';
+      
+      const isPastDate = chosenDate < todayStr;
+      const isDateExpired = chosenDate > maxDate;
+      const isStatsionar = currentPatientData && currentPatientData.patientType === 'Statsionar';
+      const isPaymentNeeded = !isStatsionar && currentPatientData && currentPatientData.requiresPaymentConfirmation;
+      const isPaymentChecked = document.getElementById("chkPaymentConfirmed").checked;
+
+      if (isPastDate || isDateExpired || (isPaymentNeeded && !isPaymentChecked)) {
+        btnSubmit.disabled = true;
+      } else {
+        btnSubmit.disabled = false;
+      }
+    }
+
+    let modalSlotsData = null;
+
+    async function updateSmartSlotForModal() {
+      if (!selectedExamData) return;
+      const deviceId = document.getElementById("bDevice").value;
+      const isContrast = document.getElementById("bContrast").checked;
+      const scheduledDate = document.getElementById("bDate").value;
+      const durationMinutes = selectedExamData.durationMinutes || (isContrast ? 40 : 30);
+
+      const alertEl = document.getElementById("bookingDayStatusAlert");
+      const slotsCont = document.getElementById("bookingSlotsContainer");
+      const shiftBadge = document.getElementById("bookingShiftHoursBadge");
+      const pillsCont = document.getElementById("bookingSlotPills");
+      const busyList = document.getElementById("bookingBusySlotsList");
+      const btnSubmit = document.getElementById("btnSubmitBooking");
+      const errBox = document.getElementById("bookingErrorMsg");
+
+      try {
+        const res = await fetch("/api/queue/available-slots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deviceId,
+            scheduledDate,
+            durationMinutes
+          })
+        });
+        const data = await res.json();
+        modalSlotsData = data;
+
+        if (!data.isOpen) {
+          // Kun yopiq yoki dam olish
+          alertEl.style.display = "block";
+          alertEl.style.background = "#fef2f2";
+          alertEl.style.border = "1.5px solid #f87171";
+          alertEl.style.color = "#991b1b";
+          alertEl.innerHTML = `<i class="fa-solid fa-ban"></i> <b>${escapeHtml(data.reason || 'Dam olish kuni')}!</b> Ushbu sanada apparat ishlamaydi. Boshqa sanani tanlang.`;
+          slotsCont.style.display = "none";
+          btnSubmit.disabled = true;
+          return;
+        }
+
+        // Kun ochiq
+        alertEl.style.display = "none";
+        slotsCont.style.display = "block";
+
+        // Smena vaqtlari
+        if (data.intervals && data.intervals.length > 0) {
+          shiftBadge.innerText = data.intervals.map(i => `${i.start}-${i.end}`).join(', ');
+        } else {
+          shiftBadge.innerText = "Ish vaqti ko'rsatilmagan";
+        }
+
+        // Tavsiya etilgan slotni tanlash
+        if (data.recommendedSlot) {
+          document.getElementById("bTime").value = data.recommendedSlot;
+        }
+
+        // Bo'sh slotlar tugmalari
+        if (data.availableSlots && data.availableSlots.length > 0) {
+          pillsCont.innerHTML = data.availableSlots.slice(0, 18).map(slot => `
+            <button type="button" class="slot-pill ${slot === document.getElementById("bTime").value ? 'active' : ''}" onclick="selectModalTimeSlot('${slot}')">
+              ${slot}
+            </button>
+          `).join('');
+        } else {
+          pillsCont.innerHTML = `<span style="font-size:12px; color:#b91c1c; font-weight:700;">⚠️ Ushbu kunda barcha vaqtlar to'lgan!</span>`;
+        }
+
+        // Band vaqtlar (collision haqida xabar)
+        if (data.busySlots && data.busySlots.length > 0) {
+          busyList.style.display = "block";
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.start}-${b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+        } else {
+          busyList.style.display = "none";
+        }
+
+        validateChosenTimeSlot();
+      } catch (e) {
+        console.error("Slotlarni yuklashda xatolik:", e);
+      }
+    }
+
+    function selectModalTimeSlot(slot) {
+      document.getElementById("bTime").value = slot;
+      document.querySelectorAll("#bookingSlotPills .slot-pill").forEach(p => {
+        p.classList.toggle("active", p.innerText.trim() === slot);
+      });
+      validateChosenTimeSlot();
+    }
+
+    function validateChosenTimeSlot() {
+      const chosenTime = document.getElementById("bTime").value;
+      const btnSubmit = document.getElementById("btnSubmitBooking");
+      const errBox = document.getElementById("bookingErrorMsg");
+
+      if (!modalSlotsData || !modalSlotsData.isOpen) {
+        btnSubmit.disabled = true;
+        return;
+      }
+
+      if (!chosenTime) {
+        btnSubmit.disabled = true;
+        return;
+      }
+
+      // Band vaqtlar bilan to'qnashuvni mijoz tomonida ham tekshirish
+      if (modalSlotsData.busySlots && modalSlotsData.busySlots.length > 0) {
+        const isOverlap = modalSlotsData.busySlots.some(b => {
+          return (chosenTime >= b.start && chosenTime < b.end);
+        });
+        if (isOverlap) {
+          errBox.style.display = "block";
+          errBox.innerText = `⛔ Tanlangan vaqt (${chosenTime}) band! Iltimos, boshqa bo'sh vaqtni tanlang.`;
+          btnSubmit.disabled = true;
+          return;
+        }
+      }
+
+      errBox.style.display = "none";
+      validateBookingRequirements();
+    }
+
+    async function submitBooking(e) {
+      e.preventDefault();
+      const errBox = document.getElementById("bookingErrorMsg");
+      errBox.style.display = "none";
+
+      const token = localStorage.getItem("op_token");
+      if (!token) {
+        alert("Sessiya tugagan, iltimos qayta kiring");
+        openLoginModal();
+        return;
+      }
+
+      const isCombined = Boolean(selectedExamData.isCombined);
+      const payload = {
+        patientId: currentPatientData.patientId,
+        patientName: currentPatientData.fullName,
+        phone: document.getElementById("bPhone").value.trim(),
+        birthDate: currentPatientData.birthDate,
+        patientType: currentPatientData.patientType,
+        department: currentPatientData.department,
+        serviceId: selectedExamData.serviceId || null,
+        serviceIds: selectedExamData.serviceIds || (selectedExamData.childExams ? selectedExamData.childExams.map(c => c.serviceId) : (selectedExamData.serviceId ? [selectedExamData.serviceId] : [])),
+        dosyaId: selectedExamData.dosyaId || null,
+        protokolNo: selectedExamData.protokolNo || null,
+        isCompleted: Boolean(selectedExamData.isCompleted),
+        serviceName: selectedExamData.shortServiceName || selectedExamData.serviceName,
+        serviceCode: selectedExamData.serviceCode,
+        isCombined: isCombined,
+        combinedServices: selectedExamData.childExams ? selectedExamData.childExams.map(c => ({
+          serviceId: c.serviceId,
+          serviceCode: c.serviceCode,
+          serviceName: c.serviceName,
+          dosyaId: c.dosyaId,
+          protokolNo: c.protokolNo
+        })) : null,
+        durationMinutes: selectedExamData.durationMinutes || (document.getElementById("bContrast").checked ? 40 : 30),
+        isContrast: document.getElementById("bContrast").checked,
+        deviceId: document.getElementById("bDevice").value,
+        scheduledDate: document.getElementById("bDate").value,
+        scheduledTime: document.getElementById("bTime").value,
+        maxAllowedDate: selectedExamData.maxAllowedDate,
+        requiresPaymentConfirmation: currentPatientData.requiresPaymentConfirmation,
+        paymentConfirmed: document.getElementById("chkPaymentConfirmed").checked,
+        patientCategory: currentPatientData.patientCategory,
+        labResults: selectedExamData.labResults || null
+      };
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (payload.scheduledDate < todayStr) {
+        errBox.innerText = `⛔ Registratura o'tgan sanaga (${payload.scheduledDate}) navbat yozishi taqiqlangan! Faqat bugun va kelgusi sanalarga navbat bering.`;
+        errBox.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/queue/book", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Operator-Token": token
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          lastBookedPatient = data.patient;
+          closeBookingModal();
+          loadQueue(payload.scheduledDate);
+          resetTimer();
+
+          // Avtomatik chop etish tekshiruvi (Registrator agenti orqali)
+          if (printerSettings.autoPrint) {
+            printTicket(data.patient, true);
+            const noticeEl = document.getElementById("succAutoPrintNotice");
+            if (noticeEl) {
+              const prName = printerSettings.ticketPrinter || 'Standart printer';
+              noticeEl.innerHTML = `<i class="fa-solid fa-print"></i> Talon registrator agenti orqali <b>${escapeHtml(prName)}</b> printerida avtomatik chop etishga yuborildi!`;
+              noticeEl.style.display = "block";
+            }
+          } else {
+            const noticeEl = document.getElementById("succAutoPrintNotice");
+            if (noticeEl) noticeEl.style.display = "none";
+          }
+
+          // Muvaffaqiyat modali
+          document.getElementById("succTicketNum").innerText = data.patient.patientId || data.patient.ticketNumber || '-';
+          document.getElementById("succPatientName").innerText = data.patient.patientName;
+          document.getElementById("succExamName").innerText = data.patient.primaryService;
+          const devTitle = (data.patient.deviceId === 'mskt1' ? '⚡ MSKT 1' : (data.patient.deviceId === 'mrt2' ? '🧲 2-MRT' : '🧲 1-MRT'));
+          document.getElementById("succDeviceName").innerText = devTitle;
+          document.getElementById("succDateTime").innerText = `${data.patient.scheduledDate} (${data.patient.scheduledTime})`;
+          document.getElementById("modalBookingSuccess").style.display = "flex";
+
+          // Bemor ma'lumotlarini qayta yangilash (navbat holatini darhol ko'rsatish)
+          if (currentPatientData && currentPatientData.patientId) {
+            searchPatient(currentPatientData.patientId);
+          }
+        } else {
+          errBox.innerText = data.error || "Xatolik yuz berdi";
+          errBox.style.display = "block";
+        }
+      } catch (err) {
+        errBox.innerText = "Server bilan aloqa xatosi: " + err.message;
+        errBox.style.display = "block";
+      }
+    }
+
+    // -------------------------------------------------------------
+    // JONLI NAVBATNI YUKLASH
+    // -------------------------------------------------------------
+    async function loadQueue(targetDate) {
+      const date = targetDate || document.getElementById("queueDateInput").value;
+      try {
+        const res = await fetch(`/api/queue?date=${date}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        // Barcha navbatdagi bemorlarni xotirada saqlash
+        data.queue.forEach(p => {
+          queueMap[p.id] = p;
+        });
+
+        const mrt1List = data.queue.filter(p => p.deviceId === 'mrt1');
+        const mrt2List = data.queue.filter(p => p.deviceId === 'mrt2');
+        const mskt1List = data.queue.filter(p => p.deviceId === 'mskt1');
+
+        document.getElementById("badgeMrt1Count").innerText = mrt1List.length;
+        document.getElementById("badgeMrt2Count").innerText = mrt2List.length;
+        document.getElementById("badgeMskt1Count").innerText = mskt1List.length;
+
+        renderQueueCol("colMrt1List", mrt1List);
+        renderQueueCol("colMrt2List", mrt2List);
+        renderQueueCol("colMskt1List", mskt1List);
+
+      } catch (e) {
+        console.error("Queue load error:", e);
+      }
+    }
+
+    function renderQueueCol(containerId, list) {
+      const el = document.getElementById(containerId);
+      if (!list || list.length === 0) {
+        el.innerHTML = `<div style="color:var(--muted); font-size:12px; text-align:center; padding:10px;">Bemorlar yo'q</div>`;
+        return;
+      }
+
+      el.innerHTML = list.map(p => {
+        let statusCls = '';
+        let statusTag = '';
+        if (p.status === 'calling') {
+          statusCls = 'q-item-calling';
+          statusTag = '<span style="color:#d97706; font-weight:800; font-size:11px;">🔔 Chaqirilmoqda</span>';
+        } else if (p.status === 'in_progress') {
+          statusCls = 'q-item-inprogress';
+          statusTag = '<span style="color:#059669; font-weight:800; font-size:11px;">🟢 Xonada</span>';
+        } else if (p.status === 'completed') {
+          statusTag = '<span style="color:#64748b; font-size:11px;">✅ Yakunlandi</span>';
+        } else {
+          statusTag = '<span style="color:#0284c7; font-size:11px;">⏳ Kutmoqda</span>';
+        }
+
+        return `
+          <div class="q-item ${statusCls}">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="q-ticket">${escapeHtml(p.ticketNumber)}</span>
+              <span style="font-weight:700; color:var(--muted); font-size:11px;">⏰ ${escapeHtml(p.scheduledTime || '')}</span>
+            </div>
+            <div style="font-weight:800; color:#0f172a; margin-top:2px;">${escapeHtml(p.patientName)}</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:1px;">${escapeHtml(p.primaryService || '')}</div>
+            <div style="margin-top:2px; display:flex; gap:4px; flex-wrap:wrap;">
+              ${p.isCombined ? '<span style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:10px; padding:1px 6px; border-radius:4px;">📦 To\'plam</span>' : ''}
+              ${p.isContrast ? '<span style="background:#fae8ff; color:#86198f; font-weight:800; font-size:10px; padding:1px 6px; border-radius:4px;">💉 Kontrastli</span>' : ''}
+              ${p.phone ? `<span style="font-size:10.5px; color:#0369a1; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${escapeHtml(p.phone)}</span>` : ''}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              ${statusTag}
+              <span style="font-size:10px; color:#94a3b8;">${escapeHtml(p.operatorName || '')}</span>
+            </div>
+            <div class="q-actions">
+              <button type="button" class="btn-q-print" onclick="printQueueTicket('${escapeHtml(p.id)}')" title="Navbat talonini chop etish">
+                <i class="fa-solid fa-print"></i> Talon
+              </button>
+              <button type="button" class="btn-q-print" onclick="printQueueConsent('${escapeHtml(p.id)}')" title="Rozilik anketasini chop etish">
+                <i class="fa-solid fa-file-signature"></i> Anketa
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // -------------------------------------------------------------
+    // CHOP ETISH SHABLONLARI VA REGISTRATOR AGENTI INTEGRATSIYASI (XPRINTER UCHUN QORA MATN)
+    // -------------------------------------------------------------
+    function formatTicketText(p) {
+      const sep = "================================";
+      const devName = (p.deviceId === 'mskt1') ? 'MSKT 1 (128 kesim)' : ((p.deviceId === 'mrt2') ? '2-MRT (1.5T Kontrastsiz)' : '1-MRT (1.5T Injektorli)');
+      return `
+   RIO va RIOATM Radiodiagnostika bo'limi
+${sep}
+               BEMOR ID
+                 ${p.patientId || p.ticketNumber || '-'}
+${sep}
+Sana / Vaqt: ${p.scheduledDate || p.date} | ${p.scheduledTime}
+Qurilma: ${devName}
+Bemor: ${p.patientName}
+Bo'lim: ${p.department || p.patientType || 'Ambulator'}
+Tekshiruv: ${p.primaryService || p.serviceName}
+Kontrast: ${p.isContrast ? 'HA (Kontrastli)' : "Yo'q (Oddiy)"}
+Kategoriya: ${p.patientType || 'Ambulator'} (${p.patientCategory || "Oddiy"})
+Xodim: ${p.operatorName || 'Registratura'}
+${sep}
+ESLATMA: Belgilangan vaqtdan 30 daqiqa
+oldin xona oldida hozir bo'ling!
+Barcha metall buyumlarni yeching.
+${sep}
+Chop etildi: ${new Date().toLocaleString('uz-UZ')}
+Tel: 1303
+`.trim();
+    }
+
+    function formatTicketHtml(p) {
+      const devName = (p.deviceId === 'mskt1') ? 'MSKT 1 (128 kesim)' : ((p.deviceId === 'mrt2') ? '2-MRT (1.5T Kontrastsiz)' : '1-MRT (1.5 Tesla)');
+      return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bemor ID ${p.patientId || p.ticketNumber || ''}</title>
+  <style>
+    @page { size: 80mm auto; margin: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      color: #000000 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      width: 72mm;
+      margin: 0 auto;
+      padding: 10px 4px;
+      background: #ffffff !important;
+      color: #000000 !important;
+    }
+    .t-center { text-align: center; }
+    .t-head {
+      font-size: 12.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1.35;
+      color: #000000 !important;
+      letter-spacing: 0.5px;
+    }
+    .t-sub {
+      font-size: 11px;
+      font-weight: 800;
+      color: #000000 !important;
+      margin-top: 2px;
+    }
+    .t-hr {
+      border: none;
+      border-top: 2px dashed #000000 !important;
+      margin: 8px 0;
+    }
+    .t-num-title {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #000000 !important;
+    }
+    .t-num {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+      margin: 4px 0;
+      color: #000000 !important;
+      line-height: 1.1;
+    }
+    .t-time-box {
+      border: 2.5px solid #000000 !important;
+      border-radius: 6px;
+      padding: 6px 4px;
+      text-align: center;
+      margin: 8px 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: #000000 !important;
+      background: #ffffff !important;
+      line-height: 1.35;
+    }
+    .t-row {
+      font-size: 12.5px;
+      margin: 5px 0;
+      line-height: 1.35;
+      color: #000000 !important;
+    }
+    .t-row strong, .t-row b {
+      font-weight: 900;
+      color: #000000 !important;
+    }
+    .t-prep {
+      font-size: 11px;
+      font-weight: 800;
+      color: #000000 !important;
+      background: #ffffff !important;
+      border: 1.5px dashed #000000 !important;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+    .t-foot {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 10px;
+      color: #000000 !important;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body onload="window.print()">
+  <div class="t-center">
+    <div class="t-head">RIO va RIOATM Radiodiagnostika bo'limi</div>
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-center">
+    <div class="t-num-title">BEMOR ID</div>
+    <div class="t-num">${escapeHtml(p.patientId || p.ticketNumber || '-')}</div>
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-time-box">
+    ⏰ SANA: ${escapeHtml(p.scheduledDate || p.date)}<br>
+    VAQT: ${escapeHtml(p.scheduledTime || '')}
+  </div>
+  <div class="t-row">Bemor: <strong>${escapeHtml(p.patientName)}</strong></div>
+  <div class="t-row">Bo'lim: <strong>${escapeHtml(p.department || p.patientType || 'Ambulator')}</strong></div>
+  <div class="t-row">Tekshiruv: <strong>${escapeHtml(p.primaryService || p.serviceName)}</strong></div>
+  <div class="t-row">Apparat: <strong>${escapeHtml(devName)}</strong></div>
+  <div class="t-row">Kontrast: <strong>${p.isContrast ? '💉 KONTRASTLI (Injektor)' : 'Oddiy'}</strong></div>
+  <div class="t-row">Xodim: <strong>${escapeHtml(p.operatorName || 'Registrator')}</strong></div>
+  <div class="t-prep">
+    <b>ℹ️ ESLATMA:</b> Iltimos, belgilangan vaqtdan 30 daqiqa oldin xona oldida hozir bo'ling. Barcha metall buyumlar (soat, telefon, kalit, kamar) yechilishi shart.
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-foot">
+    Chop etildi: ${new Date().toLocaleString('uz-UZ')}<br>
+    Tel: 1303
+  </div>
+</body>
+</html>
+`.trim();
+    }
+
+    function formatConsentHtml(p) {
+      const isMskt = (p.deviceId === 'mskt1' || (p.deviceType && p.deviceType.toUpperCase() === 'MSKT'));
+      const devTitle = isMskt ? 'KOMPYUTER TOMOGRAFIYASI (MSKT)' : 'MAGNIT-REZONANS TOMOGRAFIYA (MRT)';
+      
+      const categoryFilter = isMskt ? ['MSKT', 'ALL'] : ['MRT', 'ALL'];
+      if (p.isContrast) categoryFilter.push('CONTRAST');
+
+      let questions = [];
+      if (examConfigs && examConfigs.consentQuestions && examConfigs.consentQuestions.length > 0) {
+        questions = examConfigs.consentQuestions.filter(q => categoryFilter.includes(q.category));
+      } else {
+        questions = [
+          { id: '1', text: "Tanangizda kardiostimulyator, sun'iy yurak klapani, neyrostimulyator yoki insulin pompasi bormi?", riskLevel: 'danger' },
+          { id: '2', text: "Bosh miya qon tomirlarida metall klipslar, ko'z sohasida metall parchalari yoki o'q/shrapnel bormi?", riskLevel: 'danger' },
+          { id: '3', text: "Quloq ichi implantati (koxlear) yoki eshitish apparati o'rnatilganmi?", riskLevel: 'danger' },
+          { id: '4', text: "Tanangizda metall plastina, vint, bo'g'im endoprotezi, stent yoki begona jism bormi?", riskLevel: 'warning' },
+          { id: '5', text: "Tor va yopiq joylardan qo'rqish (klaustrofobiya) holati bormi?", riskLevel: 'warning' },
+          { id: '6', text: "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?", riskLevel: 'danger' },
+          { id: '7', text: "Barcha metall buyumlar: soat, zanjir, uzuk, sirg'a, olinadigan tish protezlari, telefon yechildimi?", riskLevel: 'info' }
+        ];
+        if (p.isContrast) {
+          questions.push(
+            { id: '8', text: "Oldin kontrast moddalarga, yodga, dori-darmonlarga kuchli allergiya bo'lganmi?", riskLevel: 'danger' },
+            { id: '9', text: "Buyrak yetishmovchiligi yoki og'ir buyrak xastaligi bormi?", riskLevel: 'danger' },
+            { id: '10', text: "Qandli diabet bo'yicha Metformin (Siofor, Glyukofaj) dori vositasini qabul qilasizmi?", riskLevel: 'warning' }
+          );
+        }
+      }
+
+      let labBlock = '';
+      if (p.isContrast && p.labResults) {
+        const kr = p.labResults.kreatinin;
+        const moch = p.labResults.mochevina;
+        labBlock = `
+          <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:6px 12px; margin:8px 0; font-size:11px;">
+            <b>🧪 Bemorning oxirgi laboratoriya ko'rsatkichlari (Karmed LBYS):</b> &nbsp;
+            ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (Norma: ${escapeHtml(kr.reference)}) [${kr.daysAgo} kun oldin]; ` : ''}
+            ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (Norma: ${escapeHtml(moch.reference)}) [${moch.daysAgo} kun oldin]` : ''}
+          </div>
+        `;
+      }
+
+      const qRows = questions.map((q, idx) => `
+        <tr style="border-bottom:1px solid #e2e8f0;">
+          <td style="padding:5px 8px; width:28px; text-align:center; font-weight:700; font-size:11px;">${idx + 1}.</td>
+          <td style="padding:5px 8px; font-size:11px; line-height:1.35;">
+            ${escapeHtml(q.text)}
+            ${q.riskLevel === 'danger' ? '<span style="color:#b91c1c; font-size:9.5px; font-weight:800; margin-left:4px;">[Mutlaq ehtiyotkorlik!]</span>' : ''}
+          </td>
+          <td style="padding:5px 8px; width:70px; text-align:center; white-space:nowrap;">
+            <span style="display:inline-block; border:1.5px solid #000; width:14px; height:14px; vertical-align:middle; margin-right:3px;"></span> <span style="font-size:10px; font-weight:700;">HA</span>
+          </td>
+          <td style="padding:5px 8px; width:70px; text-align:center; white-space:nowrap;">
+            <span style="display:inline-block; border:1.5px solid #000; width:14px; height:14px; vertical-align:middle; margin-right:3px;"></span> <span style="font-size:10px; font-weight:700;">YO'Q</span>
+          </td>
+        </tr>
+      `).join('');
+
+      return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Rozilik Anketasi - ${escapeHtml(p.patientName)}</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm 15mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #000; font-size: 11.5px; line-height: 1.35; margin: 0; padding: 0; }
+    .header-table { width: 100%; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+    .inst-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; text-align: center; color: #1e293b; line-height: 1.3; }
+    .doc-title { font-size: 13.5px; font-weight: 900; text-transform: uppercase; text-align: center; margin-top: 6px; letter-spacing: 0.3px; }
+    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px; }
+    .p-table td { border: 1px solid #94a3b8; padding: 4px 8px; }
+    .p-table td.lbl { background: #f8fafc; font-weight: 700; width: 18%; }
+    .q-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+    .q-table th { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 8px; text-align: left; font-size: 10.5px; text-transform: uppercase; }
+    .q-table td { border: 1px solid #cbd5e1; }
+    .consent-stmt { background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 10.5px; line-height: 1.4; }
+    .sig-table { width: 100%; margin-top: 16px; border-collapse: collapse; }
+    .sig-table td { width: 50%; vertical-align: top; padding: 4px 12px; font-size: 11px; }
+    .sig-line { border-bottom: 1px solid #000; height: 26px; margin-bottom: 4px; }
+  </style>
+</head>
+<body onload="window.print()">
+  <div class="header-table">
+    <div class="inst-title">
+      O'ZBEKISTON RESPUBLIKASI SOG'LIQNI SAQLASH VAZIRLIGI<br>
+      RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI (RIO va RIOATM)
+    </div>
+    <div class="doc-title">${escapeHtml(devTitle)} TEKSHIRUVI UCHUN BEMORNING XABARDOR QILINGAN ROZILIK ANKETASI</div>
+  </div>
+
+  <table class="p-table">
+    <tr>
+      <td class="lbl">Bemor F.I.SH.:</td>
+      <td style="font-weight:900; font-size:12px;">${escapeHtml(p.patientName)}</td>
+      <td class="lbl">Bemor ID:</td>
+      <td><b>${escapeHtml(p.patientId)}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Tug'ilgan sana:</td>
+      <td>${escapeHtml(p.birthDate || '-')} (${p.age ? p.age + ' yosh' : '-'})</td>
+      <td class="lbl">Telefon raqami:</td>
+      <td><b>${escapeHtml(p.phone || '-')}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Tekshiruv xizmati:</td>
+      <td colspan="3"><b>${escapeHtml(p.primaryService || p.serviceName)}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Talon / Sana / Vaqt:</td>
+      <td><b>№ ${escapeHtml(p.ticketNumber || '-')}</b> &nbsp;|&nbsp; <b>${escapeHtml(p.scheduledDate || p.date)} ${escapeHtml(p.scheduledTime || '')}</b></td>
+      <td class="lbl">Kontrast / Qurilma:</td>
+      <td><b>${p.isContrast ? '💉 KONTRASTLI' : 'Kontrastsiz (Oddiy)'}</b> &nbsp;|&nbsp; ${escapeHtml(p.deviceId ? p.deviceId.toUpperCase() : 'MRT 1')}</td>
+    </tr>
+  </table>
+
+  ${labBlock}
+
+  <div style="font-size:11px; font-weight:800; margin-top:6px; color:#0f172a;">
+    Quyidagi xavfsizlik va qarshi ko'rsatmalar savollariga diqqat bilan javob bering:
+  </div>
+
+  <table class="q-table">
+    <thead>
+      <tr>
+        <th style="text-align:center; width:28px;">№</th>
+        <th>Tekshiruv oldi xavfsizlik savollari</th>
+        <th style="text-align:center; width:70px;">Ha</th>
+        <th style="text-align:center; width:70px;">Yo'q</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${qRows}
+    </tbody>
+  </table>
+
+  <div class="consent-stmt">
+    <b>BEMORNING ROZILIK BAYONOTI:</b><br>
+    Men, yuqoridagi savollarning barchasiga to'g'ri va haqqoniy javob berdim. Tekshiruv maqsadi, uning o'tkazilish tartibi, zarur tayyorgarlik choralari, tekshiruv vaqtida harakatsiz yotish talabi hamda (kontrast yuborilgan taqdirda) yuzaga kelishi mumkin bo'lgan ehtimoliy nojo'ya ta'sirlar haqida menga tushunarli tilda to'liq ma'lumot berildi. Men ushbu tomografik tekshiruvni o'tkazishga ixtiyoriy ravishda o'z roziligimni bildiraman.
+  </div>
+
+  <table class="sig-table">
+    <tr>
+      <td>
+        <div><b>Bemor yoki uning qonuniy vakili:</b></div>
+        <div class="sig-line"></div>
+        <div style="font-size:10px; color:#444; display:flex; justify-content:space-between;">
+          <span>(F.I.SH. va Imzo)</span>
+          <span>Sana: "_____" ____________ 202___ y.</span>
+        </div>
+      </td>
+      <td>
+        <div><b>Registrator / Tibbiyot xodimi:</b></div>
+        <div class="sig-line"></div>
+        <div style="font-size:10px; color:#444; display:flex; justify-content:space-between;">
+          <span>${escapeHtml(p.operatorName || 'Registrator')} (Imzo)</span>
+          <span>Sana: "_____" ____________ 202___ y.</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`.trim();
+    }
+
+    function openPrintWindow(htmlContent, title) {
+      const printWin = window.open('', '_blank', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no');
+      if (!printWin) {
+        alert("Chop etish oynasi brauzer tomonidan bloklandi. Iltimos, brauzer sozlamalarida qalqib chiquvchi oynalarga (pop-up) ruxsat bering.");
+        return;
+      }
+      printWin.document.open();
+      printWin.document.write(htmlContent);
+      printWin.document.close();
+      printWin.focus();
+    }
+
+    async function printTicket(patientObj, silent = false) {
+      if (!patientObj) return;
+      const printerName = printerSettings.ticketPrinter || '';
+      const text = formatTicketText(patientObj);
+      const html = formatTicketHtml(patientObj);
+
+      // Registrator Agenti orqali to'g'ridan-to'g'ri chop etish
+      try {
+        await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            printerName: printerName,
+            docType: 'ticket',
+            text: text,
+            html: html
+          })
+        });
+      } catch (e) {
+        console.warn("Print agent request warn:", e);
+      }
+
+      // Agar qo'lda bosilgan bo'lsa (silent emas), brauzer oynasini ham ochish
+      if (!silent) {
+        openPrintWindow(html, `Talon_${patientObj.ticketNumber || 'ticket'}`);
+      }
+    }
+
+    async function printConsent(patientObj, silent = false) {
+      if (!patientObj) return;
+      const printerName = printerSettings.consentPrinter || '';
+      const html = formatConsentHtml(patientObj);
+
+      // Registrator Agenti orqali chop etish
+      try {
+        await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            printerName: printerName,
+            docType: 'consent',
+            text: '',
+            html: html
+          })
+        });
+      } catch (e) {
+        console.warn("Print agent consent warn:", e);
+      }
+
+      if (!silent) {
+        openPrintWindow(html, `Rozilik_Anketasi_${patientObj.patientId || 'anketa'}`);
+      }
+    }
+
+    function printQueueTicket(queueId) {
+      const item = queueMap[queueId];
+      if (!item) return alert("Navbat topilmadi!");
+      printTicket(item, false);
+    }
+
+    function printQueueConsent(queueId) {
+      const item = queueMap[queueId];
+      if (!item) return alert("Navbat topilmadi!");
+      printConsent(item, false);
+    }
+
+    function printLastTicket() {
+      if (lastBookedPatient) printTicket(lastBookedPatient, false);
+    }
+
+    function printLastConsent() {
+      if (lastBookedPatient) printConsent(lastBookedPatient, false);
+    }
+
+    function closeBookingSuccessModal() {
+      document.getElementById("modalBookingSuccess").style.display = "none";
+    }
+
+    async function testPrintTicket() {
+      const testP = {
+        ticketNumber: 'T-999',
+        patientName: 'TEST BEMOR ALISHER O\'G\'LI',
+        patientId: '99999',
+        primaryService: 'Bosh miya MRT tekshiruvi (Test)',
+        deviceId: 'mrt1',
+        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledTime: '10:00',
+        isContrast: true,
+        patientType: 'Ambulator',
+        patientCategory: "Sug'urta",
+        operatorName: currentOperator ? `${currentOperator.username} — ${currentOperator.name}` : 'Test Registrator'
+      };
+      await printTicket(testP, false);
+    }
+
+    async function testPrintConsent() {
+      const testP = {
+        ticketNumber: 'T-999',
+        patientName: 'TEST BEMOR ALISHER O\'G\'LI',
+        patientId: '99999',
+        primaryService: 'Bosh miya MRT tekshiruvi (Test)',
+        deviceId: 'mrt1',
+        deviceType: 'MRT',
+        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledTime: '10:00',
+        isContrast: true,
+        age: '35',
+        phone: '+998 90 123 45 67',
+        operatorName: currentOperator ? `${currentOperator.username} — ${currentOperator.name}` : 'Test Registrator'
+      };
+      await printConsent(testP, false);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>

@@ -112,6 +112,9 @@
           <button class="nav-tab" data-section="reports" onclick="switchAdminSection('reports', this)">
             <i class="fa-solid fa-file-excel"></i> <span>Hisobotlar</span>
           </button>
+          <button class="nav-tab" data-section="botUsers" onclick="switchAdminSection('botUsers', this)">
+            <i class="fa-solid fa-robot"></i> <span>Telegram Bot (<strong id="badgeBotUsersCount">0</strong>)</span>
+          </button>
         </nav>
       </div>
 
@@ -177,6 +180,9 @@
       </button>
       <button class="m-tab" data-section="reports" onclick="switchAdminSection('reports', this)">
         <i class="fa-solid fa-file-excel"></i><span>Hisobot</span>
+      </button>
+      <button class="m-tab" data-section="botUsers" onclick="switchAdminSection('botUsers', this)">
+        <i class="fa-solid fa-robot"></i><span>Bot</span>
       </button>
     </nav>
 
@@ -697,6 +703,47 @@
               <i class="fa-solid fa-download"></i> Xizmatlar Statistkasini Yuklash (CSV)
             </button>
           </div>
+        </div>
+      </section>
+
+      <!-- ==================== 7. TELEGRAM BOT FOYDALANUVCHILARI ==================== -->
+      <section id="secBotUsers" class="admin-section">
+        <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-robot" style="color: #0284c7;"></i> Telegram Bot (@Radiodiagnostika_bot) Foydalanuvchilari
+            </h2>
+            <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">
+              Botga kirgan bemorlar va xodimlar ro'yxati. Foydalanuvchini <b>Laborant</b> deb belgilasangiz, u botda MRT 1, MRT 2 va MSKT navbatlarini ko'ra oladi va har kuni soat 08:00 da eslatma oladi.
+            </p>
+          </div>
+          <div>
+            <button class="btn btn-outline" onclick="loadAdminBotUsers()"><i class="fa-solid fa-rotate"></i> Yangilash</button>
+          </div>
+        </div>
+
+        <div class="table-actions-bar" style="margin-bottom: 12px; display: flex; gap: 12px; align-items: center;">
+          <input type="text" id="searchBotUserInput" placeholder="Telegram ID, ism yoki username bo'yicha qidiruv..." oninput="renderAdminBotUsersTable()" style="max-width: 360px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;">
+        </div>
+
+        <div class="data-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Telegram ID</th>
+                <th>FISH (To'liq Ismi)</th>
+                <th>Username</th>
+                <th>Roli</th>
+                <th>Oxirgi Faollik</th>
+                <th style="text-align: right;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="adminBotUsersTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">Foydalanuvchilar yuklanmoqda...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 

@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MRT & MSKT Aqlli Navbat va Boshqaruv Portali (Port 9890)</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; }
+    
+    /* Topbar */
+    .topbar {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .brand-box { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { font-size: 28px; color: var(--primary); }
+    .brand-title { font-size: 17px; font-weight: 900; color: var(--text); }
+    .brand-sub { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-link-tv {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-link-tv:hover { background: #bae6fd; }
+
+    /* Nav Tabs */
+    .tabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabs-bar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .tabs-bar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .tab-btn {
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    /* Content Layout */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Card styles */
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; font-weight: 700; color: var(--text); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Smart Slot Box */
+    .smart-slot-box {
+      background: #f0f9ff;
+      border: 2px dashed #38bdf8;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .slot-title { font-size: 14px; font-weight: 800; color: #0369a1; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .slot-desc { font-size: 13px; color: #334155; line-height: 1.4; }
+    .slot-badge-time {
+      display: inline-block;
+      background: var(--primary);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-family: monospace;
+      font-size: 15px;
+      margin-top: 6px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-warning { background: var(--warning); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-small { padding: 6px 10px; font-size: 12px; }
+
+    /* Live Queue Grid */
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .device-col {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .dev-col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .dev-col-title { font-size: 17px; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .dev-col-room { font-size: 12px; padding: 4px 8px; background: var(--primary-light); color: var(--primary); border-radius: 6px; font-weight: 800; }
+
+    .patient-card {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .patient-card.in-progress { background: var(--success-light); border-color: var(--success); }
+    .patient-card.calling { background: var(--warning-light); border-color: var(--warning); animation: pulseCard 1s infinite alternate; }
+    @keyframes pulseCard { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
+
+    .pat-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .pat-num { font-weight: 900; font-family: monospace; font-size: 18px; color: var(--primary); }
+    .pat-name { font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px; }
+    .pat-service { font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px; }
+    .pat-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    .data-table th {
+      background: #f1f5f9;
+      color: #334155;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 800;
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .role-admin { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .role-laborant { background: var(--success-light); color: var(--success); border: 1px solid rgba(5,150,105,0.3); }
+    .role-user { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 480px;
+      width: 90%;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .ticket-print-box {
+      border: 2px dashed #000000;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      margin: 16px 0;
+      background: #ffffff;
+      color: #000000;
+    }
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #modalTicket, #modalTicket * {
+        visibility: visible !important;
+      }
+      #modalTicket {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        display: block !important;
+      }
+      .modal-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 80mm !important;
+        margin: 0 !important;
+      }
+      .modal-card h3, .modal-card button {
+        display: none !important;
+      }
+      .ticket-print-box {
+        border: 2px dashed #000000 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+      }
+      * {
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+    .slot-pill {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1.5px solid #86efac;
+      background: #f0fdf4;
+      color: #166534;
+      transition: all 0.15s;
+    }
+    .slot-pill:hover {
+      background: #dcfce7;
+      transform: translateY(-1px);
+    }
+    .slot-pill.active {
+      background: #0284c7 !important;
+      border-color: #0284c7 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.3);
+    }
+    .exam-card-admin {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .exam-card-admin:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+    }
+
+    /* Xprinter Termal Printer uchun Monoxrom Qora Chop Etish */
+    @media print {
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #modalTicket, #modalTicket * {
+        visibility: visible !important;
+      }
+      #modalTicket {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+      #modalTicket .modal-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 72mm !important;
+        margin: 0 auto !important;
+      }
+      #modalTicket .modal-card > h3,
+      #modalTicket .modal-card > div:last-child {
+        display: none !important;
+      }
+      #ticketPrintArea {
+        border: 2px dashed #000000 !important;
+        background: #ffffff !important;
+        padding: 8px 4px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        color: #000000 !important;
+      }
+      #ticketPrintArea * {
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand-box">
+      <i class="fa-solid fa-magnet brand-icon"></i>
+      <div>
+        <div class="brand-title">MRT & MSKT AQLLI NAVBAT VA BOSHQARUV PORTALI</div>
+        <div class="brand-sub">Respublika Onkologiya Markazi • Port 9890</div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:6px;" onclick="promptSetApiBase()" title="Backend API Server Manzilini Sozlash">
+        <i class="fa-solid fa-server"></i> <span>API</span>
+      </button>
+      <span id="liveClock" style="font-size:13px; font-weight:700; color:var(--text-muted);">--:--:--</span>
+      <a href="/tv" target="_blank" class="btn-link-tv" title="Kutish zalidagi TV Tabloni ochish">
+        <i class="fa-solid fa-tv"></i> <span>Kutish Zali TV Tablosi</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Remote API Alert Banner (for GitHub Pages / WebApp) -->
+  <div id="remoteApiBanner" style="display:none; background:#eff6ff; border:1.5px solid #93c5fd; border-radius:10px; padding:10px 14px; margin-bottom:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+    <div style="font-size:13px; color:#1e40af; display:flex; align-items:center; gap:8px;">
+      <i class="fa-solid fa-cloud" style="font-size:16px;"></i>
+      <span><b>GitHub Pages / WebApp:</b> Backend API Server: <code id="lblCurrentApiBase" style="background:#dbeafe; padding:2px 6px; border-radius:4px; font-weight:800;">Lokal</code></span>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button type="button" class="btn btn-small" style="background:#3b82f6; color:#fff;" onclick="promptSetApiBase()">
+        <i class="fa-solid fa-gear"></i> Server Manzilini O'zgartirish
+      </button>
+    </div>
+  </div>
+
+  <!-- Nav Tabs -->
+  <nav class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('tab-smart-reg')">
+      <i class="fa-solid fa-user-clock"></i> <span>1. 📅 Aqlli Navbat Berish</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-live-queue')">
+      <i class="fa-solid fa-list-check"></i> <span>2. 📋 Jonli Navbat (Vrach / Operator)</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-bot-users')">
+      <i class="fa-solid fa-robot"></i> <span>3. 🤖 Telegram Bot Foydalanuvchilari</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-allowed-ips')">
+      <i class="fa-solid fa-network-wired"></i> <span>4. 🖥️ Kompyuterlar Ruxsati (IP Whitelist)</span>
+      <span id="pendingIpsBadge" style="display:none; background:#ef4444; color:#fff; font-size:11px; padding:2px 6px; border-radius:10px; font-weight:900; margin-left:4px;">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-exam-configs')">
+      <i class="fa-solid fa-file-waveform"></i> <span>5. 📋 Tekshiruv Sozlamalari & Anketalar</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-schedules')">
+      <i class="fa-solid fa-clock"></i> <span>6. ⏰ Ish Grafiklari & Ish Vaqtlari</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: AQLLI NAVBAT BERISH (SMART SCHEDULING) -->
+  <!-- ========================================================================= -->
+  <!-- ========================================================================= -->
+  <!-- TAB 1: AQLLI NAVBAT BERISH (ADMIN REGISTRATION & SEARCH) -->
+  <!-- ========================================================================= -->
+  <section id="tab-smart-reg" class="tab-content active">
+    <!-- 1. Bemor qidirish bloki (Karmed & Local) -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-user-clock" style="color:var(--primary);"></i>
+          <span>Bemor Qidirish & Navbatga Qo'yish (Admin Portali)</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;" onclick="toggleAdminManualForm()">
+            <i class="fa-solid fa-user-plus"></i> <span id="btnManualToggleText">+ Qo'lda Bemor Kiritish</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px; display:flex; gap:8px;">
+          <input type="text" id="adminSearchInput" placeholder="Bemor ID / Talon yoki F.I.Sh kiriting (Masalan: 2552, 17720, ALIMOV...)" 
+                 style="flex:1; padding:12px 16px; font-size:15px; font-weight:700; border:2px solid var(--border); border-radius:10px; outline:none;"
+                 onkeydown="if(event.key==='Enter') searchPatientAdmin()">
+          <button type="button" class="btn btn-primary" onclick="searchPatientAdmin()" style="padding:12px 22px; font-size:15px;">
+            <i class="fa-solid fa-magnifying-glass"></i> Qidirish
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; color:var(--text-muted);">
+        <span>⚡ Tezkor namunalar:</span>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('2552')">2552 (F.Azimova)</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('17720')">17720 (A.Xusanov)</button>
+        <button type="button" class="btn btn-small" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px;" onclick="quickSearchAdmin('104523')">104523</button>
+        <span style="margin-left:auto; font-size:11.5px; color:#64748b;">Karmed Onkologiya tizimidan to'g'ridan-to'g'ri izlash</span>
+      </div>
+
+      <div id="adminSearchLoading" style="display:none; text-align:center; padding:20px; color:#0284c7; font-weight:700;">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Karmed tizimidan bemor va tekshiruvlar qidirilmoqda...
+      </div>
+
+      <div id="adminSearchError" style="display:none; margin-top:12px; padding:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; color:#dc2626; font-size:13px; font-weight:700;"></div>
+    </div>
+
+    <!-- 2. Bemor kartochkasi & Tekshiruvlar ro'yxati -->
+    <div id="adminPatientCardArea" style="display:none; margin-bottom:16px;">
+      <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:16px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+          <div>
+            <span style="font-size:18px; font-weight:900; color:#0f172a;" id="admPName">-</span>
+            <span style="margin-left:8px; font-family:monospace; font-weight:800; font-size:13px; background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px;" id="admPId">-</span>
+          </div>
+          <div id="admPCatBadge" style="padding:4px 10px; border-radius:6px; font-size:12px; font-weight:800; background:#dcfce7; color:#166534;">-</div>
+        </div>
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--text-muted);">
+          <div>🎂 Tug'ilgan sana: <strong id="admPBirth" style="color:#0f172a;">-</strong></div>
+          <div>🏥 Bo'lim: <strong id="admPDept" style="color:#0f172a;">-</strong></div>
+          <div>📞 Telefon: <strong id="admPPhone" style="color:#0f172a;">-</strong></div>
+          <div>📋 Toifa: <strong id="admPType" style="color:#0f172a;">-</strong></div>
+        </div>
+      </div>
+
+      <!-- Tekshiruvlar ro'yxati -->
+      <div style="font-size:15px; font-weight:900; color:#0f172a; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+        <i class="fa-solid fa-list-check" style="color:var(--primary);"></i>
+        <span>Bemorga Tayinlangan MRT / MSKT Tekshiruvlari:</span>
+      </div>
+      <div id="adminExamsListArea" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <!-- 3. Qo'lda Kiritish Formasi (Manual Walk-in) -->
+    <div id="adminManualFormArea" class="card" style="display:none; border-color:#38bdf8;">
+      <div class="card-title">
+        <i class="fa-solid fa-user-plus" style="color:var(--primary);"></i>
+        <span>Qo'lda Bemor Qo'shish (Karmed tizimida bo'lmagan bemorlar uchun)</span>
+      </div>
+
+      <form id="smartRegForm" onsubmit="handleBookPatient(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pName">Bemor F.I.Sh <span style="color:red;">*</span></label>
+            <input type="text" id="pName" placeholder="Masalan: ALIMOV ANVAR SHOKIROVICH" required>
+          </div>
+
+          <div class="form-group">
+            <label for="pId">Bemor ID / Talon</label>
+            <input type="text" id="pId" placeholder="Masalan: 104523 yoki U-58">
+          </div>
+
+          <div class="form-group">
+            <label for="pPhone">Telefon Raqami</label>
+            <input type="tel" id="pPhone" placeholder="+998 90 123 45 67">
+          </div>
+
+          <div class="form-group">
+            <label for="pType">Bemor Toifasi</label>
+            <select id="pType">
+              <option value="Ambulator">🏠 Ambulator (Tashqaridan)</option>
+              <option value="Statsionar">🏥 Statsionar (Bo'limda yotibdi)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pDevice">Apparat Tanlash <span style="color:red;">*</span></label>
+            <select id="pDevice" onchange="calculateSmartSlot()">
+              <option value="mrt1">🧲 MRT 1 (1.5 Tesla - Injektorli, Kontrastli/Oddiy)</option>
+              <option value="mrt2">🧲 MRT 2 (1.5 Tesla - Kontrastsiz)</option>
+              <option value="mskt1">⚡ MSKT 1 (Tomografiya)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pService">Tekshiruv Nomi <span style="color:red;">*</span></label>
+            <input type="text" id="pService" value="Bosh Miya MRT" placeholder="Masalan: Bosh Miya MRT, Bel Umurtqa..." required oninput="calculateSmartSlot()">
+          </div>
+
+          <div class="form-group" style="justify-content:center;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; margin-top:20px;">
+              <input type="checkbox" id="pContrast" onchange="calculateSmartSlot()" style="width:18px; height:18px;">
+              <span>💉 <strong>Kontrast Moddali Tekshiruv (Shprits-Injektor)</strong></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="pDuration">Taxminiy Vaqt (Daqiqa)</label>
+            <input type="number" id="pDuration" value="25" min="15" max="180" oninput="calculateSmartSlot()">
+          </div>
+        </div>
+
+        <!-- Smart Slot Taklif Qutisi -->
+        <div class="smart-slot-box" id="smartSlotBox">
+          <div class="slot-title">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 
+            <span id="slotStatusHeading">Aqlli Bo'sh Vaqt Tahlili:</span>
+          </div>
+          <p class="slot-desc" id="slotStatusText">Apparat va tekshiruvga qarab eng yaqin bo'sh vaqt hisoblanmoqda...</p>
+          <div id="slotTimeBadgeContainer"></div>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button type="submit" class="btn btn-primary" style="padding:12px 24px; font-size:15px;">
+            <i class="fa-solid fa-ticket"></i> Navbatga Yozish & Talon Chiqarish
+          </button>
+          <button type="button" class="btn btn-warning" onclick="calculateSmartSlot()">
+            <i class="fa-solid fa-arrows-rotate"></i> Eng Yaqin Vaqtni Qayta Qidirish
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: JONLI NAVBAT VA VRACH BOSHQARUVI -->
+  <!-- ========================================================================= -->
+  <section id="tab-live-queue" class="tab-content">
+    <div class="card" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label for="queueDateSelect" style="font-weight:800; font-size:14px;">📅 Navbat Sanasi:</label>
+        <input type="date" id="queueDateSelect" onchange="loadQueue(this.value)" style="padding:6px 12px; border:1px solid var(--border); border-radius:8px; font-weight:700;">
+        <button class="btn btn-small btn-primary" onclick="setQueueDateToday()">Bugun</button>
+        <button class="btn btn-small btn-warning" onclick="setQueueDateOffset(1)">Ertaga</button>
+      </div>
+
+      <div>
+        <button class="btn btn-small btn-success" onclick="loadQueue(document.getElementById('queueDateSelect').value)">
+          <i class="fa-solid fa-arrows-rotate"></i> Yangilash
+        </button>
+      </div>
+    </div>
+
+    <div class="devices-grid" id="devicesGrid">
+      <div style="text-align:center; padding:30px; color:#64748b; font-size:14px;">Navbat yuklanmoqda...</div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: TELEGRAM BOT FOYDALANUVCHILARI VA WEBAPP SOZLAMALARI -->
+  <!-- ========================================================================= -->
+  <section id="tab-bot-users" class="tab-content">
+    <!-- WebApp Sozlamalari Card -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-mobile-screen-button" style="color:var(--primary);"></i>
+          <span>Telegram WebApp & Admin Kirish Sozlamalari</span>
+        </div>
+        <span style="font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px;">@Radiodiagnostika_bot</span>
+      </div>
+
+      <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text);">
+              📱 Telegram WebApp HTTPS Manzili (GitHub Pages / Tunnel):
+            </label>
+            <input type="text" id="botWebAppUrlInput" placeholder="https://hojiakbar-turotov.github.io/Radiology-AI/control.html" 
+                   style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13.5px;">
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+              ⚠️ Telegram faqat <b>https://</b> protokolidagi havolalarni ochadi (GitHub Pages yoki HTTPS tunnel).
+            </div>
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text);">
+              🔑 Telegram Bot Admin Paroli:
+            </label>
+            <input type="text" id="botAdminPasswordInput" placeholder="15420" 
+                   style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13.5px;">
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+              Foydalanuvchi botga <code>/admin 15420</code> yozsa, administrator roliga ega bo'ladi.
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px;">
+          <div id="botSettingsStatus" style="font-size:12.5px; font-weight:700; color:#059669;"></div>
+          <div style="display:flex; gap:8px;">
+            <a id="btnTestWebAppUrl" href="#" target="_blank" class="btn btn-small" style="background:#e0f2fe; color:#0284c7; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> WebAppni Ochish
+            </a>
+            <button type="button" class="btn btn-primary btn-small" onclick="saveBotSettings()">
+              <i class="fa-solid fa-floppy-disk"></i> Sozlamalarni Saqlash
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telegram Foydalanuvchilari Ro'yxati -->
+    <div class="card">
+      <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-users-gear" style="color:var(--primary);"></i>
+          <span>Telegram Bot Foydalanuvchilari & Huquqlari</span>
+        </div>
+        <button class="btn btn-small btn-primary" onclick="loadBotUsers()">
+          <i class="fa-solid fa-arrows-rotate"></i> Yangilash
+        </button>
+      </div>
+
+      <div style="margin-bottom:14px; font-size:13px; color:var(--text-muted); line-height:1.5;">
+        👑 <b>Administrator:</b> Telegram bot orqali to'liq Admin Panel (Web App) ni ochadi, barcha apparat navbatlari, statistika va sozlamalarni ko'ra oladi.<br>
+        👨‍⚕️ <b>Laborant:</b> MRT 1, MRT 2 va MSKT navbatlarini ko'ra oladi va har kuni 08:00 da kunlik eslatma oladi.<br>
+        👤 <b>Oddiy Foydalanuvchi:</b> Faqat o'z navbatini tekshirishi mumkin.
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Telegram ID</th>
+              <th>Ism va Familiya</th>
+              <th>Username</th>
+              <th>Roli</th>
+              <th>Oxirgi Faollik</th>
+              <th style="text-align:center;">Amallar</th>
+            </tr>
+          </thead>
+          <tbody id="botUsersTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding:20px; color:#64748b;">Foydalanuvchilar yuklanmoqda...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 4: KOMPYUTERLAR RUXSATI (LOKAL IP BOSHQARUVI) -->
+  <!-- ========================================================================= -->
+  <section id="tab-allowed-ips" class="tab-content">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-network-wired" style="color:var(--primary);"></i>
+          <span>Lokal Tarmoqdagi Kompyuterlar Ruxsati (IP Whitelist - Port 9891)</span>
+        </div>
+        <button class="btn btn-primary btn-small" onclick="loadAllowedIps()">
+          <i class="fa-solid fa-rotate"></i> Yangilash
+        </button>
+      </div>
+
+      <!-- Kutilayotgan so'rovlar bloki -->
+      <div id="pendingIpsCard" style="display:none; background:#fef2f2; border:1.5px solid #f87171; border-radius:12px; padding:16px; margin-bottom:16px;">
+        <div style="font-size:14px; font-weight:900; color:#b91c1c; display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+          <i class="fa-solid fa-bell"></i>
+          <span>Yangi Ulanish So'rovlari (Ruxsat Kutilmoqda)</span>
+        </div>
+        <div id="pendingIpsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <!-- Yangi IP qo'shish formasi -->
+      <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:16px;">
+        <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:10px;">
+          <i class="fa-solid fa-plus-circle"></i> Qo'lda Yangi Kompyuter (IP) Qo'shish:
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="text" id="newIpAddress" placeholder="Masalan: 192.168.150.45 yoki 10.34.14.88" style="flex:1; min-width:180px; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px;">
+          <input type="text" id="newIpName" placeholder="Kompyuter nomi (masalan: 1-MRT Laborant)" style="flex:1; min-width:180px; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px;">
+          <select id="newIpRole" style="padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; font-weight:700;">
+            <option value="full">✅ Navbatga qo'yish va kuzatish (Registratura)</option>
+            <option value="view_only">👁️ Faqat kuzatish (Laborant / Monitor)</option>
+          </select>
+          <button class="btn btn-primary" onclick="addManualIp()"><i class="fa-solid fa-check"></i> Qo'shish</button>
+        </div>
+      </div>
+
+      <!-- Ruxsat berilgan IP lar jadvali -->
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>IP Manzil</th>
+              <th>Kompyuter Nomi</th>
+              <th>Berilgan Ruxsat Turi</th>
+              <th>Tasdiqlangan Vaqt</th>
+              <th style="text-align:center;">Amallar</th>
+            </tr>
+          </thead>
+          <tbody id="allowedIpsTableBody">
+            <tr>
+              <td colspan="5" style="text-align:center; padding:20px; color:#64748b;">IP ro'yxati yuklanmoqda...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 5: TEKSHIRUV SOZLAMALARI VA ANKETALAR -->
+  <!-- ========================================================================= -->
+  <section id="tab-exam-configs" class="tab-content">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-file-waveform" style="color:var(--primary);"></i>
+          <span>Tekshiruv Vaqtlari, Tayyorgarlik, Qarshi Ko'rsatmalar va Rozilik Anketasi Savollari</span>
+        </div>
+        <button class="btn btn-primary btn-small" onclick="loadExamConfigs()">
+          <i class="fa-solid fa-rotate"></i> Yangilash
+        </button>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:flex-start;">
+        <!-- Chap: Tekshiruvlar ro'yxati -->
+        <div style="background:#f8fafc; border:1.5px solid var(--border); border-radius:12px; padding:12px;">
+          <div style="margin-bottom:10px;">
+            <input type="text" id="examSearchInput" oninput="filterExamList()" placeholder="🔍 Qidirish (Kod yoki nom)..." style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+          </div>
+          <div id="examConfigList" style="max-height:600px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;">
+            <div style="padding:20px; text-align:center; color:#64748b; font-size:13px;">Tekshiruvlar yuklanmoqda...</div>
+          </div>
+        </div>
+
+        <!-- O'ng: Tahrirlovchi forma -->
+        <div id="examEditorArea" style="background:#ffffff; border:1.5px solid var(--border); border-radius:12px; padding:20px; display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:12px; margin-bottom:16px;">
+            <div>
+              <span id="edExamCode" style="background:#0284c7; color:#fff; font-size:12px; font-weight:900; padding:3px 8px; border-radius:6px; margin-right:6px;">R157</span>
+              <span id="edExamName" style="font-size:16px; font-weight:800; color:#0f172a;">Bosh Miya MRT</span>
+            </div>
+            <button class="btn btn-success" onclick="saveCurrentExamConfig()">
+              <i class="fa-solid fa-floppy-disk"></i> Saqlash
+            </button>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:14px;">
+            <div class="form-group">
+              <label for="edDuration">⏱️ Tekshiruv Davomiyligi (daqiqa):</label>
+              <input type="number" id="edDuration" min="10" max="120" step="5" style="font-weight:800;">
+            </div>
+            <div class="form-group">
+              <label for="edType">Modallik:</label>
+              <select id="edType" style="font-weight:700;">
+                <option value="MRT">🧲 MRT</option>
+                <option value="MSKT">⚡ MSKT</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="edPreparation">📋 Bemor Tayyorgarligi Qoidalari:</label>
+            <textarea id="edPreparation" rows="4" placeholder="Masalan: Och qoringa kelish, metall buyumlarni yechish..." style="font-size:13px; line-height:1.45;"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label for="edContraindications">⚠️ Qarshi Ko'rsatmalar:</label>
+            <textarea id="edContraindications" rows="4" placeholder="Masalan: Kardiostimulyator, 1-trimestr homiladorlik..." style="font-size:13px; line-height:1.45;"></textarea>
+          </div>
+
+          <!-- Rozilik Anketasi Savollari -->
+          <div style="border-top:1.5px dashed #cbd5e1; padding-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <label style="font-size:14px; font-weight:900; color:#0f172a;">
+                <i class="fa-solid fa-clipboard-question" style="color:#0284c7;"></i> Rozilik Anketasi Savollari (Chop etiladigan):
+              </label>
+              <button type="button" class="btn btn-small btn-primary" onclick="addNewConsentQuestion()">
+                <i class="fa-solid fa-plus"></i> Yangi savol qo'shish
+              </button>
+            </div>
+            <div id="consentQuestionsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+
+          <div style="margin-top:20px; text-align:right;">
+            <button class="btn btn-success" onclick="saveCurrentExamConfig()" style="padding:10px 24px; font-size:14px;">
+              <i class="fa-solid fa-floppy-disk"></i> Barcha O'zgarishlarni Saqlash
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 6: ISH GRAFIKLARI & ISH VAQTLARI (SCHEDULES & WORKING HOURS) -->
+  <!-- ========================================================================= -->
+  <section id="tab-schedules" class="tab-content">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-clock" style="color:var(--primary);"></i>
+          <span>Apparatlar Ish Grafiklari va Qabul Vaqtlari Sozlamasi</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-success" onclick="saveSchedulesAdmin()">
+            <i class="fa-solid fa-floppy-disk"></i> Barcha Grafikni Saqlash
+          </button>
+          <button class="btn btn-small" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" onclick="loadSchedulesAdmin()">
+            <i class="fa-solid fa-arrows-rotate"></i> Yangilash
+          </button>
+        </div>
+      </div>
+
+      <!-- Tezkor Shablonlar (Presets) -->
+      <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px 16px; margin-bottom:18px;">
+        <div style="font-size:13px; font-weight:800; color:#166534; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Tezkor Ish Rejimi Shablonlari (Barcha kunlarga bir bosishda qo'llash):</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-small" style="background:#0284c7; color:#fff;" onclick="applySchedulePreset('standard_break')">
+            <i class="fa-solid fa-business-time"></i> Standart (Dush-Juma: 08:00-14:00 & 15:30-19:00, Shanba: 08:00-14:00, Yaksh: Dam)
+          </button>
+          <button type="button" class="btn btn-small" style="background:#059669; color:#fff;" onclick="applySchedulePreset('standard_full')">
+            <i class="fa-solid fa-sun"></i> To'liq Kunlik (Dush-Juma: 08:00-19:00 uzluksiz, Shanba: 08:00-14:00, Yaksh: Dam)
+          </button>
+          <button type="button" class="btn btn-small" style="background:#7c3aed; color:#fff;" onclick="applySchedulePreset('mode_24_7')">
+            <i class="fa-solid fa-infinity"></i> 24/7 Uzluksiz Rejim (Har kuni 00:00 - 24:00)
+          </button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px;">
+        <!-- Chap tomonda: Haftalik kunlar bo'yicha smenalar -->
+        <div style="background:#ffffff; border:1.5px solid var(--border); border-radius:12px; padding:16px;">
+          <div style="font-size:15px; font-weight:900; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-calendar-week" style="color:var(--primary);"></i>
+            <span>Haftalik Ish Vaqti Oraliqlari (Dushanba - Yakshanba)</span>
+          </div>
+          <div id="weeklyScheduleEditor" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+
+        <!-- O'ng tomonda: Bayramlar va maxsus dam olish kunlari -->
+        <div style="background:#ffffff; border:1.5px solid var(--border); border-radius:12px; padding:16px;">
+          <div style="font-size:15px; font-weight:900; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-umbrella-beach" style="color:#d97706;"></i>
+            <span>Bayramlar & Dam Olish Kunlari</span>
+          </div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+            Ushbu sanalarda apparatlarda bemor qabul qilinmaydi va tizim avtomatik tarzda navbat yozishni to'xtatadi.
+          </p>
+
+          <!-- Yangi bayram qo'shish -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+            <div style="font-size:12.5px; font-weight:800; color:#334155; margin-bottom:8px;">+ Yangi Bayram Qo'shish:</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <input type="date" id="newHolidayDate" style="padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+              <input type="text" id="newHolidayName" placeholder="Masalan: Yangi Yil bayrami" style="padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+              <button class="btn btn-small btn-primary" onclick="addNewHoliday()" style="justify-content:center;">
+                <i class="fa-solid fa-plus"></i> Bayram Qo'shish
+              </button>
+            </div>
+          </div>
+
+          <!-- Bayramlar ro'yxati -->
+          <div id="holidaysListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:420px; overflow-y:auto; padding-right:4px;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid var(--border); padding-top:16px;">
+        <span id="scheduleSaveStatus" style="font-size:13px; font-weight:700; color:#059669;"></span>
+        <button class="btn btn-success" onclick="saveSchedulesAdmin()" style="padding:12px 28px; font-size:15px;">
+          <i class="fa-solid fa-floppy-disk"></i> Barcha Grafikni Saqlash
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- ADMIN NAVBATGA QO'YISH MODALI (ADMIN SUPERPOWERS: OLDINGI KUNLAR & USTMA-UST) -->
+  <!-- ========================================================================= -->
+  <div id="modalAdminBooking" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeAdminBookingModal()">
+    <div class="modal-card" style="max-width:560px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1.5px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-calendar-check" style="color:var(--primary); font-size:18px;"></i>
+          <h3 style="font-size:17px; font-weight:900; color:var(--text);">Navbatga Qo'yish (Admin Rejimi)</h3>
+        </div>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);" onclick="closeAdminBookingModal()">&times;</button>
+      </div>
+
+      <!-- Admin Imtiyozi Xabari (Past dates & Force booking allowed) -->
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:#1e40af; display:flex; align-items:center; gap:8px;">
+        <i class="fa-solid fa-shield-halved" style="font-size:15px;"></i>
+        <div><b>Admin Huquqi:</b> O'tgan sanalarga navbat qo'yish va bitta vaqtga ustma-ust navbat yozish imkoniyati mavjud.</div>
+      </div>
+
+      <div style="background:#f8fafc; padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:13px; border:1px solid #e2e8f0;">
+        <div>Bemor: <strong id="admModalPatName">-</strong> (<span id="admModalPatId">-</span>)</div>
+        <div style="margin-top:2px;">Tekshiruv: <strong id="admModalExamName" style="color:var(--primary);">-</strong></div>
+        <div id="admModalLabInfo" style="display:none; margin-top:6px;"></div>
+      </div>
+
+      <form id="adminBookingForm" onsubmit="submitAdminBooking(event)">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Apparatni Tanlang:</label>
+          <select id="admBDevice" onchange="updateSmartSlotForAdminModal()">
+            <option value="mrt1">🧲 MRT 1 (1.5 Tesla - Injektorli, Kontrastli/Oddiy)</option>
+            <option value="mrt2">🧲 MRT 2 (1.5 Tesla - Kontrastsiz)</option>
+            <option value="mskt1">⚡ MSKT 1 (Kompyuter Tomografiyasi)</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:12px;">
+          <div class="form-group" style="flex:1;">
+            <label>Rejalashtirilgan Sana:</label>
+            <!-- DIQQAT: Admin uchun min cheklovi YO'Q (oldingi kunlarga yozishi mumkin!) -->
+            <input type="date" id="admBDate" onchange="updateSmartSlotForAdminModal()" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Vaqti:</label>
+            <input type="time" id="admBTime" onchange="validateAdminChosenSlot()" required>
+          </div>
+        </div>
+
+        <!-- Bo'sh vaqtlar va band vaqtlar ko'rinishi -->
+        <div id="admBookingSlotsBox" style="margin-bottom:12px; font-size:12.5px;">
+          <div id="admDayStatusAlert" style="display:none; padding:8px 12px; border-radius:8px; margin-bottom:8px; font-weight:700;"></div>
+          
+          <div id="admSlotsContainer" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-weight:800; color:#0f172a;"><i class="fa-solid fa-clock" style="color:var(--primary);"></i> Tavsiya etilgan bo'sh vaqtlar:</span>
+              <span id="admShiftBadge" style="font-size:11px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:6px;"></span>
+            </div>
+            <div id="admSlotPills" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; max-height:100px; overflow-y:auto;"></div>
+            <div id="admBusySlotsList" style="font-size:11px; color:#991b1b; display:none; border-top:1px dashed #cbd5e1; padding-top:6px; margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="admBContrast" onchange="updateSmartSlotForAdminModal()" style="width:16px; height:16px;">
+            <span>Kontrast modda yuborish talab etiladi</span>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Bemor Telefoni:</label>
+          <input type="tel" id="admBPhone" placeholder="+998 90 123 45 67">
+        </div>
+
+        <!-- ⚡ USTMA-UST NAVBATGA YOZISH CHEKBOKSI (ADMIN SUPERPOWER) -->
+        <div style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:800; color:#9f1239;">
+            <input type="checkbox" id="admForceBooking" style="width:18px; height:18px;">
+            <span>⚡ Ustma-ust navbatga majburan yozish (Admin Force Booking)</span>
+          </label>
+          <div style="font-size:11.5px; color:#be123c; margin-top:4px; line-height:1.3;">
+            Agar ushbu katak belgilansa, tanlangan vaqt band bo'lsa ham yoki apparatning ish jadvalidan tashqari bo'lsa ham bitta vaqtga ustma-ust navbatga yoziladi.
+          </div>
+        </div>
+
+        <div id="admBookingErrorMsg" style="display:none; color:#dc2626; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
+
+        <!-- Collision Prompt Box -->
+        <div id="admCollisionPromptBox" style="display:none; background:#fef2f2; border:1px solid #f87171; border-radius:8px; padding:10px; margin-bottom:12px; text-align:center;">
+          <div style="font-size:12.5px; font-weight:800; color:#991b1b; margin-bottom:8px;" id="admCollisionPromptText"></div>
+          <button type="button" class="btn btn-danger btn-small" onclick="forceSubmitAdminBooking()" style="font-size:12px; padding:8px 16px;">
+            <i class="fa-solid fa-bolt"></i> Ha, Ustma-Ust Baribir Navbatga Qo'shish
+          </button>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+          <button type="button" class="btn" style="background:#e2e8f0; color:#334155;" onclick="closeAdminBookingModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" id="btnAdminSubmitBooking">
+            <i class="fa-solid fa-check"></i> Navbatga Kiritish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalTicket" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeTicketModal()">
+    <div class="modal-card">
+      <h3 style="font-size:18px; font-weight:900; color:#000000; margin-bottom:10px;">🎫 Qabul Taloni (Xprinter)</h3>
+      
+      <div class="ticket-print-box" id="ticketPrintArea" style="background:#ffffff !important; border:2px dashed #000000 !important; color:#000000 !important; padding:16px; text-align:center;">
+        <div style="font-size:13px; font-weight:900; color:#000000 !important; text-transform:uppercase; letter-spacing:0.5px;">RIO va RIOATM Radiodiagnostika bo'limi</div>
+        <div style="border-top:2px dashed #000000 !important; margin:8px 0;"></div>
+        <div style="font-size:13px; font-weight:900; color:#000000 !important; text-transform:uppercase; letter-spacing:1px;">BEMOR ID</div>
+        <div style="font-size:42px; font-weight:900; font-family:'Courier New', monospace; color:#000000 !important; margin:4px 0; letter-spacing:2px; line-height:1.1;" id="tNumber">-</div>
+        <div style="border:2.5px solid #000000 !important; border-radius:6px; padding:6px 4px; text-align:center; margin:8px 0; font-size:14px; font-weight:900; color:#000000 !important; background:#ffffff !important;" id="tDateTime">📅 12.09.2026 | ⏰ 10:30 - 11:00</div>
+        <div style="font-size:15px; font-weight:900; color:#000000 !important;" id="tPatientName">BEMOR F.I.SH</div>
+        <div style="font-size:13px; font-weight:800; color:#000000 !important; margin-top:4px;" id="tServiceName">Bosh Miya MRT</div>
+        <div style="font-size:13px; font-weight:800; color:#000000 !important; margin-top:2px;" id="tDeviceName">1-MRT Xonasi (1.5 Tesla)</div>
+        <div style="font-size:11px; font-weight:800; color:#000000 !important; margin-top:8px; line-height:1.35; border:1.5px dashed #000000 !important; padding:6px; border-radius:4px; text-align:left; background:#ffffff !important;" id="tPreparation">ℹ️ Eslatma: Iltimos, belgilangan vaqtdan 30 daqiqa oldin xona oldida hozir bo'ling. Barcha metall buyumlarni yechish shart.</div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; margin-top:16px;">
+        <button class="btn btn-primary" onclick="printCurrentTicketAdmin()" style="background:#000000; color:#ffffff;"><i class="fa-solid fa-print"></i> Xprinterda Chop Etish</button>
+        <button class="btn" style="background:#e2e8f0; color:#334155;" onclick="closeTicketModal()">Yopish</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =============================================================
+    // TELEGRAM WEB APP & API BASE SUPPORT (FOR GITHUB PAGES & LOCAL)
+    // =============================================================
+    if (window.Telegram && window.Telegram.WebApp) {
+      try {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      } catch (e) {
+        console.warn("Telegram WebApp init:", e);
+      }
+    }
+
+    function getApiBase() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryApi = urlParams.get('api');
+      if (queryApi) {
+        localStorage.setItem('MRT_API_BASE', queryApi.replace(/\/$/, ''));
+        return queryApi.replace(/\/$/, '');
+      }
+      const stored = localStorage.getItem('MRT_API_BASE');
+      if (stored) return stored;
+      if (window.location.protocol.startsWith('http') && 
+         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '9890')) {
+        return '';
+      }
+      return '';
+    }
+
+    function apiUrl(path) {
+      const base = getApiBase();
+      if (!base) return path;
+      const cleanPath = path.startsWith('/') ? path : '/' + path;
+      return `${base}${cleanPath}`;
+    }
+
+    // Intercept fetch calls so /api/... routes via apiUrl automatically
+    const _originalFetch = window.fetch;
+    window.fetch = function(resource, init) {
+      if (typeof resource === 'string' && resource.startsWith('/api/')) {
+        resource = apiUrl(resource);
+      }
+      return _originalFetch.call(this, resource, init);
+    };
+
+    function checkApiHostNotice() {
+      const banner = document.getElementById("remoteApiBanner");
+      const lbl = document.getElementById("lblCurrentApiBase");
+      const isExternal = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const apiBase = getApiBase();
+      if (banner) {
+        if (isExternal || apiBase) {
+          banner.style.display = "flex";
+          if (lbl) lbl.innerText = apiBase || "Belgilanmagan (Lokal rejim)";
+        } else {
+          banner.style.display = "none";
+        }
+      }
+    }
+
+    function promptSetApiBase() {
+      const current = getApiBase();
+      const val = prompt("Backend Server API manzilini kiriting (HTTPS tavsiya etiladi):\nMasalan: https://radiology-mrt.loca.lt yoki https://xxx.trycloudflare.com\n(Bo'sh qoldirsangiz, joriy server manzili ishlatiladi)", current);
+      if (val !== null) {
+        if (val.trim() === '') {
+          localStorage.removeItem('MRT_API_BASE');
+        } else {
+          localStorage.setItem('MRT_API_BASE', val.trim().replace(/\/$/, ''));
+        }
+        window.location.reload();
+      }
+    }
+
+    let currentSlotData = null;
+    let ws = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      checkApiHostNotice();
+      startLiveClock();
+      setQueueDateToday();
+      calculateSmartSlot();
+      loadBotUsers();
+      loadBotSettings();
+      loadAllowedIps();
+      loadSchedulesAdmin();
+      initWebSocket();
+    });
+
+    function startLiveClock() {
+      setInterval(() => {
+        const d = new Date();
+        document.getElementById("liveClock").innerText = d.toLocaleDateString("uz-UZ") + " " + d.toLocaleTimeString("uz-UZ");
+      }, 1000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      event.currentTarget.classList.add("active");
+
+      if (tabId === "tab-live-queue") {
+        loadQueue(document.getElementById("queueDateSelect").value);
+      } else if (tabId === "tab-bot-users") {
+        loadBotUsers();
+        loadBotSettings();
+      } else if (tabId === "tab-allowed-ips") {
+        loadAllowedIps();
+      } else if (tabId === "tab-exam-configs") {
+        loadExamConfigs();
+      } else if (tabId === "tab-schedules") {
+        loadSchedulesAdmin();
+      }
+    }
+
+    function setQueueDateToday() {
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("queueDateSelect").value = today;
+      loadQueue(today);
+    }
+
+    function setQueueDateOffset(offset) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      const str = d.toISOString().split("T")[0];
+      document.getElementById("queueDateSelect").value = str;
+      loadQueue(str);
+    }
+
+    // -------------------------------------------------------------
+    // WEBSOCKET JONLI ALOQA
+    // -------------------------------------------------------------
+    function initWebSocket() {
+      try {
+        const apiBase = getApiBase();
+        let wsUrl = '';
+        if (apiBase) {
+          const wsProto = apiBase.startsWith('https:') ? 'wss:' : 'ws:';
+          const host = apiBase.replace(/^https?:\/\//, '');
+          wsUrl = `${wsProto}//${host}`;
+        } else {
+          const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+          wsUrl = `${protocol}//${window.location.host}`;
+        }
+        ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === "queue_updated" || data.type === "queue_init") {
+              const curDate = document.getElementById("queueDateSelect").value;
+              loadQueue(curDate);
+            }
+          } catch (e) {}
+        };
+
+        ws.onclose = () => setTimeout(initWebSocket, 4000);
+      } catch (e) {
+        console.warn("WebSocket init error:", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // AQLLI SLOT HISOBLASH
+    // -------------------------------------------------------------
+    let smartCalcTimer = null;
+    function calculateSmartSlot() {
+      clearTimeout(smartCalcTimer);
+      smartCalcTimer = setTimeout(async () => {
+        const deviceId = document.getElementById("pDevice").value;
+        const isContrast = document.getElementById("pContrast").checked;
+        const serviceName = document.getElementById("pService").value;
+        const duration = document.getElementById("pDuration").value;
+
+        try {
+          const res = await fetch("/api/queue/smart-slot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId, isContrast, serviceName, durationMinutes: duration })
+          });
+          const data = await res.json();
+
+          const box = document.getElementById("smartSlotBox");
+          const heading = document.getElementById("slotStatusHeading");
+          const desc = document.getElementById("slotStatusText");
+          const badgeBox = document.getElementById("slotTimeBadgeContainer");
+
+          if (data.success) {
+            currentSlotData = data;
+            heading.innerHTML = data.isToday 
+              ? `⚡ Bugungi Eng Yaqin Bo'sh Vaqt Aniqlandi:` 
+              : `⚠️ Bugungi Qabul To'lgan! Eng Yaqin Bo'sh Vaqt:`;
+            
+            desc.innerHTML = `📅 <b>${data.dateFormatted} (${data.dayName})</b> • 🏥 <b>${data.deviceName}</b><br>${data.notice}`;
+            badgeBox.innerHTML = `<span class="slot-badge-time">⏰ ${data.timeSlot} (${data.durationMinutes} daqiqa)</span>`;
+          } else {
+            currentSlotData = null;
+            heading.innerHTML = "❌ Bo'sh Vaqt Topilmadi:";
+            desc.innerHTML = data.error || "Boshqa apparat yoki sanani tanlang.";
+            badgeBox.innerHTML = "";
+          }
+        } catch (e) {}
+      }, 300);
+    }
+
+    // -------------------------------------------------------------
+    // NAVBATGA YOZISH (BOOK PATIENT)
+    // -------------------------------------------------------------
+    async function handleBookPatient(e) {
+      e.preventDefault();
+      if (!currentSlotData || !currentSlotData.success) {
+        alert("Iltimos, oldin bo'sh vaqtni hisoblang!");
+        return;
+      }
+
+      const pName = document.getElementById("pName").value.trim();
+      const pId = document.getElementById("pId").value.trim();
+      const pPhone = document.getElementById("pPhone").value.trim();
+      const pType = document.getElementById("pType").value;
+      const pService = document.getElementById("pService").value.trim();
+      const isContrast = document.getElementById("pContrast").checked;
+
+      const payload = {
+        patientName: pName,
+        patientId: pId,
+        phone: pPhone,
+        patientType: pType,
+        primaryService: pService,
+        isContrast: isContrast,
+        deviceId: currentSlotData.deviceId,
+        scheduledDate: currentSlotData.date,
+        scheduledTime: currentSlotData.startTime,
+        durationMinutes: currentSlotData.durationMinutes
+      };
+
+      try {
+        const res = await fetch("/api/queue/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          openTicketModal(result.patient);
+          document.getElementById("smartRegForm").reset();
+          calculateSmartSlot();
+        } else {
+          alert("Xatolik: " + result.error);
+        }
+      } catch (err) {
+        alert("Serverga ulanishda xatolik: " + err.message);
+      }
+    }
+
+    let currentTicketPatient = null;
+
+    function openTicketModal(pat) {
+      currentTicketPatient = pat;
+      document.getElementById("tNumber").innerText = pat.patientId || pat.ticketNumber || '-';
+      document.getElementById("tPatientName").innerText = pat.patientName || '';
+      document.getElementById("tServiceName").innerText = (pat.primaryService || pat.serviceName || '') + (pat.isContrast ? " (KONTRAST BILAN)" : "");
+      document.getElementById("tDateTime").innerText = `📅 ${pat.scheduledDate || pat.date || ''} | ⏰ ${pat.scheduledTime || ''}`;
+      document.getElementById("tDeviceName").innerText = (pat.deviceId || '').toUpperCase();
+      document.getElementById("tPreparation").innerText = pat.preparation || "ℹ️ Eslatma: Iltimos, belgilangan vaqtdan 30 daqiqa oldin xona oldida hozir bo'ling. Barcha metall buyumlarni yechish shart.";
+      document.getElementById("modalTicket").style.display = "flex";
+    }
+
+    function closeTicketModal() {
+      document.getElementById("modalTicket").style.display = "none";
+    }
+
+    function formatTicketHtml(p) {
+      const devName = (p.deviceId === 'mskt1') ? 'MSKT 1 (128 kesim)' : ((p.deviceId === 'mrt2') ? '2-MRT (1.5T Kontrastsiz)' : '1-MRT (1.5 Tesla)');
+      return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bemor ID ${p.patientId || p.ticketNumber || ''}</title>
+  <style>
+    @page { size: 80mm auto; margin: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      color: #000000 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      width: 72mm;
+      margin: 0 auto;
+      padding: 10px 4px;
+      background: #ffffff !important;
+      color: #000000 !important;
+    }
+    .t-center { text-align: center; }
+    .t-head {
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1.35;
+      color: #000000 !important;
+      letter-spacing: 0.5px;
+    }
+    .t-sub {
+      font-size: 11px;
+      font-weight: 800;
+      color: #000000 !important;
+      margin-top: 2px;
+    }
+    .t-hr {
+      border: none;
+      border-top: 2px dashed #000000 !important;
+      margin: 8px 0;
+    }
+    .t-num-title {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #000000 !important;
+    }
+    .t-num {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+      margin: 4px 0;
+      color: #000000 !important;
+      line-height: 1.1;
+    }
+    .t-time-box {
+      border: 2.5px solid #000000 !important;
+      border-radius: 6px;
+      padding: 6px 4px;
+      text-align: center;
+      margin: 8px 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: #000000 !important;
+      background: #ffffff !important;
+      line-height: 1.35;
+    }
+    .t-row {
+      font-size: 12.5px;
+      margin: 5px 0;
+      line-height: 1.35;
+      color: #000000 !important;
+    }
+    .t-row strong, .t-row b {
+      font-weight: 900;
+      color: #000000 !important;
+    }
+    .t-prep {
+      font-size: 11px;
+      font-weight: 800;
+      color: #000000 !important;
+      background: #ffffff !important;
+      border: 1.5px dashed #000000 !important;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+    .t-foot {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 10px;
+      color: #000000 !important;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body onload="window.print()">
+  <div class="t-center">
+    <div class="t-head">RIO va RIOATM Radiodiagnostika bo'limi</div>
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-center">
+    <div class="t-num-title">BEMOR ID</div>
+    <div class="t-num">${escapeHtml(p.patientId || p.ticketNumber || '-')}</div>
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-time-box">
+    ⏰ SANA: ${escapeHtml(p.scheduledDate || p.date || '')}<br>
+    VAQT: ${escapeHtml(p.scheduledTime || '')}
+  </div>
+  <div class="t-row">Bemor: <strong>${escapeHtml(p.patientName || '')}</strong></div>
+  <div class="t-row">Bo'lim: <strong>${escapeHtml(p.department || p.patientType || 'Ambulator')}</strong></div>
+  <div class="t-row">Tekshiruv: <strong>${escapeHtml(p.primaryService || p.serviceName || '')}</strong></div>
+  <div class="t-row">Apparat: <strong>${escapeHtml(devName)}</strong></div>
+  <div class="t-row">Kontrast: <strong>${p.isContrast ? '💉 KONTRASTLI (Injektor)' : 'Oddiy'}</strong></div>
+  <div class="t-row">Xodim: <strong>${escapeHtml(p.operatorName || 'Admin')}</strong></div>
+  <div class="t-prep">
+    <b>ℹ️ ESLATMA:</b> Iltimos, belgilangan vaqtdan 30 daqiqa oldin xona oldida hozir bo'ling. Barcha metall buyumlar (soat, telefon, kalit, kamar) yechilishi shart.
+  </div>
+  <div class="t-hr"></div>
+  <div class="t-foot">
+    Chop etildi: ${new Date().toLocaleString('uz-UZ')}<br>
+    Tel: 1303
+  </div>
+</body>
+</html>
+`.trim();
+    }
+
+    function openPrintWindow(htmlContent, title) {
+      const printWin = window.open('', '_blank', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no');
+      if (!printWin) {
+        alert("Chop etish oynasi brauzer tomonidan bloklandi. Qalqib chiquvchi oynalarga (pop-up) ruxsat bering.");
+        return;
+      }
+      printWin.document.open();
+      printWin.document.write(htmlContent);
+      printWin.document.close();
+      printWin.focus();
+    }
+
+    function printCurrentTicketAdmin() {
+      if (!currentTicketPatient) return;
+      const html = formatTicketHtml(currentTicketPatient);
+      openPrintWindow(html, `Talon_${currentTicketPatient.ticketNumber || 'ticket'}`);
+    }
+
+    // -------------------------------------------------------------
+    // JONLI NAVBATNI YUKLASH (LIVE QUEUE)
+    // -------------------------------------------------------------
+    let adminQueueMap = {};
+
+    async function loadQueue(dateStr) {
+      try {
+        const res = await fetch(`/api/queue?date=${dateStr}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const container = document.getElementById("devicesGrid");
+        const queue = data.queue || [];
+        const devices = data.devices || [];
+
+        adminQueueMap = {};
+        queue.forEach(p => { adminQueueMap[p.id] = p; });
+
+        container.innerHTML = devices.map(dev => {
+          const devQueue = queue.filter(p => p.deviceId === dev.id);
+          const inProgress = devQueue.find(p => p.status === "in_progress");
+          const calling = devQueue.find(p => p.status === "calling");
+          const waitingList = devQueue.filter(p => p.status === "waiting");
+
+          let cardsHtml = "";
+
+          if (inProgress) {
+            cardsHtml += renderPatientCard(inProgress, "in-progress", "🟢 Xonada (Tekshirilmoqda)");
+          }
+          if (calling) {
+            cardsHtml += renderPatientCard(calling, "calling", "🔔 Xonaga Chaqirilmoqda");
+          }
+
+          if (waitingList.length === 0 && !inProgress && !calling) {
+            cardsHtml += `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:13px;">Navbatda bemorlar yo'q</div>`;
+          } else {
+            cardsHtml += waitingList.map(p => renderPatientCard(p, "waiting", "⏳ Kutmoqda")).join("");
+          }
+
+          return `
+            <div class="device-col">
+              <div class="dev-col-header">
+                <div class="dev-col-title">
+                  <i class="fa-solid fa-magnet" style="color:var(--primary);"></i> ${escapeHtml(dev.name)}
+                </div>
+                <div class="dev-col-room">${escapeHtml(dev.room)}</div>
+              </div>
+              <div>${cardsHtml}</div>
+            </div>
+          `;
+        }).join("");
+      } catch (e) {}
+    }
+
+    function renderPatientCard(p, statusClass, statusLabel) {
+      return `
+        <div class="patient-card ${statusClass}">
+          <div class="pat-header-row">
+            <span class="pat-num">${escapeHtml(p.ticketNumber)}</span>
+            <span style="font-size:11px; font-weight:800; color:#475569;">${statusLabel}</span>
+          </div>
+          <div class="pat-name">${escapeHtml(p.patientName)}</div>
+          <div class="pat-service">${escapeHtml(p.primaryService)} ${p.isContrast ? '• 💉 Kontrast' : ''}</div>
+          <div class="pat-actions">
+            ${p.status !== 'calling' ? `<button class="btn btn-small btn-warning" onclick="callPatient('${p.id}')"><i class="fa-solid fa-bell"></i> Chaqirish</button>` : ''}
+            ${p.status !== 'in_progress' ? `<button class="btn btn-small btn-success" onclick="setPatientStatus('${p.id}', 'in_progress')"><i class="fa-solid fa-door-open"></i> Xonada</button>` : ''}
+            <button class="btn btn-small btn-primary" onclick="setPatientStatus('${p.id}', 'completed')"><i class="fa-solid fa-check"></i> Tugatildi</button>
+            <button class="btn btn-small" style="background:#000000; color:#ffffff;" onclick="printQueueTicketAdmin('${p.id}')" title="Xprinter navbat talonini chop etish"><i class="fa-solid fa-print"></i> Talon</button>
+            <button class="btn btn-small btn-danger" onclick="deletePatient('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `;
+    }
+
+    function printQueueTicketAdmin(id) {
+      const p = adminQueueMap[id];
+      if (!p) return alert("Bemor topilmadi!");
+      openTicketModal(p);
+    }
+
+    async function callPatient(id) {
+      await fetch("/api/queue/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      loadQueue(document.getElementById("queueDateSelect").value);
+    }
+
+    async function setPatientStatus(id, status) {
+      await fetch("/api/queue/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status })
+      });
+      loadQueue(document.getElementById("queueDateSelect").value);
+    }
+
+    async function deletePatient(id) {
+      if (!confirm("Haqiqatan ham ushbu bemorni o'chirmoqchimisiz?")) return;
+      await fetch("/api/queue/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      loadQueue(document.getElementById("queueDateSelect").value);
+    }
+
+    // -------------------------------------------------------------
+    // TELEGRAM BOT FOYDALANUVCHILARI
+    // -------------------------------------------------------------
+    async function loadBotUsers() {
+      try {
+        const res = await fetch("/api/bot/users");
+        const data = await res.json();
+        const tbody = document.getElementById("botUsersTableBody");
+
+        if (!data.success || !data.users || data.users.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748b;">Botga hali hech kim kirmagan. Telegram orqali @Radiodiagnostika_bot ga /start yuboring.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.users.map(u => {
+          const role = u.role || 'user';
+          const isAdmin = (role === 'admin');
+          const isLab = (role === 'laborant');
+          const lastSeen = u.lastSeen ? new Date(u.lastSeen).toLocaleString('uz-UZ') : '-';
+
+          let badge = '';
+          if (isAdmin) {
+            badge = '<span class="role-badge role-admin"><i class="fa-solid fa-crown"></i> Administrator</span>';
+          } else if (isLab) {
+            badge = '<span class="role-badge role-laborant"><i class="fa-solid fa-user-doctor"></i> Laborant</span>';
+          } else {
+            badge = '<span class="role-badge role-user"><i class="fa-solid fa-user"></i> Oddiy</span>';
+          }
+
+          let actions = '';
+          if (isAdmin) {
+            actions = `
+              <div style="display:inline-flex; gap:6px;">
+                <button class="btn btn-small btn-success" onclick="setBotRole('${u.id}', 'laborant')" title="Laborant qilish">
+                  <i class="fa-solid fa-user-doctor"></i> Laborant
+                </button>
+                <button class="btn btn-small btn-danger" onclick="setBotRole('${u.id}', 'user')" title="Ruxsatni bekor qilish">
+                  <i class="fa-solid fa-user-xmark"></i> Bekor qilish
+                </button>
+              </div>
+            `;
+          } else if (isLab) {
+            actions = `
+              <div style="display:inline-flex; gap:6px;">
+                <button class="btn btn-small" style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d;" onclick="setBotRole('${u.id}', 'admin')" title="Administrator qilish">
+                  <i class="fa-solid fa-crown"></i> Admin
+                </button>
+                <button class="btn btn-small btn-danger" onclick="setBotRole('${u.id}', 'user')" title="Ruxsatni bekor qilish">
+                  <i class="fa-solid fa-user-xmark"></i> Bekor qilish
+                </button>
+              </div>
+            `;
+          } else {
+            actions = `
+              <div style="display:inline-flex; gap:6px;">
+                <button class="btn btn-small" style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d;" onclick="setBotRole('${u.id}', 'admin')" title="Administrator qilish">
+                  <i class="fa-solid fa-crown"></i> Admin
+                </button>
+                <button class="btn btn-small btn-success" onclick="setBotRole('${u.id}', 'laborant')" title="Laborant qilish">
+                  <i class="fa-solid fa-user-doctor"></i> Laborant
+                </button>
+              </div>
+            `;
+          }
+
+          return `
+            <tr>
+              <td><code>${escapeHtml(u.id)}</code></td>
+              <td><strong>${escapeHtml(u.fullName || 'Noma\'lum')}</strong></td>
+              <td><span style="color:#0284c7; font-weight:700;">${escapeHtml(u.username ? '@' + u.username : '-')}</span></td>
+              <td>${badge}</td>
+              <td style="font-size:12px; color:#64748b;">${lastSeen}</td>
+              <td style="text-align:center;">${actions}</td>
+            </tr>
+          `;
+        }).join("");
+      } catch (e) {}
+    }
+
+    async function loadBotSettings() {
+      try {
+        const res = await fetch("/api/bot/settings");
+        const data = await res.json();
+        if (data.success && data.settings) {
+          const webAppEl = document.getElementById("botWebAppUrlInput");
+          const passEl = document.getElementById("botAdminPasswordInput");
+          const testLink = document.getElementById("btnTestWebAppUrl");
+          if (webAppEl) webAppEl.value = data.settings.webAppUrl || "";
+          if (passEl) passEl.value = data.settings.adminPassword || "";
+          if (testLink) {
+            testLink.href = data.settings.webAppUrl || "#";
+            testLink.style.display = data.settings.webAppUrl ? "inline-flex" : "none";
+          }
+        }
+      } catch (e) {
+        console.error("Bot sozlamalarini yuklashda xatolik:", e);
+      }
+    }
+
+    async function saveBotSettings() {
+      const webAppUrl = (document.getElementById("botWebAppUrlInput").value || "").trim();
+      const adminPassword = (document.getElementById("botAdminPasswordInput").value || "").trim();
+      const statusEl = document.getElementById("botSettingsStatus");
+
+      try {
+        if (statusEl) statusEl.innerText = "Saqlanmoqda...";
+        const res = await fetch("/api/bot/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ webAppUrl, adminPassword })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (statusEl) statusEl.innerText = "✅ Telegram bot sozlamalari muvaffaqiyatli saqlandi!";
+          const testLink = document.getElementById("btnTestWebAppUrl");
+          if (testLink) {
+            testLink.href = webAppUrl || "#";
+            testLink.style.display = webAppUrl ? "inline-flex" : "none";
+          }
+          setTimeout(() => { if (statusEl) statusEl.innerText = ""; }, 4000);
+        } else {
+          alert("Xatolik: " + (data.error || "Saqlab bo'lmadi"));
+          if (statusEl) statusEl.innerText = "❌ Saqlashda xatolik";
+        }
+      } catch (e) {
+        alert("Aloqa xatosi: " + e.message);
+        if (statusEl) statusEl.innerText = "❌ Aloqa xatosi";
+      }
+    }
+
+    async function setBotRole(id, role) {
+      try {
+        const res = await fetch("/api/bot/set-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, role })
+        });
+        const result = await res.json();
+        if (result.success) {
+          loadBotUsers();
+        } else {
+          alert("Xatolik: " + result.error);
+        }
+      } catch (e) {
+        alert("Xatolik: " + e.message);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // LOKAL KOMPYUTERLAR IP RUXSATI (WHITELIST)
+    // -------------------------------------------------------------
+    async function loadAllowedIps() {
+      try {
+        const res = await fetch("/api/admin/ips");
+        const data = await res.json();
+        if (!data.success) return;
+
+        const badge = document.getElementById("pendingIpsBadge");
+        const pCard = document.getElementById("pendingIpsCard");
+        const pList = document.getElementById("pendingIpsList");
+
+        if (data.pending && data.pending.length > 0) {
+          badge.style.display = "inline-block";
+          badge.innerText = data.pending.length;
+          pCard.style.display = "block";
+
+          pList.innerHTML = data.pending.map(p => `
+            <div style="background:#fff; border:1px solid #fca5a5; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div>
+                <strong style="color:#991b1b; font-size:14px;"><i class="fa-solid fa-desktop"></i> ${escapeHtml(p.name || 'Noma\'lum')}</strong>
+                <div style="font-family:monospace; font-size:13px; color:#475569; margin-top:2px;">IP: <b>${escapeHtml(p.ip)}</b> | So'ralgan: ${p.requestedAt ? new Date(p.requestedAt).toLocaleTimeString('uz-UZ') : ''}</div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-success btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'full')">
+                  <i class="fa-solid fa-check"></i> Navbatga qo'yish va kuzatish
+                </button>
+                <button class="btn btn-warning btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'view_only')">
+                  <i class="fa-solid fa-eye"></i> Faqat kuzatish
+                </button>
+                <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(p.ip)}')">
+                  <i class="fa-solid fa-xmark"></i> Rad etish
+                </button>
+              </div>
+            </div>
+          `).join("");
+        } else {
+          badge.style.display = "none";
+          pCard.style.display = "none";
+        }
+
+        const tbody = document.getElementById("allowedIpsTableBody");
+        if (!data.allowed || data.allowed.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">Hozircha qo'shimcha IP manzillar ruxsat berilmagan</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.allowed.map(a => {
+          const isLocal = a.ip === '127.0.0.1' || a.ip === '::1' || a.ip === '10.34.14.33';
+          const roleLabel = a.role === 'full' 
+            ? '<span class="status-badge" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-check-double"></i> Navbatga qo\'yish va kuzatish</span>'
+            : '<span class="status-badge" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-eye"></i> Faqat kuzatish (Laborant)</span>';
+
+          const timeStr = a.approvedAt ? new Date(a.approvedAt).toLocaleDateString('uz-UZ') + ' ' + new Date(a.approvedAt).toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'}) : '-';
+
+          return `
+            <tr>
+              <td style="font-family:monospace; font-weight:800; font-size:14px; color:#0284c7;">${escapeHtml(a.ip)}</td>
+              <td><strong>${escapeHtml(a.name || 'Kompyuter')}</strong> ${isLocal ? '<span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; margin-left:4px;">Server</span>' : ''}</td>
+              <td>${roleLabel}</td>
+              <td style="font-size:12px; color:#64748b;">${timeStr}</td>
+              <td style="text-align:center;">
+                ${isLocal ? '<span style="font-size:11px; color:#94a3b8;">Asosiy server</span>' : `
+                  <div style="display:inline-flex; gap:6px;">
+                    <button class="btn btn-small" style="background:#f1f5f9; color:#334155;" onclick="toggleRoleIp('${escapeHtml(a.ip)}', '${a.role === 'full' ? 'view_only' : 'full'}')">
+                      <i class="fa-solid fa-arrows-rotate"></i> Rolni almashtirish
+                    </button>
+                    <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(a.ip)}')">
+                      <i class="fa-solid fa-trash"></i> O'chirish
+                    </button>
+                  </div>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+      } catch (e) {
+        console.error("loadAllowedIps error:", e);
+      }
+    }
+
+    async function approveIp(ip, name, role) {
+      try {
+        const res = await fetch("/api/admin/ips/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip, name, role })
+        });
+        const d = await res.json();
+        if (d.success) {
+          loadAllowedIps();
+        } else {
+          alert("Xatolik: " + (d.error || "Ruxsat berib bo'lmadi"));
+        }
+      } catch (e) {
+        alert("Server bilan aloqa xatosi");
+      }
+    }
+
+    async function toggleRoleIp(ip, newRole) {
+      await approveIp(ip, "", newRole);
+    }
+
+    async function rejectIp(ip) {
+      if (!confirm(`Rostdan ham IP ${ip} ruxsatini bekor qilmoqchimisiz?`)) return;
+      try {
+        const res = await fetch("/api/admin/ips/reject", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip })
+        });
+        const d = await res.json();
+        if (d.success) {
+          loadAllowedIps();
+        }
+      } catch (e) {}
+    }
+
+    async function addManualIp() {
+      const ip = document.getElementById("newIpAddress").value.trim();
+      const name = document.getElementById("newIpName").value.trim() || `Kompyuter (${ip})`;
+      const role = document.getElementById("newIpRole").value;
+
+      if (!ip) {
+        alert("Iltimos, IP manzilni kiriting!");
+        return;
+      }
+
+      await approveIp(ip, name, role);
+      document.getElementById("newIpAddress").value = "";
+      document.getElementById("newIpName").value = "";
+    }
+
+    // -------------------------------------------------------------
+    // TEKSHIRUV SOZLAMALARI VA ANKETALAR (TAB 5)
+    // -------------------------------------------------------------
+    let allExamServices = [];
+    let allConsentQuestions = [];
+    let selectedExamConfig = null;
+    let currentExamConsentQuestions = [];
+
+    async function loadExamConfigs() {
+      try {
+        const res = await fetch("/api/admin/exam-configs");
+        const data = await res.json();
+        if (!data.success) return;
+
+        allExamServices = data.services || [];
+        allConsentQuestions = data.consentQuestions || [];
+        renderExamConfigList(allExamServices);
+
+        if (!selectedExamConfig && allExamServices.length > 0) {
+          selectExamToEdit(allExamServices[0].code);
+        }
+      } catch (e) {
+        console.error("loadExamConfigs error:", e);
+      }
+    }
+
+    function renderExamConfigList(list) {
+      const container = document.getElementById("examConfigList");
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b; font-size:13px;">Tekshiruvlar topilmadi</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(svc => {
+        const isSel = selectedExamConfig && selectedExamConfig.code === svc.code;
+        const typeBadge = svc.type === 'MSKT' 
+          ? '<span style="background:#fef3c7; color:#b45309; font-size:10.5px; font-weight:800; padding:1px 5px; border-radius:4px;">MSKT</span>'
+          : '<span style="background:#e0f2fe; color:#0369a1; font-size:10.5px; font-weight:800; padding:1px 5px; border-radius:4px;">MRT</span>';
+
+        return `
+          <div onclick="selectExamToEdit('${escapeHtml(svc.code)}')" style="padding:10px 12px; border-radius:8px; cursor:pointer; background:${isSel ? '#e0f2fe' : '#ffffff'}; border:1.5px solid ${isSel ? '#0284c7' : '#e2e8f0'}; display:flex; flex-direction:column; gap:3px; transition:all 0.15s;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:900; font-size:12.5px; color:#0f172a;">[${escapeHtml(svc.code)}]</span>
+              <div>${typeBadge} <span style="font-size:11px; color:#64748b; font-weight:700;">⏱️ ${svc.duration || 30}m</span></div>
+            </div>
+            <div style="font-size:12px; color:#334155; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHtml(svc.name)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterExamList() {
+      const query = document.getElementById("examSearchInput").value.toLowerCase().trim();
+      const filtered = allExamServices.filter(s => 
+        (s.code && s.code.toLowerCase().includes(query)) ||
+        (s.name && s.name.toLowerCase().includes(query))
+      );
+      renderExamConfigList(filtered);
+    }
+
+    function selectExamToEdit(code) {
+      const svc = allExamServices.find(s => s.code === code);
+      if (!svc) return;
+
+      selectedExamConfig = svc;
+      renderExamConfigList(allExamServices);
+
+      document.getElementById("examEditorArea").style.display = "block";
+      document.getElementById("edExamCode").innerText = svc.code;
+      document.getElementById("edExamName").innerText = svc.name;
+      document.getElementById("edDuration").value = svc.duration || 30;
+      document.getElementById("edType").value = svc.type || 'MRT';
+      document.getElementById("edPreparation").value = svc.preparation || "Barcha metall buyumlar, soat va telefonni yechish.";
+      document.getElementById("edContraindications").value = svc.contraindications || "Kardiostimulyator, homiladorlik (1-trimestr), og'ir klaustrofobiya.";
+
+      // Rozilik savollari
+      if (Array.isArray(svc.consentQuestions) && svc.consentQuestions.length > 0) {
+        currentExamConsentQuestions = JSON.parse(JSON.stringify(svc.consentQuestions));
+      } else {
+        // Standart savollarni shakllantirish
+        currentExamConsentQuestions = allConsentQuestions.map(q => ({
+          text: q.text,
+          required: q.required !== false
+        }));
+      }
+      renderConsentQuestionsEditor();
+    }
+
+    function renderConsentQuestionsEditor() {
+      const container = document.getElementById("consentQuestionsContainer");
+      if (!currentExamConsentQuestions || currentExamConsentQuestions.length === 0) {
+        container.innerHTML = `<div style="font-size:12.5px; color:#64748b; padding:10px;">Savollar qo'shilmagan. Yuqoridagi "+ Yangi savol qo'shish" tugmasini bosing.</div>`;
+        return;
+      }
+
+      container.innerHTML = currentExamConsentQuestions.map((q, idx) => `
+        <div style="display:flex; gap:8px; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+          <span style="font-weight:800; font-size:12px; color:#0284c7; min-width:20px;">${idx + 1}.</span>
+          <input type="text" value="${escapeHtml(q.text || '')}" oninput="currentExamConsentQuestions[${idx}].text = this.value" style="flex:1; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;" placeholder="Savol matni...">
+          <button type="button" class="btn btn-small btn-danger" onclick="removeConsentQuestion(${idx})" style="padding:4px 8px; font-size:11px;" title="Savolni o'chirish">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function addNewConsentQuestion() {
+      currentExamConsentQuestions.push({
+        text: "Yangi xavfsizlik yoki rozilik savoli",
+        required: true
+      });
+      renderConsentQuestionsEditor();
+    }
+
+    function removeConsentQuestion(idx) {
+      currentExamConsentQuestions.splice(idx, 1);
+      renderConsentQuestionsEditor();
+    }
+
+    async function saveCurrentExamConfig() {
+      if (!selectedExamConfig) return;
+
+      const duration = parseInt(document.getElementById("edDuration").value, 10) || 30;
+      const type = document.getElementById("edType").value;
+      const preparation = document.getElementById("edPreparation").value.trim();
+      const contraindications = document.getElementById("edContraindications").value.trim();
+
+      const payload = {
+        code: selectedExamConfig.code,
+        name: selectedExamConfig.name,
+        type: type,
+        duration: duration,
+        preparation: preparation,
+        contraindications: contraindications,
+        consentQuestions: currentExamConsentQuestions.filter(q => q.text && q.text.trim())
+      };
+
+      try {
+        const res = await fetch("/api/admin/exam-configs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`✅ ${data.message || 'Saqlandi!'}`);
+          const idx = allExamServices.findIndex(s => s.code === payload.code);
+          if (idx !== -1) {
+            allExamServices[idx] = { ...allExamServices[idx], ...payload };
+          }
+          renderExamConfigList(allExamServices);
+        } else {
+          alert("Xatolik: " + (data.error || "Saqlashda xatolik"));
+        }
+      } catch (err) {
+        alert("Server bilan aloqa xatosi: " + err.message);
+      }
+    }
+
+    // =============================================================
+    // 1. ADMIN KARMED BEMOR QIDIRISH VA NAVBATGA QO'YISH
+    // =============================================================
+    let adminCurrentPatient = null;
+    let adminSelectedExam = null;
+    let adminModalSlots = null;
+
+    function toggleAdminManualForm() {
+      const area = document.getElementById("adminManualFormArea");
+      const btnText = document.getElementById("btnManualToggleText");
+      if (area.style.display === "none") {
+        area.style.display = "block";
+        btnText.innerText = "Qo'lda Kiritishni Yopish";
+      } else {
+        area.style.display = "none";
+        btnText.innerText = "+ Qo'lda Bemor Kiritish";
+      }
+    }
+
+    function quickSearchAdmin(id) {
+      document.getElementById("adminSearchInput").value = id;
+      searchPatientAdmin();
+    }
+
+    async function searchPatientAdmin() {
+      const query = document.getElementById("adminSearchInput").value.trim();
+      const loading = document.getElementById("adminSearchLoading");
+      const errBox = document.getElementById("adminSearchError");
+      const cardArea = document.getElementById("adminPatientCardArea");
+
+      if (!query) {
+        alert("Bemor ID, Talon yoki F.I.Sh kiriting!");
+        return;
+      }
+
+      loading.style.display = "block";
+      errBox.style.display = "none";
+      cardArea.style.display = "none";
+
+      try {
+        const res = await fetch("/api/karmed/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patientId: query })
+        });
+        const data = await res.json();
+        loading.style.display = "none";
+
+        if (!data.success || !data.patient) {
+          errBox.innerText = data.error || "Bemor Karmed tizimida topilmadi";
+          errBox.style.display = "block";
+          return;
+        }
+
+        adminCurrentPatient = data.patient;
+        renderAdminPatient(data.patient, data.eligibleExams || []);
+      } catch (err) {
+        loading.style.display = "none";
+        errBox.innerText = "Server bilan aloqa xatosi: " + err.message;
+        errBox.style.display = "block";
+      }
+    }
+
+    function renderAdminPatient(patient, exams) {
+      document.getElementById("admPName").innerText = patient.fullName;
+      document.getElementById("admPId").innerText = `ID: ${patient.patientId}`;
+      document.getElementById("admPBirth").innerText = patient.birthDate || "-";
+      document.getElementById("admPDept").innerText = patient.department || "-";
+      document.getElementById("admPPhone").innerText = patient.phone || "-";
+      document.getElementById("admPType").innerText = patient.patientType || "Ambulator";
+
+      const catBadge = document.getElementById("admPCatBadge");
+      catBadge.innerText = patient.patientCategory || "Oddiy";
+
+      const examsArea = document.getElementById("adminExamsListArea");
+      if (!exams || exams.length === 0) {
+        examsArea.innerHTML = `<div style="padding:16px; background:#fff; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-size:13px; text-align:center;">Bemorga tegishli MRT yoki MSKT tekshiruvlari topilmadi.</div>`;
+      } else {
+        const groups = {};
+        exams.forEach(ex => {
+          const key = `${ex.registrationDate}_${ex.modality}`;
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(ex);
+        });
+
+        let html = "";
+        Object.entries(groups).forEach(([gKey, groupExams]) => {
+          if (groupExams.length > 1) {
+            const first = groupExams[0];
+            const combinedTitle = groupExams.map(x => x.serviceName).join(' + ');
+            const combinedCodes = groupExams.map(x => x.serviceCode).join('+');
+            const hasContrast = groupExams.some(x => x.isContrast);
+
+            html += `
+              <div style="background:#f0fdf4; border:2px solid #86efac; border-radius:12px; padding:14px 16px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <div>
+                    <span style="background:#16a34a; color:#fff; font-size:11px; font-weight:900; padding:3px 8px; border-radius:6px; margin-right:6px;">📦 BIRLASHTIRILGAN SEANS (${groupExams.length} TA)</span>
+                    <span style="font-size:15px; font-weight:900; color:#0f172a;">${escapeHtml(combinedTitle)}</span>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-small" onclick="openAdminCombinedBookingModal('${escapeHtml(gKey)}')">
+                    <i class="fa-solid fa-calendar-check"></i> Birga Navbatga Qo'yish (50 daq)
+                  </button>
+                </div>
+                <div style="font-size:12px; color:#475569; margin-top:6px;">
+                  Sana: <b>${escapeHtml(first.registrationDate)}</b> | Modallik: <b>${escapeHtml(first.modality)}</b> ${hasContrast ? '💉 Kontrastli' : ''}
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        window.adminLoadedExams = exams;
+        exams.forEach((ex, idx) => {
+          const isContrast = Boolean(ex.isContrast);
+          const kr = ex.labResults && ex.labResults.kreatinin;
+          const moch = ex.labResults && ex.labResults.mochevina;
+
+          html += `
+            <div class="exam-card-admin">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <span style="background:#0284c7; color:#fff; font-size:11px; font-weight:900; padding:2px 6px; border-radius:4px; margin-right:6px;">${escapeHtml(ex.serviceCode)}</span>
+                  <span style="font-size:15px; font-weight:800; color:#0f172a;">${escapeHtml(ex.serviceName)}</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-small" onclick="openAdminBookingModal(${idx})">
+                  <i class="fa-solid fa-calendar-plus"></i> Navbatga Qo'yish
+                </button>
+              </div>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:11.5px;">
+                <span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#e0f2fe; color:#0369a1;">${escapeHtml(ex.modality)}</span>
+                ${isContrast ? '<span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#fae8ff; color:#86198f;">💉 Kontrastli</span>' : '<span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f1f5f9; color:#475569;">Kontrastsiz</span>'}
+                <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Ro'yxat: ${escapeHtml(ex.registrationDate)}</span>
+                ${ex.maxAllowedDate ? `<span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#fffbeb; color:#b45309; border:1px solid #fde68a;">Muddati: ${escapeHtml(ex.maxAllowedDate)}</span>` : ''}
+              </div>
+
+              ${isContrast ? `
+                <div style="background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; font-size:11.5px; margin-top:6px;">
+                  <span style="font-weight:800; color:#7e22ce;">🧪 Qon tahlillari:</span>
+                  ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (${kr.daysAgo} kun oldin); ` : 'Kreatinin topilmadi; '}
+                  ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (${moch.daysAgo} kun oldin)` : 'Mochevina topilmadi'}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        examsArea.innerHTML = html;
+      }
+
+      document.getElementById("adminPatientCardArea").style.display = "block";
+    }
+
+    function openAdminBookingModal(examIdx) {
+      if (!window.adminLoadedExams || !window.adminLoadedExams[examIdx]) return;
+      const ex = window.adminLoadedExams[examIdx];
+      adminSelectedExam = ex;
+
+      document.getElementById("admModalPatName").innerText = adminCurrentPatient.fullName;
+      document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
+      document.getElementById("admModalExamName").innerText = `[${ex.serviceCode}] ${ex.serviceName}`;
+
+      document.getElementById("admBDevice").value = ex.suggestedDevice || 'mrt1';
+      document.getElementById("admBContrast").checked = Boolean(ex.isContrast);
+      document.getElementById("admBPhone").value = adminCurrentPatient.phone || '';
+
+      const today = new Date().toISOString().split("T")[0];
+      const dateEl = document.getElementById("admBDate");
+      dateEl.removeAttribute("min");
+      dateEl.value = today;
+
+      document.getElementById("admForceBooking").checked = false;
+      document.getElementById("admCollisionPromptBox").style.display = "none";
+      document.getElementById("admBookingErrorMsg").style.display = "none";
+
+      const labBox = document.getElementById("admModalLabInfo");
+      if (ex.isContrast && ex.labResults && ex.labResults.found) {
+        const kr = ex.labResults.kreatinin;
+        const moch = ex.labResults.mochevina;
+        labBox.innerHTML = `<span style="color:#7e22ce; font-weight:800;">🧪 Qon:</span> ${kr ? `Kreatinin: <b>${kr.value}</b>; ` : ''}${moch ? `Mochevina: <b>${moch.value}</b>` : ''}`;
+        labBox.style.display = "block";
+      } else {
+        labBox.style.display = "none";
+      }
+
+      updateSmartSlotForAdminModal();
+      document.getElementById("modalAdminBooking").style.display = "flex";
+    }
+
+    function openAdminCombinedBookingModal(groupKey) {
+      if (!window.adminLoadedExams) return;
+      const matching = window.adminLoadedExams.filter(ex => `${ex.registrationDate}_${ex.modality}` === groupKey);
+      if (matching.length === 0) return;
+
+      const first = matching[0];
+      const combinedTitle = matching.map(x => x.serviceName).join(' + ');
+      const combinedCodes = matching.map(x => x.serviceCode).join('+');
+      const hasContrast = matching.some(x => x.isContrast);
+
+      adminSelectedExam = {
+        isCombined: true,
+        serviceName: combinedTitle,
+        shortServiceName: combinedTitle,
+        serviceCode: combinedCodes,
+        serviceIds: matching.map(m => m.serviceId).filter(Boolean),
+        childExams: matching,
+        suggestedDevice: first.suggestedDevice || (first.modality === 'MSKT' ? 'mskt1' : (hasContrast ? 'mrt1' : 'mrt2')),
+        durationMinutes: 50,
+        isContrast: hasContrast
+      };
+
+      document.getElementById("admModalPatName").innerText = adminCurrentPatient.fullName;
+      document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
+      document.getElementById("admModalExamName").innerText = `📦 ${combinedCodes} — ${combinedTitle} (${matching.length} ta birga)`;
+
+      document.getElementById("admBDevice").value = adminSelectedExam.suggestedDevice;
+      document.getElementById("admBContrast").checked = Boolean(hasContrast);
+      document.getElementById("admBPhone").value = adminCurrentPatient.phone || '';
+
+      const today = new Date().toISOString().split("T")[0];
+      const dateEl = document.getElementById("admBDate");
+      dateEl.removeAttribute("min");
+      dateEl.value = today;
+
+      document.getElementById("admForceBooking").checked = false;
+      document.getElementById("admCollisionPromptBox").style.display = "none";
+      document.getElementById("admBookingErrorMsg").style.display = "none";
+
+      updateSmartSlotForAdminModal();
+      document.getElementById("modalAdminBooking").style.display = "flex";
+    }
+
+    function closeAdminBookingModal() {
+      document.getElementById("modalAdminBooking").style.display = "none";
+    }
+
+    async function updateSmartSlotForAdminModal() {
+      if (!adminSelectedExam) return;
+      const deviceId = document.getElementById("admBDevice").value;
+      const isContrast = document.getElementById("admBContrast").checked;
+      const scheduledDate = document.getElementById("admBDate").value;
+      const durationMinutes = adminSelectedExam.durationMinutes || (isContrast ? 40 : 30);
+
+      const alertEl = document.getElementById("admDayStatusAlert");
+      const slotsCont = document.getElementById("admSlotsContainer");
+      const shiftBadge = document.getElementById("admShiftBadge");
+      const pillsCont = document.getElementById("admSlotPills");
+      const busyList = document.getElementById("admBusySlotsList");
+
+      try {
+        const res = await fetch("/api/queue/available-slots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId, scheduledDate, durationMinutes })
+        });
+        const data = await res.json();
+        adminModalSlots = data;
+
+        if (!data.isOpen) {
+          alertEl.style.display = "block";
+          alertEl.style.background = "#fffbeb";
+          alertEl.style.border = "1.5px solid #fde68a";
+          alertEl.style.color = "#92400e";
+          alertEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <b>${escapeHtml(data.reason || 'Dam olish kuni')}!</b> Apparat grafigida ish soati yo'q, lekin Admin 'Ustma-ust yozish' orqali yozishi mumkin.`;
+          slotsCont.style.display = "none";
+          return;
+        }
+
+        alertEl.style.display = "none";
+        slotsCont.style.display = "block";
+
+        if (data.intervals && data.intervals.length > 0) {
+          shiftBadge.innerText = data.intervals.map(i => `${i.start}-${i.end}`).join(', ');
+        } else {
+          shiftBadge.innerText = "Ish vaqti ko'rsatilmagan";
+        }
+
+        if (data.recommendedSlot) {
+          document.getElementById("admBTime").value = data.recommendedSlot;
+        }
+
+        if (data.availableSlots && data.availableSlots.length > 0) {
+          pillsCont.innerHTML = data.availableSlots.slice(0, 18).map(slot => `
+            <button type="button" class="slot-pill ${slot === document.getElementById("admBTime").value ? 'active' : ''}" onclick="selectAdminModalTimeSlot('${slot}')">
+              ${slot}
+            </button>
+          `).join('');
+        } else {
+          pillsCont.innerHTML = `<span style="font-size:12px; color:#b91c1c; font-weight:700;">⚠️ Ushbu kunda barcha vaqtlar to'lgan!</span>`;
+        }
+
+        if (data.busySlots && data.busySlots.length > 0) {
+          busyList.style.display = "block";
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.start}-${b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+        } else {
+          busyList.style.display = "none";
+        }
+
+        validateAdminChosenSlot();
+      } catch (e) {
+        console.error("Admin slotlarni yuklashda xatolik:", e);
+      }
+    }
+
+    function selectAdminModalTimeSlot(slot) {
+      document.getElementById("admBTime").value = slot;
+      document.querySelectorAll("#admSlotPills .slot-pill").forEach(p => {
+        p.classList.toggle("active", p.innerText.trim() === slot);
+      });
+      validateAdminChosenSlot();
+    }
+
+    function validateAdminChosenSlot() {
+      const chosenTime = document.getElementById("admBTime").value;
+      const errBox = document.getElementById("admBookingErrorMsg");
+      const isForce = document.getElementById("admForceBooking").checked;
+
+      if (!isForce && adminModalSlots && adminModalSlots.busySlots && adminModalSlots.busySlots.length > 0) {
+        const isOverlap = adminModalSlots.busySlots.some(b => chosenTime >= b.start && chosenTime < b.end);
+        if (isOverlap) {
+          errBox.style.display = "block";
+          errBox.innerHTML = `⚠️ Diqqat: Bu vaqt (${chosenTime}) band! Ustma-ust yozish uchun pastdagi 'Ustma-ust navbatga yozish' katagini belgilang.`;
+          return;
+        }
+      }
+      errBox.style.display = "none";
+    }
+
+    async function submitAdminBooking(e) {
+      if (e) e.preventDefault();
+      const errBox = document.getElementById("admBookingErrorMsg");
+      const promptBox = document.getElementById("admCollisionPromptBox");
+      const promptText = document.getElementById("admCollisionPromptText");
+      errBox.style.display = "none";
+      promptBox.style.display = "none";
+
+      const forceBooking = document.getElementById("admForceBooking").checked;
+      const payload = {
+        patientId: adminCurrentPatient.patientId,
+        patientName: adminCurrentPatient.fullName,
+        phone: document.getElementById("admBPhone").value.trim(),
+        birthDate: adminCurrentPatient.birthDate || '',
+        patientType: adminCurrentPatient.patientType || 'Ambulator',
+        department: adminCurrentPatient.department || '',
+        patientCategory: adminCurrentPatient.patientCategory || '',
+        serviceId: adminSelectedExam.serviceId || (adminSelectedExam.childExams && adminSelectedExam.childExams[0]?.serviceId) || null,
+        serviceIds: adminSelectedExam.serviceIds || (adminSelectedExam.childExams ? adminSelectedExam.childExams.map(c => c.serviceId) : (adminSelectedExam.serviceId ? [adminSelectedExam.serviceId] : [])),
+        dosyaId: adminSelectedExam.dosyaId || (adminSelectedExam.childExams && adminSelectedExam.childExams[0]?.dosyaId) || null,
+        protokolNo: adminSelectedExam.protokolNo || (adminSelectedExam.childExams && adminSelectedExam.childExams[0]?.protokolNo) || null,
+        serviceName: adminSelectedExam.shortServiceName || adminSelectedExam.serviceName,
+        serviceCode: adminSelectedExam.serviceCode,
+        isCombined: Boolean(adminSelectedExam.isCombined),
+        combinedServices: adminSelectedExam.childExams ? adminSelectedExam.childExams.map(c => ({
+          serviceId: c.serviceId,
+          serviceCode: c.serviceCode,
+          serviceName: c.serviceName,
+          dosyaId: c.dosyaId,
+          protokolNo: c.protokolNo
+        })) : null,
+        durationMinutes: adminSelectedExam.durationMinutes || (document.getElementById("admBContrast").checked ? 40 : 30),
+        isContrast: document.getElementById("admBContrast").checked,
+        deviceId: document.getElementById("admBDevice").value,
+        scheduledDate: document.getElementById("admBDate").value,
+        scheduledTime: document.getElementById("admBTime").value,
+        forceBooking: forceBooking,
+        operatorName: 'Admin'
+      };
+
+      try {
+        const res = await fetch("/api/queue/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          closeAdminBookingModal();
+          openTicketModal(data.patient);
+          const curDate = document.getElementById("queueDateSelect").value;
+          loadQueue(curDate);
+        } else {
+          if (data.collision || data.canForce) {
+            promptText.innerHTML = `⚠️ <b>To'qnashuv:</b> ${escapeHtml(data.error)}<br>Admin sifatida ushbu vaqtga <b>USTMA-UST NAVBAT</b> yozishni xohlaysizmi?`;
+            promptBox.style.display = "block";
+          } else {
+            errBox.innerText = data.error || "Xatolik yuz berdi";
+            errBox.style.display = "block";
+          }
+        }
+      } catch (err) {
+        errBox.innerText = "Server bilan aloqa xatosi: " + err.message;
+        errBox.style.display = "block";
+      }
+    }
+
+    function forceSubmitAdminBooking() {
+      document.getElementById("admForceBooking").checked = true;
+      document.getElementById("admCollisionPromptBox").style.display = "none";
+      submitAdminBooking();
+    }
+
+    // =============================================================
+    // 2. ADMIN ISH GRAFIKLARI & ISH VAQTLARI
+    // =============================================================
+    let currentSchedules = {
+      defaultMode: "scheduled",
+      weeklySchedule: {},
+      holidays: [],
+      deviceOverrides: {},
+      dateOverrides: {}
+    };
+
+    const DAY_NAMES = {
+      "1": "Dushanba",
+      "2": "Seshanba",
+      "3": "Chorshanba",
+      "4": "Payshanba",
+      "5": "Juma",
+      "6": "Shanba",
+      "0": "Yakshanba"
+    };
+
+    async function loadSchedulesAdmin() {
+      try {
+        const res = await fetch("/api/admin/schedules");
+        const data = await res.json();
+        if (data.success && data.schedules) {
+          currentSchedules = data.schedules;
+          renderWeeklyScheduleEditor();
+          renderHolidaysEditor();
+        }
+      } catch (err) {
+        console.error("Grafik yuklashda xatolik:", err);
+      }
+    }
+
+    function renderWeeklyScheduleEditor() {
+      const container = document.getElementById("weeklyScheduleEditor");
+      if (!container) return;
+
+      const dayOrder = ["1", "2", "3", "4", "5", "6", "0"];
+      let html = "";
+
+      dayOrder.forEach(dayKey => {
+        const dayConfig = (currentSchedules.weeklySchedule && currentSchedules.weeklySchedule[dayKey]) || { isOpen: false, intervals: [] };
+        const dayName = DAY_NAMES[dayKey];
+        const isOpen = Boolean(dayConfig.isOpen);
+
+        html += `
+          <div style="border:1.5px solid ${isOpen ? '#cbd5e1' : '#fecaca'}; border-radius:10px; padding:12px; background:${isOpen ? '#ffffff' : '#fef2f2'};">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:${isOpen ? '10px' : '0'};">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:15px; font-weight:900; color:${isOpen ? '#0f172a' : '#b91c1c'};">${dayName}</span>
+                <span style="font-size:11px; padding:2px 8px; border-radius:6px; font-weight:800; background:${isOpen ? '#ecfdf5' : '#fee2e2'}; color:${isOpen ? '#065f46' : '#991b1b'};">
+                  ${isOpen ? '✅ Ish kuni' : '⛔ Dam olish kuni'}
+                </span>
+              </div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; cursor:pointer;">
+                <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleDayOpen('${dayKey}', this.checked)" style="width:16px; height:16px;">
+                <span>Ish kuni</span>
+              </label>
+            </div>
+
+            ${isOpen ? `
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${(dayConfig.intervals || []).map((inv, idx) => `
+                  <div style="display:flex; align-items:center; gap:8px; background:#f8fafc; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0;">
+                    <span style="font-size:12px; font-weight:700; color:#475569;">Smena ${idx + 1}:</span>
+                    <input type="time" value="${inv.start || '08:00'}" onchange="updateDayInterval('${dayKey}', ${idx}, 'start', this.value)" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700;">
+                    <span style="font-size:12px; color:#64748b;">dan</span>
+                    <input type="time" value="${inv.end || '14:00'}" onchange="updateDayInterval('${dayKey}', ${idx}, 'end', this.value)" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700;">
+                    <span style="font-size:12px; color:#64748b;">gacha</span>
+                    <button type="button" class="btn btn-small btn-danger" onclick="removeIntervalFromDay('${dayKey}', ${idx})" style="padding:4px 8px; font-size:11px; margin-left:auto;" title="Smenani o'chirish">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                `).join('')}
+
+                <div style="margin-top:4px;">
+                  <button type="button" class="btn btn-small" style="background:#f0f9ff; color:#0284c7; border:1px dashed #38bdf8; font-size:11.5px;" onclick="addIntervalToDay('${dayKey}')">
+                    <i class="fa-solid fa-plus"></i> Yangi smena / vaqt oralig'i qo'shish
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div style="font-size:12px; color:#ef4444; font-weight:600; margin-top:4px;">Ushbu kunga avtomatik navbat berilmaydi.</div>
+            `}
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function toggleDayOpen(dayKey, isOpen) {
+      if (!currentSchedules.weeklySchedule[dayKey]) {
+        currentSchedules.weeklySchedule[dayKey] = { isOpen: false, intervals: [] };
+      }
+      currentSchedules.weeklySchedule[dayKey].isOpen = isOpen;
+      if (isOpen && (!currentSchedules.weeklySchedule[dayKey].intervals || currentSchedules.weeklySchedule[dayKey].intervals.length === 0)) {
+        currentSchedules.weeklySchedule[dayKey].intervals = [{ start: "08:00", end: "14:00" }];
+      }
+      renderWeeklyScheduleEditor();
+    }
+
+    function updateDayInterval(dayKey, idx, field, val) {
+      if (currentSchedules.weeklySchedule[dayKey] && currentSchedules.weeklySchedule[dayKey].intervals[idx]) {
+        currentSchedules.weeklySchedule[dayKey].intervals[idx][field] = val;
+      }
+    }
+
+    function addIntervalToDay(dayKey) {
+      if (!currentSchedules.weeklySchedule[dayKey]) {
+        currentSchedules.weeklySchedule[dayKey] = { isOpen: true, intervals: [] };
+      }
+      const existing = currentSchedules.weeklySchedule[dayKey].intervals || [];
+      let defaultStart = "15:30";
+      let defaultEnd = "19:00";
+      if (existing.length === 0) {
+        defaultStart = "08:00";
+        defaultEnd = "14:00";
+      }
+      existing.push({ start: defaultStart, end: defaultEnd });
+      currentSchedules.weeklySchedule[dayKey].intervals = existing;
+      renderWeeklyScheduleEditor();
+    }
+
+    function removeIntervalFromDay(dayKey, idx) {
+      if (currentSchedules.weeklySchedule[dayKey] && currentSchedules.weeklySchedule[dayKey].intervals) {
+        currentSchedules.weeklySchedule[dayKey].intervals.splice(idx, 1);
+        if (currentSchedules.weeklySchedule[dayKey].intervals.length === 0) {
+          currentSchedules.weeklySchedule[dayKey].isOpen = false;
+        }
+        renderWeeklyScheduleEditor();
+      }
+    }
+
+    function renderHolidaysEditor() {
+      const container = document.getElementById("holidaysListContainer");
+      if (!container) return;
+
+      const holidays = currentSchedules.holidays || [];
+      if (holidays.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:16px; color:#64748b; font-size:12px;">Hozircha bayramlar kiritilmagan</div>`;
+        return;
+      }
+
+      holidays.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+      container.innerHTML = holidays.map((h, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#fff7ed; border:1px solid #fed7aa; padding:8px 12px; border-radius:8px;">
+          <div>
+            <span style="font-weight:900; font-size:12.5px; color:#c2410c; margin-right:6px;">📅 ${escapeHtml(h.date)}:</span>
+            <span style="font-size:13px; font-weight:700; color:#334155;">${escapeHtml(h.name)}</span>
+          </div>
+          <button type="button" class="btn btn-small btn-danger" onclick="removeHoliday(${idx})" style="padding:3px 7px; font-size:11px;" title="Bayramni o'chirish">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function addNewHoliday() {
+      const dateVal = document.getElementById("newHolidayDate").value;
+      const nameVal = document.getElementById("newHolidayName").value.trim();
+      if (!dateVal) {
+        alert("Iltimos, bayram sanasini tanlang!");
+        return;
+      }
+      if (!nameVal) {
+        alert("Iltimos, bayram nomini kiriting!");
+        return;
+      }
+      if (!currentSchedules.holidays) currentSchedules.holidays = [];
+      currentSchedules.holidays.push({ date: dateVal, name: nameVal });
+      document.getElementById("newHolidayDate").value = "";
+      document.getElementById("newHolidayName").value = "";
+      renderHolidaysEditor();
+    }
+
+    function removeHoliday(idx) {
+      if (currentSchedules.holidays) {
+        currentSchedules.holidays.splice(idx, 1);
+        renderHolidaysEditor();
+      }
+    }
+
+    function applySchedulePreset(presetName) {
+      if (presetName === 'standard_break') {
+        currentSchedules.weeklySchedule = {
+          "1": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
+          "2": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
+          "3": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
+          "4": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
+          "5": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
+          "6": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }] },
+          "0": { isOpen: false, intervals: [] }
+        };
+      } else if (presetName === 'standard_full') {
+        currentSchedules.weeklySchedule = {
+          "1": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
+          "2": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
+          "3": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
+          "4": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
+          "5": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
+          "6": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }] },
+          "0": { isOpen: false, intervals: [] }
+        };
+      } else if (presetName === 'mode_24_7') {
+        const full24 = { isOpen: true, intervals: [{ start: "00:00", end: "24:00" }] };
+        currentSchedules.weeklySchedule = {
+          "1": { ...full24 },
+          "2": { ...full24 },
+          "3": { ...full24 },
+          "4": { ...full24 },
+          "5": { ...full24 },
+          "6": { ...full24 },
+          "0": { ...full24 }
+        };
+      }
+      renderWeeklyScheduleEditor();
+      alert("Shablon yuklandi! Tasdiqlash uchun 'Barcha Grafikni Saqlash' tugmasini bosing.");
+    }
+
+    async function saveSchedulesAdmin() {
+      const statusEl = document.getElementById("scheduleSaveStatus");
+      if (statusEl) statusEl.innerText = "Saqlanmoqda...";
+
+      try {
+        const res = await fetch("/api/admin/schedules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentSchedules)
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (statusEl) statusEl.innerText = "✅ Grafik muvaffaqiyatli saqlandi!";
+          alert("✅ Ish grafiklari va dam olish kunlari muvaffaqiyatli saqlandi!");
+          setTimeout(() => { if (statusEl) statusEl.innerText = ""; }, 4000);
+        } else {
+          alert("Xatolik: " + (data.error || "Grafikni saqlab bo'lmadi"));
+          if (statusEl) statusEl.innerText = "❌ Saqlashda xatolik";
+        }
+      } catch (err) {
+        alert("Serverga ulanishda xatolik: " + err.message);
+        if (statusEl) statusEl.innerText = "❌ Aloqa xatosi";
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
