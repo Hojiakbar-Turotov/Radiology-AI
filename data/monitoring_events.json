@@ -1,5 +1,69 @@
 [
   {
+    "id": "ev_1789321605288_ie4q",
+    "timestamp": "2026-09-13T17:46:45.288Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789321604908_fvw0",
+    "timestamp": "2026-09-13T17:46:44.908Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789321604907_sckc",
+    "timestamp": "2026-09-13T17:46:44.907Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789321604905_y94h",
+    "timestamp": "2026-09-13T17:46:44.905Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789318108134_otyz",
+    "timestamp": "2026-09-13T16:48:28.134Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789318108133_govj",
+    "timestamp": "2026-09-13T16:48:28.133Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789318048099_hco9",
+    "timestamp": "2026-09-13T16:47:28.099Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789318048099_jg74",
+    "timestamp": "2026-09-13T16:47:28.099Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
     "id": "ev_1789316667381_by7u",
     "timestamp": "2026-09-13T16:24:27.381Z",
     "component": "mrt_reg_server",

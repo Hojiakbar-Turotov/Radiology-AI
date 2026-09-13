@@ -239,6 +239,26 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { success: true, devices });
     }
 
+    // POST /api/devices - Apparat sozlamalarini yangilash
+    if (req.method === 'POST' && pathname === '/api/devices') {
+      const body = await readBody(req);
+      const devices = readJson(DEVICES_FILE, DEFAULT_DEVICES);
+      if (Array.isArray(body)) {
+        writeJson(DEVICES_FILE, body);
+        return sendJson(res, { success: true, devices: body, message: "Apparatlar ro'yxati saqlandi" });
+      } else if (body && body.id) {
+        const idx = devices.findIndex(d => d.id === body.id);
+        if (idx !== -1) {
+          devices[idx] = { ...devices[idx], ...body };
+        } else {
+          devices.push(body);
+        }
+        writeJson(DEVICES_FILE, devices);
+        return sendJson(res, { success: true, device: devices[idx !== -1 ? idx : devices.length - 1], message: "Apparat sozlamalari saqlandi" });
+      }
+      return sendJson(res, { success: false, error: "Noto'g'ri apparat ma'lumotlari" }, 400);
+    }
+
     // GET /api/services - Xizmatlar ro'yxati
     if (req.method === 'GET' && pathname === '/api/services') {
       const services = readJson(SERVICES_FILE, []);
@@ -301,6 +321,38 @@ const server = http.createServer(async (req, res) => {
           slotInfo.durationMinutes = autoSlot.durationMinutes;
           slotInfo.deviceId = autoSlot.deviceId;
         }
+      }
+
+      // 10 kundan oshgan so'rovlarni rad etish (admin forceBooking bo'lmasa)
+      if (!body.forceBooking && (body.isOlderThan10Days || (body.diffDays && body.diffDays > 10))) {
+        return sendJson(res, {
+          success: false,
+          error: `⛔ Ushbu tekshiruv so'rovi ro'yxatga olinganiga 10 kundan oshgan (${body.diffDays || 10} kun)! Qoidaga asosan 10 kundan oshgan so'rovlarga navbat berilmaydi.`
+        }, 400);
+      }
+
+      // Qurilma mosligi tekshiruvi:
+      const targetDevId = slotInfo.deviceId;
+      const isContrastExam = Boolean(body.isContrast || (body.serviceName && (body.serviceName.toUpperCase().includes('KONTRAST') || body.serviceName.toUpperCase().includes('KM'))));
+      const isMsktExam = (body.modality === 'MSKT') || (body.serviceName && (body.serviceName.toUpperCase().includes('MSKT') || body.serviceName.toUpperCase().includes('KT')));
+      
+      if (isMsktExam && targetDevId !== 'mskt1') {
+        return sendJson(res, {
+          success: false,
+          error: `MSKT tekshiruvi faqat MSKT 1 apparatida o'tkazilishi mumkin!`
+        }, 400);
+      }
+      if (!isMsktExam && targetDevId === 'mskt1') {
+        return sendJson(res, {
+          success: false,
+          error: `MRT tekshiruvi MSKT apparatiga rejalashtirilmaydi! MRT 1 yoki MRT 2 ni tanlang.`
+        }, 400);
+      }
+      if (!isMsktExam && isContrastExam && targetDevId === 'mrt2') {
+        return sendJson(res, {
+          success: false,
+          error: `MRT 2 apparatida injektor mavjud emas va kontrastli tekshiruvlar o'tkazilmaydi! Kontrastli MRT uchun MRT 1 apparatini tanlang.`
+        }, 400);
       }
 
       // Ish grafigi va to'qnashuvni tekshirish (Schedule & Overlap Collision Check)

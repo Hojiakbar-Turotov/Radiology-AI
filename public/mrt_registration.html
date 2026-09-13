@@ -632,6 +632,10 @@
         </button>
       </div>
 
+      <button type="button" id="btnToggleTimeFormat" class="btn btn-secondary btn-small" onclick="toggleTimeFormat()" title="Vaqt formati (24-soatlik / 12-soatlik)" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; border:1.5px solid var(--border); padding:6px 12px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;">
+        <i class="fa-regular fa-clock" style="color:var(--primary);"></i> <span id="lblTimeFormat">24-Soatlik</span>
+      </button>
+
       <div class="ip-badge" id="clientIpBadge">🖥️ IP: <b>Yuklanmoqda...</b></div>
       
       <div id="operatorSection" style="display:none; align-items:center; gap:8px;">
@@ -1094,10 +1098,57 @@
     let refreshTimerInterval = null;
     let refreshSecondsLeft = 60;
 
+    // -------------------------------------------------------------
+    // 24-SOATLIK VA 12-SOATLIK VAQT BOSHQARUVI (DEFAULT: 24-SOATLIK)
+    // -------------------------------------------------------------
+    function formatTimeDisplay(timeStr) {
+      if (!timeStr) return '';
+      const is12h = (localStorage.getItem('MRT_TIME_FORMAT') === '12h');
+      if (!is12h) return timeStr; // Default: 24h format (08:30, 14:00)
+
+      if (timeStr.includes(' - ')) {
+        return timeStr.split(' - ').map(t => formatTimeDisplay(t.trim())).join(' - ');
+      }
+      if (timeStr.includes(' – ')) {
+        return timeStr.split(' – ').map(t => formatTimeDisplay(t.trim())).join(' – ');
+      }
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1];
+      if (isNaN(h)) return timeStr;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+      return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
+    }
+
+    function toggleTimeFormat() {
+      const cur = localStorage.getItem('MRT_TIME_FORMAT') || '24h';
+      const next = cur === '24h' ? '12h' : '24h';
+      localStorage.setItem('MRT_TIME_FORMAT', next);
+      updateTimeFormatButton();
+      syncRegistratorTimes();
+      updateSmartSlotForModal();
+      loadQueue();
+      if (window.loadedEligibleExams && currentPatientData) {
+        renderExamsList(window.loadedEligibleExams);
+      }
+    }
+
+    function updateTimeFormatButton() {
+      const is12h = (localStorage.getItem('MRT_TIME_FORMAT') === '12h');
+      const lbl = document.getElementById("lblTimeFormat");
+      if (lbl) {
+        lbl.innerText = is12h ? '12-Soatlik' : '24-Soatlik';
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("queueDateInput").value = today;
 
+      updateTimeFormatButton();
       await checkAuthAndIp();
       await loadPrinterSettings();
       await loadExamConfigs();
@@ -1538,6 +1589,7 @@
       const serviceNames = exams.map(e => `[${e.serviceCode}] ${e.serviceName}`).join(' va ');
       const shortServiceNames = exams.map(e => e.serviceName).join(' + ');
       const suggestedDevice = exams.some(e => e.suggestedDevice === 'mrt1') ? 'mrt1' : (exams[0].suggestedDevice || 'mrt1');
+      const isOlderThan10Days = exams.some(e => e.isOlderThan10Days || e.diffDays > 10);
       const isOlderThan5Days = exams.some(e => e.isOlderThan5Days);
       const maxAllowedDate = exams[0].maxAllowedDate;
       const diffDays = exams[0].diffDays;
@@ -1548,6 +1600,8 @@
       const isAllQueued = exams.every(e => e.isAlreadyQueued);
       const isAnyQueued = exams.some(e => e.isAlreadyQueued);
       const firstQueued = exams.find(e => e.isAlreadyQueued && e.existingQueueInfo);
+
+      const compatibleDevices = isContrast ? ['mrt1'] : (group.modality === 'MSKT' ? ['mskt1'] : ['mrt2', 'mrt1']);
 
       return {
         isCombined: true,
@@ -1563,9 +1617,11 @@
         shortServiceName: shortServiceNames,
         isContrast: isContrast,
         suggestedDevice: suggestedDevice,
+        compatibleDevices: compatibleDevices,
         durationMinutes: 50,
         registrationDate: group.date,
         maxAllowedDate: maxAllowedDate,
+        isOlderThan10Days: isOlderThan10Days,
         isOlderThan5Days: isOlderThan5Days,
         diffDays: diffDays,
         labResults: labResults,
@@ -1582,11 +1638,22 @@
 
     function renderSingleExamCard(ex, idx, isNested = false) {
       const isMskt = ex.modality === 'MSKT';
-      const tagMod = isMskt ? '<span class="badge-tag tag-mskt">⚡ MSKT</span>' : '<span class="badge-tag tag-mrt">🧲 MRT</span>';
+      const tagMod = isMskt 
+        ? '<span class="badge-tag" style="background:#fef3c7; color:#b45309; font-weight:800; border:1px solid #fde68a;"><i class="fa-solid fa-bolt"></i> ⚡ MSKT</span>' 
+        : '<span class="badge-tag" style="background:#e0f2fe; color:#0369a1; font-weight:800; border:1px solid #bae6fd;"><i class="fa-solid fa-magnet"></i> 🧲 MRT</span>';
       const tagContrast = ex.isContrast ? '<span class="badge-tag tag-contrast">💉 Kontrastli</span>' : '';
+      const isOlderThan10 = Boolean(ex.isOlderThan10Days || ex.diffDays > 10);
 
-      // 5 kundan oshganlik ogohlantirishi
-      const warn5Days = ex.isOlderThan5Days 
+      // 10 kundan oshganlik ogohlantirishi (DANGER)
+      const warn10Days = isOlderThan10 
+        ? `<div style="background:#fee2e2; border:1.5px solid #f87171; color:#991b1b; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:900; margin-top:8px; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-ban" style="font-size:16px;"></i>
+            <div>⛔ DIQQAT! Ushbu tekshiruv Karmedda ro'yxatga olinganiga 10 kundan oshgan (${ex.diffDays} kun oldin yozilgan). Navbat berish qat'iyan taqiqlanadi!</div>
+          </div>`
+        : '';
+
+      // 5 kundan oshganlik ogohlantirishi (faqat 10 kundan oshmagan bo'lsa)
+      const warn5Days = (!isOlderThan10 && ex.isOlderThan5Days) 
         ? `<div class="warn-box-5days"><i class="fa-solid fa-triangle-exclamation"></i> Karmedda ro'yxatga olinganiga 5 kundan oshgan (${ex.diffDays} kun oldin yozilgan)!</div>`
         : '';
 
@@ -1637,10 +1704,10 @@
 
       // Tugma yoki Holat belgisi
       let actionAreaHtml = '';
-      let statusBorderStyle = '';
+      let statusCardStyle = '';
 
       if (ex.isCompleted) {
-        statusBorderStyle = 'border-left: 5px solid #10b981;';
+        statusCardStyle = 'border-left: 6px solid #10b981; background: #f0fdf4; border-top: 1.5px solid #86efac; border-right: 1.5px solid #86efac; border-bottom: 1.5px solid #86efac;';
         actionAreaHtml = `
           <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
             <div class="badge-status-completed" style="padding:4px 10px;">
@@ -1655,20 +1722,33 @@
             </button>
           </div>
         `;
+      } else if (isOlderThan10) {
+        statusCardStyle = 'border-left: 6px solid #ef4444; background: #fef2f2; border-top: 1.5px solid #fca5a5; border-right: 1.5px solid #fca5a5; border-bottom: 1.5px solid #fca5a5;';
+        actionAreaHtml = `
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:800;">
+              <i class="fa-solid fa-clock-rotate-left"></i> Muddat o'tgan
+            </span>
+            <button disabled class="btn btn-small" style="background:#e2e8f0; color:#94a3b8; cursor:not-allowed; font-weight:800; padding:8px 14px; border:1px solid #cbd5e1;">
+              <i class="fa-solid fa-ban"></i> 10 kundan oshgan (Yozib bo'lmaydi)
+            </button>
+          </div>
+        `;
       } else if (ex.isAlreadyQueued && ex.existingQueueInfo) {
-        statusBorderStyle = 'border-left: 5px solid #f59e0b;';
+        statusCardStyle = 'border-left: 6px solid #f59e0b; background: #fffbeb; border-top: 1.5px solid #fde68a; border-right: 1.5px solid #fde68a; border-bottom: 1.5px solid #fde68a;';
         const qInfo = ex.existingQueueInfo;
+        const timeDisp = qInfo.timeSlot ? formatTimeDisplay(qInfo.timeSlot) : (qInfo.finishTime ? `${formatTimeDisplay(qInfo.scheduledTime)} – ${formatTimeDisplay(qInfo.finishTime)}` : formatTimeDisplay(qInfo.scheduledTime));
         actionAreaHtml = `
           <div class="badge-status-queued">
             <div><i class="fa-solid fa-clock-rotate-left"></i> <b>Allaqachon navbatga qo'yilgan</b></div>
             <div style="font-size:11px; margin-top:3px;">
-              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(qInfo.scheduledTime || '-')})</b>
+              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(timeDisp || '-')})</b>
             </div>
             <div style="font-size:10.5px; opacity:0.85; margin-top:1px;">Qurilma: <b>${escapeHtml((qInfo.deviceId || '').toUpperCase())}</b> (${escapeHtml(qInfo.statusText || qInfo.status)})</div>
           </div>
         `;
       } else {
-        statusBorderStyle = isNested ? '' : 'border-left: 5px solid #0284c7;';
+        statusCardStyle = 'border-left: 6px solid #3b82f6; background: #ffffff; border-top: 1.5px solid #bfdbfe; border-right: 1.5px solid #bfdbfe; border-bottom: 1.5px solid #bfdbfe;';
         const btnText = isNested ? '<i class="fa-solid fa-calendar-plus"></i> Alohida navbatga qo\'yish' : '<i class="fa-solid fa-calendar-plus"></i> Navbatga qo\'yish';
         actionAreaHtml = `
           <button class="btn btn-primary btn-small" onclick="openBookingModal(${idx})">
@@ -1678,8 +1758,8 @@
       }
 
       const cardStyle = isNested 
-        ? `background:#ffffff; border:1.5px solid #cbd5e1; margin-bottom:6px; box-shadow:none; ${statusBorderStyle}` 
-        : statusBorderStyle;
+        ? `${statusCardStyle} margin-bottom:6px; box-shadow:none;` 
+        : statusCardStyle;
 
       return `
         <div class="exam-card" style="${cardStyle}">
@@ -1705,6 +1785,7 @@
             <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Vrach: ${escapeHtml(ex.doctorName || '-')}</span>
             <span class="badge-tag" style="background:#f1f5f9; color:#475569;">Sana: ${escapeHtml(ex.registrationDate)}</span>
           </div>
+          ${warn10Days}
           ${warn5Days}
           ${labHtml}
         </div>
@@ -1715,10 +1796,20 @@
       window.combinedExamsMap[cEx.groupKey] = cEx;
 
       const isMskt = cEx.modality === 'MSKT';
-      const tagMod = isMskt ? '<span class="badge-tag tag-mskt">⚡ MSKT</span>' : '<span class="badge-tag tag-mrt">🧲 MRT</span>';
+      const tagMod = isMskt 
+        ? '<span class="badge-tag" style="background:#fef3c7; color:#b45309; font-weight:800; border:1px solid #fde68a;"><i class="fa-solid fa-bolt"></i> ⚡ MSKT</span>' 
+        : '<span class="badge-tag" style="background:#e0f2fe; color:#0369a1; font-weight:800; border:1px solid #bae6fd;"><i class="fa-solid fa-magnet"></i> 🧲 MRT</span>';
       const tagContrast = cEx.isContrast ? '<span class="badge-tag tag-contrast">💉 Kontrastli (Injektor)</span>' : '';
+      const isOlderThan10 = Boolean(cEx.isOlderThan10Days || cEx.diffDays > 10);
 
-      const warn5Days = cEx.isOlderThan5Days 
+      const warn10Days = isOlderThan10 
+        ? `<div style="background:#fee2e2; border:1.5px solid #f87171; color:#991b1b; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-ban" style="font-size:18px;"></i>
+            <div>⛔ DIQQAT! Ushbu to'plam Karmedda ro'yxatga olinganiga 10 kundan oshgan (${cEx.diffDays} kun oldin yozilgan). Navbat berish qat'iyan taqiqlanadi!</div>
+          </div>`
+        : '';
+
+      const warn5Days = (!isOlderThan10 && cEx.isOlderThan5Days) 
         ? `<div class="warn-box-5days"><i class="fa-solid fa-triangle-exclamation"></i> Karmedda ro'yxatga olinganiga 5 kundan oshgan (${cEx.diffDays} kun oldin yozilgan)!</div>`
         : '';
 
@@ -1785,13 +1876,25 @@
             </button>
           </div>
         `;
+      } else if (isOlderThan10) {
+        combinedActionHtml = `
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800;">
+              <i class="fa-solid fa-clock-rotate-left"></i> Muddat o'tgan
+            </span>
+            <button disabled class="btn btn-small" style="background:#e2e8f0; color:#94a3b8; cursor:not-allowed; font-weight:800; padding:10px 18px; border:1px solid #cbd5e1;">
+              <i class="fa-solid fa-ban"></i> 10 kundan oshgan (Yozib bo'lmaydi)
+            </button>
+          </div>
+        `;
       } else if (cEx.isAllQueued && cEx.existingQueueInfo) {
         const qInfo = cEx.existingQueueInfo;
+        const timeDisp = qInfo.timeSlot ? formatTimeDisplay(qInfo.timeSlot) : (qInfo.finishTime ? `${formatTimeDisplay(qInfo.scheduledTime)} – ${formatTimeDisplay(qInfo.finishTime)}` : formatTimeDisplay(qInfo.scheduledTime));
         combinedActionHtml = `
           <div class="badge-status-queued" style="padding:8px 14px;">
             <div><i class="fa-solid fa-clock-rotate-left"></i> <b>Allaqachon birga navbatga qo'yilgan</b></div>
             <div style="font-size:11.5px; margin-top:3px;">
-              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(qInfo.scheduledTime || '-')})</b>
+              Talon: <b style="color:#b45309;">${escapeHtml(qInfo.ticketNumber)}</b> | Sana: <b>${escapeHtml(qInfo.scheduledDate)} (${escapeHtml(timeDisp || '-')})</b>
             </div>
             <div style="font-size:11px; opacity:0.85;">Qurilma: <b>${escapeHtml((qInfo.deviceId || '').toUpperCase())}</b> (${escapeHtml(qInfo.statusText || qInfo.status)})</div>
           </div>
@@ -1822,15 +1925,23 @@
         return renderSingleExamCard(item.exam, item.index, true);
       }).join('');
 
+      let borderStyle = 'border: 2px solid #0284c7; background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 60%); box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);';
+      if (cEx.isAllCompleted) {
+        borderStyle = 'border: 2px solid #10b981; background: #f0fdf4;';
+      } else if (isOlderThan10) {
+        borderStyle = 'border: 2px solid #ef4444; background: #fef2f2;';
+      }
+
       return `
-        <div class="exam-card" style="border: 2px solid #0284c7; background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 60%); box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);">
+        <div class="exam-card" style="${borderStyle}">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
-            <span style="background:#0284c7; color:#fff; font-size:11.5px; font-weight:900; padding:4px 10px; border-radius:6px; letter-spacing:0.4px;">
+            <span style="background:${isOlderThan10 ? '#ef4444' : '#0284c7'}; color:#fff; font-size:11.5px; font-weight:900; padding:4px 10px; border-radius:6px; letter-spacing:0.4px;">
               <i class="fa-solid fa-layer-group"></i> BIRGALIKDA O'TKAZILADIGAN TEKSHIRUVLAR (${cEx.itemsCount} TA TEKSHIRUV BIRGA)
             </span>
             <span style="font-size:12px; font-weight:800; color:#0369a1;"><i class="fa-regular fa-clock"></i> Birlashtirilgan seans: 50 daqiqa</span>
           </div>
 
+          ${warn10Days}
           ${partialWarningHtml}
 
           <div class="exam-title" style="font-size:15px; line-height:1.45; align-items:flex-start; margin-bottom:10px;">
@@ -1896,6 +2007,8 @@
         container.style.display = "none";
         if (textSpan) textSpan.innerHTML = `<i class="fa-solid fa-calendar-days"></i> Alohida kunlarga navbatga qo'yish ▼`;
       }
+    }
+
     function printExamReport(idx) {
       const ex = window.loadedEligibleExams && window.loadedEligibleExams[idx];
       const pat = currentPatientData;
@@ -1920,6 +2033,11 @@
         return;
       }
 
+      if (cEx.isOlderThan10Days || cEx.diffDays > 10) {
+        alert("⛔ DIQQAT! Ushbu tekshiruv Karmedda ro'yxatga olinganiga 10 kundan oshgan (" + cEx.diffDays + " kun oldin yozilgan). Registratura unga navbat berishi taqiqlangan!");
+        return;
+      }
+
       selectedExamData = cEx;
 
       document.getElementById("bPatientName").innerText = currentPatientData.fullName;
@@ -1927,7 +2045,45 @@
       document.getElementById("bExamName").innerText = `📦 ${cEx.serviceCode} — ${cEx.shortServiceName} (${cEx.itemsCount} ta tekshiruv birga)`;
       document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${cEx.registrationDate} | Ruxsat etilgan oxirgi sana: ${cEx.maxAllowedDate} | Birlashtirilgan seans: 50 daqiqa`;
 
-      document.getElementById("bDevice").value = cEx.suggestedDevice || 'mrt1';
+      // Qurilmalarni moslik bo'yicha cheklash
+      const isMskt = (cEx.modality === 'MSKT');
+      const isContrast = Boolean(cEx.isContrast);
+      let allowedDevices = ['mrt1', 'mrt2', 'mskt1'];
+      if (cEx.compatibleDevices && cEx.compatibleDevices.length > 0) {
+        allowedDevices = cEx.compatibleDevices;
+      } else if (isMskt) {
+        allowedDevices = ['mskt1'];
+      } else if (isContrast) {
+        allowedDevices = ['mrt1'];
+      } else {
+        allowedDevices = ['mrt2', 'mrt1'];
+      }
+
+      const bDevSelect = document.getElementById("bDevice");
+      Array.from(bDevSelect.options).forEach(opt => {
+        const isAllowed = allowedDevices.includes(opt.value);
+        opt.disabled = !isAllowed;
+        if (!isAllowed) {
+          if (opt.value === 'mrt2' && isContrast) {
+            opt.text = "🧲 MRT 2 (Injektor yo'q — Kontrastga to'g'ri kelmaydi)";
+          } else if (opt.value === 'mskt1' && !isMskt) {
+            opt.text = "⚡ MSKT 1 (Faqat MSKT tekshiruvlari uchun)";
+          } else if (opt.value.startsWith('mrt') && isMskt) {
+            opt.text = opt.value === 'mrt1' ? "🧲 MRT 1 (Faqat MRT uchun)" : "🧲 MRT 2 (Faqat MRT uchun)";
+          }
+        } else {
+          if (opt.value === 'mrt1') opt.text = "🧲 MRT 1 (1.5 Tesla - Injektorli, Barcha MRT)";
+          if (opt.value === 'mrt2') opt.text = "🧲 MRT 2 (1.5 Tesla - Kontrastsiz MRT)";
+          if (opt.value === 'mskt1') opt.text = "⚡ MSKT 1 (Kompyuter Tomografiyasi)";
+        }
+      });
+
+      if (allowedDevices.includes(cEx.suggestedDevice)) {
+        bDevSelect.value = cEx.suggestedDevice;
+      } else {
+        bDevSelect.value = allowedDevices[0];
+      }
+
       document.getElementById("bContrast").checked = Boolean(cEx.isContrast);
 
       // Telefon raqamini o'rnatish
@@ -2004,6 +2160,11 @@
       }
 
       const ex = window.loadedEligibleExams[examIdx];
+      if (ex.isOlderThan10Days || ex.diffDays > 10) {
+        alert("⛔ DIQQAT! Ushbu tekshiruv Karmedda ro'yxatga olinganiga 10 kundan oshgan (" + ex.diffDays + " kun oldin yozilgan). Registratura unga navbat berishi taqiqlangan!");
+        return;
+      }
+
       selectedExamData = ex;
 
       document.getElementById("bPatientName").innerText = currentPatientData.fullName;
@@ -2011,7 +2172,45 @@
       document.getElementById("bExamName").innerText = `[${ex.serviceCode}] ${ex.serviceName}`;
       document.getElementById("bRegDateInfo").innerText = `Ro'yxatga olingan: ${ex.registrationDate} | Ruxsat etilgan oxirgi sana: ${ex.maxAllowedDate}`;
 
-      document.getElementById("bDevice").value = ex.suggestedDevice || 'mrt1';
+      // Qurilmalarni moslik bo'yicha cheklash
+      const isMskt = (ex.modality === 'MSKT');
+      const isContrast = Boolean(ex.isContrast);
+      let allowedDevices = ['mrt1', 'mrt2', 'mskt1'];
+      if (ex.compatibleDevices && ex.compatibleDevices.length > 0) {
+        allowedDevices = ex.compatibleDevices;
+      } else if (isMskt) {
+        allowedDevices = ['mskt1'];
+      } else if (isContrast) {
+        allowedDevices = ['mrt1'];
+      } else {
+        allowedDevices = ['mrt2', 'mrt1'];
+      }
+
+      const bDevSelect = document.getElementById("bDevice");
+      Array.from(bDevSelect.options).forEach(opt => {
+        const isAllowed = allowedDevices.includes(opt.value);
+        opt.disabled = !isAllowed;
+        if (!isAllowed) {
+          if (opt.value === 'mrt2' && isContrast) {
+            opt.text = "🧲 MRT 2 (Injektor yo'q — Kontrastga to'g'ri kelmaydi)";
+          } else if (opt.value === 'mskt1' && !isMskt) {
+            opt.text = "⚡ MSKT 1 (Faqat MSKT tekshiruvlari uchun)";
+          } else if (opt.value.startsWith('mrt') && isMskt) {
+            opt.text = opt.value === 'mrt1' ? "🧲 MRT 1 (Faqat MRT uchun)" : "🧲 MRT 2 (Faqat MRT uchun)";
+          }
+        } else {
+          if (opt.value === 'mrt1') opt.text = "🧲 MRT 1 (1.5 Tesla - Injektorli, Barcha MRT)";
+          if (opt.value === 'mrt2') opt.text = "🧲 MRT 2 (1.5 Tesla - Kontrastsiz MRT)";
+          if (opt.value === 'mskt1') opt.text = "⚡ MSKT 1 (Kompyuter Tomografiyasi)";
+        }
+      });
+
+      if (allowedDevices.includes(ex.suggestedDevice)) {
+        bDevSelect.value = ex.suggestedDevice;
+      } else {
+        bDevSelect.value = allowedDevices[0];
+      }
+
       document.getElementById("bContrast").checked = Boolean(ex.isContrast);
 
       // Telefon raqamini o'rnatish
@@ -2169,7 +2368,7 @@
       if (bTimeEl && bTimeEl.value) {
         const endTime = addMinutesToTime(bTimeEl.value, dur);
         if (bEndTimeEl) bEndTimeEl.value = endTime;
-        if (timeDisp) timeDisp.innerHTML = `<b>${bTimeEl.value}</b> dan <b>${endTime}</b> gacha (${dur} daqiqa)`;
+        if (timeDisp) timeDisp.innerHTML = `<b>${formatTimeDisplay(bTimeEl.value)}</b> dan <b>${formatTimeDisplay(endTime)}</b> gacha (${dur} daqiqa)`;
       } else {
         if (bEndTimeEl) bEndTimeEl.value = '';
         if (timeDisp) timeDisp.innerText = '-';
@@ -2230,7 +2429,7 @@
 
         // Smena vaqtlari
         if (data.intervals && data.intervals.length > 0) {
-          shiftBadge.innerText = data.intervals.map(i => `${i.start}-${i.end}`).join(', ');
+          shiftBadge.innerText = data.intervals.map(i => `${formatTimeDisplay(i.start)}-${formatTimeDisplay(i.end)}`).join(', ');
         } else {
           shiftBadge.innerText = "Ish vaqti ko'rsatilmagan";
         }
@@ -2249,7 +2448,7 @@
             const isActive = (slot === document.getElementById("bTime").value);
             return `
               <button type="button" class="slot-pill ${isActive ? 'active' : ''}" onclick="selectModalTimeSlot('${slot}')" style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px;">
-                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${slot} – ${finish}</span>
+                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${formatTimeDisplay(slot)} – ${formatTimeDisplay(finish)}</span>
                 <span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:1px 5px; border-radius:4px; font-weight:700;">${dur}m</span>
               </button>
             `;
@@ -2261,7 +2460,7 @@
         // Band vaqtlar (collision haqida xabar)
         if (data.busySlots && data.busySlots.length > 0) {
           busyList.style.display = "block";
-          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.startTime}-${b.finishTime} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${formatTimeDisplay(b.startTime)}-${formatTimeDisplay(b.finishTime)} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
         } else {
           busyList.style.display = "none";
         }
@@ -2305,7 +2504,7 @@
         });
         if (isOverlap) {
           errBox.style.display = "block";
-          errBox.innerText = `⛔ Tanlangan vaqt (${chosenTime}) band! Iltimos, boshqa bo'sh vaqtni tanlang.`;
+          errBox.innerText = `⛔ Tanlangan vaqt (${formatTimeDisplay(chosenTime)}) band! Iltimos, boshqa bo'sh vaqtni tanlang.`;
           btnSubmit.disabled = true;
           return;
         }
@@ -2319,6 +2518,12 @@
       e.preventDefault();
       const errBox = document.getElementById("bookingErrorMsg");
       errBox.style.display = "none";
+
+      if (selectedExamData && (selectedExamData.isOlderThan10Days || selectedExamData.diffDays > 10)) {
+        errBox.innerText = `⛔ DIQQAT! Ushbu tekshiruv Karmedda ro'yxatga olinganiga 10 kundan oshgan (${selectedExamData.diffDays} kun oldin yozilgan). Navbat berish qat'iyan taqiqlangan!`;
+        errBox.style.display = "block";
+        return;
+      }
 
       const token = localStorage.getItem("op_token");
       if (!token) {
@@ -2482,11 +2687,15 @@
           statusTag = '<span style="color:#0284c7; font-size:11px;">⏳ Kutmoqda</span>';
         }
 
+        const timeSlotStr = p.timeSlot 
+          ? formatTimeDisplay(p.timeSlot) 
+          : (p.finishTime ? `${formatTimeDisplay(p.scheduledTime)} – ${formatTimeDisplay(p.finishTime)}` : formatTimeDisplay(p.scheduledTime));
+
         return `
           <div class="q-item ${statusCls}">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="q-ticket">${escapeHtml(p.ticketNumber)}</span>
-              <span style="font-weight:800; color:#0369a1; font-size:11.5px;">⏰ ${escapeHtml(p.timeSlot || (p.finishTime ? `${p.scheduledTime} – ${p.finishTime}` : p.scheduledTime) || '')}</span>
+              <span style="font-weight:800; color:#0369a1; font-size:11.5px;">⏰ ${escapeHtml(timeSlotStr || '')}</span>
             </div>
             <div style="font-weight:800; color:#0f172a; margin-top:2px;">${escapeHtml(p.patientName)}</div>
             <div style="font-size:11px; color:var(--muted); margin-top:1px;">${escapeHtml(p.primaryService || '')}</div>

@@ -1,69 +1,136 @@
 {
   "activeMode": "custom",
   "weeklySchedule": {
+    "0": {
+      "isOpen": false,
+      "intervals": []
+    },
     "1": {
-      "dayName": "Dushanba",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" },
-        { "start": "15:30", "end": "19:00" }
+        {
+          "start": "08:00",
+          "end": "19:00"
+        }
       ]
     },
     "2": {
-      "dayName": "Seshanba",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" },
-        { "start": "15:30", "end": "19:00" }
+        {
+          "start": "08:00",
+          "end": "19:00"
+        }
       ]
     },
     "3": {
-      "dayName": "Chorshanba",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" },
-        { "start": "15:30", "end": "19:00" }
+        {
+          "start": "08:00",
+          "end": "19:00"
+        }
       ]
     },
     "4": {
-      "dayName": "Payshanba",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" },
-        { "start": "15:30", "end": "19:00" }
+        {
+          "start": "08:00",
+          "end": "19:00"
+        }
       ]
     },
     "5": {
-      "dayName": "Juma",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" },
-        { "start": "15:30", "end": "19:00" }
+        {
+          "start": "08:00",
+          "end": "19:00"
+        }
       ]
     },
     "6": {
-      "dayName": "Shanba",
       "isOpen": true,
       "intervals": [
-        { "start": "08:00", "end": "14:00" }
+        {
+          "start": "08:00",
+          "end": "14:00"
+        }
       ]
-    },
-    "0": {
-      "dayName": "Yakshanba",
-      "isOpen": false,
-      "intervals": []
     }
   },
-  "deviceOverrides": {},
+  "deviceOverrides": {
+    "mrt1": {
+      "deviceName": "1-MRT (1.5 Tesla - Injektorli)",
+      "weeklySchedule": {
+        "0": { "isOpen": false, "dayName": "Yakshanba", "intervals": [] },
+        "1": { "isOpen": true, "dayName": "Dushanba", "intervals": [{ "start": "08:00", "end": "20:00" }] },
+        "2": { "isOpen": true, "dayName": "Seshanba", "intervals": [{ "start": "08:00", "end": "20:00" }] },
+        "3": { "isOpen": true, "dayName": "Chorshanba", "intervals": [{ "start": "08:00", "end": "20:00" }] },
+        "4": { "isOpen": true, "dayName": "Payshanba", "intervals": [{ "start": "08:00", "end": "20:00" }] },
+        "5": { "isOpen": true, "dayName": "Juma", "intervals": [{ "start": "08:00", "end": "20:00" }] },
+        "6": { "isOpen": true, "dayName": "Shanba", "intervals": [{ "start": "08:00", "end": "15:00" }] }
+      }
+    },
+    "mrt2": {
+      "deviceName": "2-MRT (1.5 Tesla - Kontrastsiz)",
+      "weeklySchedule": {
+        "0": { "isOpen": false, "dayName": "Yakshanba", "intervals": [] },
+        "1": { "isOpen": true, "dayName": "Dushanba", "intervals": [{ "start": "08:30", "end": "18:30" }] },
+        "2": { "isOpen": true, "dayName": "Seshanba", "intervals": [{ "start": "08:30", "end": "18:30" }] },
+        "3": { "isOpen": true, "dayName": "Chorshanba", "intervals": [{ "start": "08:30", "end": "18:30" }] },
+        "4": { "isOpen": true, "dayName": "Payshanba", "intervals": [{ "start": "08:30", "end": "18:30" }] },
+        "5": { "isOpen": true, "dayName": "Juma", "intervals": [{ "start": "08:30", "end": "18:30" }] },
+        "6": { "isOpen": true, "dayName": "Shanba", "intervals": [{ "start": "08:30", "end": "14:30" }] }
+      }
+    },
+    "mskt1": {
+      "deviceName": "1-MSKT (128 Kesim)",
+      "weeklySchedule": {
+        "0": { "isOpen": false, "dayName": "Yakshanba", "intervals": [] },
+        "1": { "isOpen": true, "dayName": "Dushanba", "intervals": [{ "start": "08:00", "end": "17:00" }] },
+        "2": { "isOpen": true, "dayName": "Seshanba", "intervals": [{ "start": "08:00", "end": "17:00" }] },
+        "3": { "isOpen": true, "dayName": "Chorshanba", "intervals": [{ "start": "08:00", "end": "17:00" }] },
+        "4": { "isOpen": true, "dayName": "Payshanba", "intervals": [{ "start": "08:00", "end": "17:00" }] },
+        "5": { "isOpen": true, "dayName": "Juma", "intervals": [{ "start": "08:00", "end": "17:00" }] },
+        "6": { "isOpen": true, "dayName": "Shanba", "intervals": [{ "start": "08:00", "end": "14:00" }] }
+      }
+    }
+  },
   "dateOverrides": {},
   "holidays": [
-    { "date": "2026-01-01", "name": "Yangi yil bayrami" },
-    { "date": "2026-01-02", "name": "Yangi yil qo'shimcha dam olish kuni" },
-    { "date": "2026-03-08", "name": "Xalqaro xotin-qizlar kuni" },
-    { "date": "2026-03-21", "name": "Navro'z umumxalq bayrami" },
-    { "date": "2026-05-09", "name": "Xotira va qadrlash kuni" },
-    { "date": "2026-09-01", "name": "Mustaqillik kuni" },
-    { "date": "2026-10-01", "name": "O'qituvchi va murabbiylar kuni" },
-    { "date": "2026-12-08", "name": "Konstitutsiya kuni" }
+    {
+      "date": "2026-01-01",
+      "name": "Yangi yil bayrami"
+    },
+    {
+      "date": "2026-01-02",
+      "name": "Yangi yil qo'shimcha dam olish kuni"
+    },
+    {
+      "date": "2026-03-08",
+      "name": "Xalqaro xotin-qizlar kuni"
+    },
+    {
+      "date": "2026-03-21",
+      "name": "Navro'z umumxalq bayrami"
+    },
+    {
+      "date": "2026-05-09",
+      "name": "Xotira va qadrlash kuni"
+    },
+    {
+      "date": "2026-09-01",
+      "name": "Mustaqillik kuni"
+    },
+    {
+      "date": "2026-10-01",
+      "name": "O'qituvchi va murabbiylar kuni"
+    },
+    {
+      "date": "2026-12-08",
+      "name": "Konstitutsiya kuni"
+    }
   ]
 }

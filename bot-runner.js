@@ -25,7 +25,27 @@ const BOT_SETTINGS_FILE = path.join(ROOT_DIR, 'data', 'bot_settings.json');
 const TUNNEL_CONFIG_FILE = path.join(ROOT_DIR, 'tunnel_config.json');
 const TUNNEL_STATUS_FILE = path.join(ROOT_DIR, 'data', 'tunnel_status.json');
 const SCHEDULES_FILE = path.join(ROOT_DIR, 'data', 'schedules.json');
+const BOT_OFFSET_FILE = path.join(ROOT_DIR, 'data', 'bot_offset.json');
 const systemMonitor = require('./lib/system_monitor');
+
+function loadBotOffset() {
+  try {
+    if (fs.existsSync(BOT_OFFSET_FILE)) {
+      const data = JSON.parse(fs.readFileSync(BOT_OFFSET_FILE, 'utf-8'));
+      return parseInt(data.offset || '0', 10) || 0;
+    }
+  } catch (e) {}
+  return 0;
+}
+
+function saveBotOffset(off) {
+  try {
+    fs.writeFileSync(BOT_OFFSET_FILE, JSON.stringify({ offset: off, updatedAt: new Date().toISOString() }, null, 2), 'utf-8');
+  } catch (e) {}
+}
+
+const processedUpdateIds = new Set();
+const userActionDebounce = new Map();
 
 // -------------------------------------------------------------
 // FOYDALANUVCHILAR VA SOZLAMALAR BAZASI
@@ -94,9 +114,10 @@ function getOrUpdateUser(fromInfo, isResetToUser = false) {
 
   let user = users.find(u => String(u.id) === userId);
 
-  const firstName = fromInfo.first_name || "Foydalanuvchi";
-  const lastName = fromInfo.last_name || "";
-  const fullName = `${firstName} ${lastName}`.trim();
+  const firstName = (fromInfo.first_name || "Foydalanuvchi").trim();
+  const lastName = (fromInfo.last_name || "").trim();
+  // F.I.SH: Qoidaga muvofiq oldin Familiya, keyin Ism
+  const fullName = lastName ? `${lastName} ${firstName}`.trim() : firstName;
   const username = fromInfo.username ? `@${fromInfo.username}` : "Username yo'q";
 
   if (!user) {
@@ -600,6 +621,43 @@ const FAQ_ANSWERS = {
 // XABARLAR VA CALLBACK LARNI QAYTA ISHLASH
 // -------------------------------------------------------------
 async function processUpdate(update) {
+  if (!update || typeof update !== 'object') return;
+
+  // 1. Update ID bo'yicha takrorlanishni bartaraf etish (Deduplication)
+  if (update.update_id) {
+    if (processedUpdateIds.has(update.update_id)) {
+      console.log(`[Bot Dedup] Takroriy update_id o'tkazib yuborildi: ${update.update_id}`);
+      return;
+    }
+    processedUpdateIds.add(update.update_id);
+    if (processedUpdateIds.size > 3000) {
+      const firstVal = processedUpdateIds.values().next().value;
+      processedUpdateIds.delete(firstVal);
+    }
+  }
+
+  // 2. Bir xil foydalanuvchidan tezkor ketma-ket (1.5 soniya ichida) kelgan takroriy harakatni bloklash
+  const senderId = update.callback_query ? update.callback_query.from.id : (update.message ? update.message.chat.id : null);
+  const actionKey = update.callback_query ? `cb_${update.callback_query.data}` : (update.message ? `msg_${update.message.text}` : null);
+  if (senderId && actionKey) {
+    const dKey = `${senderId}_${actionKey}`;
+    const lastTime = userActionDebounce.get(dKey) || 0;
+    const nowMs = Date.now();
+    if (nowMs - lastTime < 1500) {
+      console.log(`[Bot Debounce] Takroriy bosish bloklandi (${dKey})`);
+      if (update.callback_query) {
+        await answerCallbackQuery(update.callback_query.id);
+      }
+      return;
+    }
+    userActionDebounce.set(dKey, nowMs);
+    if (userActionDebounce.size > 2000) {
+      for (const [k, t] of userActionDebounce) {
+        if (nowMs - t > 10000) userActionDebounce.delete(k);
+      }
+    }
+  }
+
   // 1. Tugma bosilganda (Callback Query)
   if (update.callback_query) {
     const cb = update.callback_query;
@@ -1089,7 +1147,7 @@ setInterval(checkMorningNotification, 30000);
 // -------------------------------------------------------------
 // POLLING DVIGATELI
 // -------------------------------------------------------------
-let offset = 0;
+let offset = loadBotOffset();
 let isPolling = true;
 
 async function startPolling() {
@@ -1099,6 +1157,7 @@ async function startPolling() {
   console.log("  • data/bot_users.json ro'yxatga olish");
   console.log("  • Qayta /start bosilganda xavfsiz oddiy foydalanuvchiga tushirish");
   console.log("  • Laborantlar uchun jonli MRT 1, MRT 2 va MSKT navbati");
+  console.log(`  • Boshlang'ich offset: ${offset}`);
   console.log("================================================================================");
   
   // Bot ishga tushganda Telegram WebApp menyu tugmasini sozlash
@@ -1112,6 +1171,7 @@ async function startPolling() {
       if (data && data.ok && Array.isArray(data.result)) {
         for (const update of data.result) {
           offset = update.update_id + 1;
+          saveBotOffset(offset);
           await processUpdate(update);
         }
       }

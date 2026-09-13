@@ -72,8 +72,9 @@ function getScheduleForDate(dateStr, deviceId) {
   // 4. Check device overrides if any
   if (deviceId && schedules.deviceOverrides && schedules.deviceOverrides[deviceId]) {
     const devSched = schedules.deviceOverrides[deviceId];
-    if (devSched.weeklySchedule && devSched.weeklySchedule[dayOfWeek]) {
-      const item = devSched.weeklySchedule[dayOfWeek];
+    const devWeekly = devSched.weeklySchedule || devSched;
+    if (devWeekly && devWeekly[dayOfWeek]) {
+      const item = devWeekly[dayOfWeek];
       return {
         isOpen: Boolean(item.isOpen),
         reason: item.isOpen ? '' : (item.dayName ? `${item.dayName} — dam olish kuni` : "Dam olish kuni"),

@@ -826,9 +826,25 @@ async function searchPatientInKarmed(patientId) {
     console.warn(`[Karmed Phone Error]:`, phErr.message);
   }
 
+  // F.I.SH: Qoidaga muvofiq oldin Familiya, keyin Ism (Surname first)
+  const surName = (sample.Soyadi || '').trim().toUpperCase();
+  const firstName = (sample.HastaAdi || '').trim().toUpperCase();
+  let formattedFullName = '';
+  if (surName && firstName) {
+    formattedFullName = `${surName} ${firstName}`;
+  } else if (surName) {
+    formattedFullName = surName;
+  } else if (firstName) {
+    formattedFullName = firstName;
+  } else {
+    formattedFullName = (sample.AdSoyad || '').trim().toUpperCase();
+  }
+
   const patientInfo = {
     patientId: String(sample.KimlikNo || patientId),
-    fullName: sample.AdSoyad || `${sample.HastaAdi || ''} ${sample.Soyadi || ''}`.trim(),
+    fullName: formattedFullName,
+    surname: surName,
+    firstName: firstName,
     phone: patientPhone || '',
     birthDate: sample.DogumTarihi ? sample.DogumTarihi.split('T')[0] : '',
     age: sample.Yas || null,
@@ -964,6 +980,8 @@ async function searchPatientInKarmed(patientId) {
           const isContrast = sName.includes('KONTRAST') || sName.includes('KM') || sName.includes('INJEKTOR');
           const modality = isMskt ? 'MSKT' : 'MRT';
           const suggestedDevice = isMskt ? 'mskt1' : (isContrast ? 'mrt1' : 'mrt2');
+          // Qurilmalarga moslashtirish: MRT 2 da injektor yo'q (faqat kontrastsiz). MSKT faqat mskt1 da.
+          const compatibleDevices = isMskt ? ['mskt1'] : (isContrast ? ['mrt1'] : ['mrt2', 'mrt1']);
 
           // Tekshiruvdan o'tganligini aniqlash (Karmed yoki navbat tizimida)
           const isCompletedInKarmed = Boolean(
@@ -1033,6 +1051,8 @@ async function searchPatientInKarmed(patientId) {
             }
           } catch (e) {}
 
+          const isOlderThan10Days = diffDays > 10;
+
           eligibleExams.push({
             dosyaId: dosya.Id,
             protokolNo: dosya.ProtokolNo,
@@ -1042,6 +1062,7 @@ async function searchPatientInKarmed(patientId) {
             serviceName: s.TetkikIsmi || s.HizmetAdi,
             modality: modality,
             suggestedDevice: suggestedDevice,
+            compatibleDevices: compatibleDevices,
             isContrast: isContrast,
             durationMinutes: examDuration,
             labResults: labResults,
@@ -1053,11 +1074,12 @@ async function searchPatientInKarmed(patientId) {
             completedReason: isCompleted ? (isCompletedInKarmed ? 'Karmedda xulosa tasdiqlangan' : 'Tekshiruv o\'tkazilgan') : null,
             isAlreadyQueued: isAlreadyQueued,
             existingQueueInfo: existingQueueInfo,
-            canBook: !isCompleted && !isAlreadyQueued,
+            canBook: !isCompleted && !isAlreadyQueued && !isOlderThan10Days,
             registrationDate: regDate.toISOString().split('T')[0],
             registrationTime: regDate.toTimeString().substring(0, 5),
             diffDays: diffDays,
             isOlderThan5Days: isOlderThan5Days,
+            isOlderThan10Days: isOlderThan10Days,
             maxAllowedDate: maxAllowedDate,
             paymentStatus: s.BorcDurumu || (dosya.Ucretli ? 'ÖDENMEDİ' : 'TO\'LANGAN')
           });
@@ -1395,6 +1417,16 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { success: true, schedules });
     }
 
+    // POST /api/schedules - Ish grafiklarini saqlash
+    if (pathname === '/api/schedules' && req.method === 'POST') {
+      const body = await readBody(req);
+      if (!body || typeof body !== 'object') {
+        return sendJson(res, { success: false, error: "Noto'g'ri ma'lumot formati" }, 400);
+      }
+      writeJson(SCHEDULES_FILE, body);
+      return sendJson(res, { success: true, schedules: body, message: "Ish grafiklari muvaffaqiyatli saqlandi!" });
+    }
+
     // POST /api/queue/available-slots - Sana va apparat bo'yicha bo'sh va band vaqtlarni hisoblash
     if (pathname === '/api/queue/available-slots' && req.method === 'POST') {
       const body = await readBody(req);
@@ -1435,14 +1467,44 @@ const server = http.createServer(async (req, res) => {
         }, 400);
       }
 
-      // 3. Qoida: Ro'yxatga olingan sanadan 10 kun keyin tekshiruv o'tkazish mumkin emas!
+      // 3. Qoida: 10 kundan o'tgan navbat berishlari amalga oshirilmasin!
+      if (body.isOlderThan10Days || (body.diffDays && body.diffDays > 10)) {
+        return sendJson(res, {
+          success: false,
+          error: `⛔ Ushbu tekshiruv ro'yxatga olinganiga 10 kundan oshgan (${body.diffDays || 10} kun)! Qoidaga asosan 10 kundan oshgan so'rovlar uchun navbat berish taqiqlanadi.`
+        }, 400);
+      }
       if (body.maxAllowedDate && body.scheduledDate) {
         if (body.scheduledDate > body.maxAllowedDate) {
           return sendJson(res, {
             success: false,
-            error: `Ro'yxatga olingan sanadan 10 kun keyin (${body.maxAllowedDate}) tekshiruvni o'tkazish mumkin emas!`
+            error: `⛔ Ro'yxatga olingan sanadan 10 kun keyin (${body.maxAllowedDate}) tekshiruvni o'tkazish mumkin emas!`
           }, 400);
         }
+      }
+
+      // Qurilma mosligi tekshiruvi:
+      const targetDevId = body.deviceId;
+      const isContrastExam = Boolean(body.isContrast || (body.serviceName && (body.serviceName.toUpperCase().includes('KONTRAST') || body.serviceName.toUpperCase().includes('KM'))));
+      const isMsktExam = (body.modality === 'MSKT') || (body.serviceName && (body.serviceName.toUpperCase().includes('MSKT') || body.serviceName.toUpperCase().includes('KT')));
+      
+      if (isMsktExam && targetDevId !== 'mskt1') {
+        return sendJson(res, {
+          success: false,
+          error: `MSKT tekshiruvi faqat MSKT 1 apparatida o'tkazilishi mumkin!`
+        }, 400);
+      }
+      if (!isMsktExam && targetDevId === 'mskt1') {
+        return sendJson(res, {
+          success: false,
+          error: `MRT tekshiruvi MSKT apparatiga rejalashtirilmaydi! MRT 1 yoki MRT 2 ni tanlang.`
+        }, 400);
+      }
+      if (!isMsktExam && isContrastExam && targetDevId === 'mrt2') {
+        return sendJson(res, {
+          success: false,
+          error: `MRT 2 apparatida injektor mavjud emas va kontrastli tekshiruvlar o'tkazilmaydi! Kontrastli MRT uchun MRT 1 apparatini tanlang.`
+        }, 400);
       }
 
       // 4. Qoida: Tekshiruvdan bemor o'tgan bo'lsa qayta navbatga qo'yilmaydi!

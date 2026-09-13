@@ -473,6 +473,9 @@
       <button type="button" class="btn btn-small" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:6px;" onclick="promptSetApiBase()" title="Backend API Server Manzilini Sozlash">
         <i class="fa-solid fa-server"></i> <span>API</span>
       </button>
+      <button type="button" id="btnToggleTimeFormat" class="btn btn-small" style="background:#f1f5f9; color:#0f172a; border:1.5px solid #cbd5e1; font-weight:800; cursor:pointer;" onclick="toggleTimeFormat()" title="Soat rejimini almashtirish (24-soatlik / 12-soatlik)">
+        <i class="fa-solid fa-clock"></i> <span id="lblTimeFormat">24-Soatlik</span>
+      </button>
       <span id="liveClock" style="font-size:13px; font-weight:700; color:var(--text-muted);">--:--:--</span>
       <a href="/tv" target="_blank" class="btn-link-tv" title="Kutish zalidagi TV Tabloni ochish">
         <i class="fa-solid fa-tv"></i> <span>Kutish Zali TV Tablosi</span>
@@ -989,10 +992,35 @@
       <div style="display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px;">
         <!-- Chap tomonda: Haftalik kunlar bo'yicha smenalar -->
         <div style="background:#ffffff; border:1.5px solid var(--border); border-radius:12px; padding:16px;">
-          <div style="font-size:15px; font-weight:900; color:#0f172a; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            <i class="fa-solid fa-calendar-week" style="color:var(--primary);"></i>
-            <span>Haftalik Ish Vaqti Oraliqlari (Dushanba - Yakshanba)</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:10px;">
+            <div style="font-size:15px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-calendar-week" style="color:var(--primary);"></i>
+              <span id="schedTargetTitle">Haftalik Ish Vaqti Oraliqlari (Dushanba - Yakshanba)</span>
+            </div>
+            <!-- Qurilmani tanlash sub-tablari -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-small sched-device-btn active" id="btnSchedDev_global" onclick="switchScheduleDeviceTab('global')" style="background:#0284c7; color:#fff; font-weight:800;">
+                <i class="fa-solid fa-globe"></i> 🌐 Umumiy Andaza
+              </button>
+              <button type="button" class="btn btn-small sched-device-btn" id="btnSchedDev_mrt1" onclick="switchScheduleDeviceTab('mrt1')" style="background:#f1f5f9; color:#334155; font-weight:800; border:1px solid #cbd5e1;">
+                <i class="fa-solid fa-magnet"></i> 🧲 1-MRT
+              </button>
+              <button type="button" class="btn btn-small sched-device-btn" id="btnSchedDev_mrt2" onclick="switchScheduleDeviceTab('mrt2')" style="background:#f1f5f9; color:#334155; font-weight:800; border:1px solid #cbd5e1;">
+                <i class="fa-solid fa-magnet"></i> 🧲 2-MRT
+              </button>
+              <button type="button" class="btn btn-small sched-device-btn" id="btnSchedDev_mskt1" onclick="switchScheduleDeviceTab('mskt1')" style="background:#f1f5f9; color:#334155; font-weight:800; border:1px solid #cbd5e1;">
+                <i class="fa-solid fa-bolt"></i> ⚡ MSKT 1
+              </button>
+            </div>
           </div>
+
+          <div id="schedDeviceBanner" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:#1e40af; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div><i class="fa-solid fa-circle-info"></i> <b id="schedDeviceBannerText">1-MRT apparatining shaxsiy ish grafigi tahrirlanmoqda.</b></div>
+            <button type="button" class="btn btn-small" style="background:#fff; color:#0284c7; border:1px solid #93c5fd; padding:3px 8px; font-size:11px;" onclick="copyGlobalScheduleToCurrentDevice()">
+              <i class="fa-solid fa-copy"></i> Umumiy andazadan nusxa olish
+            </button>
+          </div>
+
           <div id="weeklyScheduleEditor" style="display:flex; flex-direction:column; gap:12px;"></div>
         </div>
 
@@ -1438,9 +1466,14 @@
     });
 
     function startLiveClock() {
+      updateTimeFormatButton();
       setInterval(() => {
         const d = new Date();
-        document.getElementById("liveClock").innerText = d.toLocaleDateString("uz-UZ") + " " + d.toLocaleTimeString("uz-UZ");
+        const is12h = (localStorage.getItem('MRT_TIME_FORMAT') === '12h');
+        const timePart = d.toLocaleTimeString("uz-UZ", { hour12: is12h });
+        const datePart = d.toLocaleDateString("uz-UZ");
+        const el = document.getElementById("liveClock");
+        if (el) el.innerText = `${datePart} ${timePart}`;
       }, 1000);
     }
 
@@ -2534,30 +2567,68 @@
         exams.forEach((ex, idx) => {
           const isComp = Boolean(ex.isCompleted);
           const isContrast = Boolean(ex.isContrast);
+          const isOlderThan10 = Boolean(ex.isOlderThan10Days || ex.diffDays > 10);
+          const isMskt = ex.modality === 'MSKT';
           const kr = ex.labResults && ex.labResults.kreatinin;
           const moch = ex.labResults && ex.labResults.mochevina;
 
-          const statusBadge = isComp 
-            ? `<span style="padding:3px 8px; border-radius:6px; font-weight:800; font-size:11.5px; background:#dcfce7; color:#166534; border:1px solid #86efac;"><i class="fa-solid fa-circle-check"></i> O'tkazilgan (${escapeHtml(ex.completedReason || 'Xulosa tasdiqlangan')})</span>`
-            : `<span style="padding:3px 8px; border-radius:6px; font-weight:800; font-size:11.5px; background:#fef3c7; color:#b45309; border:1px solid #fde68a;"><i class="fa-solid fa-clock"></i> Kutilmoqda (O'tkazilmagan)</span>`;
+          // MODALLIK (MRT va KT alohida ranglarda)
+          const modBadge = isMskt 
+            ? `<span style="padding:3px 10px; border-radius:6px; font-weight:900; font-size:12px; background:#ffedd5; color:#c2410c; border:1.5px solid #fdba74;"><i class="fa-solid fa-bolt"></i> MSKT (KT)</span>`
+            : `<span style="padding:3px 10px; border-radius:6px; font-weight:900; font-size:12px; background:#e0f2fe; color:#0369a1; border:1.5px solid #7dd3fc;"><i class="fa-solid fa-magnet"></i> MRT</span>`;
 
-          const actionBtn = isComp
-            ? `<button type="button" class="btn btn-small" style="background:#0284c7; color:#fff; font-weight:800; padding:6px 14px; border-radius:6px; cursor:pointer;" onclick="printExamReport(${idx})">
+          // HOLATLAR VA RANG TALABLARI
+          let statusBadge = '';
+          let actionBtn = '';
+          let cardStyle = '';
+          let warn10Banner = '';
+
+          if (isComp) {
+            // 1. O'tkazilgan tekshiruvlar: YASHIL
+            statusBadge = `<span style="padding:3px 10px; border-radius:6px; font-weight:800; font-size:11.5px; background:#dcfce7; color:#166534; border:1.5px solid #86efac;"><i class="fa-solid fa-circle-check"></i> O'tkazilgan (${escapeHtml(ex.completedReason || 'Xulosa tasdiqlangan')})</span>`;
+            actionBtn = `<button type="button" class="btn btn-small" style="background:#059669; color:#fff; font-weight:800; padding:6px 14px; border-radius:6px; cursor:pointer;" onclick="printExamReport(${idx})">
                  <i class="fa-solid fa-print"></i> O'tkazildi, Javobini Chop Etish
-               </button>`
-            : `<button type="button" class="btn btn-primary btn-small" onclick="openAdminBookingModal(${idx})">
+               </button>`;
+            cardStyle = "border-left: 6px solid #10b981; background:#f0fdf4; border:1.5px solid #86efac;";
+          } else if (isOlderThan10) {
+            // 2. 10 kundan oshgan eski so'rovlar: QIZIL (Navbat berish taqiqlanadi)
+            statusBadge = `<span style="padding:3px 10px; border-radius:6px; font-weight:900; font-size:11.5px; background:#fee2e2; color:#991b1b; border:1.5px solid #f87171;"><i class="fa-solid fa-ban"></i> 10 kundan oshgan (${ex.diffDays} kun oldin)</span>`;
+            actionBtn = `<button type="button" class="btn btn-small" disabled style="background:#e2e8f0; color:#94a3b8; cursor:not-allowed; border:1.5px solid #cbd5e1; font-weight:700;">
+                 <i class="fa-solid fa-ban"></i> 10 kundan oshgan (Yozib bo'lmaydi)
+               </button>`;
+            cardStyle = "border-left: 6px solid #ef4444; background:#fef2f2; border:1.5px solid #fca5a5;";
+            warn10Banner = `
+              <div style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>
+                <div>⛔ Ushbu so'rov Karmedda ro'yxatga olinganiga <b>${ex.diffDays} kun</b> bo'lgan! Qoidaga ko'ra 10 kundan oshgan so'rovlarga navbat berish taqiqlanadi.</div>
+              </div>
+            `;
+          } else if (ex.isAlreadyQueued && ex.existingQueueInfo) {
+            // 3. Allaqachon navbatga qo'yilgan: SARIQ / AMBRA
+            const qInfo = ex.existingQueueInfo;
+            statusBadge = `<span style="padding:3px 10px; border-radius:6px; font-weight:800; font-size:11.5px; background:#fef3c7; color:#b45309; border:1.5px solid #fde68a;"><i class="fa-solid fa-clock-rotate-left"></i> Navbatda: ${escapeHtml(qInfo.ticketNumber)} (${escapeHtml(qInfo.scheduledDate)})</span>`;
+            actionBtn = `<button type="button" class="btn btn-warning btn-small" onclick="openAdminBookingModal(${idx})">
+                 <i class="fa-solid fa-pen-to-square"></i> O'zgartirish
+               </button>`;
+            cardStyle = "border-left: 6px solid #f59e0b; background:#fffbeb; border:1.5px solid #fcd34d;";
+          } else {
+            // 4. Navbatga qo'yiladigan tekshiruvlar: KO'K / MOVİY
+            statusBadge = `<span style="padding:3px 10px; border-radius:6px; font-weight:800; font-size:11.5px; background:#eff6ff; color:#1d4ed8; border:1.5px solid #93c5fd;"><i class="fa-solid fa-calendar-plus"></i> Navbatga Qo'yiladigan</span>`;
+            actionBtn = `<button type="button" class="btn btn-primary btn-small" onclick="openAdminBookingModal(${idx})">
                  <i class="fa-solid fa-calendar-plus"></i> Navbatga Qo'yish
                </button>`;
-
-          const cardBorder = isComp ? "border-left: 5px solid #10b981; background:#fcfdfd;" : "border-left: 5px solid #0284c7;";
+            cardStyle = "border-left: 6px solid #3b82f6; background:#ffffff; border:1.5px solid #bfdbfe;";
+          }
 
           html += `
-            <div class="exam-card-admin" style="${cardBorder}">
+            <div class="exam-card-admin" style="${cardStyle}">
+              ${warn10Banner}
               <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
                 <div>
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
                     <span style="background:#0284c7; color:#fff; font-size:11px; font-weight:900; padding:2px 6px; border-radius:4px;">${escapeHtml(ex.serviceCode)}</span>
                     <span style="font-size:15px; font-weight:800; color:#0f172a;">${escapeHtml(ex.serviceName)}</span>
+                    ${modBadge}
                     ${statusBadge}
                   </div>
                 </div>
@@ -2567,9 +2638,8 @@
               </div>
 
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:11.5px;">
-                <span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#e0f2fe; color:#0369a1;">${escapeHtml(ex.modality)}</span>
                 ${isContrast ? '<span style="padding:2px 8px; border-radius:4px; font-weight:800; background:#fae8ff; color:#86198f;">💉 Kontrastli</span>' : '<span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f1f5f9; color:#475569;">Kontrastsiz</span>'}
-                <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Ro'yxat: ${escapeHtml(ex.registrationDate)}</span>
+                <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Ro'yxat: ${escapeHtml(ex.registrationDate)} (${ex.diffDays} kun oldin)</span>
                 <span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">Holat: <b>${escapeHtml(ex.dosyaStatus || ex.serviceStatus)}</b></span>
                 ${ex.maxAllowedDate ? `<span style="padding:2px 8px; border-radius:4px; font-weight:700; background:#fffbeb; color:#b45309; border:1px solid #fde68a;">Muddati: ${escapeHtml(ex.maxAllowedDate)}</span>` : ''}
               </div>
@@ -2702,13 +2772,57 @@
     function openAdminBookingModal(examIdx) {
       if (!window.adminLoadedExams || !window.adminLoadedExams[examIdx]) return;
       const ex = window.adminLoadedExams[examIdx];
+
+      // 10 kundan oshganlikni tekshirish
+      if (ex.isOlderThan10Days || ex.diffDays > 10) {
+        alert(`⛔ Ushbu tekshiruv ro'yxatga olinganiga 10 kundan oshgan (${ex.diffDays} kun)! Qoidaga asosan 10 kundan oshgan so'rovlarga navbat berish taqiqlangan.`);
+        return;
+      }
+
       adminSelectedExam = ex;
 
       document.getElementById("admModalPatName").innerText = adminCurrentPatient.fullName;
       document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
       document.getElementById("admModalExamName").innerText = `[${ex.serviceCode}] ${ex.serviceName}`;
 
-      document.getElementById("admBDevice").value = ex.suggestedDevice || 'mrt1';
+      // Qurilmalarni moslikka qarab saralash va o'chirish:
+      const devSelect = document.getElementById("admBDevice");
+      const isMskt = (ex.modality === 'MSKT');
+      const isContrast = Boolean(ex.isContrast);
+
+      for (let opt of devSelect.options) {
+        if (isMskt) {
+          if (opt.value === 'mskt1') {
+            opt.disabled = false;
+            opt.selected = true;
+          } else {
+            opt.disabled = true;
+          }
+        } else {
+          // MRT
+          if (opt.value === 'mskt1') {
+            opt.disabled = true;
+          } else if (opt.value === 'mrt2') {
+            opt.disabled = isContrast; // Injektor yo'q, faqat kontrastsiz!
+            if (isContrast) {
+              opt.innerText = "🧲 MRT 2 (Injektor yo'q - faqat kontrastsiz)";
+            } else {
+              opt.innerText = "🧲 MRT 2 (1.5 Tesla - Kontrastsiz)";
+            }
+          } else {
+            opt.disabled = false;
+          }
+        }
+      }
+
+      if (isMskt) {
+        devSelect.value = 'mskt1';
+      } else if (isContrast) {
+        devSelect.value = 'mrt1';
+      } else {
+        devSelect.value = ex.suggestedDevice || 'mrt2';
+      }
+
       document.getElementById("admBContrast").checked = Boolean(ex.isContrast);
       document.getElementById("admBPhone").value = adminCurrentPatient.phone || '';
 
@@ -2741,10 +2855,16 @@
       const matching = window.adminLoadedExams.filter(ex => `${ex.registrationDate}_${ex.modality}` === groupKey);
       if (matching.length === 0) return;
 
+      if (matching.some(ex => ex.isOlderThan10Days || ex.diffDays > 10)) {
+        alert("⛔ Ushbu guruhdagi tekshiruvlardan biri ro'yxatga olinganiga 10 kundan oshgan! 10 kundan oshgan so'rovlar uchun navbat berish taqiqlangan.");
+        return;
+      }
+
       const first = matching[0];
       const combinedTitle = matching.map(x => x.serviceName).join(' + ');
       const combinedCodes = matching.map(x => x.serviceCode).join('+');
       const hasContrast = matching.some(x => x.isContrast);
+      const isMskt = (first.modality === 'MSKT');
 
       adminSelectedExam = {
         isCombined: true,
@@ -2753,7 +2873,7 @@
         serviceCode: combinedCodes,
         serviceIds: matching.map(m => m.serviceId).filter(Boolean),
         childExams: matching,
-        suggestedDevice: first.suggestedDevice || (first.modality === 'MSKT' ? 'mskt1' : (hasContrast ? 'mrt1' : 'mrt2')),
+        suggestedDevice: first.suggestedDevice || (isMskt ? 'mskt1' : (hasContrast ? 'mrt1' : 'mrt2')),
         durationMinutes: 50,
         isContrast: hasContrast
       };
@@ -2762,7 +2882,18 @@
       document.getElementById("admModalPatId").innerText = `ID: ${adminCurrentPatient.patientId}`;
       document.getElementById("admModalExamName").innerText = `📦 ${combinedCodes} — ${combinedTitle} (${matching.length} ta birga)`;
 
-      document.getElementById("admBDevice").value = adminSelectedExam.suggestedDevice;
+      const devSelect = document.getElementById("admBDevice");
+      for (let opt of devSelect.options) {
+        if (isMskt) {
+          opt.disabled = (opt.value !== 'mskt1');
+        } else {
+          if (opt.value === 'mskt1') opt.disabled = true;
+          else if (opt.value === 'mrt2') opt.disabled = hasContrast;
+          else opt.disabled = false;
+        }
+      }
+      devSelect.value = adminSelectedExam.suggestedDevice;
+
       document.getElementById("admBContrast").checked = Boolean(hasContrast);
       document.getElementById("admBPhone").value = adminCurrentPatient.phone || '';
 
@@ -2821,7 +2952,7 @@
         slotsCont.style.display = "block";
 
         if (data.intervals && data.intervals.length > 0) {
-          shiftBadge.innerText = data.intervals.map(i => `${i.start}-${i.end}`).join(', ');
+          shiftBadge.innerText = data.intervals.map(i => `${formatTimeDisplay(i.start)}-${formatTimeDisplay(i.end)}`).join(', ');
         } else {
           shiftBadge.innerText = "Ish vaqti ko'rsatilmagan";
         }
@@ -2838,7 +2969,7 @@
             const isActive = (slot === document.getElementById("admBTime").value);
             return `
               <button type="button" class="slot-pill ${isActive ? 'active' : ''}" onclick="selectAdminModalTimeSlot('${slot}')" style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px;">
-                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${slot} – ${finish}</span>
+                <span style="font-weight:800; font-size:12px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${formatTimeDisplay(slot)} – ${formatTimeDisplay(finish)}</span>
                 <span style="font-size:10px; background:#faf5ff; color:#7c3aed; padding:1px 5px; border-radius:4px; font-weight:700;">${stdDur}m</span>
               </button>
             `;
@@ -2849,7 +2980,7 @@
 
         if (data.busySlots && data.busySlots.length > 0) {
           busyList.style.display = "block";
-          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${b.startTime || b.start}-${b.finishTime || b.end} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
+          busyList.innerHTML = `<b>🔴 Band vaqtlar:</b> ` + data.busySlots.map(b => `${formatTimeDisplay(b.startTime || b.start)}-${formatTimeDisplay(b.finishTime || b.end)} (${escapeHtml(b.ticketNumber || '')})`).join(', ');
         } else {
           busyList.style.display = "none";
         }
@@ -2994,6 +3125,114 @@
       "0": "Yakshanba"
     };
 
+    let currentScheduleTarget = 'global'; // 'global', 'mrt1', 'mrt2', 'mskt1'
+
+    function switchScheduleDeviceTab(target) {
+      currentScheduleTarget = target;
+      document.querySelectorAll('.sched-device-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = '#f1f5f9';
+        b.style.color = '#334155';
+      });
+      const activeBtn = document.getElementById(`btnSchedDev_${target}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = '#0284c7';
+        activeBtn.style.color = '#fff';
+      }
+
+      const banner = document.getElementById('schedDeviceBanner');
+      const bannerText = document.getElementById('schedDeviceBannerText');
+      const title = document.getElementById('schedTargetTitle');
+
+      if (target === 'global') {
+        if (banner) banner.style.display = 'none';
+        if (title) title.innerText = 'Umumiy Andaza Haftalik Ish Vaqti Oraliqlari';
+      } else {
+        const names = { mrt1: '🧲 1-MRT', mrt2: '🧲 2-MRT', mskt1: '⚡ MSKT 1' };
+        if (banner) banner.style.display = 'flex';
+        if (bannerText) bannerText.innerText = `${names[target] || target} apparatining shaxsiy ish grafigi tahrirlanmoqda.`;
+        if (title) title.innerText = `${names[target] || target} Shaxsiy Ish Grafigi`;
+      }
+      renderWeeklyScheduleEditor();
+    }
+
+    function getActiveEditingWeeklySchedule() {
+      if (currentScheduleTarget === 'global') {
+        if (!currentSchedules.weeklySchedule) currentSchedules.weeklySchedule = {};
+        return currentSchedules.weeklySchedule;
+      }
+      if (!currentSchedules.deviceOverrides) currentSchedules.deviceOverrides = {};
+      if (!currentSchedules.deviceOverrides[currentScheduleTarget]) {
+        const cloned = JSON.parse(JSON.stringify(currentSchedules.weeklySchedule || {}));
+        currentSchedules.deviceOverrides[currentScheduleTarget] = { weeklySchedule: cloned };
+      }
+      const dev = currentSchedules.deviceOverrides[currentScheduleTarget];
+      if (!dev.weeklySchedule) {
+        dev.weeklySchedule = JSON.parse(JSON.stringify(currentSchedules.weeklySchedule || {}));
+      }
+      return dev.weeklySchedule;
+    }
+
+    function copyGlobalScheduleToCurrentDevice() {
+      if (currentScheduleTarget === 'global') return;
+      if (!confirm("Haqiqatdan ham umumiy andaza grafikini ushbu apparatga nusxalamoqchimisiz?")) return;
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      const globalWeekly = currentSchedules.weeklySchedule || {};
+      for (let k in globalWeekly) {
+        targetWeekly[k] = JSON.parse(JSON.stringify(globalWeekly[k]));
+      }
+      renderWeeklyScheduleEditor();
+      alert("Umumiy andaza muvaffaqiyatli nusxalandi!");
+    }
+
+    // -------------------------------------------------------------
+    // 24-SOATLIK VA 12-SOATLIK VAQT BOSHQARUVI
+    // -------------------------------------------------------------
+    function formatTimeDisplay(timeStr) {
+      if (!timeStr) return '';
+      const is12h = (localStorage.getItem('MRT_TIME_FORMAT') === '12h');
+      if (!is12h) return timeStr; // Default: 24h format (08:30, 14:00)
+      
+      if (timeStr.includes(' - ')) {
+        return timeStr.split(' - ').map(t => formatTimeDisplay(t.trim())).join(' - ');
+      }
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1];
+      if (isNaN(h)) return timeStr;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+      return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
+    }
+
+    function toggleTimeFormat() {
+      const cur = localStorage.getItem('MRT_TIME_FORMAT') || '24h';
+      const next = cur === '24h' ? '12h' : '24h';
+      localStorage.setItem('MRT_TIME_FORMAT', next);
+      updateTimeFormatButton();
+      const curDateEl = document.getElementById("queueDateSelect");
+      if (curDateEl && typeof loadQueue === 'function') {
+        loadQueue(curDateEl.value);
+      }
+      if (window.adminCurrentPatient && window.adminLoadedExams && typeof renderAdminPatient === 'function') {
+        renderAdminPatient(window.adminCurrentPatient, window.adminLoadedExams);
+      }
+      if (typeof updateSmartSlotForAdminModal === 'function' && document.getElementById("modalAdminBooking").style.display === "flex") {
+        updateSmartSlotForAdminModal();
+      }
+    }
+
+    function updateTimeFormatButton() {
+      const is12h = (localStorage.getItem('MRT_TIME_FORMAT') === '12h');
+      const lbl = document.getElementById("lblTimeFormat");
+      if (lbl) {
+        lbl.innerText = is12h ? '12-Soatlik' : '24-Soatlik';
+      }
+    }
+
     async function loadSchedulesAdmin() {
       try {
         const res = await fetch("/api/admin/schedules");
@@ -3012,11 +3251,12 @@
       const container = document.getElementById("weeklyScheduleEditor");
       if (!container) return;
 
+      const targetWeekly = getActiveEditingWeeklySchedule();
       const dayOrder = ["1", "2", "3", "4", "5", "6", "0"];
       let html = "";
 
       dayOrder.forEach(dayKey => {
-        const dayConfig = (currentSchedules.weeklySchedule && currentSchedules.weeklySchedule[dayKey]) || { isOpen: false, intervals: [] };
+        const dayConfig = targetWeekly[dayKey] || { isOpen: false, intervals: [] };
         const dayName = DAY_NAMES[dayKey];
         const isOpen = Boolean(dayConfig.isOpen);
 
@@ -3067,27 +3307,30 @@
     }
 
     function toggleDayOpen(dayKey, isOpen) {
-      if (!currentSchedules.weeklySchedule[dayKey]) {
-        currentSchedules.weeklySchedule[dayKey] = { isOpen: false, intervals: [] };
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      if (!targetWeekly[dayKey]) {
+        targetWeekly[dayKey] = { isOpen: false, intervals: [] };
       }
-      currentSchedules.weeklySchedule[dayKey].isOpen = isOpen;
-      if (isOpen && (!currentSchedules.weeklySchedule[dayKey].intervals || currentSchedules.weeklySchedule[dayKey].intervals.length === 0)) {
-        currentSchedules.weeklySchedule[dayKey].intervals = [{ start: "08:00", end: "14:00" }];
+      targetWeekly[dayKey].isOpen = isOpen;
+      if (isOpen && (!targetWeekly[dayKey].intervals || targetWeekly[dayKey].intervals.length === 0)) {
+        targetWeekly[dayKey].intervals = [{ start: "08:00", end: "14:00" }];
       }
       renderWeeklyScheduleEditor();
     }
 
     function updateDayInterval(dayKey, idx, field, val) {
-      if (currentSchedules.weeklySchedule[dayKey] && currentSchedules.weeklySchedule[dayKey].intervals[idx]) {
-        currentSchedules.weeklySchedule[dayKey].intervals[idx][field] = val;
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      if (targetWeekly[dayKey] && targetWeekly[dayKey].intervals && targetWeekly[dayKey].intervals[idx]) {
+        targetWeekly[dayKey].intervals[idx][field] = val;
       }
     }
 
     function addIntervalToDay(dayKey) {
-      if (!currentSchedules.weeklySchedule[dayKey]) {
-        currentSchedules.weeklySchedule[dayKey] = { isOpen: true, intervals: [] };
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      if (!targetWeekly[dayKey]) {
+        targetWeekly[dayKey] = { isOpen: true, intervals: [] };
       }
-      const existing = currentSchedules.weeklySchedule[dayKey].intervals || [];
+      const existing = targetWeekly[dayKey].intervals || [];
       let defaultStart = "15:30";
       let defaultEnd = "19:00";
       if (existing.length === 0) {
@@ -3095,15 +3338,16 @@
         defaultEnd = "14:00";
       }
       existing.push({ start: defaultStart, end: defaultEnd });
-      currentSchedules.weeklySchedule[dayKey].intervals = existing;
+      targetWeekly[dayKey].intervals = existing;
       renderWeeklyScheduleEditor();
     }
 
     function removeIntervalFromDay(dayKey, idx) {
-      if (currentSchedules.weeklySchedule[dayKey] && currentSchedules.weeklySchedule[dayKey].intervals) {
-        currentSchedules.weeklySchedule[dayKey].intervals.splice(idx, 1);
-        if (currentSchedules.weeklySchedule[dayKey].intervals.length === 0) {
-          currentSchedules.weeklySchedule[dayKey].isOpen = false;
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      if (targetWeekly[dayKey] && targetWeekly[dayKey].intervals) {
+        targetWeekly[dayKey].intervals.splice(idx, 1);
+        if (targetWeekly[dayKey].intervals.length === 0) {
+          targetWeekly[dayKey].isOpen = false;
         }
         renderWeeklyScheduleEditor();
       }
@@ -3160,8 +3404,9 @@
     }
 
     function applySchedulePreset(presetName) {
+      let presetData = {};
       if (presetName === 'standard_break') {
-        currentSchedules.weeklySchedule = {
+        presetData = {
           "1": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
           "2": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
           "3": { isOpen: true, intervals: [{ start: "08:00", end: "14:00" }, { start: "15:30", end: "19:00" }] },
@@ -3171,7 +3416,7 @@
           "0": { isOpen: false, intervals: [] }
         };
       } else if (presetName === 'standard_full') {
-        currentSchedules.weeklySchedule = {
+        presetData = {
           "1": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
           "2": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
           "3": { isOpen: true, intervals: [{ start: "08:00", end: "19:00" }] },
@@ -3182,7 +3427,7 @@
         };
       } else if (presetName === 'mode_24_7') {
         const full24 = { isOpen: true, intervals: [{ start: "00:00", end: "24:00" }] };
-        currentSchedules.weeklySchedule = {
+        presetData = {
           "1": { ...full24 },
           "2": { ...full24 },
           "3": { ...full24 },
@@ -3191,6 +3436,11 @@
           "6": { ...full24 },
           "0": { ...full24 }
         };
+      }
+
+      const targetWeekly = getActiveEditingWeeklySchedule();
+      for (let k in presetData) {
+        targetWeekly[k] = JSON.parse(JSON.stringify(presetData[k]));
       }
       renderWeeklyScheduleEditor();
       alert("Shablon yuklandi! Tasdiqlash uchun 'Barcha Grafikni Saqlash' tugmasini bosing.");
