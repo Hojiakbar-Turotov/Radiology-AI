@@ -736,14 +736,28 @@ const server = http.createServer(async (req, res) => {
   // =========================================================================
   let reqPath = decodeURI(pathname);
 
-  // TV Tabloga tezkor yo'naltirish
-  if (reqPath === '/' || reqPath === '/tv' || reqPath === '/tv/' || reqPath === '/mrt-tv' || reqPath === '/tablo') {
+  // Asosiy sahifa (Root) va Admin boshqaruv portaliga yo'naltirish
+  if (reqPath === '/' || reqPath === '/control' || reqPath === '/control/' || reqPath === '/admin' || reqPath === '/doctor' || reqPath === '/registratura') {
+    reqPath = '/public/mrt_control.html';
+  }
+
+  // TV Tabloga yo'naltirish
+  if (reqPath === '/tv' || reqPath === '/tv/' || reqPath === '/mrt-tv' || reqPath === '/tablo') {
     reqPath = '/mrt-tv/index.html';
   }
 
-  // Boshqaruv portaliga tezkor yo'naltirish
-  if (reqPath === '/control' || reqPath === '/control/' || reqPath === '/doctor' || reqPath === '/registratura' || reqPath === '/admin') {
-    reqPath = '/public/mrt_control.html';
+  // TV Tablo resurslari fallback (style.css va app.js)
+  if (reqPath === '/style.css' && !fs.existsSync(path.join(ROOT_DIR, 'style.css'))) {
+    reqPath = '/mrt-tv/style.css';
+  }
+  if (reqPath === '/app.js' && !fs.existsSync(path.join(ROOT_DIR, 'app.js'))) {
+    reqPath = '/mrt-tv/app.js';
+  }
+
+  // Favicon so'rovi (404 xatosini oldini olish)
+  if (reqPath === '/favicon.ico') {
+    res.writeHead(204, { 'Access-Control-Allow-Origin': '*' });
+    return res.end();
   }
 
   // Fayl manzilini aniqlash
