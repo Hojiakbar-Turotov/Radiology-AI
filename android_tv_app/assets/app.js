@@ -140,7 +140,8 @@
   let currentMode = 'tv'; // 'tv' | 'single-room' | 'post' | 'mobile'
   let currentRoomId = 'Ultratovush-10'; // Standart xona
   let singleRoomPage = 0;
-  let singleRoomTimer = null;
+  let singleRoomLastSwitchTime = Date.now();
+  const SINGLE_ROOM_PAGE_INTERVAL = 45000; // 45 soniyalik sahifalar almashinuvi oralig'i
   let queueData = null;
   let selectedDoctorIds = new Set();
   let isSoundEnabled = true;
@@ -240,6 +241,8 @@
       renderTvGrid();
       try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     } else if (mode === 'single-room') {
+      singleRoomPage = 0;
+      singleRoomLastSwitchTime = Date.now();
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
       if (tvQueueGrid) tvQueueGrid.style.display = 'none';
       if (postTableContainer) postTableContainer.style.display = 'none';
@@ -353,9 +356,44 @@
     // Single Room TV soati va sanasi (Screenshot 2: Seshanba 8 Sentabr 2026 | 10:28:34)
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
     if (srFullClockTime) srFullClockTime.textContent = `${h}:${min}:${s}`;
+
+    // Xona ekrani sahifalarini 45 soniyalik interval bilan avtomatik almashtirish
+    checkSingleRoomPageRotation();
   }
   setInterval(updateLiveClock, 1000);
   updateLiveClock();
+
+  // Xona ekranida ko'p bemorlar bo'lsa, har 45 soniyada keyingi sahifaga o'tish
+  function checkSingleRoomPageRotation() {
+    if (currentMode !== 'single-room') return;
+    if (!queueData || !queueData.doctors) return;
+
+    let targetDoc = queueData.doctors.find(d => (d.id === currentRoomId || d.room === currentRoomId));
+    if (!targetDoc) {
+      targetDoc = queueData.doctors.find(d => 
+        d.room.toLowerCase().includes(String(currentRoomId).toLowerCase()) ||
+        String(d.num) === String(currentRoomId)
+      );
+    }
+    const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
+    const PAGE_LIMIT = 7;
+    const totalPages = Math.ceil(patients.length / PAGE_LIMIT);
+
+    if (totalPages <= 1) {
+      if (singleRoomPage !== 0) {
+        singleRoomPage = 0;
+        renderSingleRoomView(currentRoomId);
+      }
+      return;
+    }
+
+    const now = Date.now();
+    if (now - singleRoomLastSwitchTime >= SINGLE_ROOM_PAGE_INTERVAL) {
+      singleRoomLastSwitchTime = now;
+      singleRoomPage = (singleRoomPage + 1) % totalPages;
+      renderSingleRoomView(currentRoomId);
+    }
+  }
 
   // 8. OVOZLI BILDIRISHNOMA (25 XIL CHIME ENGINE)
   function playNotificationChime(soundId) {
@@ -864,7 +902,8 @@
     if (!srPatientTableBody) return;
 
     if (patients.length === 0) {
-      if (singleRoomTimer) { clearTimeout(singleRoomTimer); singleRoomTimer = null; }
+      singleRoomPage = 0;
+      singleRoomLastSwitchTime = Date.now();
       srPatientTableBody.innerHTML = `
         <tr>
           <td colspan="3" class="sr-empty-state">
@@ -875,10 +914,13 @@
       return;
     }
 
-    // 7 TALIK CHEKLOV VA SAHIFALASH (PAGINATION)
+    // 7 TALIK CHEKLOV VA SAHIFALASH (45 soniyalik oraliq bilan)
     const PAGE_LIMIT = 7;
     const totalPages = Math.ceil(patients.length / PAGE_LIMIT);
-    if (singleRoomPage >= totalPages) singleRoomPage = 0;
+    if (singleRoomPage >= totalPages) {
+      singleRoomPage = 0;
+      singleRoomLastSwitchTime = Date.now();
+    }
 
     const pagePatients = patients.slice(singleRoomPage * PAGE_LIMIT, (singleRoomPage + 1) * PAGE_LIMIT);
 
@@ -887,7 +929,7 @@
 
     // Xona boshida qabul qilinayotgan bemor banneri (v6.0.0)
     if (srDoctorFullTitle) {
-      const pageInfo = totalPages > 1 ? ` <span class="sr-page-badge">📄 Sahifa ${singleRoomPage + 1} / ${totalPages} (Jami: ${patients.length} ta)</span>` : '';
+      const pageInfo = totalPages > 1 ? ` <span class="sr-page-badge" id="srPageBadge" title="Sahifa ${singleRoomPage + 1}/${totalPages} (Har 45 soniyada almashadi. Qo'lda o'tkazish uchun bosing)">📄 Sahifa ${singleRoomPage + 1} / ${totalPages} (Jami: ${patients.length} ta)</span>` : '';
       let callBanner = '';
       if (activeCall) {
         const isAccepted = activeCall.status === 'accepted';
@@ -897,6 +939,16 @@
         </div>`;
       }
       srDoctorFullTitle.innerHTML = `${escapeHtml(targetDoc.room)}(${escapeHtml(targetDoc.doctorName)})${pageInfo}${callBanner}`;
+
+      const pageBadgeEl = document.getElementById('srPageBadge');
+      if (pageBadgeEl && totalPages > 1) {
+        pageBadgeEl.style.cursor = 'pointer';
+        pageBadgeEl.onclick = function() {
+          singleRoomPage = (singleRoomPage + 1) % totalPages;
+          singleRoomLastSwitchTime = Date.now();
+          renderSingleRoomView(currentRoomId);
+        };
+      }
     }
 
     pagePatients.forEach(p => {
@@ -919,17 +971,6 @@
     });
 
     srPatientTableBody.innerHTML = rowsHtml;
-
-    // Agar bemorlar 7 tadan ko'p bo'lsa, har 8 soniyada keyingi sahifaga avtomatik o'tish
-    if (singleRoomTimer) clearTimeout(singleRoomTimer);
-    if (totalPages > 1) {
-      singleRoomTimer = setTimeout(() => {
-        if (currentMode === 'single-room') {
-          singleRoomPage = (singleRoomPage + 1) % totalPages;
-          renderSingleRoomView(currentRoomId);
-        }
-      }, 8000);
-    }
   }
 
   // 15. POST REJIMIDAGI JADVALNI CHIZISH
