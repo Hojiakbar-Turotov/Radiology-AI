@@ -1178,6 +1178,7 @@ async function syncMasterQueueFromKarmedDirect() {
     const completedTodayByDoctor = {};
     const completedEarlierByDoctor = {};
     const earlierPatientsList = [];
+    const completedPatientsByDoctor = {};
 
     allPatients.forEach(p => {
       if (p.isRegToday) {
@@ -1197,6 +1198,8 @@ async function syncMasterQueueFromKarmedDirect() {
         const rKey = p.room;
         if (rKey && rKey !== 'Biriktirilmagan') {
           completedByDoctor[rKey] = (completedByDoctor[rKey] || 0) + 1;
+          completedPatientsByDoctor[rKey] = completedPatientsByDoctor[rKey] || [];
+          completedPatientsByDoctor[rKey].push(p);
           if (p.isRegToday) {
             totalCompletedTodayCount++;
             completedTodayByDoctor[rKey] = (completedTodayByDoctor[rKey] || 0) + 1;
@@ -1233,6 +1236,7 @@ async function syncMasterQueueFromKarmedDirect() {
       doc.totalEarlier = docEarlierReg;
       doc.totalAll = docTodayReg + docEarlierReg;
       doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId);
+      doc.completedPatients = completedPatientsByDoctor[rId] || [];
 
       summaryByDoctor[rId] = doc.patients.length;
     });
@@ -1298,6 +1302,7 @@ async function syncMasterQueueFromKarmedDirect() {
         completedByDoctor: completedByDoctor,
         completedTodayByDoctor: completedTodayByDoctor,
         completedEarlierByDoctor: completedEarlierByDoctor,
+        completedPatientsByDoctor: completedPatientsByDoctor,
         earlierPatientsList: earlierPatientsList
       },
       doctors: doctorsArray,
@@ -1394,6 +1399,7 @@ function serveStaticFile(reqPath, res, defaultHtml) {
   else if (cleanPath === 'mskt' || cleanPath === 'kt' || cleanPath === 'mobile_agent_mskt.html') cleanPath = 'mobile_agent_mskt.html';
   else if (cleanPath === 'mrt' || cleanPath === 'mobile_agent_mrt.html') cleanPath = 'mobile_agent_mrt.html';
   else if (cleanPath === 'agent' || cleanPath === 'mobile' || cleanPath === 'mobile_agent.html') cleanPath = 'mobile_agent.html';
+  else if (cleanPath === 'doctor-completed' || cleanPath === 'doctor-completed.html') cleanPath = 'doctor-completed.html';
 
   let filePath = path.join(PUBLIC_DIR, cleanPath);
   if (!fs.existsSync(filePath)) {
@@ -1655,6 +1661,33 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
       },
       ...latestQueueData,
       activeCalls
+    }));
+    return;
+  }
+
+  // C.2 SHIFOKORNING BUGUNGI TASDIQLANGAN BEMORLARI (/api/doctor-completed-patients)
+  if (req.method === 'GET' && pathname === '/api/doctor-completed-patients') {
+    const qRoom = (parsedUrl.searchParams.get('room') || parsedUrl.searchParams.get('id') || '').trim();
+    let docObj = null;
+    if (latestQueueData && latestQueueData.doctors) {
+      docObj = latestQueueData.doctors.find(d => (d.id === qRoom || d.room === qRoom));
+      if (!docObj) {
+        docObj = latestQueueData.doctors.find(d => 
+          (d.room && d.room.toLowerCase().includes(String(qRoom).toLowerCase())) ||
+          String(d.num) === String(qRoom)
+        );
+      }
+    }
+    const patients = (docObj && docObj.completedPatients) ? docObj.completedPatients : [];
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      room: docObj ? docObj.room : qRoom,
+      doctorName: docObj ? docObj.doctorName : '',
+      totalCompleted: patients.length,
+      completedTodayCount: docObj ? docObj.completedTodayCount : 0,
+      completedEarlierCount: docObj ? docObj.completedEarlierCount : 0,
+      patients: patients
     }));
     return;
   }

@@ -40,7 +40,12 @@
       padding: 8px 16px;
       margin: 0 24px 14px 24px;
       overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+    .tv-doctor-summary-ribbon::-webkit-scrollbar {
+      display: none;
     }
     .tv-ribbon-title {
       font-size: 13px;
@@ -52,14 +57,19 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-shrink: 0;
     }
     .tv-ribbon-chips {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       overflow-x: auto;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tv-ribbon-chips::-webkit-scrollbar {
+      display: none;
     }
     .doc-stat-chip {
       display: inline-flex;
@@ -277,6 +287,243 @@
       background: #d97706;
       color: #ffffff;
     }
+
+    /* Iframe Modal oynasi uslublari */
+    .doc-iframe-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .doc-iframe-modal-box {
+      background: #0f172a;
+      border: 1.5px solid #3b82f6;
+      border-radius: 16px;
+      width: 94%;
+      max-width: 1100px;
+      height: 85vh;
+      max-height: 820px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.35);
+      animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPopIn {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .doc-iframe-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #1e293b, #0f172a);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .dimh-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dimh-icon { font-size: 22px; }
+    .dimh-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .dimh-badge {
+      background: rgba(34, 197, 94, 0.25);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .dimh-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dimh-btn-newtab {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .dimh-btn-newtab:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+    .dimh-btn-close {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dimh-btn-close:hover {
+      background: rgba(239, 68, 68, 0.4);
+      color: #fff;
+    }
+    .doc-iframe-body {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0b1329;
+    }
+    #docCompletedIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Vrach kartasidagi ko'riklar tugmasi */
+    .btn-card-view-completed {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(34, 197, 94, 0.22);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: #4ade80;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 6px;
+    }
+    .btn-card-view-completed:hover {
+      background: rgba(34, 197, 94, 0.35);
+      transform: translateY(-1px);
+      color: #fff;
+    }
+    .doc-badge-completed.btn-open-doc-modal {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .doc-badge-completed.btn-open-doc-modal:hover {
+      filter: brightness(1.25);
+      transform: translateY(-1px);
+    }
+
+    /* Pastdagi umumiy ro'yxat filter paneli */
+    .epp-filter-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 18px;
+      background: #182234;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .epp-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+      max-width: 400px;
+    }
+    .epp-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .epp-search-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      padding: 7px 32px 7px 32px;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+    }
+    .epp-search-input:focus {
+      border-color: #38bdf8;
+    }
+    .epp-clear-search-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+      display: none;
+    }
+    .epp-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .epp-select {
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .epp-select:focus {
+      border-color: #38bdf8;
+    }
+    .epp-filter-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .epp-filter-result-badge {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .epp-reset-btn {
+      background: #1e293b;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .epp-reset-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
   </style>
   <script>
     // TV CLIENT TELEMETRY & GLOBAL ERROR TRAPPER (ES5 Universal)
@@ -491,6 +738,33 @@
           </div>
         </div>
         <div class="epp-body" id="earlierPatientsBody" style="display: none;">
+          <!-- FILTRLASH VA QIDIRUV PANELI -->
+          <div class="epp-filter-toolbar">
+            <div class="epp-filter-item epp-search-wrap">
+              <span class="epp-search-icon">🔍</span>
+              <input type="text" id="eppSearchInput" class="epp-search-input" placeholder="Bemor ID, F.I.Sh. yoki yo'naltiruvchi shifokor..." />
+              <button type="button" id="btnEppClearSearch" class="epp-clear-search-btn" title="Tozalash">✕</button>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppDoctorSelect">Qabul qiluvchi:</label>
+              <select id="eppDoctorSelect" class="epp-select">
+                <option value="all">👨‍⚕️ Barcha vrachlar</option>
+              </select>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppStatusSelect">Holati:</label>
+              <select id="eppStatusSelect" class="epp-select">
+                <option value="all">Barcha holatlar</option>
+                <option value="completed">✅ Tekshiruvdan o'tgan</option>
+                <option value="accepted">🟢 Qabulda</option>
+                <option value="waiting">⏳ Navbatda</option>
+              </select>
+            </div>
+            <div class="epp-filter-meta">
+              <span id="eppFilteredCountBadge" class="epp-filter-result-badge">0 ta</span>
+              <button type="button" id="btnEppResetAll" class="epp-reset-btn" title="Barcha filtrlarni tozalash">🔄 Tozalash</button>
+            </div>
+          </div>
           <div class="epp-table-wrap">
             <table class="epp-table">
               <thead>
@@ -574,6 +848,26 @@
         <div class="tcp-name" id="tcpPatientName">TUXLIYEVA GULASAL SUYUNOVNA</div>
         <div class="tcp-room-banner" id="tcpRoomTarget">51-XONAGA (Dr. Xudayberdiyeva)</div>
         <div class="tcp-bottom-hint">Iltimos, ko'rik uchun xonaga kiring</div>
+      </div>
+    </div>
+
+    <!-- 4.5 VRACH KO'RGAN BEMORLAR IFRAME MODAL OYNASI -->
+    <div id="doctorCompletedModal" class="doc-iframe-modal-overlay" style="display: none;">
+      <div class="doc-iframe-modal-box">
+        <div class="doc-iframe-modal-header">
+          <div class="dimh-title-wrap">
+            <span class="dimh-icon">👨‍⚕️</span>
+            <h3 class="dimh-title" id="dimhDoctorTitle">Vrach ko'rgan bemorlar</h3>
+            <span class="dimh-badge" id="dimhCompletedCountBadge">0 ta ko'rildi</span>
+          </div>
+          <div class="dimh-actions">
+            <button type="button" class="dimh-btn-newtab" id="btnDimhNewTab" title="Alohida yangi oynada ochish">⛶ Yangi oynada</button>
+            <button type="button" class="dimh-btn-close" id="btnDimhClose" title="Yopish (ESC)">✕</button>
+          </div>
+        </div>
+        <div class="doc-iframe-body">
+          <iframe id="docCompletedIframe" src="about:blank" frameborder="0"></iframe>
+        </div>
       </div>
     </div>
 

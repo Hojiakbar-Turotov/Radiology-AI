@@ -124,6 +124,22 @@
   const earlierPatientsBody = document.getElementById('earlierPatientsBody');
   const earlierPatientsTableBody = document.getElementById('earlierPatientsTableBody');
 
+  // Filter elementlari
+  const eppSearchInput = document.getElementById('eppSearchInput');
+  const btnEppClearSearch = document.getElementById('btnEppClearSearch');
+  const eppDoctorSelect = document.getElementById('eppDoctorSelect');
+  const eppStatusSelect = document.getElementById('eppStatusSelect');
+  const eppFilteredCountBadge = document.getElementById('eppFilteredCountBadge');
+  const btnEppResetAll = document.getElementById('btnEppResetAll');
+
+  // Vrach ko'rgan bemorlar iframe modali elementlari
+  const doctorCompletedModal = document.getElementById('doctorCompletedModal');
+  const docCompletedIframe = document.getElementById('docCompletedIframe');
+  const dimhDoctorTitle = document.getElementById('dimhDoctorTitle');
+  const dimhCompletedCountBadge = document.getElementById('dimhCompletedCountBadge');
+  const btnDimhNewTab = document.getElementById('btnDimhNewTab');
+  const btnDimhClose = document.getElementById('btnDimhClose');
+
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
     'Ultratovush-1': { title: 'UTT1-53 XONA', roomNum: '53', doctorName: 'Juravlev Igor Ivanovich', shortName: 'Juravlev' },
@@ -191,6 +207,57 @@
       setViewMode('single-room', rKey);
     }
   };
+
+  // Vrach ko'rgan bemorlarni ko'rish uchun kichik iframe modalini ochish
+  let currentModalRoom = '';
+  window.openDoctorCompletedModal = function(roomId, doctorName) {
+    if (!doctorCompletedModal || !docCompletedIframe) return;
+    currentModalRoom = roomId ? String(roomId).trim() : '';
+
+    const staticInfo = ROOM_MAP[currentModalRoom] || {};
+    const dName = doctorName || staticInfo.doctorName || currentModalRoom;
+
+    if (dimhDoctorTitle) {
+      dimhDoctorTitle.textContent = `${currentModalRoom} — ${dName}`;
+    }
+
+    const stats = getDoctorCompletedStats(currentModalRoom);
+    if (dimhCompletedCountBadge) {
+      dimhCompletedCountBadge.textContent = `${stats.completed} ta ko'rildi${stats.completedEarlier > 0 ? ` (${stats.completedEarlier} ta oldindan)` : ''}`;
+    }
+
+    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`;
+    doctorCompletedModal.style.display = 'flex';
+  };
+
+  window.closeDoctorCompletedModal = function() {
+    if (!doctorCompletedModal) return;
+    doctorCompletedModal.style.display = 'none';
+    if (docCompletedIframe) docCompletedIframe.src = 'about:blank';
+  };
+
+  if (btnDimhClose) {
+    btnDimhClose.addEventListener('click', window.closeDoctorCompletedModal);
+  }
+  if (btnDimhNewTab) {
+    btnDimhNewTab.addEventListener('click', () => {
+      if (currentModalRoom) {
+        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`, '_blank');
+      }
+    });
+  }
+  if (doctorCompletedModal) {
+    doctorCompletedModal.addEventListener('click', (e) => {
+      if (e.target === doctorCompletedModal) {
+        window.closeDoctorCompletedModal();
+      }
+    });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && doctorCompletedModal && doctorCompletedModal.style.display !== 'none') {
+      window.closeDoctorCompletedModal();
+    }
+  });
 
   // 3. HOLAT (STATE)
   let currentMode = 'tv'; // 'tv' | 'single-room' | 'post' | 'mobile'
@@ -772,17 +839,48 @@
     });
 
     tvRibbonDoctorChips.innerHTML = list.map(item => `
-      <div class="doc-stat-chip" onclick="window.uttSetSingleRoom('${item.roomKey}')" title="${escapeHtml(item.doctorName)}: ${item.completed} ko'rildi (${item.completedEarlier} ta oldingi kundan), ${item.waiting} navbatda">
+      <div class="doc-stat-chip" onclick="window.openDoctorCompletedModal('${item.roomKey}', '${escapeHtml(item.doctorName)}')" title="${escapeHtml(item.doctorName)}: ko'rgan bemorlar ro'yxatini ochish (jami ${item.completed} ta ko'rildi, ${item.waiting} navbatda)">
         <span class="dsc-room">${escapeHtml(item.roomNum)}-xona</span>
         <span class="dsc-name">${escapeHtml(item.shortName)}</span>
         <span class="dsc-completed" title="Ko'rib bo'lingan bemorlar">✅ ${item.completed}${item.completedEarlier > 0 ? `<small style="font-size:10px; color:#86efac; margin-left:2px;">(+${item.completedEarlier})</small>` : ''}</span>
         <span class="dsc-waiting" title="Hozir navbatda kutayotganlar">⏳ ${item.waiting}</span>
+        <button type="button" class="btn-card-view-completed" style="margin-left:2px; padding:2px 7px; font-size:10.5px;" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${item.roomKey}', '${escapeHtml(item.doctorName)}')" title="Bemorlar ro'yxatini ko'rish">📋 Ko'rish</button>
       </div>
     `).join('');
   }
 
-  // 11.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB BUGUN O'TGAN/QABUL QILINGANLAR JADVALI
-  function updateEarlierPatientsPanel() {
+  // 11.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB BUGUN O'TGAN/QABUL QILINGANLAR JADVALI VA FILTRLASH
+  let earlierSearchQuery = '';
+  let earlierDoctorFilter = 'all';
+  let earlierStatusFilter = 'all';
+
+  function populateEarlierDoctorDropdown(list) {
+    if (!eppDoctorSelect) return;
+    const currentVal = eppDoctorSelect.value || 'all';
+    const doctorsMap = new Map();
+
+    list.forEach(p => {
+      const dName = p.doctorName || p.room;
+      if (dName && !doctorsMap.has(dName)) {
+        doctorsMap.set(dName, p.room ? `${p.room} — ${dName}` : dName);
+      }
+    });
+
+    let optionsHtml = '<option value="all">👨‍⚕️ Barcha vrachlar</option>';
+    doctorsMap.forEach((label, key) => {
+      optionsHtml += `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`;
+    });
+
+    eppDoctorSelect.innerHTML = optionsHtml;
+    if (doctorsMap.has(currentVal) || currentVal === 'all') {
+      eppDoctorSelect.value = currentVal;
+    } else {
+      eppDoctorSelect.value = 'all';
+      earlierDoctorFilter = 'all';
+    }
+  }
+
+  function renderFilteredEarlierPatients() {
     if (!earlierPatientsSection) return;
     if (currentMode === 'single-room') {
       earlierPatientsSection.style.display = 'none';
@@ -790,26 +888,73 @@
     }
     if (!queueData) return;
     const summary = queueData.summary || {};
-    const earlierList = summary.earlierPatientsList || [];
+    const fullList = summary.earlierPatientsList || [];
 
     if (earlierPatientsCountBadge) {
-      earlierPatientsCountBadge.textContent = `${earlierList.length} ta`;
+      earlierPatientsCountBadge.textContent = `${fullList.length} ta`;
     }
 
     if (!earlierPatientsTableBody) return;
 
-    if (earlierList.length === 0) {
+    // Filtrlash
+    const filtered = fullList.filter(p => {
+      // 1. Qidiruv
+      if (earlierSearchQuery) {
+        const q = earlierSearchQuery.toLowerCase();
+        const pid = (p.patientId || '').toLowerCase();
+        const fn = (p.fullName || '').toLowerCase();
+        const rd = (p.referringDoctor || '').toLowerCase();
+        const dn = (p.doctorName || '').toLowerCase();
+        const rm = (p.room || '').toLowerCase();
+        if (!pid.includes(q) && !fn.includes(q) && !rd.includes(q) && !dn.includes(q) && !rm.includes(q)) {
+          return false;
+        }
+      }
+
+      // 2. Vrach bo'yicha filtr
+      if (earlierDoctorFilter !== 'all') {
+        const pDoc = p.doctorName || p.room || '';
+        if (pDoc !== earlierDoctorFilter && p.room !== earlierDoctorFilter) {
+          return false;
+        }
+      }
+
+      // 3. Holat bo'yicha filtr
+      if (earlierStatusFilter !== 'all') {
+        const isDone = p.isConfirmedToday || p.statusCode === 8;
+        const isAccepted = p.statusCode === 4;
+        const isWaiting = !isDone && !isAccepted;
+
+        if (earlierStatusFilter === 'completed' && !isDone) return false;
+        if (earlierStatusFilter === 'accepted' && !isAccepted) return false;
+        if (earlierStatusFilter === 'waiting' && !isWaiting) return false;
+      }
+
+      return true;
+    });
+
+    if (eppFilteredCountBadge) {
+      if (earlierSearchQuery || earlierDoctorFilter !== 'all' || earlierStatusFilter !== 'all') {
+        eppFilteredCountBadge.textContent = `${filtered.length} ta / jami ${fullList.length} ta`;
+        eppFilteredCountBadge.style.color = '#38bdf8';
+      } else {
+        eppFilteredCountBadge.textContent = `${fullList.length} ta`;
+        eppFilteredCountBadge.style.color = '#94a3b8';
+      }
+    }
+
+    if (filtered.length === 0) {
       earlierPatientsTableBody.innerHTML = `
         <tr>
-          <td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">
-            Oldingi kunlarda yo'naltirilib bugun kelgan bemorlar mavjud emas.
+          <td colspan="8" style="text-align: center; padding: 25px; color: #94a3b8;">
+            ${fullList.length === 0 ? "Oldingi kunlarda yo'naltirilib bugun kelgan bemorlar mavjud emas." : "Qidiruv yoki filtr bo'yicha hech qanday bemor topilmadi."}
           </td>
         </tr>
       `;
       return;
     }
 
-    earlierPatientsTableBody.innerHTML = earlierList.map(p => {
+    earlierPatientsTableBody.innerHTML = filtered.map(p => {
       let rowClass = 'epp-row-waiting';
       let tagClass = 'tag-waiting';
       if (p.isConfirmedToday || p.statusCode === 8) {
@@ -833,6 +978,63 @@
         </tr>
       `;
     }).join('');
+  }
+
+  function updateEarlierPatientsPanel() {
+    if (!earlierPatientsSection) return;
+    if (currentMode === 'single-room') {
+      earlierPatientsSection.style.display = 'none';
+      return;
+    }
+    if (!queueData) return;
+    const summary = queueData.summary || {};
+    const fullList = summary.earlierPatientsList || [];
+
+    populateEarlierDoctorDropdown(fullList);
+    renderFilteredEarlierPatients();
+  }
+
+  // Filtr va qidiruv tinglovchilari
+  if (eppSearchInput) {
+    eppSearchInput.addEventListener('input', (e) => {
+      earlierSearchQuery = e.target.value.trim();
+      if (btnEppClearSearch) {
+        btnEppClearSearch.style.display = earlierSearchQuery ? 'block' : 'none';
+      }
+      renderFilteredEarlierPatients();
+    });
+  }
+  if (btnEppClearSearch) {
+    btnEppClearSearch.addEventListener('click', () => {
+      if (eppSearchInput) eppSearchInput.value = '';
+      earlierSearchQuery = '';
+      btnEppClearSearch.style.display = 'none';
+      renderFilteredEarlierPatients();
+    });
+  }
+  if (eppDoctorSelect) {
+    eppDoctorSelect.addEventListener('change', (e) => {
+      earlierDoctorFilter = e.target.value;
+      renderFilteredEarlierPatients();
+    });
+  }
+  if (eppStatusSelect) {
+    eppStatusSelect.addEventListener('change', (e) => {
+      earlierStatusFilter = e.target.value;
+      renderFilteredEarlierPatients();
+    });
+  }
+  if (btnEppResetAll) {
+    btnEppResetAll.addEventListener('click', () => {
+      if (eppSearchInput) eppSearchInput.value = '';
+      earlierSearchQuery = '';
+      if (btnEppClearSearch) btnEppClearSearch.style.display = 'none';
+      if (eppDoctorSelect) eppDoctorSelect.value = 'all';
+      earlierDoctorFilter = 'all';
+      if (eppStatusSelect) eppStatusSelect.value = 'all';
+      earlierStatusFilter = 'all';
+      renderFilteredEarlierPatients();
+    });
   }
 
   // Oldingi kunlar panelini ochish/yopish tugmasi hodisasi
@@ -965,11 +1167,11 @@
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
             <div class="doc-header-badges">
-              <span class="doc-badge-completed" title="Bugun ko'rib bo'lingan: ${stats.completedToday || completedCount} ta bugun yo'naltirilgan, ${stats.completedEarlier || 0} ta oldingi kundan">
+              <span class="doc-badge-completed btn-open-doc-modal" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish (Bugun: ${stats.completedToday || completedCount} ta bugun yo'naltirilgan, ${stats.completedEarlier || 0} ta oldingi kundan)">
                 ✅ ${completedCount} ko'rildi
               </span>
               ${stats.completedEarlier > 0 ? `
-                <span class="doc-badge-completed" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;" title="Kecha yoki oldin yo'naltirilib, bugun ko'rib bo'lingan">
+                <span class="doc-badge-completed btn-open-doc-modal" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;" title="Kecha yoki oldin yo'naltirilib, bugun ko'rib bo'lingan bemorlar">
                   🔄 ${stats.completedEarlier} oldin
                 </span>
               ` : ''}
@@ -1044,7 +1246,10 @@
               <div class="dcb-fill" style="width: ${progressPercent}%;"></div>
             </div>
             <div class="dcb-text">
-              <span class="dcb-done">✅ Ko'rildi: <b>${completedCount} ta</b></span>
+              <span class="dcb-done">
+                ✅ Ko'rildi: <b>${completedCount} ta</b>
+                <button type="button" class="btn-card-view-completed" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish">📋 Ko'rish</button>
+              </span>
               <span class="dcb-wait">⏳ Navbatda: <b>${waitingPatients.length} ta</b></span>
               <span class="dcb-pct">${progressPercent}%</span>
             </div>
