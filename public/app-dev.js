@@ -805,48 +805,8 @@
       if (selectedPatientsCount) selectedPatientsCount.textContent = waiting;
     }
 
-    // Vrachlar kesimida ko'riklar lentasini chizish
-    updateDoctorRibbon();
-
     // Kecha va oldingi kunlarda yo'naltirilib bugun o'tganlar jadvalini yangilash
     updateEarlierPatientsPanel();
-  }
-
-  // 11.1 VRACHLAR KESIMIDAGI JONLI LENTA (HAR BIR SHIFOKORNING KO'RIB BO'LGANI)
-  function updateDoctorRibbon() {
-    if (!tvRibbonDoctorChips) return;
-    if (currentMode === 'single-room') {
-      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
-      return;
-    }
-    if (!queueData) return;
-
-    const list = Object.keys(ROOM_MAP).map(rKey => {
-      const meta = ROOM_MAP[rKey];
-      const stats = getDoctorCompletedStats(rKey);
-      return {
-        roomKey: rKey,
-        title: meta.title,
-        roomNum: meta.roomNum,
-        shortName: meta.shortName,
-        doctorName: meta.doctorName,
-        completed: stats.completed,
-        completedEarlier: stats.completedEarlier,
-        waiting: stats.waiting,
-        inProgress: stats.inProgress,
-        total: stats.total
-      };
-    });
-
-    tvRibbonDoctorChips.innerHTML = list.map(item => `
-      <div class="doc-stat-chip" onclick="window.openDoctorCompletedModal('${item.roomKey}', '${escapeHtml(item.doctorName)}')" title="${escapeHtml(item.doctorName)}: ko'rgan bemorlar ro'yxatini ochish (jami ${item.completed} ta ko'rildi, ${item.waiting} navbatda)">
-        <span class="dsc-room">${escapeHtml(item.roomNum)}-xona</span>
-        <span class="dsc-name">${escapeHtml(item.shortName)}</span>
-        <span class="dsc-completed" title="Ko'rib bo'lingan bemorlar">✅ ${item.completed}${item.completedEarlier > 0 ? `<small style="font-size:10px; color:#86efac; margin-left:2px;">(+${item.completedEarlier})</small>` : ''}</span>
-        <span class="dsc-waiting" title="Hozir navbatda kutayotganlar">⏳ ${item.waiting}</span>
-        <button type="button" class="btn-card-view-completed" style="margin-left:2px; padding:2px 7px; font-size:10.5px;" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${item.roomKey}', '${escapeHtml(item.doctorName)}')" title="Bemorlar ro'yxatini ko'rish">📋 Ko'rish</button>
-      </div>
-    `).join('');
   }
 
   // 11.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB BUGUN O'TGAN/QABUL QILINGANLAR JADVALI VA FILTRLASH
@@ -1167,14 +1127,12 @@
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
             <div class="doc-header-badges">
-              <span class="doc-badge-completed btn-open-doc-modal" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish (Bugun: ${stats.completedToday || completedCount} ta bugun yo'naltirilgan, ${stats.completedEarlier || 0} ta oldingi kundan)">
-                ✅ ${completedCount} ko'rildi
-              </span>
-              ${stats.completedEarlier > 0 ? `
-                <span class="doc-badge-completed btn-open-doc-modal" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;" title="Kecha yoki oldin yo'naltirilib, bugun ko'rib bo'lingan bemorlar">
-                  🔄 ${stats.completedEarlier} oldin
-                </span>
-              ` : ''}
+              <button type="button" class="btn-doc-eye" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlarni ko'rish (${completedCount} ta ko'rilgan)">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
               <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}" title="Navbatda kutayotgan bemorlar">
                 ⏳ ${waitingPatients.length} navbatda
               </span>
@@ -1239,21 +1197,6 @@
             </div>
             `;
           })() : ''}
-
-          <!-- Karta pastidagi ko'rik natijasi ko'rsatkichi -->
-          <div class="doc-completion-bar-wrap">
-            <div class="dcb-bar">
-              <div class="dcb-fill" style="width: ${progressPercent}%;"></div>
-            </div>
-            <div class="dcb-text">
-              <span class="dcb-done">
-                ✅ Ko'rildi: <b>${completedCount} ta</b>
-                <button type="button" class="btn-card-view-completed" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish">📋 Ko'rish</button>
-              </span>
-              <span class="dcb-wait">⏳ Navbatda: <b>${waitingPatients.length} ta</b></span>
-              <span class="dcb-pct">${progressPercent}%</span>
-            </div>
-          </div>
         </div>
       `;
     });

@@ -396,34 +396,30 @@
       display: block;
     }
 
-    /* Vrach kartasidagi ko'riklar tugmasi */
-    .btn-card-view-completed {
+    /* Vrach ko'rgan bemorlarni ochish Ko'z (Eye) tugmasi */
+    .btn-doc-eye {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      background: rgba(34, 197, 94, 0.22);
-      border: 1px solid rgba(34, 197, 94, 0.5);
-      color: #4ade80;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 800;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      color: #38bdf8;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
-      margin-left: 6px;
+      padding: 0;
     }
-    .btn-card-view-completed:hover {
-      background: rgba(34, 197, 94, 0.35);
-      transform: translateY(-1px);
-      color: #fff;
+    .btn-doc-eye:hover {
+      background: rgba(56, 189, 248, 0.35);
+      border-color: #38bdf8;
+      color: #ffffff;
+      transform: scale(1.1);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
     }
-    .doc-badge-completed.btn-open-doc-modal {
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .doc-badge-completed.btn-open-doc-modal:hover {
-      filter: brightness(1.25);
-      transform: translateY(-1px);
+    .btn-doc-eye:active {
+      transform: scale(0.95);
     }
 
     /* Pastdagi umumiy ro'yxat filter paneli */
@@ -706,16 +702,6 @@
         <button type="button" class="sound-toggle-btn" id="soundToggleBtn" title="Ovozli chaqiruvni yoqish / o'chirish">
           🔔 Ovoz: <span id="soundStatusText">Yoqilgan</span>
         </button>
-      </div>
-    </section>
-
-    <!-- 2.5 VRACHLAR KESIMIDA BUGUNGI KO'RIKLAR LENTASI -->
-    <section class="tv-doctor-summary-ribbon" id="tvDoctorSummaryRibbon">
-      <div class="tv-ribbon-title">
-        <span>👨‍⚕️ VRACHLAR KO'RIKLARI:</span>
-      </div>
-      <div class="tv-ribbon-chips" id="tvRibbonDoctorChips">
-        <!-- Har bir vrach ko'rgan bemorlar soni chiqadi -->
       </div>
     </section>
 

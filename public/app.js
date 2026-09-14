@@ -109,6 +109,14 @@
   const srDoctorFullTitle = document.getElementById('srDoctorFullTitle');
   const srPatientTableBody = document.getElementById('srPatientTableBody');
 
+  // Vrach ko'rgan bemorlar iframe modali elementlari
+  const doctorCompletedModal = document.getElementById('doctorCompletedModal');
+  const docCompletedIframe = document.getElementById('docCompletedIframe');
+  const dimhDoctorTitle = document.getElementById('dimhDoctorTitle');
+  const dimhCompletedCountBadge = document.getElementById('dimhCompletedCountBadge');
+  const btnDimhNewTab = document.getElementById('btnDimhNewTab');
+  const btnDimhClose = document.getElementById('btnDimhClose');
+
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
     'Ultratovush-1': { title: 'UTT1-53 XONA', roomNum: '53', doctorName: 'Juravlev Igor Ivanovich', shortName: 'Juravlev' },
@@ -135,6 +143,47 @@
       shortName: ''
     };
   }
+
+  // Vrach ko'rgan bemorlar modal oynasini ochish
+  let currentModalRoom = '';
+  window.openDoctorCompletedModal = function(roomId, doctorName) {
+    if (!doctorCompletedModal || !docCompletedIframe) return;
+    currentModalRoom = roomId ? String(roomId).trim() : '';
+    const staticInfo = ROOM_MAP[currentModalRoom] || {};
+    const dName = doctorName || staticInfo.doctorName || currentModalRoom;
+    if (dimhDoctorTitle) {
+      dimhDoctorTitle.textContent = `${currentModalRoom} — ${dName}`;
+    }
+    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`;
+    doctorCompletedModal.style.display = 'flex';
+  };
+
+  window.closeDoctorCompletedModal = function() {
+    if (!doctorCompletedModal) return;
+    doctorCompletedModal.style.display = 'none';
+    if (docCompletedIframe) docCompletedIframe.src = 'about:blank';
+  };
+
+  if (btnDimhClose) {
+    btnDimhClose.addEventListener('click', window.closeDoctorCompletedModal);
+  }
+  if (btnDimhNewTab) {
+    btnDimhNewTab.addEventListener('click', () => {
+      if (currentModalRoom) {
+        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`, '_blank');
+      }
+    });
+  }
+  if (doctorCompletedModal) {
+    doctorCompletedModal.addEventListener('click', (e) => {
+      if (e.target === doctorCompletedModal) window.closeDoctorCompletedModal();
+    });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && doctorCompletedModal && doctorCompletedModal.style.display !== 'none') {
+      window.closeDoctorCompletedModal();
+    }
+  });
 
   // 3. HOLAT (STATE)
   let currentMode = 'tv'; // 'tv' | 'single-room' | 'post' | 'mobile'
@@ -765,9 +814,17 @@
               <span class="room-badge">${escapeHtml(doc.room.replace('Ultratovush-', 'U-'))}</span>
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
-            <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}">
-              ${patients.length} ta bemor
-            </span>
+            <div class="doc-header-badges" style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-doc-eye" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}">
+                ${patients.length} ta bemor
+              </span>
+            </div>
           </div>
 
           ${activeCall ? `
