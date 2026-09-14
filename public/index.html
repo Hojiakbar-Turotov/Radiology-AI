@@ -67,17 +67,23 @@
     <!-- 2. TEZKOR STATISTIKA VA WI-FI BANNERI (UMUMIY REJIMLARDA) -->
     <section class="top-info-bar" id="topInfoBar">
       <div class="stats-pills">
-        <div class="stat-pill total-pill">
-          <span class="stat-lbl">Jami kutayotgan bemorlar:</span>
+        <div class="stat-pill total-pill" title="Hozir navbatda kutayotgan bemorlar soni">
+          <span class="stat-lbl">Navbatda:</span>
           <span class="stat-val" id="totalPatientsCount">0</span>
+        </div>
+        <div class="stat-pill reg-pill" title="Bugun ro'yxatga olingan bemorlar soni">
+          <span class="stat-lbl">Bugun ro'yxatga olingan:</span>
+          <span class="stat-val" id="todayRegPatientsCount">0</span>
+          <span class="stat-subval" id="earlierRegPatientsCount" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #38bdf8;">(+0 oldin)</span>
+        </div>
+        <div class="stat-pill completed-pill" title="Tasdiqlangan sanasi bugun bo'lgan barcha bemorlar soni">
+          <span class="stat-lbl">Bugun ko'rildi:</span>
+          <span class="stat-val" id="totalCompletedCount">0</span>
+          <span class="stat-subval" id="completedEarlierSubText" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #86efac;">(0 oldin)</span>
         </div>
         <div class="stat-pill active-docs-pill">
           <span class="stat-lbl">Qabuldagi shifokorlar:</span>
           <span class="stat-val" id="activeDoctorsCount">0</span>
-        </div>
-        <div class="stat-pill selected-docs-pill" id="selectedPillWrap" style="display: none;">
-          <span class="stat-lbl">Tanlangan vrachlarda:</span>
-          <span class="stat-val" id="selectedPatientsCount">0</span>
         </div>
       </div>
 
@@ -120,6 +126,68 @@
       <div class="tv-queue-grid" id="tvQueueGrid">
         <!-- JS orqali har bir vrach kartasi joylashtiriladi -->
       </div>
+
+      <!-- A.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR RO'YXATI -->
+      <section class="earlier-patients-panel" id="earlierPatientsSection">
+        <div class="epp-header" id="btnToggleEarlierPanel" title="Ro'yxatni ochish / yopish">
+          <div class="epp-header-left">
+            <span class="epp-icon">📋</span>
+            <span class="epp-title">KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR</span>
+            <span class="epp-badge" id="earlierPatientsCountBadge">0 ta</span>
+          </div>
+          <div class="epp-header-right">
+            <span class="epp-toggle-btn" id="eppToggleText">▼ Ko'rish</span>
+          </div>
+        </div>
+        <div class="epp-body" id="earlierPatientsBody" style="display: none;">
+          <!-- FILTRLASH VA QIDIRUV PANELI -->
+          <div class="epp-filter-toolbar">
+            <div class="epp-filter-item epp-search-wrap">
+              <span class="epp-search-icon">🔍</span>
+              <input type="text" id="eppSearchInput" class="epp-search-input" placeholder="Bemor ID, F.I.Sh. yoki yo'naltiruvchi shifokor..." />
+              <button type="button" id="btnEppClearSearch" class="epp-clear-search-btn" title="Tozalash">✕</button>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppDoctorSelect">Qabul qiluvchi:</label>
+              <select id="eppDoctorSelect" class="epp-select">
+                <option value="all">👨‍⚕️ Barcha vrachlar</option>
+              </select>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppStatusSelect">Holati:</label>
+              <select id="eppStatusSelect" class="epp-select">
+                <option value="all">Barcha holatlar</option>
+                <option value="completed">✅ Tekshiruvdan o'tgan</option>
+                <option value="accepted">🟢 Qabulda</option>
+                <option value="waiting">⏳ Navbatda</option>
+              </select>
+            </div>
+            <div class="epp-filter-meta">
+              <span id="eppFilteredCountBadge" class="epp-filter-result-badge">0 ta</span>
+              <button type="button" id="btnEppResetAll" class="epp-reset-btn" title="Barcha filtrlarni tozalash">🔄 Tozalash</button>
+            </div>
+          </div>
+          <div class="epp-table-wrap">
+            <table class="epp-table">
+              <thead>
+                <tr>
+                  <th>Faylning shifokorini</th>
+                  <th>Bemor ID</th>
+                  <th>Qabul qiluvchi shifokor</th>
+                  <th>Bemor F.I.Sh.</th>
+                  <th>Ulangan bo'lim</th>
+                  <th>Ro'yxatga olingan sana</th>
+                  <th>Tasdiqlangan sana</th>
+                  <th>Holati / Tavsif</th>
+                </tr>
+              </thead>
+              <tbody id="earlierPatientsTableBody">
+                <!-- Javascript orqali to'ldiriladi -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <!-- B. YAGONA XONA MAXSUS TV EKRANI (SCREENSHOT 2 KO'RINISHI) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
