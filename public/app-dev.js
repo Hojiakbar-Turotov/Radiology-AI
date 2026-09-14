@@ -505,7 +505,7 @@
         sseSource.onopen = function () {
           if (liveConnChip) {
             liveConnChip.className = 'live-connection-chip connected';
-            liveConnText.textContent = 'Jonli Aloqa (v7.0)';
+            liveConnText.textContent = 'Jonli TV v7.1.0-dev (Test)';
           }
         };
 
@@ -536,7 +536,7 @@
           // SSE uzilsa ham polling ishlab turadi
           if (liveConnChip) {
             liveConnChip.className = 'live-connection-chip connected';
-            liveConnText.textContent = 'Jonli Aloqa (Auto)';
+            liveConnText.textContent = 'Jonli TV v7.1.0-dev (Auto)';
           }
         };
       } catch (e) {}
@@ -550,7 +550,7 @@
       handleNewQueueData(data);
       if (liveConnChip) {
         liveConnChip.className = 'live-connection-chip connected';
-        liveConnText.textContent = 'Jonli Aloqa (v7.0)';
+        liveConnText.textContent = 'Jonli TV v7.1.0-dev (Test)';
       }
     }, function(err) {
       consecutivePollErrors++;
