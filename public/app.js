@@ -144,6 +144,39 @@
     };
   }
 
+  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI (BUGUN TASDIQLANGANLAR)
+  function getDoctorCompletedStats(docIdOrRoom) {
+    if (!queueData) return { completed: 0, completedToday: 0, completedEarlier: 0, waiting: 0, inProgress: 0, total: 0 };
+    const rKey = String(docIdOrRoom || '').trim();
+    let completed = 0;
+    let completedToday = 0;
+    let completedEarlier = 0;
+    let waiting = 0;
+    let inProgress = 0;
+
+    const docObj = queueData.doctors ? queueData.doctors.find(d => (d.id === rKey || d.room === rKey)) : null;
+    if (docObj) {
+      completed = typeof docObj.completedCount === 'number' ? docObj.completedCount : 0;
+      completedToday = typeof docObj.completedTodayCount === 'number' ? docObj.completedTodayCount : completed;
+      completedEarlier = typeof docObj.completedEarlierCount === 'number' ? docObj.completedEarlierCount : 0;
+      waiting = typeof docObj.waitingCount === 'number' ? docObj.waitingCount : (docObj.patients ? docObj.patients.filter(p => p.statusCode !== 4).length : 0);
+      inProgress = docObj.patients ? docObj.patients.filter(p => p.statusCode === 4).length : 0;
+    } else if (queueData.summary && queueData.summary.completedByDoctor && typeof queueData.summary.completedByDoctor[rKey] === 'number') {
+      completed = queueData.summary.completedByDoctor[rKey];
+      completedToday = (queueData.summary.completedTodayByDoctor && queueData.summary.completedTodayByDoctor[rKey]) || completed;
+      completedEarlier = (queueData.summary.completedEarlierByDoctor && queueData.summary.completedEarlierByDoctor[rKey]) || 0;
+    }
+
+    return { 
+      completed, 
+      completedToday, 
+      completedEarlier, 
+      waiting, 
+      inProgress, 
+      total: completed + waiting + inProgress 
+    };
+  }
+
   // Vrach ko'rgan bemorlar modal oynasini ochish
   let currentModalRoom = '';
   window.openDoctorCompletedModal = function(roomId, doctorName) {
@@ -807,6 +840,11 @@
       const curPatient = hasWaiting ? waitingPatients[0] : null;
       const waitingList = hasWaiting ? waitingPatients.slice(1) : [];
 
+      const stats = getDoctorCompletedStats(docId);
+      const completedCount = typeof doc.completedCount === 'number' ? doc.completedCount : stats.completed;
+      const waitingCount = waitingPatients.length;
+      const totalDocCount = stats.total || (completedCount + patients.length);
+
       html += `
         <div class="doctor-queue-card ${(hasWaiting || activeCall) ? 'has-active' : ''} ${activeCall ? (activeCall.status === 'accepted' ? 'card-accepted' : 'card-calling') : ''}" data-room-id="${escapeHtml(docId)}" title="Batafsil xona ekraniga o'tish uchun bosing">
           <div class="doc-card-header">
@@ -815,14 +853,18 @@
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
             <div class="doc-header-badges" style="display: flex; align-items: center; gap: 8px;">
-              <button type="button" class="btn-doc-eye" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish">
+              <button type="button" class="btn-doc-eye" onclick="event.stopPropagation(); window.openDoctorCompletedModal('${escapeHtml(docId)}', '${escapeHtml(doc.doctorName)}')" title="Vrach ko'rgan bemorlar ro'yxatini ko'rish (${completedCount} ta)">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}">
-                ${patients.length} ta bemor
+              <span class="doc-queue-badge ${(waitingCount > 0 || activeCall || completedCount > 0) ? '' : 'empty'}" title="Ko'rildi: ${completedCount} | Navbatda: ${waitingCount} | Jami: ${totalDocCount}">
+                <span style="color: #4ade80;" title="Ko'rilgan bemorlar soni">${completedCount}</span>
+                <span style="opacity: 0.5; margin: 0 3px;">/</span>
+                <span style="color: #fbbf24;" title="Navbat kutayotganlar soni">${waitingCount}</span>
+                <span style="opacity: 0.5; margin: 0 3px;">/</span>
+                <span style="color: #38bdf8;" title="Jami bemorlar soni">${totalDocCount}</span>
               </span>
             </div>
           </div>

@@ -1116,6 +1116,7 @@
 
       const stats = getDoctorCompletedStats(docId);
       const completedCount = typeof doc.completedCount === 'number' ? doc.completedCount : stats.completed;
+      const waitingCount = waitingPatients.length;
       const totalDocCount = stats.total || (completedCount + patients.length);
       const progressPercent = totalDocCount > 0 ? Math.round((completedCount / totalDocCount) * 100) : 0;
 
@@ -1133,8 +1134,12 @@
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}" title="Navbatda kutayotgan bemorlar">
-                ⏳ ${waitingPatients.length} navbatda
+              <span class="doc-queue-badge ${(waitingCount > 0 || activeCall || completedCount > 0) ? '' : 'empty'}" title="Ko'rildi: ${completedCount} | Navbatda: ${waitingCount} | Jami: ${totalDocCount}">
+                <span style="color: #4ade80;" title="Ko'rilgan bemorlar soni">${completedCount}</span>
+                <span style="opacity: 0.5; margin: 0 3px;">/</span>
+                <span style="color: #fbbf24;" title="Navbat kutayotganlar soni">${waitingCount}</span>
+                <span style="opacity: 0.5; margin: 0 3px;">/</span>
+                <span style="color: #38bdf8;" title="Jami bemorlar soni">${totalDocCount}</span>
               </span>
             </div>
           </div>
