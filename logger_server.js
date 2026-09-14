@@ -1017,17 +1017,92 @@ async function syncMasterQueueFromKarmedDirect() {
       };
     });
 
+    // Bugungi va kechagi sanalarni aniqlash (GMT+5 / Server vaqti)
+    const nowObj = new Date();
+    const pad2 = (n) => (n < 10 ? '0' : '') + n;
+    const todayIso = `${nowObj.getFullYear()}-${pad2(nowObj.getMonth() + 1)}-${pad2(nowObj.getDate())}`;
+    const todayDmy = `${pad2(nowObj.getDate())}.${pad2(nowObj.getMonth() + 1)}.${nowObj.getFullYear()}`;
+
+    const yDateObj = new Date(nowObj.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayIso = `${yDateObj.getFullYear()}-${pad2(yDateObj.getMonth() + 1)}-${pad2(yDateObj.getDate())}`;
+    const yesterdayDmy = `${pad2(yDateObj.getDate())}.${pad2(yDateObj.getMonth() + 1)}.${yDateObj.getFullYear()}`;
+
+    function formatIsoToDmy(isoStr) {
+      if (!isoStr) return '';
+      const parts = isoStr.split('-');
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return isoStr;
+    }
+
     // Qabul qilingan bemorlar ro'yxatini shakllantirish
     const allPatients = [];
     let totalWaitingCount = 0;
 
     rawList.forEach((kp, idx) => {
       const matchedDoc = mapKarmedRecordToDoctor(kp, docsAuth);
+      const regIso = kp.KayitTarihi ? kp.KayitTarihi.split('T')[0] : '';
       const regTime = formatKarmedTimeString(kp.KayitTarihi || kp.KabulTarihi || kp.Saat);
+      const acceptIso = kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '';
+      const acceptTime = kp.KabulTarihi ? formatKarmedTimeString(kp.KabulTarihi) : '';
+      const confirmIso = kp.HakedisTarihi ? kp.HakedisTarihi.split('T')[0] : (kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '');
+      const confirmTime = kp.HakedisTarihi ? formatKarmedTimeString(kp.HakedisTarihi) : acceptTime;
+
       const statusCode = kp.DosyaDurumu || (kp.Durum === 'Bekleyen' ? 1 : (kp.Durum === 'Kabul Edilen' ? 4 : (kp.Durum === 'Rapor Onaylı' ? 8 : 1)));
       const isWaiting = statusCode === 1; // 1 = Bekleyen
       const isAccepted = statusCode === 4; // 4 = Kabul Edilen
-      const isFinished = statusCode === 8; // 8 = Rapor Onayli
+      const isFinished = statusCode === 8 || (kp.Durum && String(kp.Durum).toLowerCase().includes('onay'));
+
+      // 1. Foydalanuvchi talabi: Faqat tasdiqlangan sanasi BUGUN bo'lganlar bugungi ko'rikka kiradi
+      const isConfirmedToday = isFinished && (confirmIso === todayIso);
+
+      // 2. Ro'yxatga olingan sana tahlili:
+      const isRegToday = (regIso === todayIso);
+      const isRegYesterday = (regIso === yesterdayIso);
+      const isRegEarlier = (!isRegToday && regIso && regIso < todayIso);
+
+      // 3. Matnli aniq ta'rif / teg:
+      let dateTag = '';
+      let dateTagType = 'today';
+      const regPretty = formatIsoToDmy(regIso);
+      const confPretty = formatIsoToDmy(confirmIso);
+
+      if (isConfirmedToday) {
+        if (isRegToday) {
+          dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
+          dateTagType = "today_done";
+        } else if (isRegYesterday) {
+          dateTag = "Kecha yo'naltirilgan, bugun tekshiruvdan o'tgan";
+          dateTagType = "yesterday_done";
+        } else {
+          dateTag = `${regPretty} da yo'naltirilgan, bugun tekshiruvdan o'tgan`;
+          dateTagType = "earlier_done";
+        }
+      } else if (isAccepted && (acceptIso === todayIso)) {
+        if (isRegToday) {
+          dateTag = "Bugun yo'naltirilgan, bugun qabul qilingan";
+          dateTagType = "today_accepted";
+        } else if (isRegYesterday) {
+          dateTag = "Kecha yo'naltirilgan, bugun qabul qilingan";
+          dateTagType = "yesterday_accepted";
+        } else {
+          dateTag = `${regPretty} da yo'naltirilgan, bugun qabul qilingan`;
+          dateTagType = "earlier_accepted";
+        }
+      } else if (isWaiting) {
+        if (isRegToday) {
+          dateTag = "Bugun ro'yxatga olingan";
+          dateTagType = "today_waiting";
+        } else if (isRegYesterday) {
+          dateTag = "Kecha yo'naltirilgan, navbatda kutmoqda";
+          dateTagType = "yesterday_waiting";
+        } else {
+          dateTag = `${regPretty} da yo'naltirilgan, navbatda kutmoqda`;
+          dateTagType = "earlier_waiting";
+        }
+      } else if (isFinished) {
+        dateTag = `${confPretty} da tekshiruvdan o'tgan`;
+        dateTagType = "other_done";
+      }
 
       let statusText = kp.Durum || 'Bekleyen';
       if (statusCode === 1) statusText = 'Bekleyen';
@@ -1043,7 +1118,20 @@ async function syncMasterQueueFromKarmedDirect() {
         globalQueueNo: idx + 1,
         status: statusText,
         statusCode: statusCode,
+        registrationDate: regPretty || todayDmy,
+        registrationIso: regIso,
         registrationTime: regTime,
+        acceptanceDate: formatIsoToDmy(acceptIso),
+        acceptanceTime: acceptTime,
+        confirmationDate: formatIsoToDmy(confirmIso),
+        confirmationTime: confirmTime,
+        confirmationFullTime: kp.HakedisTarihi || kp.KabulTarihi || '',
+        isConfirmedToday: isConfirmedToday,
+        isRegToday: isRegToday,
+        isRegYesterday: isRegYesterday,
+        isRegEarlier: isRegEarlier,
+        dateTag: dateTag,
+        dateTagType: dateTagType,
         room: matchedDoc ? matchedDoc.roomId : (kp.AltBolumAdi || 'Biriktirilmagan'),
         roomTitle: matchedDoc ? matchedDoc.roomTitle : 'Umumiy navbat',
         doctorName: matchedDoc ? matchedDoc.doctorName : (kp.KabulEden || kp.DoktorAdi || 'Navbatchi shifokor'),
@@ -1078,19 +1166,44 @@ async function syncMasterQueueFromKarmedDirect() {
       idToGlobalQueue.set(String(p.patientId).trim(), gNo);
     });
 
-    // Har bir shifokor ro'yxatidagi navbat raqamlarini yangilash va tartiblash
+    // Statistika hisob-kitoblari (Faqat tasdiqlangan sanasi bugun bo'lganlar va ro'yxatga olingan sana ajratilishi)
+    let totalTodayRegisteredCount = 0;
+    let totalEarlierRegisteredCount = 0;
+    let totalCompletedCount = 0;
+    let totalCompletedTodayCount = 0;
+    let totalCompletedEarlierCount = 0;
+
     const summaryByDoctor = {};
     const completedByDoctor = {};
-    let totalCompletedCount = 0;
+    const completedTodayByDoctor = {};
+    const completedEarlierByDoctor = {};
+    const earlierPatientsList = [];
 
-    // allPatients dan har bir shifokor bo'yicha ko'rib bo'linganlarni (statusCode === 8) hisoblash
     allPatients.forEach(p => {
-      const isFinished = p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'));
-      if (isFinished) {
+      if (p.isRegToday) {
+        totalTodayRegisteredCount++;
+      } else {
+        totalEarlierRegisteredCount++;
+      }
+
+      // Kecha yoki oldingi kundan qolgan bemorlarni alohida ro'yxatga jamlash
+      if (p.isRegEarlier || p.isRegYesterday) {
+        earlierPatientsList.push(p);
+      }
+
+      // Vrachlar ko'rigi: FAQAT TASDIQLANGAN SANASI BUGUN BO'LGANLAR
+      if (p.isConfirmedToday) {
         totalCompletedCount++;
         const rKey = p.room;
         if (rKey && rKey !== 'Biriktirilmagan') {
           completedByDoctor[rKey] = (completedByDoctor[rKey] || 0) + 1;
+          if (p.isRegToday) {
+            totalCompletedTodayCount++;
+            completedTodayByDoctor[rKey] = (completedTodayByDoctor[rKey] || 0) + 1;
+          } else {
+            totalCompletedEarlierCount++;
+            completedEarlierByDoctor[rKey] = (completedEarlierByDoctor[rKey] || 0) + 1;
+          }
         }
       }
     });
@@ -1107,8 +1220,20 @@ async function syncMasterQueueFromKarmedDirect() {
       doc.count = doc.patients.length;
       doc.waitingCount = doc.patients.filter(p => p.statusCode !== 4).length;
       const rId = doc.room || doc.id;
+
       doc.completedCount = completedByDoctor[rId] || 0;
-      doc.totalToday = (doc.completedCount || 0) + doc.patients.length;
+      doc.completedTodayCount = completedTodayByDoctor[rId] || 0;
+      doc.completedEarlierCount = completedEarlierByDoctor[rId] || 0;
+
+      // Jami bemorlar: bugun ro'yxatga olinganlar + oldingi kundan yo'naltirilganlar
+      const docTodayReg = allPatients.filter(p => p.room === rId && p.isRegToday).length;
+      const docEarlierReg = allPatients.filter(p => p.room === rId && (p.isRegYesterday || p.isRegEarlier)).length;
+
+      doc.totalToday = docTodayReg;
+      doc.totalEarlier = docEarlierReg;
+      doc.totalAll = docTodayReg + docEarlierReg;
+      doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId);
+
       summaryByDoctor[rId] = doc.patients.length;
     });
 
@@ -1151,22 +1276,29 @@ async function syncMasterQueueFromKarmedDirect() {
 
     const doctorsArray = Object.values(doctorMap);
 
-    // Yangi master ma'lumotlar paketi (v6.0.0)
+    // Yangi master ma'lumotlar paketi (v7.2.0)
     const masterData = {
       timestamp: new Date().toISOString(),
       date: dateStr,
-      totalPatients: allPatients.length,
+      totalPatients: totalTodayRegisteredCount,
       department: "Ultratovush",
       statusFilter: "Bekleyen",
       karmedDirectSync: true,
       lastSyncAt: new Date().toISOString(),
-      version: '6.0.0',
+      version: '7.2.0',
       summary: {
         totalWaiting: totalWaitingCount,
-        totalPatients: allPatients.length,
+        totalPatients: totalTodayRegisteredCount,
+        totalEarlierRegistered: totalEarlierRegisteredCount,
+        totalAll: allPatients.length,
         totalCompleted: totalCompletedCount,
+        totalCompletedToday: totalCompletedTodayCount,
+        totalCompletedEarlier: totalCompletedEarlierCount,
         byDoctor: summaryByDoctor,
-        completedByDoctor: completedByDoctor
+        completedByDoctor: completedByDoctor,
+        completedTodayByDoctor: completedTodayByDoctor,
+        completedEarlierByDoctor: completedEarlierByDoctor,
+        earlierPatientsList: earlierPatientsList
       },
       doctors: doctorsArray,
       allPatients: allPatients,

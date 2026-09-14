@@ -109,12 +109,20 @@
   const srDoctorFullTitle = document.getElementById('srDoctorFullTitle');
   const srPatientTableBody = document.getElementById('srPatientTableBody');
 
-  // TV-DEV: Vrachlar ko'rib bo'lgan bemorlar elementlari
+  // TV-DEV: Vrachlar ko'rib bo'lgan va oldingi kundan yo'naltirilgan bemorlar elementlari
   const totalCompletedCount = document.getElementById('totalCompletedCount');
+  const todayRegPatientsCount = document.getElementById('todayRegPatientsCount');
+  const earlierRegPatientsCount = document.getElementById('earlierRegPatientsCount');
+  const completedEarlierSubText = document.getElementById('completedEarlierSubText');
   const tvRibbonDoctorChips = document.getElementById('tvRibbonDoctorChips');
-  const srCompletedCount = document.getElementById('srCompletedCount');
-  const srWaitingCount = document.getElementById('srWaitingCount');
-  const srTotalCount = document.getElementById('srTotalCount');
+
+  // Kecha va oldingi kunlarda yo'naltirilgan bemorlar jadvali elementlari
+  const earlierPatientsSection = document.getElementById('earlierPatientsSection');
+  const btnToggleEarlierPanel = document.getElementById('btnToggleEarlierPanel');
+  const earlierPatientsCountBadge = document.getElementById('earlierPatientsCountBadge');
+  const eppToggleText = document.getElementById('eppToggleText');
+  const earlierPatientsBody = document.getElementById('earlierPatientsBody');
+  const earlierPatientsTableBody = document.getElementById('earlierPatientsTableBody');
 
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
@@ -143,44 +151,38 @@
     };
   }
 
-  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI
+  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI (BUGUN TASDIQLANGANLAR)
   function getDoctorCompletedStats(docIdOrRoom) {
-    if (!queueData) return { completed: 0, waiting: 0, inProgress: 0, total: 0 };
+    if (!queueData) return { completed: 0, completedToday: 0, completedEarlier: 0, waiting: 0, inProgress: 0, total: 0 };
     const rKey = String(docIdOrRoom || '').trim();
-    const docMeta = ROOM_MAP[rKey] || {};
     let completed = 0;
+    let completedToday = 0;
+    let completedEarlier = 0;
     let waiting = 0;
     let inProgress = 0;
 
-    // 1. Agar queueData.summary da completedByDoctor mavjud bo'lsa
-    if (queueData.summary && queueData.summary.completedByDoctor && typeof queueData.summary.completedByDoctor[rKey] === 'number') {
-      completed = queueData.summary.completedByDoctor[rKey];
-    }
-
-    // 2. Agar queueData.doctors ro'yxatida docObj topilsa
+    // 1. Agar queueData.doctors ro'yxatida docObj topilsa
     const docObj = queueData.doctors ? queueData.doctors.find(d => (d.id === rKey || d.room === rKey)) : null;
     if (docObj) {
-      if (typeof docObj.completedCount === 'number') completed = docObj.completedCount;
-      if (typeof docObj.waitingCount === 'number') waiting = docObj.waitingCount;
-      else if (docObj.patients) waiting = docObj.patients.filter(p => p.statusCode !== 4).length;
+      completed = typeof docObj.completedCount === 'number' ? docObj.completedCount : 0;
+      completedToday = typeof docObj.completedTodayCount === 'number' ? docObj.completedTodayCount : completed;
+      completedEarlier = typeof docObj.completedEarlierCount === 'number' ? docObj.completedEarlierCount : 0;
+      waiting = typeof docObj.waitingCount === 'number' ? docObj.waitingCount : (docObj.patients ? docObj.patients.filter(p => p.statusCode !== 4).length : 0);
       inProgress = docObj.patients ? docObj.patients.filter(p => p.statusCode === 4).length : 0;
+    } else if (queueData.summary && queueData.summary.completedByDoctor && typeof queueData.summary.completedByDoctor[rKey] === 'number') {
+      completed = queueData.summary.completedByDoctor[rKey];
+      completedToday = (queueData.summary.completedTodayByDoctor && queueData.summary.completedTodayByDoctor[rKey]) || completed;
+      completedEarlier = (queueData.summary.completedEarlierByDoctor && queueData.summary.completedEarlierByDoctor[rKey]) || 0;
     }
 
-    // 3. Fallback: allPatients dan hisoblash
-    if (completed === 0 && queueData.allPatients && queueData.allPatients.length > 0) {
-      queueData.allPatients.forEach(p => {
-        const roomMatch = p.room === rKey;
-        const nameMatch = (docMeta.shortName && p.doctorName && p.doctorName.includes(docMeta.shortName)) ||
-                          (docMeta.doctorName && p.doctorName && p.doctorName.includes(docMeta.doctorName));
-        if (roomMatch || nameMatch) {
-          if (p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'))) {
-            completed++;
-          }
-        }
-      });
-    }
-
-    return { completed, waiting, inProgress, total: completed + waiting + inProgress };
+    return { 
+      completed, 
+      completedToday, 
+      completedEarlier, 
+      waiting, 
+      inProgress, 
+      total: completed + waiting + inProgress 
+    };
   }
 
   // Xonani tanlash uchun global qulay funksiya (Lenta chiplari bosilganda)
@@ -646,22 +648,35 @@
   // 11. STATISTIKA PANELINI YANGILASH
   function updateStatsBar() {
     if (!queueData) return;
-    const waiting = (queueData.summary && typeof queueData.summary.totalWaiting === 'number') 
-      ? queueData.summary.totalWaiting 
+    const summary = queueData.summary || {};
+    
+    // Navbatdagi bemorlar soni
+    const waiting = typeof summary.totalWaiting === 'number' 
+      ? summary.totalWaiting 
       : (queueData.totalPatients || (queueData.allPatients ? queueData.allPatients.length : 0));
     if (totalPatientsCount) totalPatientsCount.textContent = waiting;
 
+    // Bugun ro'yxatga olinganlar va oldingi kundan qolganlar
+    const todayReg = typeof summary.totalPatients === 'number' ? summary.totalPatients : waiting;
+    const earlierReg = typeof summary.totalEarlierRegistered === 'number' ? summary.totalEarlierRegistered : 0;
+    if (todayRegPatientsCount) todayRegPatientsCount.textContent = todayReg;
+    if (earlierRegPatientsCount) {
+      earlierRegPatientsCount.textContent = earlierReg > 0 ? `(+${earlierReg} oldin)` : '';
+      earlierRegPatientsCount.style.display = earlierReg > 0 ? 'inline-block' : 'none';
+    }
+
+    // Faol qabuldagi shifokorlar
     const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0)).length : 0;
     if (activeDoctorsCount) activeDoctorsCount.textContent = activeDocs;
 
-    // Ko'rib bo'lingan bemorlar jami soni
-    let totalComp = 0;
-    if (queueData.summary && typeof queueData.summary.totalCompleted === 'number') {
-      totalComp = queueData.summary.totalCompleted;
-    } else if (queueData.allPatients) {
-      totalComp = queueData.allPatients.filter(p => p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'))).length;
-    }
+    // Faqat tasdiqlangan sanasi bugun bo'lgan ko'riklar
+    const totalComp = typeof summary.totalCompleted === 'number' ? summary.totalCompleted : 0;
+    const earlierComp = typeof summary.totalCompletedEarlier === 'number' ? summary.totalCompletedEarlier : 0;
     if (totalCompletedCount) totalCompletedCount.textContent = totalComp;
+    if (completedEarlierSubText) {
+      completedEarlierSubText.textContent = earlierComp > 0 ? `(${earlierComp} oldin)` : '';
+      completedEarlierSubText.style.display = earlierComp > 0 ? 'inline-block' : 'none';
+    }
 
     if (selectedDoctorIds.size > 0) {
       let count = 0;
@@ -679,6 +694,9 @@
 
     // Vrachlar kesimida ko'riklar lentasini chizish
     updateDoctorRibbon();
+
+    // Kecha va oldingi kunlarda yo'naltirilib bugun o'tganlar jadvalini yangilash
+    updateEarlierPatientsPanel();
   }
 
   // 11.1 VRACHLAR KESIMIDAGI JONLI LENTA (HAR BIR SHIFOKORNING KO'RIB BO'LGANI)
@@ -696,6 +714,7 @@
         shortName: meta.shortName,
         doctorName: meta.doctorName,
         completed: stats.completed,
+        completedEarlier: stats.completedEarlier,
         waiting: stats.waiting,
         inProgress: stats.inProgress,
         total: stats.total
@@ -703,13 +722,74 @@
     });
 
     tvRibbonDoctorChips.innerHTML = list.map(item => `
-      <div class="doc-stat-chip" onclick="window.uttSetSingleRoom('${item.roomKey}')" title="${escapeHtml(item.doctorName)}: ${item.completed} ko'rildi, ${item.waiting} navbatda">
+      <div class="doc-stat-chip" onclick="window.uttSetSingleRoom('${item.roomKey}')" title="${escapeHtml(item.doctorName)}: ${item.completed} ko'rildi (${item.completedEarlier} ta oldingi kundan), ${item.waiting} navbatda">
         <span class="dsc-room">${escapeHtml(item.roomNum)}-xona</span>
         <span class="dsc-name">${escapeHtml(item.shortName)}</span>
-        <span class="dsc-completed" title="Ko'rib bo'lingan bemorlar">✅ ${item.completed}</span>
+        <span class="dsc-completed" title="Ko'rib bo'lingan bemorlar">✅ ${item.completed}${item.completedEarlier > 0 ? `<small style="font-size:10px; color:#86efac; margin-left:2px;">(+${item.completedEarlier})</small>` : ''}</span>
         <span class="dsc-waiting" title="Hozir navbatda kutayotganlar">⏳ ${item.waiting}</span>
       </div>
     `).join('');
+  }
+
+  // 11.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB BUGUN O'TGAN/QABUL QILINGANLAR JADVALI
+  function updateEarlierPatientsPanel() {
+    if (!earlierPatientsSection || !queueData) return;
+    const summary = queueData.summary || {};
+    const earlierList = summary.earlierPatientsList || [];
+
+    if (earlierPatientsCountBadge) {
+      earlierPatientsCountBadge.textContent = `${earlierList.length} ta`;
+    }
+
+    if (!earlierPatientsTableBody) return;
+
+    if (earlierList.length === 0) {
+      earlierPatientsTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">
+            Oldingi kunlarda yo'naltirilib bugun kelgan bemorlar mavjud emas.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    earlierPatientsTableBody.innerHTML = earlierList.map(p => {
+      let rowClass = 'epp-row-waiting';
+      let tagClass = 'tag-waiting';
+      if (p.isConfirmedToday || p.statusCode === 8) {
+        rowClass = 'epp-row-completed';
+        tagClass = 'tag-done';
+      } else if (p.statusCode === 4) {
+        rowClass = 'epp-row-accepted';
+        tagClass = 'tag-accepted';
+      }
+
+      return `
+        <tr class="${rowClass}">
+          <td><b>${escapeHtml(p.referringDoctor || '-')}</b></td>
+          <td><b style="color: #38bdf8;">${escapeHtml(p.patientId || '-')}</b></td>
+          <td>${escapeHtml(p.doctorName || '-')}</td>
+          <td><b>${escapeHtml(p.fullName || '-')}</b></td>
+          <td><span class="room-badge">${escapeHtml(p.room || '-')}</span></td>
+          <td>📅 ${escapeHtml(p.registrationDate || '-')} ${escapeHtml(p.registrationTime || '')}</td>
+          <td>${p.confirmationDate ? `✅ ${escapeHtml(p.confirmationDate)} ${escapeHtml(p.confirmationTime || '')}` : '—'}</td>
+          <td><span class="epp-tag-pill ${tagClass}">${escapeHtml(p.dateTag || (p.isConfirmedToday ? "Bugun tekshiruvdan o'tgan" : "Navbatda"))}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Oldingi kunlar panelini ochish/yopish tugmasi hodisasi
+  if (btnToggleEarlierPanel) {
+    btnToggleEarlierPanel.addEventListener('click', () => {
+      if (!earlierPatientsBody) return;
+      const isHidden = earlierPatientsBody.style.display === 'none';
+      earlierPatientsBody.style.display = isHidden ? 'block' : 'none';
+      if (eppToggleText) {
+        eppToggleText.textContent = isHidden ? '▲ Yopish' : '▼ Ko\'rish';
+      }
+    });
   }
 
   // 12. POST REJIMIDAGI VRACHLAR CHIPLARI
@@ -830,9 +910,14 @@
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
             <div class="doc-header-badges">
-              <span class="doc-badge-completed" title="Bugun ko'rib bo'lingan bemorlar">
+              <span class="doc-badge-completed" title="Bugun ko'rib bo'lingan: ${stats.completedToday || completedCount} ta bugun yo'naltirilgan, ${stats.completedEarlier || 0} ta oldingi kundan">
                 ✅ ${completedCount} ko'rildi
               </span>
+              ${stats.completedEarlier > 0 ? `
+                <span class="doc-badge-completed" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;" title="Kecha yoki oldin yo'naltirilib, bugun ko'rib bo'lingan">
+                  🔄 ${stats.completedEarlier} oldin
+                </span>
+              ` : ''}
               <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}" title="Navbatda kutayotgan bemorlar">
                 ⏳ ${waitingPatients.length} navbatda
               </span>
@@ -856,7 +941,14 @@
               <div class="cur-patient-details">
                 <div class="cur-patient-id">ID: <b>${escapeHtml(curPatient.patientId || '-')}</b></div>
                 <div class="cur-patient-name" title="${escapeHtml(curPatient.fullName)}">${escapeHtml(curPatient.fullName)}</div>
-                <div class="cur-patient-time">🕐 Ro'yxatga olingan: ${escapeHtml(curPatient.registrationTime || '-')}</div>
+                <div class="cur-patient-time">
+                  🕐 Ro'yxatga olingan: ${escapeHtml(curPatient.registrationTime || '-')}
+                  ${(curPatient.isRegEarlier || curPatient.isRegYesterday) ? `
+                    <span style="display:inline-block; font-size:10px; font-weight:700; color:#fbbf24; background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.4); padding:1px 5px; border-radius:4px; margin-left:4px;" title="${escapeHtml(curPatient.dateTag || '')}">
+                      📅 ${curPatient.isRegYesterday ? 'Kecha' : escapeHtml(curPatient.registrationDate)}
+                    </span>
+                  ` : ''}
+                </div>
               </div>
             </div>
           ` : (activeCall ? `
@@ -880,7 +972,10 @@
                       <span class="wait-num">${p.queueNo}</span>
                       <span class="wait-name" title="${escapeHtml(p.fullName)}">${escapeHtml(p.fullName)}</span>
                     </div>
-                    <span class="wait-time">🕐 ${escapeHtml(p.registrationTime || '')}</span>
+                    <span class="wait-time">
+                      🕐 ${escapeHtml(p.registrationTime || '')}
+                      ${(p.isRegEarlier || p.isRegYesterday) ? `<small style="color:#fbbf24; margin-left:3px; font-weight:700;">[${p.isRegYesterday ? 'Kecha' : escapeHtml(p.registrationDate)}]</small>` : ''}
+                    </span>
                   </div>
                 `).join('')}
               </div>
@@ -917,7 +1012,7 @@
     });
   }
 
-  // 14. YAGONA XONA TV EKRANINI CHIZISH (SCREENSHOT 2 KO'RINISHI)
+  // 14. YAGONA XONA TV EKRANINI CHIZISH (SCREENSHOT 2 ASL KO'RINISHI - O'ZGARISHSIZ)
   function renderSingleRoomView(roomId) {
     if (!singleRoomWrapper) return;
 
@@ -972,12 +1067,8 @@
       srDoctorFullTitle.textContent = `${displayRoom}(${doctorName})`;
     }
 
-    // 2.1 Yagona xona shifokorining bugungi statistikasi (Ko'rib bo'lingan va kutayotgan)
+    // Bemorlar ro'yxati
     const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
-    const docStats = getDoctorCompletedStats(displayRoom);
-    if (srCompletedCount) srCompletedCount.textContent = `${docStats.completed} ta`;
-    if (srWaitingCount) srWaitingCount.textContent = `${docStats.waiting || patients.length} ta`;
-    if (srTotalCount) srTotalCount.textContent = `${docStats.total || (docStats.completed + patients.length)} ta`;
 
     // 3. Sana va soatni yangilash
     const now = new Date();

@@ -157,43 +157,117 @@
       font-weight: 800;
     }
 
-    /* Yagona xona ekrani statistikasi */
-    .sr-stats-ribbon {
+    /* Kecha va oldingi kunlarda yo'naltirilgan bemorlar paneli (Screenshot ko'rinishi) */
+    .earlier-patients-panel {
+      margin-top: 24px;
+      margin-bottom: 20px;
+      background: #1e293b;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .epp-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 16px;
-      margin: 12px 0 16px 0;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(90deg, #1e293b, #0f172a);
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .epp-header:hover {
+      background: linear-gradient(90deg, #273549, #131c31);
+    }
+    .epp-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       flex-wrap: wrap;
     }
-    .sr-stat-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 18px;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-    }
-    .sr-stat-item.completed {
-      background: rgba(34, 197, 94, 0.22);
-      border: 1px solid rgba(34, 197, 94, 0.5);
-      color: #4ade80;
-    }
-    .sr-stat-item.waiting {
-      background: rgba(245, 158, 11, 0.22);
-      border: 1px solid rgba(245, 158, 11, 0.5);
-      color: #fde047;
-    }
-    .sr-stat-item.total {
-      background: rgba(59, 130, 246, 0.22);
-      border: 1px solid rgba(59, 130, 246, 0.5);
-      color: #60a5fa;
-    }
-    .sr-stat-item .sr-stat-val {
-      font-size: 19px;
+    .epp-icon { font-size: 20px; }
+    .epp-title {
+      font-size: 14px;
       font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #f8fafc;
+    }
+    .epp-badge {
+      background: #3b82f6;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .epp-toggle-btn {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .epp-table-wrap {
+      overflow-x: auto;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .epp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .epp-table th {
+      background: #0f172a;
+      color: #94a3b8;
+      font-weight: 700;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-bottom: 2px solid #334155;
+      white-space: nowrap;
+    }
+    .epp-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .epp-table tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .epp-row-completed {
+      background: rgba(34, 197, 94, 0.12);
+    }
+    .epp-row-accepted {
+      background: rgba(59, 130, 246, 0.12);
+    }
+    .epp-row-waiting {
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .epp-tag-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .epp-tag-pill.tag-done {
+      background: #16a34a;
+      color: #ffffff;
+    }
+    .epp-tag-pill.tag-accepted {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .epp-tag-pill.tag-waiting {
+      background: #d97706;
+      color: #ffffff;
     }
   </style>
   <script>
@@ -349,17 +423,23 @@
     <!-- 2. TEZKOR STATISTIKA VA WI-FI BANNERI -->
     <section class="top-info-bar" id="topInfoBar">
       <div class="stats-pills">
-        <div class="stat-pill total-pill">
-          <span class="stat-lbl">Kutayotgan bemorlar:</span>
+        <div class="stat-pill total-pill" title="Hozir navbatda kutayotgan bemorlar soni">
+          <span class="stat-lbl">Navbatda:</span>
           <span class="stat-val" id="totalPatientsCount">0</span>
+        </div>
+        <div class="stat-pill reg-pill" title="Bugun ro'yxatga olingan bemorlar soni">
+          <span class="stat-lbl">Bugun ro'yxatga olingan:</span>
+          <span class="stat-val" id="todayRegPatientsCount">0</span>
+          <span class="stat-subval" id="earlierRegPatientsCount" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #38bdf8;">(+0 oldin)</span>
+        </div>
+        <div class="stat-pill completed-pill" title="Tasdiqlangan sanasi bugun bo'lgan barcha bemorlar soni">
+          <span class="stat-lbl">Bugun ko'rildi:</span>
+          <span class="stat-val" id="totalCompletedCount">0</span>
+          <span class="stat-subval" id="completedEarlierSubText" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #86efac;">(0 oldin)</span>
         </div>
         <div class="stat-pill active-docs-pill">
           <span class="stat-lbl">Qabuldagi shifokorlar:</span>
           <span class="stat-val" id="activeDoctorsCount">0</span>
-        </div>
-        <div class="stat-pill completed-pill">
-          <span class="stat-lbl">Bugun ko'rib bo'lingan:</span>
-          <span class="stat-val" id="totalCompletedCount">0</span>
         </div>
       </div>
 
@@ -390,7 +470,42 @@
       <!-- A. BARCHA XONALAR TV GRIDI -->
       <div class="tv-queue-grid" id="tvQueueGrid"></div>
 
-      <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 KO'RINISHI) -->
+      <!-- A.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR RO'YXATI -->
+      <section class="earlier-patients-panel" id="earlierPatientsSection">
+        <div class="epp-header" id="btnToggleEarlierPanel" title="Ro'yxatni ochish / yopish">
+          <div class="epp-header-left">
+            <span class="epp-icon">📋</span>
+            <span class="epp-title">KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR</span>
+            <span class="epp-badge" id="earlierPatientsCountBadge">0 ta</span>
+          </div>
+          <div class="epp-header-right">
+            <span class="epp-toggle-btn" id="eppToggleText">▼ Ko'rish</span>
+          </div>
+        </div>
+        <div class="epp-body" id="earlierPatientsBody" style="display: none;">
+          <div class="epp-table-wrap">
+            <table class="epp-table">
+              <thead>
+                <tr>
+                  <th>Faylning shifokorini</th>
+                  <th>Bemor ID</th>
+                  <th>Qabul qiluvchi shifokor</th>
+                  <th>Bemor F.I.Sh.</th>
+                  <th>Ulangan bo'lim</th>
+                  <th>Ro'yxatga olingan sana</th>
+                  <th>Tasdiqlangan sana</th>
+                  <th>Holati / Tavsif</th>
+                </tr>
+              </thead>
+              <tbody id="earlierPatientsTableBody">
+                <!-- Javascript orqali to'ldiriladi -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 ASL KO'RINISHI - FOYDALANUVCHI TALABI BO'YICHA O'ZGARISHSIZ) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
           <div class="sr-header-left">
@@ -412,26 +527,6 @@
 
         <div class="sr-main-card">
           <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)</div>
-          
-          <!-- Yagona xona shifokori statistikasi (Bugun ko'rib bo'lingan va kutayotganlar) -->
-          <div class="sr-stats-ribbon" id="srStatsRibbon">
-            <div class="sr-stat-item completed">
-              <span class="sr-stat-icon">✅</span>
-              <span class="sr-stat-label">Ko'rib bo'lingan:</span>
-              <span class="sr-stat-val" id="srCompletedCount">0 ta</span>
-            </div>
-            <div class="sr-stat-item waiting">
-              <span class="sr-stat-icon">⏳</span>
-              <span class="sr-stat-label">Navbatda:</span>
-              <span class="sr-stat-val" id="srWaitingCount">0 ta</span>
-            </div>
-            <div class="sr-stat-item total">
-              <span class="sr-stat-icon">📋</span>
-              <span class="sr-stat-label">Bugun jami:</span>
-              <span class="sr-stat-val" id="srTotalCount">0 ta</span>
-            </div>
-          </div>
-
           <div class="sr-table-scroll-container">
             <table class="sr-patient-table">
               <thead>
@@ -490,6 +585,6 @@
   </div>
 
   <script src="chime_engine.js"></script>
-  <script src="app-dev.js?v=7.1.1"></script>
+  <script src="app-dev.js?v=7.2.0"></script>
 </body>
 </html>
