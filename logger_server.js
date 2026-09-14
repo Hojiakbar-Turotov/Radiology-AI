@@ -1080,6 +1080,21 @@ async function syncMasterQueueFromKarmedDirect() {
 
     // Har bir shifokor ro'yxatidagi navbat raqamlarini yangilash va tartiblash
     const summaryByDoctor = {};
+    const completedByDoctor = {};
+    let totalCompletedCount = 0;
+
+    // allPatients dan har bir shifokor bo'yicha ko'rib bo'linganlarni (statusCode === 8) hisoblash
+    allPatients.forEach(p => {
+      const isFinished = p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'));
+      if (isFinished) {
+        totalCompletedCount++;
+        const rKey = p.room;
+        if (rKey && rKey !== 'Biriktirilmagan') {
+          completedByDoctor[rKey] = (completedByDoctor[rKey] || 0) + 1;
+        }
+      }
+    });
+
     Object.values(doctorMap).forEach(doc => {
       doc.patients.forEach(p => {
         const pKey = String(p.patientId).trim();
@@ -1090,7 +1105,11 @@ async function syncMasterQueueFromKarmedDirect() {
       });
       doc.patients.sort((a, b) => (a.queueNo || 0) - (b.queueNo || 0));
       doc.count = doc.patients.length;
-      summaryByDoctor[doc.roomId] = doc.patients.length;
+      doc.waitingCount = doc.patients.filter(p => p.statusCode !== 4).length;
+      const rId = doc.room || doc.id;
+      doc.completedCount = completedByDoctor[rId] || 0;
+      doc.totalToday = (doc.completedCount || 0) + doc.patients.length;
+      summaryByDoctor[rId] = doc.patients.length;
     });
 
     // KARMED "KABUL EDILEN" (DosyaDurumu === 4) -> TV DA "QABUL QILMOQDA" AVTO-INTEGRATSIYA (v6.0.0)
@@ -1145,7 +1164,9 @@ async function syncMasterQueueFromKarmedDirect() {
       summary: {
         totalWaiting: totalWaitingCount,
         totalPatients: allPatients.length,
-        byDoctor: summaryByDoctor
+        totalCompleted: totalCompletedCount,
+        byDoctor: summaryByDoctor,
+        completedByDoctor: completedByDoctor
       },
       doctors: doctorsArray,
       allPatients: allPatients,

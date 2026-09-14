@@ -109,6 +109,13 @@
   const srDoctorFullTitle = document.getElementById('srDoctorFullTitle');
   const srPatientTableBody = document.getElementById('srPatientTableBody');
 
+  // TV-DEV: Vrachlar ko'rib bo'lgan bemorlar elementlari
+  const totalCompletedCount = document.getElementById('totalCompletedCount');
+  const tvRibbonDoctorChips = document.getElementById('tvRibbonDoctorChips');
+  const srCompletedCount = document.getElementById('srCompletedCount');
+  const srWaitingCount = document.getElementById('srWaitingCount');
+  const srTotalCount = document.getElementById('srTotalCount');
+
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
     'Ultratovush-1': { title: 'UTT1-53 XONA', roomNum: '53', doctorName: 'Juravlev Igor Ivanovich', shortName: 'Juravlev' },
@@ -135,6 +142,53 @@
       shortName: ''
     };
   }
+
+  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI
+  function getDoctorCompletedStats(docIdOrRoom) {
+    if (!queueData) return { completed: 0, waiting: 0, inProgress: 0, total: 0 };
+    const rKey = String(docIdOrRoom || '').trim();
+    const docMeta = ROOM_MAP[rKey] || {};
+    let completed = 0;
+    let waiting = 0;
+    let inProgress = 0;
+
+    // 1. Agar queueData.summary da completedByDoctor mavjud bo'lsa
+    if (queueData.summary && queueData.summary.completedByDoctor && typeof queueData.summary.completedByDoctor[rKey] === 'number') {
+      completed = queueData.summary.completedByDoctor[rKey];
+    }
+
+    // 2. Agar queueData.doctors ro'yxatida docObj topilsa
+    const docObj = queueData.doctors ? queueData.doctors.find(d => (d.id === rKey || d.room === rKey)) : null;
+    if (docObj) {
+      if (typeof docObj.completedCount === 'number') completed = docObj.completedCount;
+      if (typeof docObj.waitingCount === 'number') waiting = docObj.waitingCount;
+      else if (docObj.patients) waiting = docObj.patients.filter(p => p.statusCode !== 4).length;
+      inProgress = docObj.patients ? docObj.patients.filter(p => p.statusCode === 4).length : 0;
+    }
+
+    // 3. Fallback: allPatients dan hisoblash
+    if (completed === 0 && queueData.allPatients && queueData.allPatients.length > 0) {
+      queueData.allPatients.forEach(p => {
+        const roomMatch = p.room === rKey;
+        const nameMatch = (docMeta.shortName && p.doctorName && p.doctorName.includes(docMeta.shortName)) ||
+                          (docMeta.doctorName && p.doctorName && p.doctorName.includes(docMeta.doctorName));
+        if (roomMatch || nameMatch) {
+          if (p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'))) {
+            completed++;
+          }
+        }
+      });
+    }
+
+    return { completed, waiting, inProgress, total: completed + waiting + inProgress };
+  }
+
+  // Xonani tanlash uchun global qulay funksiya (Lenta chiplari bosilganda)
+  window.uttSetSingleRoom = function(rKey) {
+    if (rKey) {
+      setViewMode('single-room', rKey);
+    }
+  };
 
   // 3. HOLAT (STATE)
   let currentMode = 'tv'; // 'tv' | 'single-room' | 'post' | 'mobile'
@@ -600,6 +654,15 @@
     const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0)).length : 0;
     if (activeDoctorsCount) activeDoctorsCount.textContent = activeDocs;
 
+    // Ko'rib bo'lingan bemorlar jami soni
+    let totalComp = 0;
+    if (queueData.summary && typeof queueData.summary.totalCompleted === 'number') {
+      totalComp = queueData.summary.totalCompleted;
+    } else if (queueData.allPatients) {
+      totalComp = queueData.allPatients.filter(p => p.statusCode === 8 || (p.status && String(p.status).toLowerCase().includes('onay'))).length;
+    }
+    if (totalCompletedCount) totalCompletedCount.textContent = totalComp;
+
     if (selectedDoctorIds.size > 0) {
       let count = 0;
       if (queueData.doctors) {
@@ -613,6 +676,40 @@
     } else {
       if (selectedPatientsCount) selectedPatientsCount.textContent = waiting;
     }
+
+    // Vrachlar kesimida ko'riklar lentasini chizish
+    updateDoctorRibbon();
+  }
+
+  // 11.1 VRACHLAR KESIMIDAGI JONLI LENTA (HAR BIR SHIFOKORNING KO'RIB BO'LGANI)
+  function updateDoctorRibbon() {
+    if (!tvRibbonDoctorChips) return;
+    if (!queueData) return;
+
+    const list = Object.keys(ROOM_MAP).map(rKey => {
+      const meta = ROOM_MAP[rKey];
+      const stats = getDoctorCompletedStats(rKey);
+      return {
+        roomKey: rKey,
+        title: meta.title,
+        roomNum: meta.roomNum,
+        shortName: meta.shortName,
+        doctorName: meta.doctorName,
+        completed: stats.completed,
+        waiting: stats.waiting,
+        inProgress: stats.inProgress,
+        total: stats.total
+      };
+    });
+
+    tvRibbonDoctorChips.innerHTML = list.map(item => `
+      <div class="doc-stat-chip" onclick="window.uttSetSingleRoom('${item.roomKey}')" title="${escapeHtml(item.doctorName)}: ${item.completed} ko'rildi, ${item.waiting} navbatda">
+        <span class="dsc-room">${escapeHtml(item.roomNum)}-xona</span>
+        <span class="dsc-name">${escapeHtml(item.shortName)}</span>
+        <span class="dsc-completed" title="Ko'rib bo'lingan bemorlar">✅ ${item.completed}</span>
+        <span class="dsc-waiting" title="Hozir navbatda kutayotganlar">⏳ ${item.waiting}</span>
+      </div>
+    `).join('');
   }
 
   // 12. POST REJIMIDAGI VRACHLAR CHIPLARI
@@ -720,6 +817,11 @@
       const curPatient = hasWaiting ? waitingPatients[0] : null;
       const waitingList = hasWaiting ? waitingPatients.slice(1) : [];
 
+      const stats = getDoctorCompletedStats(docId);
+      const completedCount = typeof doc.completedCount === 'number' ? doc.completedCount : stats.completed;
+      const totalDocCount = stats.total || (completedCount + patients.length);
+      const progressPercent = totalDocCount > 0 ? Math.round((completedCount / totalDocCount) * 100) : 0;
+
       html += `
         <div class="doctor-queue-card ${(hasWaiting || activeCall) ? 'has-active' : ''} ${activeCall ? (activeCall.status === 'accepted' ? 'card-accepted' : 'card-calling') : ''}" data-room-id="${escapeHtml(docId)}" title="Batafsil xona ekraniga o'tish uchun bosing">
           <div class="doc-card-header">
@@ -727,9 +829,14 @@
               <span class="room-badge">${escapeHtml(doc.room.replace('Ultratovush-', 'U-'))}</span>
               <span class="doc-name" title="${escapeHtml(doc.doctorName)}">${escapeHtml(doc.doctorName)}</span>
             </div>
-            <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}">
-              ${patients.length} ta bemor
-            </span>
+            <div class="doc-header-badges">
+              <span class="doc-badge-completed" title="Bugun ko'rib bo'lingan bemorlar">
+                ✅ ${completedCount} ko'rildi
+              </span>
+              <span class="doc-queue-badge ${(hasWaiting || activeCall) ? '' : 'empty'}" title="Navbatda kutayotgan bemorlar">
+                ⏳ ${waitingPatients.length} navbatda
+              </span>
+            </div>
           </div>
 
           ${activeCall ? `
@@ -780,6 +887,18 @@
             </div>
             `;
           })() : ''}
+
+          <!-- Karta pastidagi ko'rik natijasi ko'rsatkichi -->
+          <div class="doc-completion-bar-wrap">
+            <div class="dcb-bar">
+              <div class="dcb-fill" style="width: ${progressPercent}%;"></div>
+            </div>
+            <div class="dcb-text">
+              <span class="dcb-done">✅ Ko'rildi: <b>${completedCount} ta</b></span>
+              <span class="dcb-wait">⏳ Navbatda: <b>${waitingPatients.length} ta</b></span>
+              <span class="dcb-pct">${progressPercent}%</span>
+            </div>
+          </div>
         </div>
       `;
     });
@@ -853,14 +972,19 @@
       srDoctorFullTitle.textContent = `${displayRoom}(${doctorName})`;
     }
 
+    // 2.1 Yagona xona shifokorining bugungi statistikasi (Ko'rib bo'lingan va kutayotgan)
+    const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
+    const docStats = getDoctorCompletedStats(displayRoom);
+    if (srCompletedCount) srCompletedCount.textContent = `${docStats.completed} ta`;
+    if (srWaitingCount) srWaitingCount.textContent = `${docStats.waiting || patients.length} ta`;
+    if (srTotalCount) srTotalCount.textContent = `${docStats.total || (docStats.completed + patients.length)} ta`;
+
     // 3. Sana va soatni yangilash
     const now = new Date();
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
 
     // 4. Jadvalni to'ldirish (Foydalanuvchi talabi: 7 talik cheklov, qolganlari yangi sahifaga o'tsin)
     // Ustunlar: ISM FAMILYA | RO'YXATGA OLINGAN VAQTI | NAVBAT RAQAMI
-    const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
-
     if (!srPatientTableBody) return;
 
     if (patients.length === 0) {

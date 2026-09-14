@@ -1,17 +1,38 @@
 {
-  "timestamp": "2026-09-14T04:02:32.181Z",
+  "timestamp": "2026-09-14T04:11:40.851Z",
   "date": "14.09.2026",
-  "totalPatients": 72,
+  "totalPatients": 86,
   "department": "Ultratovush",
   "statusFilter": "Bekleyen",
   "karmedDirectSync": true,
-  "lastSyncAt": "2026-09-14T04:02:32.181Z",
+  "lastSyncAt": "2026-09-14T04:11:40.851Z",
   "version": "6.0.0",
   "summary": {
-    "totalWaiting": 58,
-    "totalPatients": 72,
+    "totalWaiting": 70,
+    "totalPatients": 86,
+    "totalCompleted": 16,
     "byDoctor": {
-      "undefined": 4
+      "Ultratovush-10": 7,
+      "Ultratovush-1": 2,
+      "Ultratovush-2": 7,
+      "Ultratovush-3": 5,
+      "Ultratovush-4": 7,
+      "Ultratovush-5": 7,
+      "Ultratovush-6": 8,
+      "Ultratovush-7": 5,
+      "Ultratovush-8": 5,
+      "Ultratovush-9": 4,
+      "Ultratovush-11": 4
+    },
+    "completedByDoctor": {
+      "Ultratovush-3": 3,
+      "Ultratovush-7": 4,
+      "Ultratovush-8": 2,
+      "Ultratovush-5": 1,
+      "Ultratovush-11": 3,
+      "Ultratovush-9": 1,
+      "Ultratovush-6": 1,
+      "Ultratovush-10": 1
     }
   },
   "doctors": [
@@ -40,7 +61,7 @@
           "roomTitle": "UTT10-51 XONA",
           "doctorName": "Xudayberdiyeva Nigora Nizamovna",
           "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-          "karmedIndex": 30
+          "karmedIndex": 35
         },
         {
           "patientId": "57638",
@@ -56,7 +77,7 @@
           "roomTitle": "UTT10-51 XONA",
           "doctorName": "Xudayberdiyeva Nigora Nizamovna",
           "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-          "karmedIndex": 39
+          "karmedIndex": 44
         },
         {
           "patientId": "11022",
@@ -72,7 +93,7 @@
           "roomTitle": "UTT10-51 XONA",
           "doctorName": "Xudayberdiyeva Nigora Nizamovna",
           "referringDoctor": "Dr. Alimova Sanobar Sobirovna",
-          "karmedIndex": 19
+          "karmedIndex": 24
         },
         {
           "patientId": "28338",
@@ -88,7 +109,7 @@
           "roomTitle": "UTT10-51 XONA",
           "doctorName": "Xudayberdiyeva Nigora Nizamovna",
           "referringDoctor": "Dr. Sultonov Baxridil Baxromovich",
-          "karmedIndex": 51
+          "karmedIndex": 56
         },
         {
           "patientId": "57647",
@@ -104,10 +125,45 @@
           "roomTitle": "UTT10-51 XONA",
           "doctorName": "Xudayberdiyeva Nigora Nizamovna",
           "referringDoctor": "Dr. Turaev Boxodir Xujayarovich",
-          "karmedIndex": 67
+          "karmedIndex": 72
+        },
+        {
+          "patientId": "57637",
+          "dosyaNo": 260106168,
+          "labDosyaId": 2889389,
+          "fullName": "ROBIYA ABDUMALIKOVA",
+          "queueNo": 75,
+          "globalQueueNo": 75,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:07",
+          "room": "Ultratovush-10",
+          "roomTitle": "UTT10-51 XONA",
+          "doctorName": "Xudayberdiyeva Nigora Nizamovna",
+          "referringDoctor": "Dr. Murotova Munojat Murotovna",
+          "karmedIndex": 83
+        },
+        {
+          "patientId": "40977",
+          "dosyaNo": 260023487,
+          "labDosyaId": 2889413,
+          "fullName": "MICHGONA PULOTOVA",
+          "queueNo": 78,
+          "globalQueueNo": 78,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:11",
+          "room": "Ultratovush-10",
+          "roomTitle": "UTT10-51 XONA",
+          "doctorName": "Xudayberdiyeva Nigora Nizamovna",
+          "referringDoctor": "Dr. Usmonov Bekzod Boymatovich",
+          "karmedIndex": 23
         }
       ],
-      "count": 5
+      "count": 7,
+      "waitingCount": 6,
+      "completedCount": 1,
+      "totalToday": 8
     },
     {
       "id": "Ultratovush-1",
@@ -150,10 +206,13 @@
           "roomTitle": "UTT1-53 XONA",
           "doctorName": "Juravlev Igor Ivanovich",
           "referringDoctor": "Dr. Mirolimov Mirkozim Mirjalol ogli",
-          "karmedIndex": 69
+          "karmedIndex": 74
         }
       ],
-      "count": 2
+      "count": 2,
+      "waitingCount": 2,
+      "completedCount": 0,
+      "totalToday": 2
     },
     {
       "id": "Ultratovush-2",
@@ -180,7 +239,7 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-          "karmedIndex": 27
+          "karmedIndex": 32
         },
         {
           "patientId": "30329",
@@ -196,7 +255,7 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-          "karmedIndex": 32
+          "karmedIndex": 37
         },
         {
           "patientId": "57619",
@@ -212,7 +271,7 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Xatamov Akbarjon Muxametovich",
-          "karmedIndex": 36
+          "karmedIndex": 41
         },
         {
           "patientId": "9089",
@@ -228,7 +287,7 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Almardanov Rustam Boymurodovich",
-          "karmedIndex": 43
+          "karmedIndex": 48
         },
         {
           "patientId": "25870",
@@ -244,7 +303,7 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-          "karmedIndex": 44
+          "karmedIndex": 49
         },
         {
           "patientId": "10257",
@@ -260,26 +319,29 @@
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
           "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
-          "karmedIndex": 58
+          "karmedIndex": 63
         },
         {
-          "patientId": "57627",
-          "dosyaNo": 260106102,
-          "labDosyaId": 2889285,
-          "fullName": "SAYERA XODJIBAYEVA",
-          "queueNo": 54,
-          "globalQueueNo": 54,
+          "patientId": "57632",
+          "dosyaNo": 260106137,
+          "labDosyaId": 2889341,
+          "fullName": "SOHIBA MAXMUDOVA",
+          "queueNo": 65,
+          "globalQueueNo": 65,
           "status": "Bekleyen",
           "statusCode": 1,
-          "registrationTime": "08:57",
+          "registrationTime": "09:03",
           "room": "Ultratovush-2",
           "roomTitle": "UTT2-54 XONA",
           "doctorName": "Kurbanova Sevinch Musayevna",
-          "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-          "karmedIndex": 64
+          "referringDoctor": "Dr. Murotova Munojat Murotovna",
+          "karmedIndex": 77
         }
       ],
-      "count": 7
+      "count": 7,
+      "waitingCount": 7,
+      "completedCount": 0,
+      "totalToday": 7
     },
     {
       "id": "Ultratovush-3",
@@ -306,7 +368,7 @@
           "roomTitle": "UTT3-46 XONA",
           "doctorName": "Abidjanov Alisher Maxamataliyevich",
           "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-          "karmedIndex": 33
+          "karmedIndex": 38
         },
         {
           "patientId": "10461",
@@ -322,7 +384,7 @@
           "roomTitle": "UTT3-46 XONA",
           "doctorName": "Abidjanov Alisher Maxamataliyevich",
           "referringDoctor": "Dr. Axrarova Saida Abdumannopovna",
-          "karmedIndex": 45
+          "karmedIndex": 50
         },
         {
           "patientId": "669",
@@ -341,22 +403,6 @@
           "karmedIndex": 8
         },
         {
-          "patientId": "24025",
-          "dosyaNo": 260106141,
-          "labDosyaId": 2889231,
-          "fullName": "GULJAXON  XOMIDJONOVA",
-          "queueNo": 48,
-          "globalQueueNo": 48,
-          "status": "Bekleyen",
-          "statusCode": 1,
-          "registrationTime": "08:53",
-          "room": "Ultratovush-3",
-          "roomTitle": "UTT3-46 XONA",
-          "doctorName": "Abidjanov Alisher Maxamataliyevich",
-          "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
-          "karmedIndex": 59
-        },
-        {
           "patientId": "9989",
           "dosyaNo": 260106276,
           "labDosyaId": 2889302,
@@ -370,10 +416,29 @@
           "roomTitle": "UTT3-46 XONA",
           "doctorName": "Abidjanov Alisher Maxamataliyevich",
           "referringDoctor": "Dr. Tillayeva Feruza Ikramovna",
-          "karmedIndex": 20
+          "karmedIndex": 25
+        },
+        {
+          "patientId": "57674",
+          "dosyaNo": 260106314,
+          "labDosyaId": 2889361,
+          "fullName": "XULKAR SARIYEVA",
+          "queueNo": 67,
+          "globalQueueNo": 67,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:05",
+          "room": "Ultratovush-3",
+          "roomTitle": "UTT3-46 XONA",
+          "doctorName": "Abidjanov Alisher Maxamataliyevich",
+          "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+          "karmedIndex": 78
         }
       ],
-      "count": 5
+      "count": 5,
+      "waitingCount": 5,
+      "completedCount": 3,
+      "totalToday": 8
     },
     {
       "id": "Ultratovush-4",
@@ -400,7 +465,7 @@
           "roomTitle": "UTT4-47 XONA",
           "doctorName": "Ziyayeva Zarina Abduganiyevna",
           "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-          "karmedIndex": 40
+          "karmedIndex": 45
         },
         {
           "patientId": "57635",
@@ -416,7 +481,7 @@
           "roomTitle": "UTT4-47 XONA",
           "doctorName": "Ziyayeva Zarina Abduganiyevna",
           "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-          "karmedIndex": 41
+          "karmedIndex": 46
         },
         {
           "patientId": "3663",
@@ -432,7 +497,7 @@
           "roomTitle": "UTT4-47 XONA",
           "doctorName": "Ziyayeva Zarina Abduganiyevna",
           "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-          "karmedIndex": 47
+          "karmedIndex": 52
         },
         {
           "patientId": "50668",
@@ -464,10 +529,45 @@
           "roomTitle": "UTT4-47 XONA",
           "doctorName": "Ziyayeva Zarina Abduganiyevna",
           "referringDoctor": "Dr. Xatamov Akbarjon Muxametovich",
-          "karmedIndex": 61
+          "karmedIndex": 66
+        },
+        {
+          "patientId": "24045",
+          "dosyaNo": 260024242,
+          "labDosyaId": 2889326,
+          "fullName": "MAFURA ALIMOVA",
+          "queueNo": 63,
+          "globalQueueNo": 63,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:01",
+          "room": "Ultratovush-4",
+          "roomTitle": "UTT4-47 XONA",
+          "doctorName": "Ziyayeva Zarina Abduganiyevna",
+          "referringDoctor": "Dr. Axmedov Murodullo Saidjon ogli",
+          "karmedIndex": 18
+        },
+        {
+          "patientId": "10289",
+          "dosyaNo": 260106324,
+          "labDosyaId": 2889380,
+          "fullName": "GULSEVAR SHAXRIYOROVA",
+          "queueNo": 72,
+          "globalQueueNo": 72,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:06",
+          "room": "Ultratovush-4",
+          "roomTitle": "UTT4-47 XONA",
+          "doctorName": "Ziyayeva Zarina Abduganiyevna",
+          "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+          "karmedIndex": 81
         }
       ],
-      "count": 5
+      "count": 7,
+      "waitingCount": 5,
+      "completedCount": 0,
+      "totalToday": 7
     },
     {
       "id": "Ultratovush-5",
@@ -494,7 +594,7 @@
           "roomTitle": "UTT5-48 XONA",
           "doctorName": "Xoshimova Lola Kabulovna",
           "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-          "karmedIndex": 35
+          "karmedIndex": 40
         },
         {
           "patientId": "13736",
@@ -510,7 +610,7 @@
           "roomTitle": "UTT5-48 XONA",
           "doctorName": "Xoshimova Lola Kabulovna",
           "referringDoctor": "Dr. Abdusamatov Nodir Toxirovich",
-          "karmedIndex": 46
+          "karmedIndex": 51
         },
         {
           "patientId": "56030",
@@ -542,10 +642,61 @@
           "roomTitle": "UTT5-48 XONA",
           "doctorName": "Xoshimova Lola Kabulovna",
           "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-          "karmedIndex": 60
+          "karmedIndex": 65
+        },
+        {
+          "patientId": "57669",
+          "dosyaNo": 260106294,
+          "labDosyaId": 2889265,
+          "fullName": "NAFISA ESHPOLATOVA",
+          "queueNo": 52,
+          "globalQueueNo": 52,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "08:56",
+          "room": "Ultratovush-5",
+          "roomTitle": "UTT5-48 XONA",
+          "doctorName": "Xoshimova Lola Kabulovna",
+          "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+          "karmedIndex": 68
+        },
+        {
+          "patientId": "49054",
+          "dosyaNo": 260024136,
+          "labDosyaId": 2889318,
+          "fullName": "ISKANDAR AKBAROV",
+          "queueNo": 61,
+          "globalQueueNo": 61,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:01",
+          "room": "Ultratovush-5",
+          "roomTitle": "UTT5-48 XONA",
+          "doctorName": "Xoshimova Lola Kabulovna",
+          "referringDoctor": "Ph.D. Ormonov Umidjon Butabekovich",
+          "karmedIndex": 17
+        },
+        {
+          "patientId": "39530",
+          "dosyaNo": 260106135,
+          "labDosyaId": 2889368,
+          "fullName": "QUNDUZ MATKARIMOVA",
+          "queueNo": 69,
+          "globalQueueNo": 69,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:06",
+          "room": "Ultratovush-5",
+          "roomTitle": "UTT5-48 XONA",
+          "doctorName": "Xoshimova Lola Kabulovna",
+          "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+          "karmedIndex": 79
         }
       ],
-      "count": 4
+      "count": 7,
+      "waitingCount": 7,
+      "completedCount": 1,
+      "totalToday": 8
     },
     {
       "id": "Ultratovush-6",
@@ -572,7 +723,7 @@
           "roomTitle": "UTT6-52 XONA",
           "doctorName": "Toirova Shaxlo Oybek qizi",
           "referringDoctor": "Dr. Abdusamatov Nodir Toxirovich",
-          "karmedIndex": 38
+          "karmedIndex": 43
         },
         {
           "patientId": "57642",
@@ -581,14 +732,14 @@
           "fullName": "NODIRA SODIQOVA",
           "queueNo": 27,
           "globalQueueNo": 27,
-          "status": "Bekleyen",
-          "statusCode": 1,
+          "status": "Kabul Edilen",
+          "statusCode": 4,
           "registrationTime": "08:37",
           "room": "Ultratovush-6",
           "roomTitle": "UTT6-52 XONA",
           "doctorName": "Toirova Shaxlo Oybek qizi",
           "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-          "karmedIndex": 48
+          "karmedIndex": 53
         },
         {
           "patientId": "32251",
@@ -620,7 +771,7 @@
           "roomTitle": "UTT6-52 XONA",
           "doctorName": "Toirova Shaxlo Oybek qizi",
           "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-          "karmedIndex": 56
+          "karmedIndex": 61
         },
         {
           "patientId": "57633",
@@ -636,10 +787,61 @@
           "roomTitle": "UTT6-52 XONA",
           "doctorName": "Toirova Shaxlo Oybek qizi",
           "referringDoctor": "Dr. Murotova Munojat Murotovna",
-          "karmedIndex": 62
+          "karmedIndex": 67
+        },
+        {
+          "patientId": "57627",
+          "dosyaNo": 260106102,
+          "labDosyaId": 2889285,
+          "fullName": "SAYERA XODJIBAYEVA",
+          "queueNo": 54,
+          "globalQueueNo": 54,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "08:57",
+          "room": "Ultratovush-6",
+          "roomTitle": "UTT6-52 XONA",
+          "doctorName": "Toirova Shaxlo Oybek qizi",
+          "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
+          "karmedIndex": 69
+        },
+        {
+          "patientId": "34904",
+          "dosyaNo": 260106130,
+          "labDosyaId": 2889333,
+          "fullName": "MAHFUZA XUDOYBERDIEVA",
+          "queueNo": 64,
+          "globalQueueNo": 64,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:02",
+          "room": "Ultratovush-6",
+          "roomTitle": "UTT6-52 XONA",
+          "doctorName": "Toirova Shaxlo Oybek qizi",
+          "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+          "karmedIndex": 76
+        },
+        {
+          "patientId": "57677",
+          "dosyaNo": 260106334,
+          "labDosyaId": 2889402,
+          "fullName": "SEVINCH QOSIMOVA",
+          "queueNo": 76,
+          "globalQueueNo": 76,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:10",
+          "room": "Ultratovush-6",
+          "roomTitle": "UTT6-52 XONA",
+          "doctorName": "Toirova Shaxlo Oybek qizi",
+          "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+          "karmedIndex": 84
         }
       ],
-      "count": 5
+      "count": 8,
+      "waitingCount": 7,
+      "completedCount": 1,
+      "totalToday": 9
     },
     {
       "id": "Ultratovush-7",
@@ -669,6 +871,22 @@
           "karmedIndex": 7
         },
         {
+          "patientId": "24025",
+          "dosyaNo": 260106141,
+          "labDosyaId": 2889231,
+          "fullName": "GULJAXON  XOMIDJONOVA",
+          "queueNo": 48,
+          "globalQueueNo": 48,
+          "status": "Kabul Edilen",
+          "statusCode": 4,
+          "registrationTime": "08:53",
+          "room": "Ultratovush-7",
+          "roomTitle": "UTT7-45 XONA",
+          "doctorName": "Asadova Dildoraxon Asatullayevna",
+          "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
+          "karmedIndex": 64
+        },
+        {
           "patientId": "57631",
           "dosyaNo": 260106126,
           "labDosyaId": 2889291,
@@ -682,10 +900,45 @@
           "roomTitle": "UTT7-45 XONA",
           "doctorName": "Asadova Dildoraxon Asatullayevna",
           "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
-          "karmedIndex": 66
+          "karmedIndex": 71
+        },
+        {
+          "patientId": "56304",
+          "dosyaNo": 260023427,
+          "labDosyaId": 2889376,
+          "fullName": "SARIMSAK JURABEKOV",
+          "queueNo": 71,
+          "globalQueueNo": 71,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:06",
+          "room": "Ultratovush-7",
+          "roomTitle": "UTT7-45 XONA",
+          "doctorName": "Asadova Dildoraxon Asatullayevna",
+          "referringDoctor": "Dr. Azimov Akbar Axbor o‘g‘li",
+          "karmedIndex": 21
+        },
+        {
+          "patientId": "46693",
+          "dosyaNo": 260106139,
+          "labDosyaId": 2889387,
+          "fullName": "YURIY VASILEV",
+          "queueNo": 74,
+          "globalQueueNo": 74,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:07",
+          "room": "Ultratovush-7",
+          "roomTitle": "UTT7-45 XONA",
+          "doctorName": "Asadova Dildoraxon Asatullayevna",
+          "referringDoctor": "Dr. Xashimov Ravshan Abdurasulovich",
+          "karmedIndex": 82
         }
       ],
-      "count": 2
+      "count": 5,
+      "waitingCount": 4,
+      "completedCount": 4,
+      "totalToday": 9
     },
     {
       "id": "Ultratovush-8",
@@ -715,36 +968,20 @@
           "karmedIndex": 4
         },
         {
-          "patientId": "4628",
-          "dosyaNo": 260106189,
-          "labDosyaId": 2888789,
-          "fullName": "SHAXLO NAZIROVA",
-          "queueNo": 20,
-          "globalQueueNo": 20,
-          "status": "Kabul Edilen",
-          "statusCode": 4,
-          "registrationTime": "08:28",
-          "room": "Ultratovush-8",
-          "roomTitle": "UTT8-49 XONA",
-          "doctorName": "Saidbayeva Zulfiya Yergeshovna",
-          "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-          "karmedIndex": 42
-        },
-        {
           "patientId": "31873",
           "dosyaNo": 260106122,
           "labDosyaId": 2889122,
           "fullName": "JALILOVA GULMIRA",
           "queueNo": 39,
           "globalQueueNo": 39,
-          "status": "Bekleyen",
-          "statusCode": 1,
+          "status": "Kabul Edilen",
+          "statusCode": 4,
           "registrationTime": "08:46",
           "room": "Ultratovush-8",
           "roomTitle": "UTT8-49 XONA",
           "doctorName": "Saidbayeva Zulfiya Yergeshovna",
           "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-          "karmedIndex": 54
+          "karmedIndex": 59
         },
         {
           "patientId": "16269",
@@ -760,7 +997,7 @@
           "roomTitle": "UTT8-49 XONA",
           "doctorName": "Saidbayeva Zulfiya Yergeshovna",
           "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
-          "karmedIndex": 55
+          "karmedIndex": 60
         },
         {
           "patientId": "46604",
@@ -777,9 +1014,28 @@
           "doctorName": "Saidbayeva Zulfiya Yergeshovna",
           "referringDoctor": "Dr. Izrailbekova Kamila Shavkatovna",
           "karmedIndex": 14
+        },
+        {
+          "patientId": "15289",
+          "dosyaNo": 260106154,
+          "labDosyaId": 2889320,
+          "fullName": "NASIBA TESHABAYEVA",
+          "queueNo": 62,
+          "globalQueueNo": 62,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:01",
+          "room": "Ultratovush-8",
+          "roomTitle": "UTT8-49 XONA",
+          "doctorName": "Saidbayeva Zulfiya Yergeshovna",
+          "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
+          "karmedIndex": 75
         }
       ],
-      "count": 5
+      "count": 5,
+      "waitingCount": 4,
+      "completedCount": 2,
+      "totalToday": 7
     },
     {
       "id": "Ultratovush-9",
@@ -806,7 +1062,7 @@
           "roomTitle": "UTT9-50 XONA",
           "doctorName": "Xusanova Feruza Ikromjonovna",
           "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-          "karmedIndex": 52
+          "karmedIndex": 57
         },
         {
           "patientId": "57661",
@@ -815,14 +1071,14 @@
           "fullName": "BATIRJON SULTANOV",
           "queueNo": 38,
           "globalQueueNo": 38,
-          "status": "Bekleyen",
-          "statusCode": 1,
+          "status": "Kabul Edilen",
+          "statusCode": 4,
           "registrationTime": "08:45",
           "room": "Ultratovush-9",
           "roomTitle": "UTT9-50 XONA",
           "doctorName": "Xusanova Feruza Ikromjonovna",
           "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-          "karmedIndex": 53
+          "karmedIndex": 58
         },
         {
           "patientId": "7034",
@@ -838,10 +1094,29 @@
           "roomTitle": "UTT9-50 XONA",
           "doctorName": "Xusanova Feruza Ikromjonovna",
           "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-          "karmedIndex": 68
+          "karmedIndex": 73
+        },
+        {
+          "patientId": "57414",
+          "dosyaNo": 260106222,
+          "labDosyaId": 2889411,
+          "fullName": "NARGIZA TASHBAYEVA",
+          "queueNo": 77,
+          "globalQueueNo": 77,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:11",
+          "room": "Ultratovush-9",
+          "roomTitle": "UTT9-50 XONA",
+          "doctorName": "Xusanova Feruza Ikromjonovna",
+          "referringDoctor": "Dr. Murotova Munojat Murotovna",
+          "karmedIndex": 85
         }
       ],
-      "count": 3
+      "count": 4,
+      "waitingCount": 3,
+      "completedCount": 1,
+      "totalToday": 5
     },
     {
       "id": "Ultratovush-11",
@@ -871,28 +1146,44 @@
           "karmedIndex": 6
         },
         {
-          "patientId": "57669",
-          "dosyaNo": 260106294,
-          "labDosyaId": 2889265,
-          "fullName": "NAFISA ESHPOLATOVA",
-          "queueNo": 52,
-          "globalQueueNo": 52,
+          "patientId": "56522",
+          "dosyaNo": 260023746,
+          "labDosyaId": 2889365,
+          "fullName": "AKBAR YANGIYEV",
+          "queueNo": 68,
+          "globalQueueNo": 68,
           "status": "Bekleyen",
           "statusCode": 1,
-          "registrationTime": "08:56",
+          "registrationTime": "09:05",
           "room": "Ultratovush-11",
           "roomTitle": "UTT11 XONA",
           "doctorName": "Yulchiyeva Nodira Siddikovna",
-          "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-          "karmedIndex": 63
+          "referringDoctor": "Dr. Abduqodirov Abbos",
+          "karmedIndex": 20
+        },
+        {
+          "patientId": "13522",
+          "dosyaNo": 260023061,
+          "labDosyaId": 2889383,
+          "fullName": "ELVIRA MUJDABAYEVA",
+          "queueNo": 73,
+          "globalQueueNo": 73,
+          "status": "Bekleyen",
+          "statusCode": 1,
+          "registrationTime": "09:07",
+          "room": "Ultratovush-11",
+          "roomTitle": "UTT11 XONA",
+          "doctorName": "Yulchiyeva Nodira Siddikovna",
+          "referringDoctor": "Ph.D. Ormonov Umidjon Butabekovich",
+          "karmedIndex": 22
         },
         {
           "patientId": "57291",
           "dosyaNo": 260105829,
           "labDosyaId": 2865932,
           "fullName": "MANZURA RAXMATOVA",
-          "queueNo": 65,
-          "globalQueueNo": 65,
+          "queueNo": 79,
+          "globalQueueNo": 79,
           "status": "Kabul Edilen",
           "statusCode": 4,
           "registrationTime": "11:15",
@@ -900,26 +1191,13 @@
           "roomTitle": "UTT11 XONA",
           "doctorName": "Yulchiyeva Nodira Siddikovna",
           "referringDoctor": "Dr. Tasheva Aziza Olimdjonovna",
-          "karmedIndex": 22
-        },
-        {
-          "patientId": "55318",
-          "dosyaNo": 260024239,
-          "labDosyaId": 2877942,
-          "fullName": "MOXIRA SHODIYEVA",
-          "queueNo": 66,
-          "globalQueueNo": 66,
-          "status": "Kabul Edilen",
-          "statusCode": 4,
-          "registrationTime": "11:32",
-          "room": "Ultratovush-11",
-          "roomTitle": "UTT11 XONA",
-          "doctorName": "Yulchiyeva Nodira Siddikovna",
-          "referringDoctor": "Dr. Izrailbekova Kamila Shavkatovna",
-          "karmedIndex": 2
+          "karmedIndex": 27
         }
       ],
-      "count": 4
+      "count": 4,
+      "waitingCount": 3,
+      "completedCount": 3,
+      "totalToday": 7
     }
   ],
   "allPatients": [
@@ -937,7 +1215,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-      "karmedIndex": 27
+      "karmedIndex": 32
     },
     {
       "patientId": "57624",
@@ -953,7 +1231,7 @@
       "roomTitle": "UTT3-46 XONA",
       "doctorName": "Abidjanov Alisher Maxamataliyevich",
       "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-      "karmedIndex": 28
+      "karmedIndex": 33
     },
     {
       "patientId": "17009",
@@ -969,7 +1247,7 @@
       "roomTitle": "UTT3-46 XONA",
       "doctorName": "Abidjanov Alisher Maxamataliyevich",
       "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-      "karmedIndex": 29
+      "karmedIndex": 34
     },
     {
       "patientId": "55271",
@@ -1017,7 +1295,7 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-      "karmedIndex": 30
+      "karmedIndex": 35
     },
     {
       "patientId": "43112",
@@ -1033,7 +1311,7 @@
       "roomTitle": "UTT7-45 XONA",
       "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 31
+      "karmedIndex": 36
     },
     {
       "patientId": "30329",
@@ -1049,7 +1327,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-      "karmedIndex": 32
+      "karmedIndex": 37
     },
     {
       "patientId": "56450",
@@ -1065,7 +1343,7 @@
       "roomTitle": "UTT3-46 XONA",
       "doctorName": "Abidjanov Alisher Maxamataliyevich",
       "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-      "karmedIndex": 33
+      "karmedIndex": 38
     },
     {
       "patientId": "56450",
@@ -1081,7 +1359,7 @@
       "roomTitle": "Umumiy navbat",
       "doctorName": "Navbatchi shifokor",
       "referringDoctor": "Dr. Ergasheva Erkinoy Muxammadovna",
-      "karmedIndex": 34
+      "karmedIndex": 39
     },
     {
       "patientId": "53743",
@@ -1113,7 +1391,7 @@
       "roomTitle": "UTT5-48 XONA",
       "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 35
+      "karmedIndex": 40
     },
     {
       "patientId": "57619",
@@ -1129,7 +1407,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Xatamov Akbarjon Muxametovich",
-      "karmedIndex": 36
+      "karmedIndex": 41
     },
     {
       "patientId": "38858",
@@ -1145,7 +1423,7 @@
       "roomTitle": "UTT7-45 XONA",
       "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 37
+      "karmedIndex": 42
     },
     {
       "patientId": "48335",
@@ -1161,7 +1439,7 @@
       "roomTitle": "UTT6-52 XONA",
       "doctorName": "Toirova Shaxlo Oybek qizi",
       "referringDoctor": "Dr. Abdusamatov Nodir Toxirovich",
-      "karmedIndex": 38
+      "karmedIndex": 43
     },
     {
       "patientId": "57638",
@@ -1177,7 +1455,7 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-      "karmedIndex": 39
+      "karmedIndex": 44
     },
     {
       "patientId": "32969",
@@ -1209,7 +1487,7 @@
       "roomTitle": "UTT4-47 XONA",
       "doctorName": "Ziyayeva Zarina Abduganiyevna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 40
+      "karmedIndex": 45
     },
     {
       "patientId": "57635",
@@ -1225,7 +1503,7 @@
       "roomTitle": "UTT4-47 XONA",
       "doctorName": "Ziyayeva Zarina Abduganiyevna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 41
+      "karmedIndex": 46
     },
     {
       "patientId": "4628",
@@ -1234,14 +1512,14 @@
       "fullName": "SHAXLO NAZIROVA",
       "queueNo": 20,
       "globalQueueNo": 20,
-      "status": "Kabul Edilen",
-      "statusCode": 4,
+      "status": "Rapor Onaylı",
+      "statusCode": 8,
       "registrationTime": "08:28",
       "room": "Ultratovush-8",
       "roomTitle": "UTT8-49 XONA",
       "doctorName": "Saidbayeva Zulfiya Yergeshovna",
       "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-      "karmedIndex": 42
+      "karmedIndex": 47
     },
     {
       "patientId": "9089",
@@ -1257,7 +1535,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Almardanov Rustam Boymurodovich",
-      "karmedIndex": 43
+      "karmedIndex": 48
     },
     {
       "patientId": "25870",
@@ -1273,7 +1551,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-      "karmedIndex": 44
+      "karmedIndex": 49
     },
     {
       "patientId": "10461",
@@ -1289,7 +1567,7 @@
       "roomTitle": "UTT3-46 XONA",
       "doctorName": "Abidjanov Alisher Maxamataliyevich",
       "referringDoctor": "Dr. Axrarova Saida Abdumannopovna",
-      "karmedIndex": 45
+      "karmedIndex": 50
     },
     {
       "patientId": "13736",
@@ -1305,7 +1583,7 @@
       "roomTitle": "UTT5-48 XONA",
       "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Abdusamatov Nodir Toxirovich",
-      "karmedIndex": 46
+      "karmedIndex": 51
     },
     {
       "patientId": "3663",
@@ -1321,7 +1599,7 @@
       "roomTitle": "UTT4-47 XONA",
       "doctorName": "Ziyayeva Zarina Abduganiyevna",
       "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-      "karmedIndex": 47
+      "karmedIndex": 52
     },
     {
       "patientId": "15120",
@@ -1346,14 +1624,14 @@
       "fullName": "NODIRA SODIQOVA",
       "queueNo": 27,
       "globalQueueNo": 27,
-      "status": "Bekleyen",
-      "statusCode": 1,
+      "status": "Kabul Edilen",
+      "statusCode": 4,
       "registrationTime": "08:37",
       "room": "Ultratovush-6",
       "roomTitle": "UTT6-52 XONA",
       "doctorName": "Toirova Shaxlo Oybek qizi",
       "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-      "karmedIndex": 48
+      "karmedIndex": 53
     },
     {
       "patientId": "11022",
@@ -1369,7 +1647,7 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Alimova Sanobar Sobirovna",
-      "karmedIndex": 19
+      "karmedIndex": 24
     },
     {
       "patientId": "57621",
@@ -1385,7 +1663,7 @@
       "roomTitle": "UTT5-48 XONA",
       "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Almardanov Rustam Boymurodovich",
-      "karmedIndex": 49
+      "karmedIndex": 54
     },
     {
       "patientId": "669",
@@ -1449,7 +1727,7 @@
       "roomTitle": "UTT7-45 XONA",
       "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 50
+      "karmedIndex": 55
     },
     {
       "patientId": "28338",
@@ -1465,7 +1743,7 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Sultonov Baxridil Baxromovich",
-      "karmedIndex": 51
+      "karmedIndex": 56
     },
     {
       "patientId": "38679",
@@ -1481,7 +1759,7 @@
       "roomTitle": "UTT9-50 XONA",
       "doctorName": "Xusanova Feruza Ikromjonovna",
       "referringDoctor": "Dr. Kasimov Doniyor Abrorovich",
-      "karmedIndex": 52
+      "karmedIndex": 57
     },
     {
       "patientId": "56030",
@@ -1522,14 +1800,14 @@
       "fullName": "BATIRJON SULTANOV",
       "queueNo": 38,
       "globalQueueNo": 38,
-      "status": "Bekleyen",
-      "statusCode": 1,
+      "status": "Kabul Edilen",
+      "statusCode": 4,
       "registrationTime": "08:45",
       "room": "Ultratovush-9",
       "roomTitle": "UTT9-50 XONA",
       "doctorName": "Xusanova Feruza Ikromjonovna",
       "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-      "karmedIndex": 53
+      "karmedIndex": 58
     },
     {
       "patientId": "31873",
@@ -1538,14 +1816,14 @@
       "fullName": "JALILOVA GULMIRA",
       "queueNo": 39,
       "globalQueueNo": 39,
-      "status": "Bekleyen",
-      "statusCode": 1,
+      "status": "Kabul Edilen",
+      "statusCode": 4,
       "registrationTime": "08:46",
       "room": "Ultratovush-8",
       "roomTitle": "UTT8-49 XONA",
       "doctorName": "Saidbayeva Zulfiya Yergeshovna",
       "referringDoctor": "Dr. Inoyatov Shavkat Inoyatovich",
-      "karmedIndex": 54
+      "karmedIndex": 59
     },
     {
       "patientId": "32251",
@@ -1593,7 +1871,7 @@
       "roomTitle": "UTT8-49 XONA",
       "doctorName": "Saidbayeva Zulfiya Yergeshovna",
       "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
-      "karmedIndex": 55
+      "karmedIndex": 60
     },
     {
       "patientId": "57620",
@@ -1609,7 +1887,7 @@
       "roomTitle": "UTT6-52 XONA",
       "doctorName": "Toirova Shaxlo Oybek qizi",
       "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-      "karmedIndex": 56
+      "karmedIndex": 61
     },
     {
       "patientId": "57620",
@@ -1625,7 +1903,7 @@
       "roomTitle": "Umumiy navbat",
       "doctorName": "Navbatchi shifokor",
       "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-      "karmedIndex": 57
+      "karmedIndex": 62
     },
     {
       "patientId": "10257",
@@ -1641,7 +1919,7 @@
       "roomTitle": "UTT2-54 XONA",
       "doctorName": "Kurbanova Sevinch Musayevna",
       "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
-      "karmedIndex": 58
+      "karmedIndex": 63
     },
     {
       "patientId": "46604",
@@ -1682,14 +1960,14 @@
       "fullName": "GULJAXON  XOMIDJONOVA",
       "queueNo": 48,
       "globalQueueNo": 48,
-      "status": "Bekleyen",
-      "statusCode": 1,
+      "status": "Kabul Edilen",
+      "statusCode": 4,
       "registrationTime": "08:53",
-      "room": "Ultratovush-3",
-      "roomTitle": "UTT3-46 XONA",
-      "doctorName": "Abidjanov Alisher Maxamataliyevich",
+      "room": "Ultratovush-7",
+      "roomTitle": "UTT7-45 XONA",
+      "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
-      "karmedIndex": 59
+      "karmedIndex": 64
     },
     {
       "patientId": "57663",
@@ -1705,7 +1983,7 @@
       "roomTitle": "UTT5-48 XONA",
       "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-      "karmedIndex": 60
+      "karmedIndex": 65
     },
     {
       "patientId": "53987",
@@ -1721,7 +1999,7 @@
       "roomTitle": "UTT4-47 XONA",
       "doctorName": "Ziyayeva Zarina Abduganiyevna",
       "referringDoctor": "Dr. Xatamov Akbarjon Muxametovich",
-      "karmedIndex": 61
+      "karmedIndex": 66
     },
     {
       "patientId": "57633",
@@ -1737,7 +2015,7 @@
       "roomTitle": "UTT6-52 XONA",
       "doctorName": "Toirova Shaxlo Oybek qizi",
       "referringDoctor": "Dr. Murotova Munojat Murotovna",
-      "karmedIndex": 62
+      "karmedIndex": 67
     },
     {
       "patientId": "57669",
@@ -1749,11 +2027,11 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "08:56",
-      "room": "Ultratovush-11",
-      "roomTitle": "UTT11 XONA",
-      "doctorName": "Yulchiyeva Nodira Siddikovna",
+      "room": "Ultratovush-5",
+      "roomTitle": "UTT5-48 XONA",
+      "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Laboratoriya va Radyologiya",
-      "karmedIndex": 63
+      "karmedIndex": 68
     },
     {
       "patientId": "57627",
@@ -1765,11 +2043,11 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "08:57",
-      "room": "Ultratovush-2",
-      "roomTitle": "UTT2-54 XONA",
-      "doctorName": "Kurbanova Sevinch Musayevna",
+      "room": "Ultratovush-6",
+      "roomTitle": "UTT6-52 XONA",
+      "doctorName": "Toirova Shaxlo Oybek qizi",
       "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-      "karmedIndex": 64
+      "karmedIndex": 69
     },
     {
       "patientId": "57627",
@@ -1785,7 +2063,7 @@
       "roomTitle": "Umumiy navbat",
       "doctorName": "Navbatchi shifokor",
       "referringDoctor": "Dr. Ruziyeva Mexribon Mavlon qizi",
-      "karmedIndex": 65
+      "karmedIndex": 70
     },
     {
       "patientId": "57631",
@@ -1801,7 +2079,7 @@
       "roomTitle": "UTT7-45 XONA",
       "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
-      "karmedIndex": 66
+      "karmedIndex": 71
     },
     {
       "patientId": "57307",
@@ -1833,7 +2111,7 @@
       "roomTitle": "UTT3-46 XONA",
       "doctorName": "Abidjanov Alisher Maxamataliyevich",
       "referringDoctor": "Dr. Tillayeva Feruza Ikramovna",
-      "karmedIndex": 20
+      "karmedIndex": 25
     },
     {
       "patientId": "57647",
@@ -1849,7 +2127,7 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Turaev Boxodir Xujayarovich",
-      "karmedIndex": 67
+      "karmedIndex": 72
     },
     {
       "patientId": "7034",
@@ -1865,7 +2143,7 @@
       "roomTitle": "UTT9-50 XONA",
       "doctorName": "Xusanova Feruza Ikromjonovna",
       "referringDoctor": "Dr. Boboyev Maxsud Maxmudovich",
-      "karmedIndex": 68
+      "karmedIndex": 73
     },
     {
       "patientId": "57640",
@@ -1881,7 +2159,7 @@
       "roomTitle": "UTT1-53 XONA",
       "doctorName": "Juravlev Igor Ivanovich",
       "referringDoctor": "Dr. Mirolimov Mirkozim Mirjalol ogli",
-      "karmedIndex": 69
+      "karmedIndex": 74
     },
     {
       "patientId": "49054",
@@ -1893,9 +2171,9 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "09:01",
-      "room": "Biriktirilmagan",
-      "roomTitle": "Umumiy navbat",
-      "doctorName": "Navbatchi shifokor",
+      "room": "Ultratovush-5",
+      "roomTitle": "UTT5-48 XONA",
+      "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Ph.D. Ormonov Umidjon Butabekovich",
       "karmedIndex": 17
     },
@@ -1909,11 +2187,11 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "09:01",
-      "room": "Biriktirilmagan",
-      "roomTitle": "Umumiy navbat",
-      "doctorName": "Navbatchi shifokor",
+      "room": "Ultratovush-8",
+      "roomTitle": "UTT8-49 XONA",
+      "doctorName": "Saidbayeva Zulfiya Yergeshovna",
       "referringDoctor": "Dr. Ruziyeva Sayora Ergashovna",
-      "karmedIndex": 70
+      "karmedIndex": 75
     },
     {
       "patientId": "24045",
@@ -1925,9 +2203,9 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "09:01",
-      "room": "Biriktirilmagan",
-      "roomTitle": "Umumiy navbat",
-      "doctorName": "Navbatchi shifokor",
+      "room": "Ultratovush-4",
+      "roomTitle": "UTT4-47 XONA",
+      "doctorName": "Ziyayeva Zarina Abduganiyevna",
       "referringDoctor": "Dr. Axmedov Murodullo Saidjon ogli",
       "karmedIndex": 18
     },
@@ -1941,19 +2219,243 @@
       "status": "Bekleyen",
       "statusCode": 1,
       "registrationTime": "09:02",
+      "room": "Ultratovush-6",
+      "roomTitle": "UTT6-52 XONA",
+      "doctorName": "Toirova Shaxlo Oybek qizi",
+      "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
+      "karmedIndex": 76
+    },
+    {
+      "patientId": "57632",
+      "dosyaNo": 260106137,
+      "labDosyaId": 2889341,
+      "fullName": "SOHIBA MAXMUDOVA",
+      "queueNo": 65,
+      "globalQueueNo": 65,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:03",
+      "room": "Ultratovush-2",
+      "roomTitle": "UTT2-54 XONA",
+      "doctorName": "Kurbanova Sevinch Musayevna",
+      "referringDoctor": "Dr. Murotova Munojat Murotovna",
+      "karmedIndex": 77
+    },
+    {
+      "patientId": "57068",
+      "dosyaNo": 260024220,
+      "labDosyaId": 2889360,
+      "fullName": "NIKOLAY  KORENEV",
+      "queueNo": 66,
+      "globalQueueNo": 66,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:05",
       "room": "Biriktirilmagan",
       "roomTitle": "Umumiy navbat",
       "doctorName": "Navbatchi shifokor",
+      "referringDoctor": "Dr. Abdikarimov Asilbek Mavludjon ogli",
+      "karmedIndex": 19
+    },
+    {
+      "patientId": "57674",
+      "dosyaNo": 260106314,
+      "labDosyaId": 2889361,
+      "fullName": "XULKAR SARIYEVA",
+      "queueNo": 67,
+      "globalQueueNo": 67,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:05",
+      "room": "Ultratovush-3",
+      "roomTitle": "UTT3-46 XONA",
+      "doctorName": "Abidjanov Alisher Maxamataliyevich",
+      "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+      "karmedIndex": 78
+    },
+    {
+      "patientId": "56522",
+      "dosyaNo": 260023746,
+      "labDosyaId": 2889365,
+      "fullName": "AKBAR YANGIYEV",
+      "queueNo": 68,
+      "globalQueueNo": 68,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:05",
+      "room": "Ultratovush-11",
+      "roomTitle": "UTT11 XONA",
+      "doctorName": "Yulchiyeva Nodira Siddikovna",
+      "referringDoctor": "Dr. Abduqodirov Abbos",
+      "karmedIndex": 20
+    },
+    {
+      "patientId": "39530",
+      "dosyaNo": 260106135,
+      "labDosyaId": 2889368,
+      "fullName": "QUNDUZ MATKARIMOVA",
+      "queueNo": 69,
+      "globalQueueNo": 69,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:06",
+      "room": "Ultratovush-5",
+      "roomTitle": "UTT5-48 XONA",
+      "doctorName": "Xoshimova Lola Kabulovna",
       "referringDoctor": "Dr. Saydaxmedova Viloyat Amirdinovna",
-      "karmedIndex": 71
+      "karmedIndex": 79
+    },
+    {
+      "patientId": "55773",
+      "dosyaNo": 260106266,
+      "labDosyaId": 2889373,
+      "fullName": "GUZAL MUXIDDINOVA",
+      "queueNo": 70,
+      "globalQueueNo": 70,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:06",
+      "room": "Biriktirilmagan",
+      "roomTitle": "Umumiy navbat",
+      "doctorName": "Navbatchi shifokor",
+      "referringDoctor": "Dr. Mirolimov Mirkozim Mirjalol ogli",
+      "karmedIndex": 80
+    },
+    {
+      "patientId": "56304",
+      "dosyaNo": 260023427,
+      "labDosyaId": 2889376,
+      "fullName": "SARIMSAK JURABEKOV",
+      "queueNo": 71,
+      "globalQueueNo": 71,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:06",
+      "room": "Ultratovush-7",
+      "roomTitle": "UTT7-45 XONA",
+      "doctorName": "Asadova Dildoraxon Asatullayevna",
+      "referringDoctor": "Dr. Azimov Akbar Axbor o‘g‘li",
+      "karmedIndex": 21
+    },
+    {
+      "patientId": "10289",
+      "dosyaNo": 260106324,
+      "labDosyaId": 2889380,
+      "fullName": "GULSEVAR SHAXRIYOROVA",
+      "queueNo": 72,
+      "globalQueueNo": 72,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:06",
+      "room": "Ultratovush-4",
+      "roomTitle": "UTT4-47 XONA",
+      "doctorName": "Ziyayeva Zarina Abduganiyevna",
+      "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+      "karmedIndex": 81
+    },
+    {
+      "patientId": "13522",
+      "dosyaNo": 260023061,
+      "labDosyaId": 2889383,
+      "fullName": "ELVIRA MUJDABAYEVA",
+      "queueNo": 73,
+      "globalQueueNo": 73,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:07",
+      "room": "Ultratovush-11",
+      "roomTitle": "UTT11 XONA",
+      "doctorName": "Yulchiyeva Nodira Siddikovna",
+      "referringDoctor": "Ph.D. Ormonov Umidjon Butabekovich",
+      "karmedIndex": 22
+    },
+    {
+      "patientId": "46693",
+      "dosyaNo": 260106139,
+      "labDosyaId": 2889387,
+      "fullName": "YURIY VASILEV",
+      "queueNo": 74,
+      "globalQueueNo": 74,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:07",
+      "room": "Ultratovush-7",
+      "roomTitle": "UTT7-45 XONA",
+      "doctorName": "Asadova Dildoraxon Asatullayevna",
+      "referringDoctor": "Dr. Xashimov Ravshan Abdurasulovich",
+      "karmedIndex": 82
+    },
+    {
+      "patientId": "57637",
+      "dosyaNo": 260106168,
+      "labDosyaId": 2889389,
+      "fullName": "ROBIYA ABDUMALIKOVA",
+      "queueNo": 75,
+      "globalQueueNo": 75,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:07",
+      "room": "Ultratovush-10",
+      "roomTitle": "UTT10-51 XONA",
+      "doctorName": "Xudayberdiyeva Nigora Nizamovna",
+      "referringDoctor": "Dr. Murotova Munojat Murotovna",
+      "karmedIndex": 83
+    },
+    {
+      "patientId": "57677",
+      "dosyaNo": 260106334,
+      "labDosyaId": 2889402,
+      "fullName": "SEVINCH QOSIMOVA",
+      "queueNo": 76,
+      "globalQueueNo": 76,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:10",
+      "room": "Ultratovush-6",
+      "roomTitle": "UTT6-52 XONA",
+      "doctorName": "Toirova Shaxlo Oybek qizi",
+      "referringDoctor": "Dr. Laboratoriya va Radyologiya",
+      "karmedIndex": 84
+    },
+    {
+      "patientId": "57414",
+      "dosyaNo": 260106222,
+      "labDosyaId": 2889411,
+      "fullName": "NARGIZA TASHBAYEVA",
+      "queueNo": 77,
+      "globalQueueNo": 77,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:11",
+      "room": "Ultratovush-9",
+      "roomTitle": "UTT9-50 XONA",
+      "doctorName": "Xusanova Feruza Ikromjonovna",
+      "referringDoctor": "Dr. Murotova Munojat Murotovna",
+      "karmedIndex": 85
+    },
+    {
+      "patientId": "40977",
+      "dosyaNo": 260023487,
+      "labDosyaId": 2889413,
+      "fullName": "MICHGONA PULOTOVA",
+      "queueNo": 78,
+      "globalQueueNo": 78,
+      "status": "Bekleyen",
+      "statusCode": 1,
+      "registrationTime": "09:11",
+      "room": "Ultratovush-10",
+      "roomTitle": "UTT10-51 XONA",
+      "doctorName": "Xudayberdiyeva Nigora Nizamovna",
+      "referringDoctor": "Dr. Usmonov Bekzod Boymatovich",
+      "karmedIndex": 23
     },
     {
       "patientId": "57291",
       "dosyaNo": 260105829,
       "labDosyaId": 2865932,
       "fullName": "MANZURA RAXMATOVA",
-      "queueNo": 65,
-      "globalQueueNo": 65,
+      "queueNo": 79,
+      "globalQueueNo": 79,
       "status": "Kabul Edilen",
       "statusCode": 4,
       "registrationTime": "11:15",
@@ -1961,17 +2463,17 @@
       "roomTitle": "UTT11 XONA",
       "doctorName": "Yulchiyeva Nodira Siddikovna",
       "referringDoctor": "Dr. Tasheva Aziza Olimdjonovna",
-      "karmedIndex": 22
+      "karmedIndex": 27
     },
     {
       "patientId": "55318",
       "dosyaNo": 260024239,
       "labDosyaId": 2877942,
       "fullName": "MOXIRA SHODIYEVA",
-      "queueNo": 66,
-      "globalQueueNo": 66,
-      "status": "Kabul Edilen",
-      "statusCode": 4,
+      "queueNo": 80,
+      "globalQueueNo": 80,
+      "status": "Rapor Onaylı",
+      "statusCode": 8,
       "registrationTime": "11:32",
       "room": "Ultratovush-11",
       "roomTitle": "UTT11 XONA",
@@ -1984,8 +2486,8 @@
       "dosyaNo": 260105983,
       "labDosyaId": 2867442,
       "fullName": "NODIRA MURATOVA",
-      "queueNo": 67,
-      "globalQueueNo": 67,
+      "queueNo": 81,
+      "globalQueueNo": 81,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "13:03",
@@ -1993,15 +2495,15 @@
       "roomTitle": "UTT11 XONA",
       "doctorName": "Yulchiyeva Nodira Siddikovna",
       "referringDoctor": "Dr. Tashxodjayeva Adolat Xamidullayevna",
-      "karmedIndex": 23
+      "karmedIndex": 28
     },
     {
       "patientId": "51722",
       "dosyaNo": 260104816,
       "labDosyaId": 2837624,
       "fullName": "ZILOLA ABDURAXMANOVA",
-      "queueNo": 68,
-      "globalQueueNo": 68,
+      "queueNo": 82,
+      "globalQueueNo": 82,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "14:15",
@@ -2009,15 +2511,15 @@
       "roomTitle": "UTT9-50 XONA",
       "doctorName": "Xusanova Feruza Ikromjonovna",
       "referringDoctor": "Dr. Kuvvatov Jurabek Toshmamatovich",
-      "karmedIndex": 21
+      "karmedIndex": 26
     },
     {
       "patientId": "16799",
       "dosyaNo": 260105670,
       "labDosyaId": 2870660,
       "fullName": "MAPRAT KUCHKAROVA",
-      "queueNo": 69,
-      "globalQueueNo": 69,
+      "queueNo": 83,
+      "globalQueueNo": 83,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "15:32",
@@ -2025,15 +2527,15 @@
       "roomTitle": "UTT7-45 XONA",
       "doctorName": "Asadova Dildoraxon Asatullayevna",
       "referringDoctor": "Dr. Mannopova Nargiza Mannapovna",
-      "karmedIndex": 24
+      "karmedIndex": 29
     },
     {
       "patientId": "43339",
       "dosyaNo": 260024238,
       "labDosyaId": 2871520,
       "fullName": "NIZOMJON ABDUNAZAROV",
-      "queueNo": 70,
-      "globalQueueNo": 70,
+      "queueNo": 84,
+      "globalQueueNo": 84,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "16:09",
@@ -2048,8 +2550,8 @@
       "dosyaNo": 260105786,
       "labDosyaId": 2871830,
       "fullName": "OLIYAXON MAMADALIYEVA",
-      "queueNo": 71,
-      "globalQueueNo": 71,
+      "queueNo": 85,
+      "globalQueueNo": 85,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "16:24",
@@ -2057,15 +2559,15 @@
       "roomTitle": "UTT10-51 XONA",
       "doctorName": "Xudayberdiyeva Nigora Nizamovna",
       "referringDoctor": "Dr. Mannopova Nargiza Mannapovna",
-      "karmedIndex": 25
+      "karmedIndex": 30
     },
     {
       "patientId": "7485",
       "dosyaNo": 260105838,
       "labDosyaId": 2872854,
       "fullName": "ZAMIRA SULTONOVA",
-      "queueNo": 72,
-      "globalQueueNo": 72,
+      "queueNo": 86,
+      "globalQueueNo": 86,
       "status": "Rapor Onaylı",
       "statusCode": 8,
       "registrationTime": "17:18",
@@ -2073,37 +2575,23 @@
       "roomTitle": "UTT11 XONA",
       "doctorName": "Yulchiyeva Nodira Siddikovna",
       "referringDoctor": "Dr. Mannopova Nargiza Mannapovna",
-      "karmedIndex": 26
+      "karmedIndex": 31
     }
   ],
   "activeCalls": {
     "Ultratovush-11": {
-      "patientId": "55318",
-      "queueNo": 66,
-      "globalQueueNo": 66,
-      "fullName": "MOXIRA SHODIYEVA",
-      "registrationTime": "11:32",
+      "patientId": "57291",
+      "queueNo": 79,
+      "globalQueueNo": 79,
+      "fullName": "MANZURA RAXMATOVA",
+      "registrationTime": "11:15",
       "roomKey": "Ultratovush-11",
       "roomTitle": "UTT11 XONA",
       "doctorName": "Yulchiyeva Nodira Siddikovna",
       "source": "karmed_accepted",
       "status": "accepted",
       "statusText": "Qabul qilmoqda",
-      "calledAt": "11:32"
-    },
-    "Ultratovush-8": {
-      "patientId": "4628",
-      "queueNo": 20,
-      "globalQueueNo": 20,
-      "fullName": "SHAXLO NAZIROVA",
-      "registrationTime": "08:28",
-      "roomKey": "Ultratovush-8",
-      "roomTitle": "UTT8-49 XONA",
-      "doctorName": "Saidbayeva Zulfiya Yergeshovna",
-      "source": "karmed_accepted",
-      "status": "accepted",
-      "statusText": "Qabul qilmoqda",
-      "calledAt": "08:28"
+      "calledAt": "11:15"
     },
     "Ultratovush-4": {
       "patientId": "57635",
@@ -2132,6 +2620,62 @@
       "status": "accepted",
       "statusText": "Qabul qilmoqda",
       "calledAt": "07:57"
+    },
+    "Ultratovush-7": {
+      "patientId": "24025",
+      "queueNo": 48,
+      "globalQueueNo": 48,
+      "fullName": "GULJAXON  XOMIDJONOVA",
+      "registrationTime": "08:53",
+      "roomKey": "Ultratovush-7",
+      "roomTitle": "UTT7-45 XONA",
+      "doctorName": "Asadova Dildoraxon Asatullayevna",
+      "source": "karmed_accepted",
+      "status": "accepted",
+      "statusText": "Qabul qilmoqda",
+      "calledAt": "08:53"
+    },
+    "Ultratovush-6": {
+      "patientId": "57642",
+      "queueNo": 27,
+      "globalQueueNo": 27,
+      "fullName": "NODIRA SODIQOVA",
+      "registrationTime": "08:37",
+      "roomKey": "Ultratovush-6",
+      "roomTitle": "UTT6-52 XONA",
+      "doctorName": "Toirova Shaxlo Oybek qizi",
+      "source": "karmed_accepted",
+      "status": "accepted",
+      "statusText": "Qabul qilmoqda",
+      "calledAt": "08:37"
+    },
+    "Ultratovush-8": {
+      "patientId": "31873",
+      "queueNo": 39,
+      "globalQueueNo": 39,
+      "fullName": "JALILOVA GULMIRA",
+      "registrationTime": "08:46",
+      "roomKey": "Ultratovush-8",
+      "roomTitle": "UTT8-49 XONA",
+      "doctorName": "Saidbayeva Zulfiya Yergeshovna",
+      "source": "karmed_accepted",
+      "status": "accepted",
+      "statusText": "Qabul qilmoqda",
+      "calledAt": "08:46"
+    },
+    "Ultratovush-9": {
+      "patientId": "57661",
+      "queueNo": 38,
+      "globalQueueNo": 38,
+      "fullName": "BATIRJON SULTANOV",
+      "registrationTime": "08:45",
+      "roomKey": "Ultratovush-9",
+      "roomTitle": "UTT9-50 XONA",
+      "doctorName": "Xusanova Feruza Ikromjonovna",
+      "source": "karmed_accepted",
+      "status": "accepted",
+      "statusText": "Qabul qilmoqda",
+      "calledAt": "08:45"
     }
   }
 }
