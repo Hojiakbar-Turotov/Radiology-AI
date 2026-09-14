@@ -20,6 +20,14 @@
       font-weight: 800;
     }
 
+    /* Single room rejimida vrachlar lentasi va oldingi kundan kelganlar paneli yashiriladi */
+    body.mode-single-room #tvDoctorSummaryRibbon,
+    body.mode-single-room .tv-doctor-summary-ribbon,
+    body.mode-single-room #earlierPatientsSection,
+    body.mode-single-room .earlier-patients-panel {
+      display: none !important;
+    }
+
     /* Vrachlar kesimidagi ko'riklar lentasi (Yuqori panel) */
     .tv-doctor-summary-ribbon {
       display: flex;

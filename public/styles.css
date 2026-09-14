@@ -970,7 +970,11 @@ body.mode-single-room #topInfoBar,
 body.mode-single-room #postControlsPanel,
 body.mode-single-room #tvQueueGrid,
 body.mode-single-room #postTableContainer,
-body.mode-single-room #mainAppFooter {
+body.mode-single-room #mainAppFooter,
+body.mode-single-room #tvDoctorSummaryRibbon,
+body.mode-single-room .tv-doctor-summary-ribbon,
+body.mode-single-room #earlierPatientsSection,
+body.mode-single-room .earlier-patients-panel {
   display: none !important;
 }
 

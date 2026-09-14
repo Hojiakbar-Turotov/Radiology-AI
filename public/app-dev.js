@@ -113,7 +113,7 @@
   const totalCompletedCount = document.getElementById('totalCompletedCount');
   const todayRegPatientsCount = document.getElementById('todayRegPatientsCount');
   const earlierRegPatientsCount = document.getElementById('earlierRegPatientsCount');
-  const completedEarlierSubText = document.getElementById('completedEarlierSubText');
+  const tvDoctorSummaryRibbon = document.getElementById('tvDoctorSummaryRibbon');
   const tvRibbonDoctorChips = document.getElementById('tvRibbonDoctorChips');
 
   // Kecha va oldingi kunlarda yo'naltirilgan bemorlar jadvali elementlari
@@ -290,6 +290,8 @@
     }
 
     if (mode === 'tv') {
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'flex';
+      if (earlierPatientsSection) earlierPatientsSection.style.display = 'block';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
       if (singleRoomWrapper) singleRoomWrapper.style.display = 'none';
       if (tvQueueGrid) tvQueueGrid.style.display = 'grid';
@@ -299,6 +301,8 @@
     } else if (mode === 'single-room') {
       singleRoomPage = 0;
       singleRoomLastSwitchTime = Date.now();
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
+      if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
       if (tvQueueGrid) tvQueueGrid.style.display = 'none';
       if (postTableContainer) postTableContainer.style.display = 'none';
@@ -307,6 +311,8 @@
       const cleanParam = currentRoomId.replace('Ultratovush-', '');
       try { history.replaceState(null, '', `?room=${encodeURIComponent(cleanParam)}`); } catch (e) {}
     } else if (mode === 'post') {
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
+      if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'flex';
       if (singleRoomWrapper) singleRoomWrapper.style.display = 'none';
       if (tvQueueGrid) tvQueueGrid.style.display = 'none';
@@ -314,6 +320,8 @@
       renderPostView();
       try { history.replaceState(null, '', '?mode=post'); } catch (e) {}
     } else if (mode === 'mobile') {
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
+      if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
       if (singleRoomWrapper) singleRoomWrapper.style.display = 'none';
       if (tvQueueGrid) tvQueueGrid.style.display = 'grid';
@@ -740,6 +748,10 @@
   // 11.1 VRACHLAR KESIMIDAGI JONLI LENTA (HAR BIR SHIFOKORNING KO'RIB BO'LGANI)
   function updateDoctorRibbon() {
     if (!tvRibbonDoctorChips) return;
+    if (currentMode === 'single-room') {
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
+      return;
+    }
     if (!queueData) return;
 
     const list = Object.keys(ROOM_MAP).map(rKey => {
@@ -771,7 +783,12 @@
 
   // 11.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB BUGUN O'TGAN/QABUL QILINGANLAR JADVALI
   function updateEarlierPatientsPanel() {
-    if (!earlierPatientsSection || !queueData) return;
+    if (!earlierPatientsSection) return;
+    if (currentMode === 'single-room') {
+      earlierPatientsSection.style.display = 'none';
+      return;
+    }
+    if (!queueData) return;
     const summary = queueData.summary || {};
     const earlierList = summary.earlierPatientsList || [];
 
