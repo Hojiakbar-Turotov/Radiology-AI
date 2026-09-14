@@ -1,5 +1,24 @@
 # KARMED RADIOLOGY NAVBAT VA MONITORING TIZIMI — VERSIYALAR TARIXI (CHANGELOG)
 
+## [v8.0.0] - 2026-09-14 (Standalone Direct Karmed Portable TV Monitor & Native Launcher)
+### Yangiliklar va Arxitekturaviy Yechimlar:
+- **To'liq Mustaqil Portativ TV Monitor Paketi (`UTT_TV_MONITOR_PORTABLE.zip`)**:
+  - Oraliq serverlarga yoki tarmoq sinxronlashiga bog'liqlik butunlay olib tashlandi.
+  - Server o'zi bevosita shifoxonaning Karmed serveri (`192.168.150.111:2025`) bilan to'g'ridan-to'g'ri integratsiyada ishlaydi.
+- **Oson O'zgartiriladigan Kirish Kaliti (`OPEN_KARMED_KEY.json`)**:
+  - `username` ("R5"), `password` ("17720"), Karmed host va port ma'lumotlari alohida ochiq JSON faylida saqlanadi. Foydalanuvchi hisob ma'lumotlarini dastur kodiga kirmasdan oson o'zgartira oladi.
+- **Dinamik Tarmoq IP Aniqlash (Local & Wi-Fi Broadcast)**:
+  - Doimiy qat'iy IP manzil bog'liqligi olib tashlandi. Dastur qaysi kompyuterda ishga tushsa, uning mahalliy tarmoq (Wi-Fi / Ethernet) IP manzilini avtomatik aniqlaydi va bir xil Wi-Fi tarmog'idagi Smart TV yoki telefonlar uchun ulanish manzilini (`http://KOMPYUTER_IP:9877`) e'lon qiladi.
+- **Native C# Dasturi (`START_TV_MONITOR.exe`)**:
+  - `.bat` fayl o'rniga portativ `node.exe` va `server.js` ni ishga tushiruvchi hamda brauzerda TV ekranini avtomatik ochuvchi ixcham (18 KB) native `.exe` dasturi yaratildi.
+  - Serverni to'xtatish uchun `STOP_TV_MONITOR.bat` taqdim etildi.
+- **Asosiy TV Ekrani Yangilanishlari**:
+  - Shifokor kartochkasida `[ko'rilgan] / [kutayotgan] / [jami]` ko'rinishidagi indikator (so'zsiz, rangli).
+  - Shifokor ko'rgan bemorlarni ochuvchi ko'z znachogi (`👁️`) va modal oynasi.
+  - Kecha va oldingi kunlarda yo'naltirilib, bugun qabul qilingan/o'tgan bemorlar filtrlash paneli.
+
+---
+
 ## [v7.1.0] - 2026-09-11 (Admin Custom ID Registry & Google Sheets 21-Column Match)
 ### Yangiliklar va Imkoniyatlar:
 - **Admin Panel Maxsus Reestr Bo'limi (`/admin.html` -> ID Bo'yicha Maxsus Hisob-Kitob)**:

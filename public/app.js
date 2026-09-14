@@ -674,7 +674,7 @@
         sseSource.onopen = function () {
           if (liveConnChip) {
             liveConnChip.className = 'live-connection-chip connected';
-            liveConnText.textContent = 'Jonli Aloqa (v7.1)';
+            liveConnText.textContent = 'Jonli Aloqa (v8.0)';
           }
         };
 
@@ -719,7 +719,7 @@
       handleNewQueueData(data);
       if (liveConnChip) {
         liveConnChip.className = 'live-connection-chip connected';
-        liveConnText.textContent = 'Jonli Aloqa (v7.1)';
+        liveConnText.textContent = 'Jonli Aloqa (v8.0)';
       }
     }, function(err) {
       consecutivePollErrors++;
