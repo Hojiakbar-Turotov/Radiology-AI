@@ -178,7 +178,7 @@ let latestQueueData = {
   timestamp: new Date().toISOString(),
   totalPatients: 0,
   department: 'Ultratovush',
-  summary: { totalWaiting: 0, totalDone: 0, totalCompleted: 0 },
+  summary: { totalWaiting: 0, totalDone: 0, totalCompleted: 0, totalTodayRegistered: 0, totalPatients: 0, totalEarlierRegistered: 0 },
   doctors: [],
   allPatients: [],
   earlierPatients: [],
@@ -793,14 +793,17 @@ async function syncMasterQueueFromKarmed() {
       timestamp: new Date().toISOString(),
       date: todayDmy,
       department: "Ultratovush",
-      totalPatients: allPatients.length,
+      totalPatients: totalTodayRegisteredCount,
+      totalAllPatients: allPatients.length,
       summary: {
         totalWaiting: totalWaitingCount,
         totalCompleted: totalCompletedCount,
         totalTodayRegistered: totalTodayRegisteredCount,
+        totalPatients: totalTodayRegisteredCount,
         totalEarlierRegistered: totalEarlierRegisteredCount,
         totalCompletedToday: totalCompletedTodayCount,
         totalCompletedEarlier: totalCompletedEarlierCount,
+        totalAll: allPatients.length,
         byDoctor: summaryByDoctor
       },
       doctors: Object.values(doctorMap),
@@ -1028,7 +1031,7 @@ const targetExePath = path.join(TARGET_DIR, 'START_TV_MONITOR.exe');
 const iconPath = path.join(WORKSPACE_DIR, 'build-installer', 'app.ico');
 
 try {
-  let cscCmd = `powershell -Command "& 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe' /nologo /target:exe /out:'${targetExePath}' `;
+  let cscCmd = `powershell -Command "& 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe' /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:'${targetExePath}' `;
   if (fs.existsSync(iconPath)) {
     cscCmd += `/win32icon:'${iconPath}' `;
   }
@@ -1050,8 +1053,8 @@ title UTT TV MONITORNI TO'XTATISH
 cd /d "%~dp0"
 
 echo TV Monitor serveri to'xtatilmoqda...
-powershell -Command "Get-NetTCPConnection -LocalPort 9877 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 taskkill /F /IM START_TV_MONITOR.exe >nul 2>&1
+powershell -Command "Get-NetTCPConnection -LocalPort 9877 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 
 echo.
 echo [OK] TV Monitor serveri muvaffaqiyatli to'xtatildi!
@@ -1070,10 +1073,13 @@ Ushbu portativ paket faqat UTT TV monitorini istalgan Windows kompyuterida
 Hech qanday boshqa oraliq serverga bog'liq emas. O'zi to'g'ridan-to'g'ri Karmed
 tizimi bilan integratsiya qilib ishlaydi.
 
+Dastur ekranda hech qanday ortiqcha qora konsol oynalarisiz orqa fonda (tizim
+patnisi / system tray) jim ishlaydi va brauzerda TV monitor oynasini ochib beradi.
+
 -------------------------------------------------------------------------------
 1. BOSHQARUV FAYLLARI (ASOSIY PAPKADA):
 -------------------------------------------------------------------------------
-1. START_TV_MONITOR.exe   — Serverni ishga tushirish va TV ekranini ochish dasturi.
+1. START_TV_MONITOR.exe   — Serverni orqa fonda ishga tushirish va TV ekranini ochish dasturi.
 2. STOP_TV_MONITOR.bat    — Serverni to'xtatish.
 3. OPEN_KARMED_KEY.json   — Karmed tizimiga kirish ma'lumotlari (R5 va 17720).
 4. config.json            — Port (standart: 9877) sozlamalari.
@@ -1084,11 +1090,15 @@ tizimi bilan integratsiya qilib ishlaydi.
 1. "UTT_TV_MONITOR_PORTABLE.zip" arxivini fleshka orqali boshqa kompyuterga
    o'tkazing va arxivdan chiqaring.
 2. Papka ichidagi "START_TV_MONITOR.exe" faylini ikki marta bosing.
-3. Brauzerda TV monitori avtomatik ochiladi. To'liq ekranga o'tkazish uchun F11 ni bosing.
-4. Ochilgan manzil orqali ushbu kompyuter bilan bitta Wi-Fi tarmog'iga ulangan
+   - Hech qanday qora konsol oynasi chiqmaydi!
+   - Soat yonida (tizim patnisida) UTT nishonchasi paydo bo'ladi.
+   - Brauzerda TV monitori avtomatik ochiladi. To'liq ekranga o'tkazish uchun F11 ni bosing.
+3. Ochilgan manzil orqali ushbu kompyuter bilan bitta Wi-Fi tarmog'iga ulangan
    Smart TV yoki telefon brauzerida TV monitorni ko'rish mumkin bo'ladi.
    (Masalan: http://KOMPYUTER_IP:9877)
-5. Serverni to'xtatish uchun "STOP_TV_MONITOR.bat" ni bosish kifoya.
+4. Serverni to'xtatish uchun:
+   - Tizim patnisidagi (soat yonidagi) nishonchani o'ng tugma bilan bosib "Chiqish" ni tanlang,
+   - Yoki "STOP_TV_MONITOR.bat" ni bosing.
 
 -------------------------------------------------------------------------------
 3. KARMED KALITI VA MA'LUMOTLARNI O'ZGARTIRISH (OPEN_KARMED_KEY.json):

@@ -770,8 +770,23 @@
     if (totalPatientsCount) totalPatientsCount.textContent = waiting;
 
     // Bugun ro'yxatga olinganlar va oldingi kundan qolganlar
-    const todayReg = typeof summary.totalPatients === 'number' ? summary.totalPatients : waiting;
-    const earlierReg = typeof summary.totalEarlierRegistered === 'number' ? summary.totalEarlierRegistered : 0;
+    let todayReg = 0;
+    if (typeof summary.totalTodayRegistered === 'number') {
+      todayReg = summary.totalTodayRegistered;
+    } else if (typeof summary.totalPatients === 'number') {
+      todayReg = summary.totalPatients;
+    } else if (Array.isArray(queueData.allPatients)) {
+      todayReg = queueData.allPatients.filter(p => p.isRegToday).length;
+    } else {
+      todayReg = waiting;
+    }
+
+    let earlierReg = 0;
+    if (typeof summary.totalEarlierRegistered === 'number') {
+      earlierReg = summary.totalEarlierRegistered;
+    } else if (Array.isArray(queueData.allPatients)) {
+      earlierReg = queueData.allPatients.filter(p => p.isRegEarlier || p.isRegYesterday).length;
+    }
     if (todayRegPatientsCount) todayRegPatientsCount.textContent = todayReg;
     if (earlierRegPatientsCount) {
       earlierRegPatientsCount.textContent = earlierReg > 0 ? `(+${earlierReg} oldin)` : '';
