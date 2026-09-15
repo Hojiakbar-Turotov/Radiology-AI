@@ -285,9 +285,8 @@ function formatKarmedTimeString(tStr) {
   return tStr;
 }
 
-function mapKarmedRecordToDoctor(p, docsAuth) {
-  const roomStr = (p.AltBolumAdi || p.OdaAdi || '').trim();
-  const docName = (p.DoktorAdi || p.KabulEden || p.DosyaDoktoru || '').toLowerCase();
+function resolveQueuedRoomDoctor(kp, docsAuth) {
+  const roomStr = String(kp.AltBolumAdi || kp.OdaAdi || '').trim();
   const doctorKeys = Object.keys(docsAuth || {});
 
   const m = roomStr.match(/Ultratovush-+(\\d+)/i);
@@ -301,26 +300,67 @@ function mapKarmedRecordToDoctor(p, docsAuth) {
     }
   }
 
+  const low = roomStr.toLowerCase().replace(/['\`ʻʼ]/g, '');
   for (const key of doctorKeys) {
     const d = docsAuth[key];
     if (!d) continue;
-    if (d.shortName && roomStr.toLowerCase().includes(d.shortName.toLowerCase())) return d;
-    if (d.doctorName && roomStr.toLowerCase().includes(d.doctorName.toLowerCase())) return d;
-    if (docName && d.doctorName && docName.includes(d.doctorName.toLowerCase())) return d;
-    if (docName && d.shortName && docName.includes(d.shortName.toLowerCase())) return d;
+    const dDocName = (d.doctorName || '').toLowerCase().replace(/['\`ʻʼ]/g, '');
+    const dShortName = (d.shortName || '').toLowerCase().replace(/['\`ʻʼ]/g, '');
+
+    if (dShortName && low.includes(dShortName)) return d;
+    if (dDocName && low.includes(dDocName)) return d;
+
+    const parts = dDocName.split(' ');
+    if (parts.length >= 2 && low.includes(parts[0]) && low.includes(parts[1])) return d;
+    if (parts.length >= 1 && parts[0].length >= 4 && low.includes(parts[0])) return d;
   }
 
-  if (p.OdaId) {
+  if (kp.OdaId) {
     for (const key of doctorKeys) {
       const d = docsAuth[key];
       if (!d) continue;
-      if (String(d.roomNum) === String(p.OdaId) || String(d.kod) === String(p.OdaId)) {
+      if (String(d.roomNum) === String(kp.OdaId) || String(d.kod) === String(kp.OdaId)) {
         return d;
       }
     }
   }
 
   return null;
+}
+
+function resolveAcceptingDoctor(kp, docsAuth) {
+  const docName = String(kp.KabulEden || kp.DoktorAdi || '').trim();
+  if (!docName || docName === 'Kiritilmagan' || docName.toLowerCase().includes('kutilmoqda')) {
+    return null;
+  }
+
+  const doctorKeys = Object.keys(docsAuth || {});
+  const low = docName.toLowerCase().replace(/['\`ʻʼ]/g, '');
+
+  for (const key of doctorKeys) {
+    const d = docsAuth[key];
+    if (!d) continue;
+    const dDocName = (d.doctorName || '').toLowerCase().replace(/['\`ʻʼ]/g, '');
+    const dShortName = (d.shortName || '').toLowerCase().replace(/['\`ʻʼ]/g, '');
+
+    if (dDocName && low.includes(dDocName)) return d;
+    if (dShortName && low.includes(dShortName)) return d;
+
+    const parts = dDocName.split(' ');
+    if (parts.length >= 2 && low.includes(parts[0]) && low.includes(parts[1])) return d;
+    if (parts.length >= 1 && parts[0].length >= 4 && low.includes(parts[0])) return d;
+  }
+
+  return null;
+}
+
+function mapKarmedRecordToDoctor(kp, docsAuth) {
+  const statusCode = kp.DosyaDurumu || (kp.Durum === 'Bekleyen' ? 1 : (kp.Durum === 'Kabul Edilen' ? 4 : (kp.Durum === 'Rapor Onaylı' ? 8 : 1)));
+  const isExamined = statusCode === 4 || statusCode === 8 || (kp.Durum && String(kp.Durum).toLowerCase().includes('onay'));
+  if (isExamined) {
+    return resolveAcceptingDoctor(kp, docsAuth) || resolveQueuedRoomDoctor(kp, docsAuth);
+  }
+  return resolveQueuedRoomDoctor(kp, docsAuth) || resolveAcceptingDoctor(kp, docsAuth);
 }
 
 // Karmed sessiya holati
@@ -578,7 +618,9 @@ async function syncMasterQueueFromKarmed() {
     let totalWaitingCount = 0;
 
     rawList.forEach((kp, idx) => {
-      const matchedDoc = mapKarmedRecordToDoctor(kp, docsAuth);
+      const queuedDoc = resolveQueuedRoomDoctor(kp, docsAuth);
+      const acceptingDoc = resolveAcceptingDoctor(kp, docsAuth);
+
       const regIso = kp.KayitTarihi ? kp.KayitTarihi.split('T')[0] : '';
       const regTime = formatKarmedTimeString(kp.KayitTarihi || kp.KabulTarihi || kp.Saat);
       const acceptIso = kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '';
@@ -595,6 +637,18 @@ async function syncMasterQueueFromKarmed() {
       const isRegToday = (regIso === todayIso);
       const isRegYesterday = (regIso === yesterdayIso);
       const isRegEarlier = (!isRegToday && regIso && regIso < todayIso);
+
+      // Qoidaga binoan:
+      // - Kutayotgan: Ulangan bo'lim xonasi navbatida turadi
+      // - Qabul qilingan yoki ko'rikdan o'tgan: Tekshiruvni QABUL QILGAN VRACH o'tkazgan
+      const activeDoc = (isAccepted || isFinished) ? (acceptingDoc || queuedDoc) : (queuedDoc || acceptingDoc);
+
+      let hasDoctorSwitch = false;
+      let switchText = 'Mos keladi';
+      if (!isWaiting && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
+        hasDoctorSwitch = true;
+        switchText = \`Ulangan: \${queuedDoc.shortName} ➔ Qabul: \${acceptingDoc.shortName}\`;
+      }
 
       let dateTag = '';
       let dateTagType = 'today';
@@ -667,17 +721,25 @@ async function syncMasterQueueFromKarmed() {
         isRegEarlier: isRegEarlier,
         dateTag: dateTag,
         dateTagType: dateTagType,
-        room: matchedDoc ? matchedDoc.roomId : (kp.AltBolumAdi || 'Biriktirilmagan'),
-        roomTitle: matchedDoc ? matchedDoc.roomTitle : 'Umumiy navbat',
-        doctorName: matchedDoc ? matchedDoc.doctorName : (kp.KabulEden || kp.DoktorAdi || 'Navbatchi shifokor'),
+        room: activeDoc ? activeDoc.roomId : (kp.AltBolumAdi || 'Biriktirilmagan'),
+        roomTitle: activeDoc ? activeDoc.roomTitle : 'Umumiy navbat',
+        doctorName: activeDoc ? activeDoc.doctorName : (kp.KabulEden || kp.DoktorAdi || 'Navbatchi shifokor'),
         referringDoctor: kp.DosyaDoktoru || '',
+        queuedRoom: queuedDoc ? queuedDoc.roomId : (kp.AltBolumAdi || ''),
+        queuedDoctorName: queuedDoc ? queuedDoc.doctorName : '',
+        queuedRoomTitle: queuedDoc ? queuedDoc.roomTitle : '',
+        examiningDoctor: acceptingDoc ? acceptingDoc.doctorName : (kp.KabulEden || ''),
+        examiningRoom: acceptingDoc ? acceptingDoc.roomId : '',
+        examiningRoomTitle: acceptingDoc ? acceptingDoc.roomTitle : '',
+        hasDoctorSwitch: hasDoctorSwitch,
+        switchText: switchText,
         karmedIndex: idx
       };
 
       allPatients.push(patientObj);
       if (isWaiting || isAccepted) totalWaitingCount++;
-      if (matchedDoc && (isWaiting || isAccepted)) {
-        doctorMap[matchedDoc.roomId].patients.push(patientObj);
+      if (activeDoc && (isWaiting || isAccepted)) {
+        doctorMap[activeDoc.roomId].patients.push(patientObj);
       }
     });
 
@@ -749,13 +811,13 @@ async function syncMasterQueueFromKarmed() {
       doc.completedTodayCount = completedTodayByDoctor[rId] || 0;
       doc.completedEarlierCount = completedEarlierByDoctor[rId] || 0;
 
-      const docTodayReg = allPatients.filter(p => p.room === rId && p.isRegToday).length;
-      const docEarlierReg = allPatients.filter(p => p.room === rId && (p.isRegYesterday || p.isRegEarlier)).length;
+      const docTodayReg = allPatients.filter(p => (p.queuedRoom === rId || p.room === rId) && p.isRegToday).length;
+      const docEarlierReg = allPatients.filter(p => (p.queuedRoom === rId || p.room === rId) && (p.isRegYesterday || p.isRegEarlier)).length;
 
       doc.totalToday = docTodayReg;
       doc.totalEarlier = docEarlierReg;
       doc.totalAll = docTodayReg + docEarlierReg;
-      doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId);
+      doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId || p.queuedRoom === rId);
       doc.completedPatients = completedPatientsByDoctor[rId] || [];
 
       summaryByDoctor[rId] = doc.patients.length;
@@ -787,6 +849,8 @@ async function syncMasterQueueFromKarmed() {
       };
     });
 
+    const switchedPatientsList = allPatients.filter(p => p.hasDoctorSwitch);
+
     latestQueueData = {
       success: true,
       version: '8.0.0',
@@ -803,12 +867,17 @@ async function syncMasterQueueFromKarmed() {
         totalEarlierRegistered: totalEarlierRegisteredCount,
         totalCompletedToday: totalCompletedTodayCount,
         totalCompletedEarlier: totalCompletedEarlierCount,
+        totalSwitchedDoctorsCount: switchedPatientsList.length,
         totalAll: allPatients.length,
-        byDoctor: summaryByDoctor
+        byDoctor: summaryByDoctor,
+        completedByDoctor: completedByDoctor,
+        completedPatientsByDoctor: completedPatientsByDoctor,
+        switchedPatientsList: switchedPatientsList
       },
       doctors: Object.values(doctorMap),
       allPatients: allPatients,
       earlierPatients: earlierPatientsList,
+      switchedPatients: switchedPatientsList,
       activeCalls: activeCalls,
       lastKarmedSync: new Date().toISOString()
     };

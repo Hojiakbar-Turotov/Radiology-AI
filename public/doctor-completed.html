@@ -317,6 +317,7 @@
       <div class="pill pill-total" id="statPillTotal">✅ Jami: 0 ta</div>
       <div class="pill pill-today" id="statPillToday">📅 Bugun ro'yxat: 0 ta</div>
       <div class="pill pill-earlier" id="statPillEarlier">🔄 Oldin yo'naltirilgan: 0 ta</div>
+      <div class="pill pill-earlier" id="statPillSwitched" style="display:none; background:rgba(245, 158, 11, 0.2); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.45);">⚠️ Boshqa xonadan o'tgan: 0 ta</div>
     </div>
   </div>
 
@@ -461,11 +462,18 @@
         const total = allCompletedPatients.length;
         const todayReg = allCompletedPatients.filter(p => p.isRegToday).length;
         const earlierReg = allCompletedPatients.filter(p => p.isRegEarlier || p.isRegYesterday).length;
+        const switchedCount = allCompletedPatients.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom)).length;
 
         statPillTotal.textContent = `✅ Jami: ${total} ta`;
         statPillToday.textContent = `📅 Bugun ro'yxat: ${todayReg} ta`;
         statPillEarlier.textContent = `🔄 Oldin yo'naltirilgan: ${earlierReg} ta`;
         statPillEarlier.style.display = earlierReg > 0 ? 'inline-flex' : 'none';
+
+        const statPillSwitched = document.getElementById('statPillSwitched');
+        if (statPillSwitched) {
+          statPillSwitched.textContent = `⚠️ Boshqa xonadan: ${switchedCount} ta`;
+          statPillSwitched.style.display = switchedCount > 0 ? 'inline-flex' : 'none';
+        }
       }
 
       function renderTable() {
@@ -506,6 +514,11 @@
             ? `<span class="tag-earlier-completed">🔄 ${escapeHtml(p.dateTag || "Oldin yo'naltirilgan, bugun o'tgan")}</span>`
             : `<span class="tag-completed">✅ Bugun ko'rildi</span>`;
 
+          const isSwitched = p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom);
+          const switchBadge = isSwitched
+            ? `<span class="tag-switched" style="display:inline-flex; align-items:center; gap:4px; background:rgba(245,158,11,0.25); color:#fbbf24; border:1px solid rgba(245,158,11,0.5); padding:2px 7px; border-radius:6px; font-size:11px; font-weight:700; margin-left:6px;" title="${escapeHtml(p.switchText || (p.queuedRoom + ' dan o\'tgan'))}">⚠️ ${escapeHtml(p.queuedRoom || 'Boshqa xona')}dan o'tgan</span>`
+            : '';
+
           const regDateTime = `${escapeHtml(p.registrationDate || '-')} ${escapeHtml(p.registrationTime || '')}`.trim();
           const confDateTime = p.confirmationDate ? `✅ ${escapeHtml(p.confirmationDate)} ${escapeHtml(p.confirmationTime || '')}` : '—';
 
@@ -513,7 +526,7 @@
             <tr>
               <td style="text-align: center;"><span class="badge-idx">${idx + 1}</span></td>
               <td><span class="badge-id">${escapeHtml(p.patientId || '-')}</span></td>
-              <td><span class="patient-name">${escapeHtml(p.fullName || '-')}</span></td>
+              <td><span class="patient-name">${escapeHtml(p.fullName || '-')}</span>${switchBadge}</td>
               <td><span class="refer-doc">${escapeHtml(p.referringDoctor || '-')}</span></td>
               <td><span class="time-cell">${regDateTime}</span></td>
               <td><span class="time-cell">${confDateTime}</span></td>

@@ -357,6 +357,9 @@
     if (kpiDiscrepancies) kpiDiscrepancies.innerText = formatNumber(s.totalDiscrepancies || 0);
     if (kpiDiscrepancyPct) kpiDiscrepancyPct.innerText = s.discrepancyPercent || '0%';
 
+    const quickDiscCount = document.getElementById('quick-discrepancy-count');
+    if (quickDiscCount) quickDiscCount.innerText = `${formatNumber(s.totalDiscrepancies || 0)} ta bemor`;
+
     const hintEl = document.getElementById('kpi-residency-hint');
     if (hintEl && s.rezidentCount !== undefined) {
       hintEl.innerText = `Rezident: ${formatNumber(s.rezidentCount)} | No-rezident: ${formatNumber(s.noRezidentCount)} | Sug'urta: ${formatNumber(s.sugurtaCount)}`;
@@ -1062,6 +1065,23 @@
     downloadCsvFile(csv, `UTT_Barcha_Bemorlar_${startDateInput.value}_${endDateInput.value}.csv`);
   }
 
+  function exportDiscrepanciesCsv() {
+    if (!currentReport) return;
+    const list = currentReport.discrepancyPatients || (currentReport.allPatients || []).filter(p => p.hasDiscrepancy);
+    if (!list || list.length === 0) {
+      alert("Farqli qabul qilingan (boshqa vrachga kirgan) bemorlar topilmadi.");
+      return;
+    }
+    let csv = "№;Bemor ID;Dosya No;Bemor F.I.SH;Toifasi (Karmed);Fuqaroligi;Sana;Vaqt;Ulangan Xona (Navbat);Tekshiruv O'tkazgan Shifokor;Farq Holati;Davolovchi Shifokor;Bo'lim;Holati;Tekshiruv Organlari;Tarif Summasi (so'm)\n";
+    list.forEach((p, idx) => {
+      const queuedRoom = p.connectedRoomTitle || p.roomName || p.roomId || '';
+      const examiningDoc = p.acceptingDoctorName || p.acceptingDoctor || p.reportAuthorDoctor || p.reportAuthor || '';
+      const discText = p.discrepancyText || 'Boshqa vrach qabul qilgan';
+      csv += `${idx + 1};"${p.patientId || ''}";"${p.dosyaNo || ''}";"${p.fullName || ''}";"${p.kurumAdi || ''}";"${p.citizenshipTitle || ''}";"${p.date || ''}";"${p.time || ''}";"${queuedRoom}";"${examiningDoc}";"${discText}";"${p.referringDoctor || ''}";"${p.department || ''}";"${p.status || ''}";"${p.serviceName || ''}";"${p.price || 0}"\n`;
+    });
+    downloadCsvFile(csv, `UTT_Boshqa_Vrachga_Kirgan_Bemorlar_${startDateInput.value}_${endDateInput.value}.csv`);
+  }
+
   function exportDoctorModalPatientsCsv() {
     if (!currentDoctorModalData) return;
     let csv = "№;Bemor ID;Dosya No;Bemor F.I.SH;Toifasi (Karmed);Fuqaroligi;Sana;Vaqt;Holati;Tekshiruv Nomi;Davolovchi Shifokor;To'lov (so'm)\n";
@@ -1384,6 +1404,18 @@
     document.getElementById('btn-export-referrals-csv')?.addEventListener('click', exportReferralsCsv);
     document.getElementById('btn-export-cross-matrix-csv')?.addEventListener('click', exportCrossMatrixCsv);
     btnExportModalCsv?.addEventListener('click', exportDoctorModalPatientsCsv);
+    document.getElementById('btn-export-discrepancy-csv')?.addEventListener('click', exportDiscrepanciesCsv);
+
+    document.getElementById('btn-quick-discrepancy-filter')?.addEventListener('click', () => {
+      const selectDisc = document.getElementById('patient-filter-discrepancy');
+      if (selectDisc) selectDisc.value = 'DISCREPANCY_ONLY';
+      const selectStatus = document.getElementById('patient-filter-status');
+      if (selectStatus) selectStatus.value = 'ALL';
+      currentPatientsPage = 1;
+      renderPatientsTable();
+      const tabPatients = document.getElementById('tab-patients');
+      if (tabPatients) tabPatients.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 
     // Dynamic Preset Button Labels
     const now = new Date();
