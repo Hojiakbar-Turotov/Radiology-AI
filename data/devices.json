@@ -9,7 +9,11 @@
     "hasInjector": true,
     "supportsContrast": true,
     "description": "1.5 Tesla Injektorli MRT apparati (Barcha murakkab va kontrastli tekshiruvlar: Bosh miya, Qorin, Kichik chanoq, Angiografiya, Dinamik kontrast)",
-    "allowedExamTypes": ["ALL_MRT", "CONTRAST", "NON_CONTRAST"],
+    "allowedExamTypes": [
+      "ALL_MRT",
+      "CONTRAST",
+      "NON_CONTRAST"
+    ],
     "assignedExamsNote": "Barcha MRT tekshiruvlari va majburiy barcha kontrastli/injektorli tekshiruvlar",
     "status": "active",
     "currentPatientId": null
@@ -24,7 +28,9 @@
     "hasInjector": false,
     "supportsContrast": false,
     "description": "1.5 Tesla Standart MRT apparati (Faqat kontrastsiz tekshiruvlar: Umurtqa pog'onasi, Bo'g'imlar, Bosh miya kontrastsiz)",
-    "allowedExamTypes": ["NON_CONTRAST"],
+    "allowedExamTypes": [
+      "NON_CONTRAST"
+    ],
     "assignedExamsNote": "Faqat kontrastsiz MRT tekshiruvlari (umurtqa, bo'g'imlar, suyak-mushak tizimi)",
     "status": "active",
     "currentPatientId": null
@@ -39,9 +45,11 @@
     "hasInjector": true,
     "supportsContrast": true,
     "description": "128 kesimli MSKT (Barcha Kompyuter Tomografiyasi tekshiruvlari: Ko'krak qafasi, O'pka, Qorin, Suyak, Bosh miya KT)",
-    "allowedExamTypes": ["ALL_MSKT"],
+    "allowedExamTypes": [
+      "ALL_MSKT"
+    ],
     "assignedExamsNote": "Barcha MSKT / KT tekshiruvlari",
     "status": "active",
-    "currentPatientId": "p_1788425849301_yz45c"
+    "currentPatientId": null
   }
 ]

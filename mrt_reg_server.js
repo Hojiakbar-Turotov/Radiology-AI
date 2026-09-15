@@ -1225,8 +1225,8 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { allowed: true, role: clientPerm.role, ip: clientPerm.ip });
     }
 
-    // POST /api/auth/login - Operator autentifikatsiyasi (TB1, TB2, TB3 / 14520)
-    if (pathname === '/api/auth/login' && req.method === 'POST') {
+    // POST /api/auth/login (va /api/operator/login) - Operator autentifikatsiyasi (TB1, TB2, TB3 / 14520)
+    if ((pathname === '/api/auth/login' || pathname === '/api/operator/login') && req.method === 'POST') {
       const body = await readBody(req);
       const username = String(body.username || '').toUpperCase().trim();
       const password = String(body.password || '').trim();

@@ -1,5 +1,805 @@
 [
   {
+    "id": "ev_1789477332447_4s70",
+    "timestamp": "2026-09-15T13:02:12.447Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477317513_8noj",
+    "timestamp": "2026-09-15T13:01:57.513Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477302508_nrv1",
+    "timestamp": "2026-09-15T13:01:42.508Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477287415_ox4g",
+    "timestamp": "2026-09-15T13:01:27.415Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477272408_tmr7",
+    "timestamp": "2026-09-15T13:01:12.408Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477257403_7njo",
+    "timestamp": "2026-09-15T13:00:57.403Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477242397_yass",
+    "timestamp": "2026-09-15T13:00:42.397Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477227395_7joc",
+    "timestamp": "2026-09-15T13:00:27.395Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477212383_2jc2",
+    "timestamp": "2026-09-15T13:00:12.383Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477197365_bv04",
+    "timestamp": "2026-09-15T12:59:57.365Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477182353_8rlc",
+    "timestamp": "2026-09-15T12:59:42.353Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477167345_4u9v",
+    "timestamp": "2026-09-15T12:59:27.345Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477152338_pu8b",
+    "timestamp": "2026-09-15T12:59:12.338Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477137329_41ka",
+    "timestamp": "2026-09-15T12:58:57.329Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477122330_v6ig",
+    "timestamp": "2026-09-15T12:58:42.330Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477107322_gppp",
+    "timestamp": "2026-09-15T12:58:27.322Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477092324_ynfc",
+    "timestamp": "2026-09-15T12:58:12.324Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477077311_u4qr",
+    "timestamp": "2026-09-15T12:57:57.311Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477062308_ld1v",
+    "timestamp": "2026-09-15T12:57:42.308Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477047296_1vhy",
+    "timestamp": "2026-09-15T12:57:27.296Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477032303_sxpl",
+    "timestamp": "2026-09-15T12:57:12.303Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477017281_p6ct",
+    "timestamp": "2026-09-15T12:56:57.281Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789477002278_8nwb",
+    "timestamp": "2026-09-15T12:56:42.278Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476987264_ihvj",
+    "timestamp": "2026-09-15T12:56:27.264Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476972260_3m15",
+    "timestamp": "2026-09-15T12:56:12.260Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476957251_gb46",
+    "timestamp": "2026-09-15T12:55:57.251Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476942245_z7mt",
+    "timestamp": "2026-09-15T12:55:42.245Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476927244_hbn8",
+    "timestamp": "2026-09-15T12:55:27.244Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476912218_13wq",
+    "timestamp": "2026-09-15T12:55:12.218Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476897217_6bbz",
+    "timestamp": "2026-09-15T12:54:57.217Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476882213_x79z",
+    "timestamp": "2026-09-15T12:54:42.213Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476867206_ewuj",
+    "timestamp": "2026-09-15T12:54:27.206Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476852192_z1tx",
+    "timestamp": "2026-09-15T12:54:12.192Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476837185_acwm",
+    "timestamp": "2026-09-15T12:53:57.185Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476822181_mfe1",
+    "timestamp": "2026-09-15T12:53:42.181Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476807179_3z2q",
+    "timestamp": "2026-09-15T12:53:27.179Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476792178_kfs2",
+    "timestamp": "2026-09-15T12:53:12.178Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476777178_05zh",
+    "timestamp": "2026-09-15T12:52:57.178Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476762171_pqyb",
+    "timestamp": "2026-09-15T12:52:42.171Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476747169_mgrs",
+    "timestamp": "2026-09-15T12:52:27.169Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476732163_ecgk",
+    "timestamp": "2026-09-15T12:52:12.163Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476717154_7dg1",
+    "timestamp": "2026-09-15T12:51:57.154Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476702157_d2zb",
+    "timestamp": "2026-09-15T12:51:42.157Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476687144_o5d2",
+    "timestamp": "2026-09-15T12:51:27.144Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476672136_7jnl",
+    "timestamp": "2026-09-15T12:51:12.136Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476657222_c6p0",
+    "timestamp": "2026-09-15T12:50:57.222Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476642128_ccgx",
+    "timestamp": "2026-09-15T12:50:42.128Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476627118_bkl6",
+    "timestamp": "2026-09-15T12:50:27.118Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476612117_n4f9",
+    "timestamp": "2026-09-15T12:50:12.117Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476597107_6bau",
+    "timestamp": "2026-09-15T12:49:57.107Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476582099_eola",
+    "timestamp": "2026-09-15T12:49:42.099Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476567089_jyo8",
+    "timestamp": "2026-09-15T12:49:27.089Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476552077_b7yy",
+    "timestamp": "2026-09-15T12:49:12.077Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476537076_wzmt",
+    "timestamp": "2026-09-15T12:48:57.076Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476522066_ycc6",
+    "timestamp": "2026-09-15T12:48:42.066Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476507065_8ef9",
+    "timestamp": "2026-09-15T12:48:27.065Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476492064_da4y",
+    "timestamp": "2026-09-15T12:48:12.064Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476477071_ohxe",
+    "timestamp": "2026-09-15T12:47:57.071Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476462054_7qal",
+    "timestamp": "2026-09-15T12:47:42.054Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476447047_sz7e",
+    "timestamp": "2026-09-15T12:47:27.047Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476432038_ui4t",
+    "timestamp": "2026-09-15T12:47:12.038Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476417033_stte",
+    "timestamp": "2026-09-15T12:46:57.033Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476402027_d7yr",
+    "timestamp": "2026-09-15T12:46:42.027Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476387025_1avx",
+    "timestamp": "2026-09-15T12:46:27.025Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476372004_muvk",
+    "timestamp": "2026-09-15T12:46:12.004Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476357010_soi2",
+    "timestamp": "2026-09-15T12:45:57.010Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476341991_tigw",
+    "timestamp": "2026-09-15T12:45:41.991Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476327215_bubu",
+    "timestamp": "2026-09-15T12:45:27.215Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476311994_uri9",
+    "timestamp": "2026-09-15T12:45:11.994Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476296989_y1gh",
+    "timestamp": "2026-09-15T12:44:56.989Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476281962_ahln",
+    "timestamp": "2026-09-15T12:44:41.962Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476266974_0u2u",
+    "timestamp": "2026-09-15T12:44:26.974Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476251951_86r5",
+    "timestamp": "2026-09-15T12:44:11.951Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476236947_9723",
+    "timestamp": "2026-09-15T12:43:56.947Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476221941_zhxc",
+    "timestamp": "2026-09-15T12:43:41.941Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476206943_bbd6",
+    "timestamp": "2026-09-15T12:43:26.943Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476191956_kel1",
+    "timestamp": "2026-09-15T12:43:11.956Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476176938_8wge",
+    "timestamp": "2026-09-15T12:42:56.938Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476161969_7f5e",
+    "timestamp": "2026-09-15T12:42:41.969Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476147002_imdh",
+    "timestamp": "2026-09-15T12:42:27.002Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476131914_239c",
+    "timestamp": "2026-09-15T12:42:11.914Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476116933_41l0",
+    "timestamp": "2026-09-15T12:41:56.933Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+    "details": {}
+  },
+  {
+    "id": "ev_1789476116790_bsnf",
+    "timestamp": "2026-09-15T12:41:56.790Z",
+    "component": "monitor_agent",
+    "level": "INFO",
+    "message": "24/7 Monitoring agenti muvaffaqiyatli ishga tushirildi",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324418705_g9vx",
+    "timestamp": "2026-09-13T18:33:38.705Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 530",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324216732_sfsz",
+    "timestamp": "2026-09-13T18:30:16.732Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324216282_yor7",
+    "timestamp": "2026-09-13T18:30:16.282Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324201544_avra",
+    "timestamp": "2026-09-13T18:30:01.544Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324201278_awfa",
+    "timestamp": "2026-09-13T18:30:01.278Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324186540_e7t7",
+    "timestamp": "2026-09-13T18:29:46.540Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789324186275_pkzl",
+    "timestamp": "2026-09-13T18:29:46.275Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789323781350_v55g",
+    "timestamp": "2026-09-13T18:23:01.350Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789323781078_6nh6",
+    "timestamp": "2026-09-13T18:23:01.078Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789323781077_w907",
+    "timestamp": "2026-09-13T18:23:01.077Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789323781076_sj3n",
+    "timestamp": "2026-09-13T18:23:01.076Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322685505_lo3t",
+    "timestamp": "2026-09-13T18:04:45.505Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322685504_idix",
+    "timestamp": "2026-09-13T18:04:45.504Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322670775_r8x6",
+    "timestamp": "2026-09-13T18:04:30.775Z",
+    "component": "tunnel",
+    "level": "ERROR",
+    "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322670496_ruva",
+    "timestamp": "2026-09-13T18:04:30.496Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322670496_m7qz",
+    "timestamp": "2026-09-13T18:04:30.496Z",
+    "component": "mrt_reg_server",
+    "level": "WARN",
+    "message": "Registratura (9891) javob bermayapti: 0",
+    "details": {}
+  },
+  {
+    "id": "ev_1789322670495_iz2i",
+    "timestamp": "2026-09-13T18:04:30.495Z",
+    "component": "mrt_server",
+    "level": "CRITICAL",
+    "message": "Admin Server (9890) javob bermayapti: 0",
+    "details": {}
+  },
+  {
     "id": "ev_1789321605288_ie4q",
     "timestamp": "2026-09-13T17:46:45.288Z",
     "component": "tunnel",

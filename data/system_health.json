@@ -1,6 +1,6 @@
 {
-  "overallStatus": "HEALTHY",
-  "checkedAt": "2026-09-13T17:49:44.978Z",
+  "overallStatus": "DEGRADED",
+  "checkedAt": "2026-09-15T13:02:12.353Z",
   "services": {
     "adminServer": {
       "name": "Admin Server (Port 9890)",
@@ -8,7 +8,7 @@
       "latencyMs": 1,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T17:49:44.978Z"
+      "checkedAt": "2026-09-15T13:02:12.353Z"
     },
     "regServerLocal": {
       "name": "Registratura Server (Port 9891 - LAN)",
@@ -16,36 +16,36 @@
       "latencyMs": 2,
       "statusCode": 200,
       "error": null,
-      "checkedAt": "2026-09-13T17:49:44.978Z"
+      "checkedAt": "2026-09-15T13:02:12.353Z"
     },
     "regSecurityBarrier": {
       "name": "Registratura Tashqi Tarmoq Himoyasi",
       "status": "SECURED",
       "statusCode": 403,
-      "checkedAt": "2026-09-13T17:49:44.978Z"
+      "checkedAt": "2026-09-15T13:02:12.353Z"
     },
     "cloudflareTunnel": {
       "name": "Cloudflare HTTPS Tunnel",
       "url": "https://eau-jose-adware-flux.trycloudflare.com",
-      "status": "ONLINE",
-      "externalLatencyMs": 297,
-      "statusCode": 200,
-      "error": null,
-      "checkedAt": "2026-09-13T17:49:44.978Z"
+      "status": "OFFLINE",
+      "externalLatencyMs": 90,
+      "statusCode": 0,
+      "error": "getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
+      "checkedAt": "2026-09-15T13:02:12.353Z"
     },
     "telegramBot": {
       "name": "Telegram Bot API (@Radiodiagnostika_bot)",
       "status": "ACTIVE",
-      "latencyMs": 346,
+      "latencyMs": 294,
       "botUsername": "Radiodiagnostika_bot",
-      "checkedAt": "2026-09-13T17:49:44.978Z"
+      "checkedAt": "2026-09-15T13:02:12.353Z"
     },
     "systemResources": {
-      "uptimeSeconds": 13388,
-      "osUptimeHours": "106.4",
+      "uptimeSeconds": 1216,
+      "osUptimeHours": "42.1",
       "memoryHeapUsedMb": 9,
-      "memoryRssMb": 66,
-      "freeMemMb": 7730,
+      "memoryRssMb": 59,
+      "freeMemMb": 8315,
       "totalMemMb": 16073,
       "cpuCores": 12,
       "loadAvg": [
@@ -55,86 +55,86 @@
       ]
     }
   },
-  "recentIncidentsCount": 2,
+  "recentIncidentsCount": 95,
   "latestIncidents": [
     {
-      "id": "ev_1789321605288_ie4q",
-      "timestamp": "2026-09-13T17:46:45.288Z",
+      "id": "ev_1789477332447_4s70",
+      "timestamp": "2026-09-15T13:02:12.447Z",
       "component": "tunnel",
       "level": "ERROR",
-      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): 502",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789321604908_fvw0",
-      "timestamp": "2026-09-13T17:46:44.908Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "id": "ev_1789477317513_8noj",
+      "timestamp": "2026-09-15T13:01:57.513Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789321604907_sckc",
-      "timestamp": "2026-09-13T17:46:44.907Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
+      "id": "ev_1789477302508_nrv1",
+      "timestamp": "2026-09-15T13:01:42.508Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789321604905_y94h",
-      "timestamp": "2026-09-13T17:46:44.905Z",
-      "component": "mrt_server",
-      "level": "CRITICAL",
-      "message": "Admin Server (9890) javob bermayapti: 0",
+      "id": "ev_1789477287415_ox4g",
+      "timestamp": "2026-09-15T13:01:27.415Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789318108134_otyz",
-      "timestamp": "2026-09-13T16:48:28.134Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "id": "ev_1789477272408_tmr7",
+      "timestamp": "2026-09-15T13:01:12.408Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789318108133_govj",
-      "timestamp": "2026-09-13T16:48:28.133Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
+      "id": "ev_1789477257403_7njo",
+      "timestamp": "2026-09-15T13:00:57.403Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789318048099_hco9",
-      "timestamp": "2026-09-13T16:47:28.099Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "id": "ev_1789477242397_yass",
+      "timestamp": "2026-09-15T13:00:42.397Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789318048099_jg74",
-      "timestamp": "2026-09-13T16:47:28.099Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
+      "id": "ev_1789477227395_7joc",
+      "timestamp": "2026-09-15T13:00:27.395Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789316667381_by7u",
-      "timestamp": "2026-09-13T16:24:27.381Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura xavfsizlik filtri 403 qaytarmadi! Kod: 0",
+      "id": "ev_1789477212383_2jc2",
+      "timestamp": "2026-09-15T13:00:12.383Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     },
     {
-      "id": "ev_1789316667380_3oyo",
-      "timestamp": "2026-09-13T16:24:27.380Z",
-      "component": "mrt_reg_server",
-      "level": "WARN",
-      "message": "Registratura (9891) javob bermayapti: 0",
+      "id": "ev_1789477197365_bv04",
+      "timestamp": "2026-09-15T12:59:57.365Z",
+      "component": "tunnel",
+      "level": "ERROR",
+      "message": "Cloudflare Tunnel internetdan javob bermayapti (https://eau-jose-adware-flux.trycloudflare.com): getaddrinfo ENOTFOUND eau-jose-adware-flux.trycloudflare.com",
       "details": {}
     }
   ]

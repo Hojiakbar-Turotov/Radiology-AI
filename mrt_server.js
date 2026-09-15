@@ -216,6 +216,87 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // GET /api/check-access - IP ruxsat holati
+    if (pathname === '/api/check-access') {
+      return sendJson(res, { allowed: true, role: 'full', ip: clientIp });
+    }
+
+    // POST /api/auth/login (va /api/operator/login) - Operator autentifikatsiyasi
+    if ((pathname === '/api/auth/login' || pathname === '/api/operator/login') && req.method === 'POST') {
+      const body = await readBody(req);
+      const username = String(body.username || '').toUpperCase().trim();
+      const password = String(body.password || '').trim();
+
+      const op = unifiedCore.OPERATORS[username];
+      if (!op || op.pass !== password) {
+        return sendJson(res, { success: false, error: "Login yoki parol xato!" }, 401);
+      }
+
+      const token = `op_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+      const sessionData = {
+        token,
+        username: op.username,
+        name: op.name,
+        loginTime: new Date().toISOString()
+      };
+      unifiedCore.activeSessions.set(token, sessionData);
+
+      return sendJson(res, {
+        success: true,
+        token,
+        operator: { username: op.username, name: op.name }
+      });
+    }
+
+    // GET /api/auth/me - Joriy operator va IP holati
+    if (pathname === '/api/auth/me') {
+      const token = req.headers['x-operator-token'];
+      const session = unifiedCore.activeSessions.get(token);
+      return sendJson(res, {
+        authenticated: Boolean(session),
+        operator: session ? { username: session.username, name: session.name } : null,
+        clientIp: clientIp,
+        role: 'full'
+      });
+    }
+
+    // POST /api/auth/logout - Chiqish
+    if (pathname === '/api/auth/logout' && req.method === 'POST') {
+      const token = req.headers['x-operator-token'];
+      if (token) unifiedCore.activeSessions.delete(token);
+      return sendJson(res, { success: true });
+    }
+
+    // POST /api/auth/change-password - Operator parolini o'zgartirish
+    if (pathname === '/api/auth/change-password' && req.method === 'POST') {
+      const token = req.headers['x-operator-token'];
+      const session = unifiedCore.activeSessions.get(token);
+      if (!session) return sendJson(res, { success: false, error: "Avtorizatsiyadan o'tilmagan" }, 401);
+
+      const body = await readBody(req);
+      const currentPass = String(body.currentPassword || body.oldPassword || '').trim();
+      const newPass = String(body.newPassword || '').trim();
+      const newName = String(body.name || body.newName || '').trim();
+
+      const op = unifiedCore.OPERATORS[session.username];
+      if (!op || op.pass !== currentPass) {
+        return sendJson(res, { success: false, error: "Joriy parol noto'g'ri!" }, 400);
+      }
+      if (newPass) {
+        if (newPass.length < 4) {
+          return sendJson(res, { success: false, error: "Yangi parol kamida 4 ta belgidan iborat bo'lishi kerak!" }, 400);
+        }
+        op.pass = newPass;
+      }
+      if (newName) {
+        op.name = newName;
+        session.name = newName;
+      }
+      writeJson(path.join(DATA_DIR, 'operators.json'), unifiedCore.OPERATORS);
+
+      return sendJson(res, { success: true, message: "Profil muvaffaqiyatli yangilandi!" });
+    }
+
     // GET /api/monitor/health - To'liq tizim diagnostikasi va salomatligi
     if (req.method === 'GET' && pathname === '/api/monitor/health') {
       try {
