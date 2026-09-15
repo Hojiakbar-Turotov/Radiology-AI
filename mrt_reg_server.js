@@ -1127,7 +1127,8 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const parsedUrl = url.parse(req.url, true);
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  parsedUrl.query = Object.fromEntries(parsedUrl.searchParams);
   const pathname = parsedUrl.pathname;
 
   // =========================================================================

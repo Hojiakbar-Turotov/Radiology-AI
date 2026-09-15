@@ -110,30 +110,33 @@ function removeWsClient(ws) {
   wsClients.delete(ws);
 }
 
-function broadcastWs(type, payload) {
+function broadcastWs(type, payload, isLoopback = false) {
   const msg = JSON.stringify({ type, payload, timestamp: Date.now() });
   for (const client of wsClients) {
-    if (client.readyState === 1) { // OPEN
+    if (client && client.readyState === 1) { // OPEN
       try { client.send(msg); } catch (e) {}
     }
   }
 
-  // Agar ikkinchi server alohida jarayonda bo'lsa, lokal loopback orqali ham bildirishnoma uzatish
+  // Agar loopback xabari bo'lsa yoki portlar o'rtasida qayta aylanmasligi uchun to'xtatish
+  if (isLoopback) return;
+
   try {
-    const notifyPorts = [9890, 9891];
-    notifyPorts.forEach(p => {
-      const req = http.request({
-        hostname: '127.0.0.1',
-        port: p,
-        path: '/api/internal/ws-sync',
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 800
-      }, () => {});
-      req.on('error', () => {});
-      req.write(JSON.stringify({ type, payload }));
-      req.end();
+    const currentPort = parseInt(process.env.PORT || '9890', 10);
+    const targetPort = (currentPort === 9890) ? 9891 : 9890;
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: targetPort,
+      path: '/api/internal/ws-sync',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 800
+    }, (res) => {
+      res.resume(); // Xotirada to'planib qolmasligi uchun oqimni yakunlash
     });
+    req.on('error', () => {});
+    req.write(JSON.stringify({ type, payload, _isLoopback: true }));
+    req.end();
   } catch (e) {}
 }
 

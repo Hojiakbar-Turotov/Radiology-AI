@@ -171,14 +171,8 @@ function findNextAvailableSmartSlot(input) {
 // -------------------------------------------------------------
 const wsClients = new Set();
 
-function broadcastWs(type, payload) {
-  const msg = JSON.stringify({ type, payload, timestamp: Date.now() });
-  for (const client of wsClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      try { client.send(msg); } catch (e) {}
-    }
-  }
-  unifiedCore.broadcastWs(type, payload);
+function broadcastWs(type, payload, isLoopback = false) {
+  unifiedCore.broadcastWs(type, payload, isLoopback);
 }
 
 // -------------------------------------------------------------
@@ -202,7 +196,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    const parsedUrl = url.parse(req.url, true);
+    const parsedUrl = new URL(req.url, 'http://localhost');
+    parsedUrl.query = Object.fromEntries(parsedUrl.searchParams);
     const pathname = parsedUrl.pathname;
 
   // =========================================================================
@@ -647,7 +642,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && pathname === '/api/internal/ws-sync') {
       const body = await readBody(req);
       if (body && body.type) {
-        broadcastWs(body.type, body.payload);
+        broadcastWs(body.type, body.payload, true);
       }
       return sendJson(res, { success: true });
     }
