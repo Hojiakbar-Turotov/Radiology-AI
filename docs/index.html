@@ -1841,6 +1841,253 @@
       openPrintWindow(html, `Talon_${currentTicketPatient.ticketNumber || 'ticket'}`);
     }
 
+    function formatConsentHtml(p) {
+      const isMskt = (p.deviceId === 'mskt1' || (p.deviceType && p.deviceType.toUpperCase() === 'MSKT'));
+      const devTitle = isMskt ? 'KOMPYUTER TOMOGRAFIYASI (MSKT)' : 'MAGNIT-REZONANS TOMOGRAFIYA (MRT)';
+      
+      const categoryFilter = isMskt ? ['MSKT', 'ALL'] : ['MRT', 'ALL'];
+      if (p.isContrast) categoryFilter.push('CONTRAST');
+
+      let questions = [];
+      if (examConfigs && examConfigs.consentQuestions && examConfigs.consentQuestions.length > 0) {
+        questions = examConfigs.consentQuestions.filter(q => categoryFilter.includes(q.category));
+      } else {
+        questions = [
+          { id: '1', text: "Tanangizda kardiostimulyator, sun'iy yurak klapani, neyrostimulyator yoki insulin pompasi bormi?", riskLevel: 'danger' },
+          { id: '2', text: "Bosh miya qon tomirlarida metall klipslar, ko'z sohasida metall parchalari yoki o'q/shrapnel bormi?", riskLevel: 'danger' },
+          { id: '3', text: "Quloq ichi implantati (koxlear) yoki eshitish apparati o'rnatilganmi?", riskLevel: 'danger' },
+          { id: '4', text: "Tanangizda metall plastina, vint, bo'g'im endoprotezi, stent yoki begona jism bormi?", riskLevel: 'warning' },
+          { id: '5', text: "Tor va yopiq joylardan qo'rqish (klaustrofobiya) holati bormi?", riskLevel: 'warning' },
+          { id: '6', text: "Homiladorlik holatidamisiz yoki homiladorlik ehtimoli bormi?", riskLevel: 'danger' },
+          { id: '7', text: "Barcha metall buyumlar: soat, zanjir, uzuk, sirg'a, olinadigan tish protezlari, telefon yechildimi?", riskLevel: 'info' }
+        ];
+        if (p.isContrast) {
+          questions.push(
+            { id: '8', text: "Oldin kontrast moddalarga, yodga, dori-darmonlarga kuchli allergiya bo'lganmi?", riskLevel: 'danger' },
+            { id: '9', text: "Buyrak yetishmovchiligi yoki og'ir buyrak xastaligi bormi?", riskLevel: 'danger' },
+            { id: '10', text: "Qandli diabet bo'yicha Metformin (Siofor, Glyukofaj) dori vositasini qabul qilasizmi?", riskLevel: 'warning' }
+          );
+        }
+      }
+
+      let labBlock = '';
+      if (p.isContrast || (p.labResults && (p.labResults.kreatinin || p.labResults.mochevina))) {
+        const lr = p.labResults || {};
+        const ml = p.manualLabResults || {};
+
+        let krVal = '';
+        let krRef = '44 - 115 mkmol/l';
+        let krDate = '';
+        let mochVal = '';
+        let mochRef = '2.5 - 8.3 mmol/l';
+        let mochDate = '';
+        let labSource = '';
+
+        if (lr.kreatinin && lr.kreatinin.value) {
+          krVal = `${escapeHtml(lr.kreatinin.value)} mkmol/l`;
+          if (lr.kreatinin.reference) krRef = escapeHtml(lr.kreatinin.reference);
+          krDate = escapeHtml(lr.kreatinin.date || '');
+          labSource = lr.isManual ? escapeHtml(lr.manualPlace || lr.kreatinin.place || 'Tashqi laboratoriya') : 'Karmed LBYS Laboratoriyasi';
+        } else if (ml.kreatinin) {
+          krVal = `${escapeHtml(ml.kreatinin)} mkmol/l`;
+          krDate = escapeHtml(ml.labDate || ml.date || '');
+          labSource = escapeHtml(ml.labPlace || ml.place || 'Tashqi laboratoriya');
+        }
+
+        if (lr.mochevina && lr.mochevina.value) {
+          mochVal = `${escapeHtml(lr.mochevina.value)} mmol/l`;
+          if (lr.mochevina.reference) mochRef = escapeHtml(lr.mochevina.reference);
+          mochDate = escapeHtml(lr.mochevina.date || '');
+          if (!labSource) {
+            labSource = lr.isManual ? escapeHtml(lr.manualPlace || lr.mochevina.place || 'Tashqi laboratoriya') : 'Karmed LBYS Laboratoriyasi';
+          }
+        } else if (ml.mochevina) {
+          mochVal = `${escapeHtml(ml.mochevina)} mmol/l`;
+          mochDate = escapeHtml(ml.labDate || ml.date || '');
+          if (!labSource) labSource = escapeHtml(ml.labPlace || ml.place || 'Tashqi laboratoriya');
+        }
+
+        const displayKrVal = krVal || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span> mkmol/l`;
+        const displayMochVal = mochVal || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span> mmol/l`;
+        const displayKrDate = krDate || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span>`;
+        const displayMochDate = mochDate || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span>`;
+        const displaySource = labSource || `<span style="border-bottom:1px dotted #000; display:inline-block; width:130px;">&nbsp;</span>`;
+
+        labBlock = `
+          <div style="margin-top:6px; margin-bottom:8px;">
+            <div style="font-size:10.5px; font-weight:800; text-transform:uppercase; color:#0f172a; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
+              <span>🧪 QONNING BIOKIMYOVIY TAHLIL NATIJALARI (BUYRAK FUNKSIYASI KO'RSATKICHLARI):</span>
+              <span style="font-size:9.5px; font-weight:700; color:#475569;">${labSource ? `Manba: ${labSource}` : "Boshqa joyda topshirilgan bo'lsa qo'lda to'ldiriladi"}</span>
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:10.5px;">
+              <thead>
+                <tr style="background:#f1f5f9;">
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:left;">Ko'rsatkich nomi</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:130px;">Natija</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:120px;">Referens norma</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:95px;">Tahlil sanasi</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:left; width:160px;">Laboratoriya / Joyi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; font-weight:700;">Qon zardobida Kreatinin</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; font-weight:900; font-size:11.5px;">${displayKrVal}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; color:#475569;">${krRef}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center;">${displayKrDate}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px;" rowspan="2">${displaySource}</td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; font-weight:700;">Qon zardobida Mochevina</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; font-weight:900; font-size:11.5px;">${displayMochVal}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; color:#475569;">${mochRef}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center;">${displayMochDate}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      const qRows = questions.map((q, idx) => `
+        <tr style="border-bottom:1px solid #e2e8f0;">
+          <td style="padding:5px 8px; width:28px; text-align:center; font-weight:700; font-size:11px;">${idx + 1}.</td>
+          <td style="padding:5px 8px; font-size:11px; line-height:1.35;">
+            ${escapeHtml(q.text)}
+            ${q.riskLevel === 'danger' ? '<span style="color:#b91c1c; font-size:9.5px; font-weight:800; margin-left:4px;">[Mutlaq ehtiyotkorlik!]</span>' : ''}
+          </td>
+          <td style="padding:5px 8px; width:70px; text-align:center; white-space:nowrap;">
+            <span style="display:inline-block; border:1.5px solid #000; width:14px; height:14px; vertical-align:middle; margin-right:3px;"></span> <span style="font-size:10px; font-weight:700;">HA</span>
+          </td>
+          <td style="padding:5px 8px; width:70px; text-align:center; white-space:nowrap;">
+            <span style="display:inline-block; border:1.5px solid #000; width:14px; height:14px; vertical-align:middle; margin-right:3px;"></span> <span style="font-size:10px; font-weight:700;">YO'Q</span>
+          </td>
+        </tr>
+      `).join('');
+
+      return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Rozilik Anketasi - ${escapeHtml(p.patientName)}</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm 15mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #000; font-size: 11.5px; line-height: 1.35; margin: 0; padding: 0; }
+    .header-table { width: 100%; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+    .inst-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; text-align: center; color: #1e293b; line-height: 1.3; }
+    .doc-title { font-size: 13.5px; font-weight: 900; text-transform: uppercase; text-align: center; margin-top: 6px; letter-spacing: 0.3px; }
+    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px; }
+    .p-table td { border: 1px solid #94a3b8; padding: 4px 8px; }
+    .p-table td.lbl { background: #f8fafc; font-weight: 700; width: 18%; }
+    .q-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+    .q-table th { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 8px; text-align: left; font-size: 10.5px; text-transform: uppercase; }
+    .q-table td { border: 1px solid #cbd5e1; }
+    .consent-stmt { background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 10.5px; line-height: 1.4; }
+    .sig-table { width: 100%; margin-top: 16px; border-collapse: collapse; }
+    .sig-table td { width: 50%; vertical-align: top; padding: 4px 12px; font-size: 11px; }
+    .sig-line { border-bottom: 1px solid #000; height: 22px; margin-top: 6px; margin-bottom: 4px; }
+  </style>
+</head>
+<body onload="window.print()">
+  <div class="header-table">
+    <div class="inst-title">
+      O'ZBEKISTON RESPUBLIKASI SOG'LIQNI SAQLASH VAZIRLIGI<br>
+      RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI (RIO va RIOATM)
+    </div>
+    <div class="doc-title">${escapeHtml(devTitle)} TEKSHIRUVI UCHUN BEMORNING XABARDOR QILINGAN ROZILIK ANKETASI</div>
+  </div>
+
+  <table class="p-table">
+    <tr>
+      <td class="lbl">Bemor F.I.SH.:</td>
+      <td style="font-weight:900; font-size:12px;">${escapeHtml(p.patientName)}</td>
+      <td class="lbl">Bemor ID:</td>
+      <td><b>${escapeHtml(p.patientId)}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Tug'ilgan sana:</td>
+      <td>${escapeHtml(p.birthDate || '-')} (${p.age ? p.age + ' yosh' : '-'})</td>
+      <td class="lbl">Asosiy Telefon:</td>
+      <td><b>${escapeHtml(p.phone || '-')}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Qo'shimcha Telefon:</td>
+      <td><b>${escapeHtml(p.extraPhone || '_____________________')}</b></td>
+      <td class="lbl">Tekshiruv xizmati:</td>
+      <td><b>${escapeHtml(p.primaryService || p.serviceName || '')}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">Talon / Sana / Vaqt:</td>
+      <td><b>№ ${escapeHtml(p.ticketNumber || '-')}</b> &nbsp;|&nbsp; <b>${escapeHtml(p.scheduledDate || p.date)} ${escapeHtml(p.scheduledTime || '')}</b></td>
+      <td class="lbl">Kontrast / Qurilma:</td>
+      <td><b>${p.isContrast ? '💉 KONTRASTLI' : 'Kontrastsiz (Oddiy)'}</b> &nbsp;|&nbsp; ${escapeHtml(p.deviceId ? p.deviceId.toUpperCase() : 'MRT 1')}</td>
+    </tr>
+  </table>
+
+  ${labBlock}
+
+  <div style="font-size:11px; font-weight:800; margin-top:6px; color:#0f172a;">
+    Quyidagi xavfsizlik va qarshi ko'rsatmalar savollariga diqqat bilan javob bering:
+  </div>
+
+  <table class="q-table">
+    <thead>
+      <tr>
+        <th style="text-align:center; width:28px;">№</th>
+        <th>Tekshiruv oldi xavfsizlik savollari</th>
+        <th style="text-align:center; width:70px;">Ha</th>
+        <th style="text-align:center; width:70px;">Yo'q</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${qRows}
+    </tbody>
+  </table>
+
+  <div class="consent-stmt">
+    <b>BEMORNING ROZILIK BAYONOTI:</b><br>
+    Men, yuqoridagi savollarning barchasiga to'g'ri va haqqoniy javob berdim. Tekshiruv maqsadi, uning o'tkazilish tartibi, zarur tayyorgarlik choralari, tekshiruv vaqtida harakatsiz yotish talabi hamda (kontrast yuborilgan taqdirda) yuzaga kelishi mumkin bo'lgan ehtimoliy nojo'ya ta'sirlar haqida menga tushunarli tilda to'liq ma'lumot berildi. Men ushbu tomografik tekshiruvni o'tkazishga ixtiyoriy ravishda o'z roziligimni bildiraman.
+  </div>
+
+  <table class="sig-table">
+    <tr>
+      <td>
+        <div style="font-weight:800;">Bemor yoki uning qonuniy vakili:</div>
+        <div style="font-size:10.5px; color:#0f172a; margin-top:5px;">
+          F.I.SH.: _________________________________________________
+        </div>
+        <div class="sig-line"></div>
+        <div style="font-size:10px; color:#475569; display:flex; justify-content:space-between;">
+          <span>(Imzo)</span>
+          <span>Sana: "_____" ____________ 202___ y.</span>
+        </div>
+      </td>
+      <td>
+        <div style="font-weight:800;">Tibbiy ro'yxatga oluvchi xodim (Tibbiy ro'yxatchi):</div>
+        <div style="font-size:10.5px; color:#0f172a; margin-top:5px;">
+          F.I.SH.: _________________________________________________
+        </div>
+        <div class="sig-line"></div>
+        <div style="font-size:10px; color:#475569; display:flex; justify-content:space-between;">
+          <span>(Imzo)</span>
+          <span>Sana: "_____" ____________ 202___ y.</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`.trim();
+    }
+
+    function printQueueConsentAdmin(id) {
+      const p = adminQueueMap[id];
+      if (!p) return alert("Bemor topilmadi!");
+      const html = formatConsentHtml(p);
+      openPrintWindow(html, `Rozilik_Anketasi_${p.patientId || 'anketa'}`);
+    }
+
     // -------------------------------------------------------------
     // JONLI NAVBATNI YUKLASH (LIVE QUEUE)
     // -------------------------------------------------------------
@@ -1913,6 +2160,7 @@
             ${p.status !== 'in_progress' ? `<button class="btn btn-small btn-success" onclick="setPatientStatus('${p.id}', 'in_progress')"><i class="fa-solid fa-door-open"></i> Xonada</button>` : ''}
             <button class="btn btn-small btn-primary" onclick="setPatientStatus('${p.id}', 'completed')"><i class="fa-solid fa-check"></i> Tugatildi</button>
             <button class="btn btn-small" style="background:#000000; color:#ffffff;" onclick="printQueueTicketAdmin('${p.id}')" title="Xprinter navbat talonini chop etish"><i class="fa-solid fa-print"></i> Talon</button>
+            <button class="btn btn-small" style="background:#6b21a8; color:#ffffff;" onclick="printQueueConsentAdmin('${p.id}')" title="Rozilik anketasini chop etish"><i class="fa-solid fa-file-signature"></i> Anketa</button>
             <button class="btn btn-small btn-danger" onclick="deletePatient('${p.id}')"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>

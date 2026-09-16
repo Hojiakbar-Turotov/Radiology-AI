@@ -140,6 +140,31 @@ function broadcastWs(type, payload, isLoopback = false) {
   } catch (e) {}
 }
 
+function extractKarmedLoginBilgi(str) {
+  if (!str || typeof str !== 'string') return null;
+  const m = str.match(/App\.hdnKrmdLoginBilgi\.setValue\([\\\"\']*([A-Za-z0-9%_+\-\/=]{40,})[\\\"\']*\)/);
+  if (m && m[1]) return m[1];
+  if (str.includes('hdnKrmdLoginBilgi=')) {
+    const m2 = str.match(/hdnKrmdLoginBilgi=([^&\"\'\s]+)/);
+    if (m2 && m2[1]) return decodeURIComponent(m2[1]);
+  }
+  const m3 = str.match(/id="hdnKrmdLoginBilgi"[^}]*value="([^"]+)"/);
+  if (m3 && m3[1]) return m3[1];
+  return null;
+}
+
+function safeParseExtNetJson(str) {
+  if (!str) return null;
+  try { return JSON.parse(str); } catch (e) {
+    try { return JSON.parse(str.replace(/\\"/g, '"')); } catch (e2) {
+      try {
+        const clean = str.replace(/new Date\([^)]+\)/g, '"2026-09-10"').replace(/\\"/g, '"');
+        return JSON.parse(clean);
+      } catch (e3) { return null; }
+    }
+  }
+}
+
 // -------------------------------------------------------------
 // FAYL VA TARMOQ YORDAMCHILARI
 // -------------------------------------------------------------
@@ -767,61 +792,69 @@ async function fetchPatientLabResults(kimlikId, onkayitIds, token, cookie, host)
 async function searchPatientInKarmed(patientId) {
   let session = await getActiveKarmedSession();
 
-  const performSearch = async (token, cookie, host) => {
+  async function performSearch(tok, cookie, host) {
+    const cleanId = String(patientId).trim();
+    const isPinfl = /^\d{12,14}$/.test(cleanId);
+    const searchTur = isPinfl ? 'PINFL' : 'Bemor ID';
+    const searchTurVal = isPinfl ? '1' : '0';
+    const currentYear = new Date().getFullYear().toString();
     const params = new URLSearchParams();
-    params.set('submitDirectEventConfig', JSON.stringify({
-      config: {
-        extraParams: {
-          aHastaAramaKriteri: {
-            BaslangicTarihi: '2026-01-01T00:00:00',
-            BitisTarihi: '2026-12-31T23:59:59',
-            HizliAramaTuru: 1,
-            HizliAramaDegeri: String(patientId).trim(),
-            SorguTuru: 1
-          }
-        }
-      }
-    }));
+    params.set('submitDirectEventConfig', JSON.stringify({ config: { extraParams: { aDosyaDurumu: null, aHizliAra: true } } }));
+    params.set('cbYil', currentYear);
+    params.set('_cbYil_state', JSON.stringify([{ value: currentYear, text: currentYear, index: 1 }]));
+    params.set('cbHizliAramaTur', searchTur);
+    params.set('_cbHizliAramaTur_state', JSON.stringify([{ value: searchTurVal, text: searchTur, index: isPinfl ? 1 : 0 }]));
+    params.set('tfHizliAramaDeger', cleanId);
+    params.set('BaslangicDt', '01.01.2025');
+    params.set('BitisDt', '31.12.2026');
+    params.set('cbBolum', '');
+    params.set('_cbBolum_state', '');
+    params.set('cbAltBolum', '(Subbirliklar)');
+    params.set('_cbAltBolum_state', JSON.stringify([{ value: '0', text: '(Subbirliklar)', index: 0 }]));
+    params.set('cbBolumOda', '(Barcha Xonalar)');
+    params.set('_cbBolumOda_state', JSON.stringify([{ value: '0', text: '(Barcha Xonalar)', index: 0 }]));
+    params.set('cbBirimTuru', '(Butun Birlik)');
+    params.set('_cbBirimTuru_state', JSON.stringify([{ value: '0', text: '(Butun Birlik)', index: 0 }]));
+    params.set('cbBina', '(Butun Binolar)');
+    params.set('_cbBina_state', JSON.stringify([{ value: '0', text: '(Butun Binolar)', index: 0 }]));
+    params.set('cbKayitSayisiSecim', '500');
+    params.set('_cbKayitSayisiSecim_state', JSON.stringify([{ value: '500', text: '500', index: 3 }]));
+    params.set('hdnDosyaDurumu', '');
+    params.set('btnTumu_Pressed', 'true');
+    params.set('btnBekleyen_Pressed', '');
     params.set('HdnBaseYazdirmaTuru', '-1');
     params.set('__VIEWSTATEGENERATOR', '5DE5E74B');
-    params.set('hdnKrmdLoginBilgi', decodeURIComponent(token || ''));
-    params.set('dfTarihBaslangic', '01.01.2026');
-    params.set('dfTarihBitis', '31.12.2026');
-    params.set('cmbHizliAramaTuru', 'Kimlik No / Bemor ID');
-    params.set('tfHizliAramaDeger', String(patientId).trim());
+    params.set('hdnKrmdLoginBilgi', tok);
     params.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
-    params.set('__EVENTARGUMENT', 'OrtakDmOrtakSayfalar|public|HastaSorgula');
+    params.set('__EVENTARGUMENT', '-|public|HastaSorgula');
 
-    const postData = params.toString();
+    const spData = params.toString();
     const res = await karmedRawRequest({
       hostname: host,
       port: KARMED_PORT,
       path: '/Radiology/Rbys.aspx?action=HastaSorgula',
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Content-Length': Buffer.byteLength(postData),
-        'Cookie': cookie,
         'X-Ext-Net': 'delta=true',
         'action': 'HastaSorgula',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'X-Requested-With': 'XMLHttpRequest',
+        'Cookie': cookie,
+        'Content-Length': Buffer.byteLength(spData),
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
-    }, postData);
+    }, spData);
 
-    const body = res.body || '';
-    const match = body.match(/App\.StoreHasta\.proxy\.data\s*=\s*(\[.*?\]);/s);
-    if (!match) return null;
-    return safeParseExtNetJson(match[1]);
-  };
+    const updatedTok = extractKarmedLoginBilgi(res.body);
+    if (updatedTok) session.token = updatedTok;
 
-  let pList = null;
-  try {
-    pList = await performSearch(session.token, session.cookie, session.host);
-  } catch (e) {
-    pList = null;
+    const dataMatch = res.body.match(/App\.grdHastalarStore\.proxy\.data\s*=\s*(\[.*?\]);/s);
+    return dataMatch ? (safeParseExtNetJson(dataMatch[1]) || []) : [];
   }
 
+  let pList = await performSearch(session.token, session.cookie, session.host);
+
+  // Agar sessiya tugagan bo'lsa
   if (!pList || pList.length === 0) {
     session = await loginToKarmedLive();
     pList = await performSearch(session.token, session.cookie, session.host);
@@ -836,15 +869,19 @@ async function searchPatientInKarmed(patientId) {
     };
   }
 
+  // Bemor asosiy ma'lumotlari
   const sample = pList[0];
   const isStatsionar = sample.YatPol === 'Y' || sample.NeIcin === 'Yatis' || sample.NeIcin === 3 || 
                        String(sample.OncelikAciklama).toLowerCase().includes('yatan') || 
                        String(sample.OncelikAciklama).toLowerCase().includes('statsionar');
 
+  // Karmeddan telefon raqamini olish
   let patientPhone = '';
   try {
     patientPhone = await fetchPatientPhone(sample.KimlikNo || patientId, session.token, session.cookie, session.host);
-  } catch (phErr) {}
+  } catch (phErr) {
+    console.warn(`[Karmed Phone Error]:`, phErr.message);
+  }
 
   // F.I.SH: Qoidaga muvofiq oldin Familiya, keyin Ism (Surname first)
   const surName = (sample.Soyadi || '').trim().toUpperCase();
@@ -874,6 +911,7 @@ async function searchPatientInKarmed(patientId) {
     department: sample.ServisAdi || sample.AltServisAdi || ''
   };
 
+  // To'lov turi: Rezident yoki Norezident aniqlash
   const kurumStr = String(patientInfo.kurum).toLowerCase();
   let isNonResident = kurumStr.includes('no rezident') || kurumStr.includes('norezident');
   let isResidentPaid = kurumStr.includes('rezident') || kurumStr.includes('pullik') || sample.Ucretli === true;
@@ -890,6 +928,7 @@ async function searchPatientInKarmed(patientId) {
     requiresPayment = true;
   }
 
+  // STATSIONAR QOIDASI:
   if (isStatsionar) {
     requiresPayment = false;
   }
@@ -897,121 +936,160 @@ async function searchPatientInKarmed(patientId) {
   patientInfo.patientCategory = patientCategory;
   patientInfo.requiresPaymentConfirmation = requiresPayment;
 
-  // Bemorning barcha tekshiruvlarini (Dosyalarini) olish
-  const eligibleExams = [];
-  const now = new Date();
-  const allCurrentQueue = readJson(QUEUE_FILE, []);
+  // Qon tahlillari (Kreatinin va Mochevina)ni LBYS laboratoriyadan olish
+  const allOnKayitIds = Array.from(new Set(
+    pList.map(p => p.OnKayitId).filter(Boolean)
+  )).reverse();
+  if (allOnKayitIds.length === 0) allOnKayitIds.push(0);
 
-  // Laboratoriya tahlillarini olish
-  const onkayitList = pList.map(p => p.OnKayitId || p.Id).filter(Boolean);
   let cachedPatientLab = null;
   try {
-    cachedPatientLab = await fetchPatientLabResults(sample.KimlikNo || patientId, onkayitList, session.token, session.cookie, session.host);
-  } catch (lErr) {
-    cachedPatientLab = { found: false };
+    cachedPatientLab = await fetchPatientLabResults(patientInfo.patientId, allOnKayitIds, session.token, session.cookie, session.host);
+  } catch (lbErr) {
+    cachedPatientLab = { found: false, message: "Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!" };
   }
-
   patientInfo.labResults = cachedPatientLab;
 
-  for (const dosya of pList) {
-    try {
-      const sParams = new URLSearchParams();
-      sParams.set('submitDirectEventConfig', JSON.stringify({
-        config: { extraParams: { aDosyaId: parseInt(dosya.Id, 10), aHastaGelisTipi: 0 } }
-      }));
-      sParams.set('HdnBaseYazdirmaTuru', '-1');
-      sParams.set('__VIEWSTATEGENERATOR', '5DE5E74B');
-      sParams.set('hdnKrmdLoginBilgi', decodeURIComponent(session.token || ''));
-      sParams.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
-      sParams.set('__EVENTARGUMENT', 'OrtakDmOrtakSayfalar|public|DosyaHizmetListele');
+  // Joriy navbat ro'yxatini yuklash
+  const currentQueue = readJson(QUEUE_FILE, []);
 
-      const sPost = sParams.toString();
+  // Har bir dosyaning xizmatlarini tekshirib, FAQAT MRT va MSKT ni ajratish
+  const eligibleExams = [];
+
+  for (const dosya of pList) {
+    const dosyaRoom = (dosya.AltBolumAdi || dosya.BolumuAdi || dosya.OdaAdi || '').toUpperCase();
+    const dosyaDateStr = dosya.KayitTarihi || dosya.Tarih || '';
+    const regDate = dosyaDateStr ? new Date(dosyaDateStr) : new Date();
+
+    // 5 kun va 10 kunlik chegara hisobi
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - regDate.getTime()) / (1000 * 60 * 60 * 24));
+    const isOlderThan5Days = diffDays > 5;
+
+    // 10 kunlik maksimal ruxsat etilgan sana
+    const maxDateObj = new Date(regDate);
+    maxDateObj.setDate(maxDateObj.getDate() + 10);
+    const maxAllowedDate = maxDateObj.toISOString().split('T')[0];
+
+    // Xizmatlarni Karmeddan TaniHizmetBilgisiGetir orqali olish
+    const tParams = new URLSearchParams();
+    tParams.set('submitDirectEventConfig', JSON.stringify({
+      config: {
+        extraParams: {
+          aLabDosyaId: dosya.Id,
+          aOnkayitSiraNo: dosya.MuayeneSirano || 0,
+          aYatPol: dosya.YatPol || "P",
+          aProtokolNo: dosya.ProtokolNo,
+          aKimlikId: dosya.KimlikNo,
+          aHastaAdi: dosya.AdSoyad || (dosya.HastaAdi + ' ' + dosya.Soyadi),
+          aBolumId: dosya.BolumId || 10,
+          mrrsProtokolNo: null
+        }
+      }
+    }));
+    tParams.set('hdnKrmdLoginBilgi', session.token);
+    tParams.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
+    tParams.set('__EVENTARGUMENT', '-|public|TaniHizmetBilgisiGetir');
+
+    try {
       const sRes = await karmedRawRequest({
         hostname: session.host,
         port: KARMED_PORT,
-        path: '/Radiology/Rbys.aspx?action=DosyaHizmetListele',
+        path: '/Radiology/Rbys.aspx?action=TaniHizmetBilgisiGetir',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'Content-Length': Buffer.byteLength(sPost),
-          'Cookie': session.cookie,
           'X-Ext-Net': 'delta=true',
-          'action': 'DosyaHizmetListele',
+          'action': 'TaniHizmetBilgisiGetir',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cookie': session.cookie,
+          'Content-Length': Buffer.byteLength(tParams.toString()),
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-      }, sPost);
+      }, tParams.toString());
 
-      const mS = (sRes.body || '').match(/App\.StoreHizmet\.proxy\.data\s*=\s*(\[.*?\]);/s);
-      if (!mS) continue;
+      const updatedTok2 = extractKarmedLoginBilgi(sRes.body);
+      if (updatedTok2) session.token = updatedTok2;
 
-      const sList = safeParseExtNetJson(mS[1]);
-      if (!Array.isArray(sList)) continue;
+      const hizMatch = sRes.body.match(/App\.grdHizmetlerStore\.loadData\((\[.*?\])\);/s);
+      let rawServices = [];
+      if (hizMatch) {
+        rawServices = safeParseExtNetJson(hizMatch[1]) || [];
+      }
 
-      for (const s of sList) {
+      // Xizmatlarni filtrlash: FAQAT MRT va MSKT!
+      for (const s of rawServices) {
         const sName = (s.TetkikIsmi || s.HizmetAdi || '').toUpperCase();
-        const sCode = (s.TetkikKodu || s.HizmetKodu || '').toUpperCase();
-        const isMrt = sCode.startsWith('R0') || sCode.startsWith('R1') || sName.includes('MRT') || sName.includes('MAGNET') || s.Modalite === 'MR';
-        const isMskt = sCode.startsWith('R14') || sName.includes('MSKT') || sName.includes(' KT') || sName.includes('KOMPYUTER') || s.Modalite === 'CT';
+        const sCode = (s.KodAra || s.HizmetKodu || '').toUpperCase();
 
-        if (isMrt || isMskt) {
+        // MRT tekshiruvi ekanligini aniqlash
+        const isMrt = sName.includes('MRT') || sName.includes('MR ') || sName.includes('MAGNIT') || dosyaRoom.includes('MR');
+        // MSKT tekshiruvi ekanligini aniqlash
+        const isMskt = sName.includes('MSKT') || sName.includes(' KT ') || sName.includes('KOMPYUTER') || dosyaRoom.includes('MSKT') || dosyaRoom.includes(' KT');
+
+        // UTT, EKG, Rentgen, Endoskopiya va boshqalarni chiqarib tashlash
+        const isExcluded = sName.includes('ULTRATOVUSH') || sName.includes('DOPLER') || sName.includes('EKG') || 
+                            sName.includes('RENTGEN') || sName.includes('SKOPIYA') || sName.includes('BIOPSIYA') ||
+                            dosyaRoom.includes('ULTRATOVUSH') || dosyaRoom.includes('EKG') || dosyaRoom.includes('RENTGEN');
+
+        if ((isMrt || isMskt) && !isExcluded) {
+          const isContrast = sName.includes('KONTRAST') || sName.includes('KM') || sName.includes('INJEKTOR');
           const modality = isMskt ? 'MSKT' : 'MRT';
-          const isContrast = sName.includes('KONTRAST') || sName.includes('KM') || sName.includes('KONTRASTLI');
-          
-          let suggestedDevice = 'mrt1';
-          let compatibleDevices = ['mrt1'];
-          if (modality === 'MSKT') {
-            suggestedDevice = 'mskt1';
-            compatibleDevices = ['mskt1'];
-          } else {
-            if (isContrast) {
-              suggestedDevice = 'mrt1';
-              compatibleDevices = ['mrt1'];
-            } else {
-              suggestedDevice = 'mrt2';
-              compatibleDevices = ['mrt2', 'mrt1'];
-            }
-          }
+          const suggestedDevice = isMskt ? 'mskt1' : (isContrast ? 'mrt1' : 'mrt2');
+          // Qurilmalarga moslashtirish: MRT 2 da injektor yo'q (faqat kontrastsiz). MSKT faqat mskt1 da.
+          const compatibleDevices = isMskt ? ['mskt1'] : (isContrast ? ['mrt1'] : ['mrt2', 'mrt1']);
 
-          let regDate = new Date();
-          if (dosya.DosyaTarihi) {
-            regDate = new Date(dosya.DosyaTarihi);
-          } else if (dosya.GelisTarihi) {
-            regDate = new Date(dosya.GelisTarihi);
-          }
-
-          const diffMs = now.getTime() - regDate.getTime();
-          const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-          const isOlderThan5Days = diffDays >= 5;
-
-          const maxAllowed = new Date(regDate);
-          maxAllowed.setDate(maxAllowed.getDate() + 10);
-          const maxAllowedDate = maxAllowed.toISOString().split('T')[0];
-
-          const isCompletedInKarmed = Boolean(s.RaporOnayli || s.Durum === 'Rapor Onaylı' || dosya.Durum === 'Rapor Onaylı');
-          const isCompletedInLocal = allCurrentQueue.some(q => 
-            String(q.serviceId) === String(s.Id) && (q.status === 'completed')
+          // Tekshiruvdan o'tganligini aniqlash (Karmed yoki navbat tizimida)
+          const isCompletedInKarmed = Boolean(
+            s.RaporOnayli === true ||
+            s.RaporYazili === true ||
+            s.RowClacss === 'HastaRenk_Onayli' ||
+            s.serviceStatus === 'Tasdiqlangan' ||
+            s.serviceStatus === 'Yozilgan' ||
+            dosya.Durum === 'Rapor Onaylı' ||
+            dosya.Durum === 'Tamamlandı' ||
+            dosya.Durum === 'Bitti'
           );
-          const isCompleted = isCompletedInKarmed || isCompletedInLocal;
 
+          const isCompletedInQueue = currentQueue.some(q => 
+            q.status === 'completed' && (
+              (q.serviceId && String(q.serviceId) === String(s.Id)) ||
+              (Array.isArray(q.serviceIds) && q.serviceIds.map(String).includes(String(s.Id)))
+            )
+          );
+
+          const isCompleted = isCompletedInKarmed || isCompletedInQueue;
+
+          // Tekshiruv allaqachon navbatga qo'yilganligini tekshirish
           let isAlreadyQueued = false;
           let existingQueueInfo = null;
-          const matchedQueue = allCurrentQueue.find(q => {
-            const matchSingle = String(q.serviceId) === String(s.Id);
-            const matchCombined = Array.isArray(q.serviceIds) && q.serviceIds.includes(String(s.Id));
-            return (matchSingle || matchCombined) && q.status !== 'cancelled';
-          });
 
-          if (matchedQueue) {
-            isAlreadyQueued = true;
-            existingQueueInfo = {
-              ticketNumber: matchedQueue.ticketNumber,
-              scheduledDate: matchedQueue.scheduledDate || matchedQueue.date,
-              scheduledTime: matchedQueue.scheduledTime || matchedQueue.startTime,
-              finishTime: matchedQueue.finishTime,
-              deviceId: matchedQueue.deviceId,
-              status: matchedQueue.status
-            };
+          if (!isCompleted) {
+            const activeQueueEntry = currentQueue.find(q => 
+              q.status !== 'cancelled' && q.status !== 'completed' && (
+                (q.serviceId && String(q.serviceId) === String(s.Id)) ||
+                (Array.isArray(q.serviceIds) && q.serviceIds.map(String).includes(String(s.Id))) ||
+                (Array.isArray(q.combinedServices) && q.combinedServices.some(cs => cs.serviceId && String(cs.serviceId) === String(s.Id))) ||
+                (String(q.patientId) === String(patientInfo.patientId) && (
+                  q.serviceCode === sCode || 
+                  (q.serviceCode && q.serviceCode.split('+').map(x => x.trim()).includes(sCode))
+                ))
+              )
+            );
+
+            if (activeQueueEntry) {
+              isAlreadyQueued = true;
+              existingQueueInfo = {
+                id: activeQueueEntry.id,
+                ticketNumber: activeQueueEntry.ticketNumber,
+                scheduledDate: activeQueueEntry.scheduledDate || activeQueueEntry.date,
+                scheduledTime: activeQueueEntry.scheduledTime || '',
+                deviceId: activeQueueEntry.deviceId,
+                status: activeQueueEntry.status,
+                statusText: activeQueueEntry.status === 'waiting' ? 'Kutilmoqda' : (activeQueueEntry.status === 'calling' ? 'Chaqirilgan' : (activeQueueEntry.status === 'in_progress' ? 'Jarayonda' : activeQueueEntry.status)),
+                operatorName: activeQueueEntry.operatorName || ''
+              };
+            }
           }
 
           let labResults = cachedPatientLab;
@@ -1064,6 +1142,13 @@ async function searchPatientInKarmed(patientId) {
       console.warn(`[Karmed Service Fetch Warning] Dosya ${dosya.Id}:`, e.message);
     }
   }
+
+  // Tartiblash:
+  eligibleExams.sort((a, b) => {
+    if (!a.isCompleted && b.isCompleted) return -1;
+    if (a.isCompleted && !b.isCompleted) return 1;
+    return new Date(b.registrationDate) - new Date(a.registrationDate);
+  });
 
   return {
     success: true,
@@ -1215,13 +1300,46 @@ function bookPatient(body, operatorName = 'Registrator', isAdmin = false) {
     isCombined: Boolean(body.isCombined),
     combinedServices: body.combinedServices || null,
     phone: body.phone || body.phoneNumber || '',
+    extraPhone: body.extraPhone || body.secondaryPhone || '',
     birthDate: body.birthDate || '',
     patientType: body.patientType || 'Ambulator',
     department: body.department || '',
     patientCategory: body.patientCategory || '',
     requiresPaymentConfirmation: Boolean(body.requiresPaymentConfirmation),
     paymentConfirmed: Boolean(body.paymentConfirmed),
-    labResults: body.labResults || null,
+    labResults: (() => {
+      let lr = body.labResults || null;
+      if (body.manualLabResults && (body.manualLabResults.kreatinin || body.manualLabResults.mochevina)) {
+        if (!lr) lr = {};
+        const mPlace = body.manualLabResults.labPlace || body.manualLabResults.place || 'Tashqi laboratoriya';
+        const mDate = body.manualLabResults.labDate || body.manualLabResults.date || '';
+        lr.isManual = true;
+        lr.source = 'MANUAL';
+        lr.manualPlace = mPlace;
+        lr.manualDate = mDate;
+        lr.found = true;
+        if (body.manualLabResults.kreatinin) {
+          lr.kreatinin = {
+            value: body.manualLabResults.kreatinin,
+            reference: '44 - 115 mkmol/l',
+            date: mDate,
+            place: mPlace,
+            isManual: true
+          };
+        }
+        if (body.manualLabResults.mochevina) {
+          lr.mochevina = {
+            value: body.manualLabResults.mochevina,
+            reference: '2.5 - 8.3 mmol/l',
+            date: mDate,
+            place: mPlace,
+            isManual: true
+          };
+        }
+      }
+      return lr;
+    })(),
+    manualLabResults: body.manualLabResults || null,
     date: slotInfo.date,
     scheduledDate: slotInfo.date,
     scheduledTime: slotInfo.startTime,
@@ -1292,5 +1410,7 @@ module.exports = {
   bookPatient,
   registerWsClient,
   removeWsClient,
-  broadcastWs
+  broadcastWs,
+  extractKarmedLoginBilgi,
+  safeParseExtNetJson
 };

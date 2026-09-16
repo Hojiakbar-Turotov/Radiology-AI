@@ -911,14 +911,64 @@
 
         <div class="form-group">
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-            <input type="checkbox" id="bContrast" onchange="updateSmartSlotForModal()" style="width:16px; height:16px;">
-            <span>Kontrast modda yuborish talab etiladi</span>
+            <input type="checkbox" id="bContrast" onchange="onModalContrastToggled(); updateSmartSlotForModal();" style="width:16px; height:16px;">
+            <span style="font-weight:700; color:#86198f;"><i class="fa-solid fa-syringe"></i> Kontrast modda yuborish talab etiladi</span>
           </label>
         </div>
 
-        <div class="form-group">
-          <label>Bemor Telefoni:</label>
-          <input type="tel" id="bPhone" placeholder="+998 90 123 45 67">
+        <!-- Telefon raqamlari (Asosiy va Qo'shimcha) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label><i class="fa-solid fa-phone"></i> Bemor Telefoni (Asosiy):</label>
+            <input type="tel" id="bPhone" placeholder="+998 90 123 45 67">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label><i class="fa-solid fa-phone-volume" style="color:#0284c7;"></i> Qo'shimcha Telefon:</label>
+            <input type="tel" id="bExtraPhone" placeholder="+998 90 987 65 43 (Qarindoshi)">
+          </div>
+        </div>
+
+        <!-- Qon tahlillari bloki (Kreatinin va Mochevina) -->
+        <div id="bLabSection" style="background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:12.5px; font-weight:800; color:#7e22ce;">
+              <i class="fa-solid fa-vial"></i> Qon tahlillari (Kreatinin & Mochevina)
+            </span>
+            <label style="font-size:11.5px; font-weight:700; color:#6b21a8; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="bManualLabToggle" onchange="toggleManualLabInputs()">
+              <span>Tashqi laboratoriyadan kiritish</span>
+            </label>
+          </div>
+
+          <!-- Karmed LBYS avtomatik tahlili (agar mavjud bo'lsa) -->
+          <div id="bKarmedLabInfo" style="display:none; font-size:11.5px; color:#4c1d95; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:6px; padding:6px 10px; margin-bottom:6px;"></div>
+
+          <!-- Tashqi laboratoriya qo'lda kiritish formasi -->
+          <div id="bManualLabFields" style="display:none; border-top:1px dashed #c084fc; padding-top:8px; margin-top:6px;">
+            <div style="font-size:11px; color:#6b21a8; font-weight:700; margin-bottom:6px;">
+              ✍️ Bemor qon tahlilini boshqa laboratoriyada topshirgan bo'lsa, natijalarni kiriting:
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+              <div>
+                <label style="font-size:11px; font-weight:700; color:#374151;">Kreatinin (mkmol/l):</label>
+                <input type="text" id="bManualKreatinin" placeholder="Masalan: 84.5" style="padding:6px 8px; font-size:12px;">
+              </div>
+              <div>
+                <label style="font-size:11px; font-weight:700; color:#374151;">Mochevina (mmol/l):</label>
+                <input type="text" id="bManualMochevina" placeholder="Masalan: 5.2" style="padding:6px 8px; font-size:12px;">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:8px;">
+              <div>
+                <label style="font-size:11px; font-weight:700; color:#374151;">Tahlil sanasi:</label>
+                <input type="date" id="bManualLabDate" style="padding:6px 8px; font-size:12px;">
+              </div>
+              <div>
+                <label style="font-size:11px; font-weight:700; color:#374151;">Laboratoriya / Joyi:</label>
+                <input type="text" id="bManualLabPlace" placeholder="Masalan: Medion, Shifoxona lab." style="padding:6px 8px; font-size:12px;">
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="bookingErrorMsg" style="display:none; color:#dc2626; font-size:12.5px; font-weight:700; margin-bottom:10px;"></div>
@@ -2102,8 +2152,15 @@
 
       document.getElementById("bContrast").checked = Boolean(cEx.isContrast);
 
-      // Telefon raqamini o'rnatish
+      // Telefon raqamlari (Asosiy va Qo'shimcha)
       document.getElementById("bPhone").value = currentPatientData.phone || '';
+      document.getElementById("bExtraPhone").value = currentPatientData.extraPhone || '';
+
+      // Tashqi laboratoriya maydonlarini tozalash
+      document.getElementById("bManualKreatinin").value = '';
+      document.getElementById("bManualMochevina").value = '';
+      document.getElementById("bManualLabDate").value = '';
+      document.getElementById("bManualLabPlace").value = '';
 
       const today = new Date().toISOString().split("T")[0];
       const bDateEl = document.getElementById("bDate");
@@ -2129,31 +2186,8 @@
         chkPay.checked = true;
       }
 
-      // Kontrastli qon ko'rsatkichlari modalda
-      const modalLabInfo = document.getElementById("modalContrastLabInfo");
-      if (cEx.isContrast) {
-        if (cEx.labResults && cEx.labResults.found) {
-          const kr = cEx.labResults.kreatinin;
-          const moch = cEx.labResults.mochevina;
-          modalLabInfo.innerHTML = `
-            <div style="background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; font-size:11.5px;">
-              <span style="font-weight:800; color:#7e22ce;">🧪 Qon tahlillari:</span>
-              ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (${kr.daysAgo} kun oldin); ` : ''}
-              ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (${moch.daysAgo} kun oldin)` : ''}
-            </div>
-          `;
-          modalLabInfo.style.display = "block";
-        } else {
-          modalLabInfo.innerHTML = `
-            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:6px 10px; font-size:11.5px; color:#b45309; font-weight:700;">
-              ⚠️ Diqqat: Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
-            </div>
-          `;
-          modalLabInfo.style.display = "block";
-        }
-      } else {
-        modalLabInfo.style.display = "none";
-      }
+      // Kontrastli qon tahlili bo'limini yangilash
+      onModalContrastToggled();
 
       check10DaysRuleOnDateChange();
       updateSmartSlotForModal();
@@ -2229,8 +2263,15 @@
 
       document.getElementById("bContrast").checked = Boolean(ex.isContrast);
 
-      // Telefon raqamini o'rnatish
+      // Telefon raqamlari (Asosiy va Qo'shimcha)
       document.getElementById("bPhone").value = currentPatientData.phone || '';
+      document.getElementById("bExtraPhone").value = currentPatientData.extraPhone || '';
+
+      // Tashqi laboratoriya maydonlarini tozalash
+      document.getElementById("bManualKreatinin").value = '';
+      document.getElementById("bManualMochevina").value = '';
+      document.getElementById("bManualLabDate").value = '';
+      document.getElementById("bManualLabPlace").value = '';
 
       const today = new Date().toISOString().split("T")[0];
       const bDateEl = document.getElementById("bDate");
@@ -2256,31 +2297,8 @@
         chkPay.checked = true;
       }
 
-      // Kontrastli qon ko'rsatkichlari (Modal ichida)
-      const modalLabInfo = document.getElementById("modalContrastLabInfo");
-      if (ex.isContrast) {
-        if (ex.labResults && ex.labResults.found) {
-          const kr = ex.labResults.kreatinin;
-          const moch = ex.labResults.mochevina;
-          modalLabInfo.innerHTML = `
-            <div style="background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; font-size:11.5px;">
-              <span style="font-weight:800; color:#7e22ce;">🧪 Qon tahlillari:</span>
-              ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (${kr.daysAgo} kun oldin); ` : ''}
-              ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (${moch.daysAgo} kun oldin)` : ''}
-            </div>
-          `;
-          modalLabInfo.style.display = "block";
-        } else {
-          modalLabInfo.innerHTML = `
-            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:6px 10px; font-size:11.5px; color:#b45309; font-weight:700;">
-              ⚠️ Diqqat: Karmedda oxirgi 30 kun ichida Kreatinin / Mochevina tahlili topilmadi!
-            </div>
-          `;
-          modalLabInfo.style.display = "block";
-        }
-      } else {
-        modalLabInfo.style.display = "none";
-      }
+      // Kontrastli qon tahlili bo'limini yangilash
+      onModalContrastToggled();
 
       // 2. 10 kunlik qoida tekshiruvi
       check10DaysRuleOnDateChange();
@@ -2398,6 +2416,64 @@
       } else {
         if (bEndTimeEl) bEndTimeEl.value = '';
         if (timeDisp) timeDisp.innerText = '-';
+      }
+    }
+
+    function toggleManualLabInputs() {
+      const chk = document.getElementById("bManualLabToggle");
+      const fields = document.getElementById("bManualLabFields");
+      if (chk && fields) {
+        fields.style.display = chk.checked ? "block" : "none";
+      }
+    }
+
+    function onModalContrastToggled() {
+      const isContrast = document.getElementById("bContrast") ? document.getElementById("bContrast").checked : false;
+      const labSec = document.getElementById("bLabSection");
+      const karmedInfo = document.getElementById("bKarmedLabInfo");
+      const manualToggle = document.getElementById("bManualLabToggle");
+      const manualFields = document.getElementById("bManualLabFields");
+
+      if (!labSec) return;
+
+      if (!isContrast) {
+        labSec.style.display = "none";
+        return;
+      }
+
+      labSec.style.display = "block";
+
+      const patLabs = (selectedExamData && selectedExamData.labResults) || (currentPatientData && currentPatientData.labResults) || null;
+      const hasKarmed = patLabs && patLabs.found && (patLabs.kreatinin || patLabs.mochevina);
+
+      if (hasKarmed) {
+        const kr = patLabs.kreatinin;
+        const moch = patLabs.mochevina;
+        karmedInfo.style.display = "block";
+        karmedInfo.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fa-solid fa-flask-vial"></i> <b>Karmed LBYS laboratoriya tahlillari topildi:</b></span>
+            <span style="font-size:10.5px; color:#15803d; font-weight:800;">✅ Tizimda mavjud</span>
+          </div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; font-size:11.5px;">
+            ${kr ? `<span>🩸 Kreatinin: <b>${escapeHtml(kr.value)}</b> (${escapeHtml(kr.reference)}) [${kr.daysAgo} kun oldin]</span>` : ''}
+            ${moch ? `<span>🩸 Mochevina: <b>${escapeHtml(moch.value)}</b> (${escapeHtml(moch.reference)}) [${moch.daysAgo} kun oldin]</span>` : ''}
+          </div>
+        `;
+        if (manualToggle) manualToggle.checked = false;
+        if (manualFields) manualFields.style.display = "none";
+      } else {
+        karmedInfo.style.display = "block";
+        karmedInfo.innerHTML = `
+          <div style="color:#b45309; font-weight:700;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Karmed LBYS tizimida oxirgi 30 kun ichida qon tahlillari topilmadi.
+          </div>
+          <div style="font-size:11px; color:#78350f; margin-top:2px;">
+            Bemor boshqa laboratoriyada topshirgan bo'lsa, pastdagi maydonlarni to'ldiring yoki anketada qo'lda yozish uchun ochiq qoldiring.
+          </div>
+        `;
+        if (manualToggle) manualToggle.checked = true;
+        if (manualFields) manualFields.style.display = "block";
       }
     }
 
@@ -2562,11 +2638,32 @@
       const startTime = document.getElementById("bTime").value;
       const finishTime = document.getElementById("bEndTime").value || addMinutesToTime(startTime, dur);
 
+      const extraPhone = document.getElementById("bExtraPhone") ? document.getElementById("bExtraPhone").value.trim() : '';
+      const isManualLab = document.getElementById("bManualLabToggle") ? document.getElementById("bManualLabToggle").checked : false;
+      let manualLabResults = null;
+      if (isManualLab) {
+        const kr = document.getElementById("bManualKreatinin") ? document.getElementById("bManualKreatinin").value.trim() : '';
+        const moch = document.getElementById("bManualMochevina") ? document.getElementById("bManualMochevina").value.trim() : '';
+        const lDate = document.getElementById("bManualLabDate") ? document.getElementById("bManualLabDate").value.trim() : '';
+        const lPlace = document.getElementById("bManualLabPlace") ? document.getElementById("bManualLabPlace").value.trim() : '';
+        if (kr || moch || lDate || lPlace) {
+          manualLabResults = {
+            kreatinin: kr,
+            mochevina: moch,
+            labDate: lDate,
+            labPlace: lPlace
+          };
+        }
+      }
+
       const isCombined = Boolean(selectedExamData.isCombined);
       const payload = {
         patientId: currentPatientData.patientId,
         patientName: currentPatientData.fullName,
         phone: document.getElementById("bPhone").value.trim(),
+        extraPhone: extraPhone,
+        manualLabResults: manualLabResults,
+        labResults: (selectedExamData && selectedExamData.labResults) || (currentPatientData && currentPatientData.labResults) || null,
         birthDate: currentPatientData.birthDate,
         patientType: currentPatientData.patientType,
         department: currentPatientData.department,
@@ -2945,14 +3042,80 @@ Tel: 1303
       }
 
       let labBlock = '';
-      if (p.isContrast && p.labResults) {
-        const kr = p.labResults.kreatinin;
-        const moch = p.labResults.mochevina;
+      if (p.isContrast || (p.labResults && (p.labResults.kreatinin || p.labResults.mochevina))) {
+        const lr = p.labResults || {};
+        const ml = p.manualLabResults || {};
+
+        let krVal = '';
+        let krRef = '44 - 115 mkmol/l';
+        let krDate = '';
+        let mochVal = '';
+        let mochRef = '2.5 - 8.3 mmol/l';
+        let mochDate = '';
+        let labSource = '';
+
+        if (lr.kreatinin && lr.kreatinin.value) {
+          krVal = `${escapeHtml(lr.kreatinin.value)} mkmol/l`;
+          if (lr.kreatinin.reference) krRef = escapeHtml(lr.kreatinin.reference);
+          krDate = escapeHtml(lr.kreatinin.date || '');
+          labSource = lr.isManual ? escapeHtml(lr.manualPlace || lr.kreatinin.place || 'Tashqi laboratoriya') : 'Karmed LBYS Laboratoriyasi';
+        } else if (ml.kreatinin) {
+          krVal = `${escapeHtml(ml.kreatinin)} mkmol/l`;
+          krDate = escapeHtml(ml.labDate || ml.date || '');
+          labSource = escapeHtml(ml.labPlace || ml.place || 'Tashqi laboratoriya');
+        }
+
+        if (lr.mochevina && lr.mochevina.value) {
+          mochVal = `${escapeHtml(lr.mochevina.value)} mmol/l`;
+          if (lr.mochevina.reference) mochRef = escapeHtml(lr.mochevina.reference);
+          mochDate = escapeHtml(lr.mochevina.date || '');
+          if (!labSource) {
+            labSource = lr.isManual ? escapeHtml(lr.manualPlace || lr.mochevina.place || 'Tashqi laboratoriya') : 'Karmed LBYS Laboratoriyasi';
+          }
+        } else if (ml.mochevina) {
+          mochVal = `${escapeHtml(ml.mochevina)} mmol/l`;
+          mochDate = escapeHtml(ml.labDate || ml.date || '');
+          if (!labSource) labSource = escapeHtml(ml.labPlace || ml.place || 'Tashqi laboratoriya');
+        }
+
+        const displayKrVal = krVal || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span> mkmol/l`;
+        const displayMochVal = mochVal || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span> mmol/l`;
+        const displayKrDate = krDate || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span>`;
+        const displayMochDate = mochDate || `<span style="border-bottom:1px dotted #000; display:inline-block; width:75px;">&nbsp;</span>`;
+        const displaySource = labSource || `<span style="border-bottom:1px dotted #000; display:inline-block; width:130px;">&nbsp;</span>`;
+
         labBlock = `
-          <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:6px 12px; margin:8px 0; font-size:11px;">
-            <b>🧪 Bemorning oxirgi laboratoriya ko'rsatkichlari (Karmed LBYS):</b> &nbsp;
-            ${kr ? `Kreatinin: <b>${escapeHtml(kr.value)}</b> (Norma: ${escapeHtml(kr.reference)}) [${kr.daysAgo} kun oldin]; ` : ''}
-            ${moch ? `Mochevina: <b>${escapeHtml(moch.value)}</b> (Norma: ${escapeHtml(moch.reference)}) [${moch.daysAgo} kun oldin]` : ''}
+          <div style="margin-top:6px; margin-bottom:8px;">
+            <div style="font-size:10.5px; font-weight:800; text-transform:uppercase; color:#0f172a; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
+              <span>🧪 QONNING BIOKIMYOVIY TAHLIL NATIJALARI (BUYRAK FUNKSIYASI KO'RSATKICHLARI):</span>
+              <span style="font-size:9.5px; font-weight:700; color:#475569;">${labSource ? `Manba: ${labSource}` : "Boshqa joyda topshirilgan bo'lsa qo'lda to'ldiriladi"}</span>
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:10.5px;">
+              <thead>
+                <tr style="background:#f1f5f9;">
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:left;">Ko'rsatkich nomi</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:130px;">Natija</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:120px;">Referens norma</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; width:95px;">Tahlil sanasi</th>
+                  <th style="border:1px solid #94a3b8; padding:3px 6px; text-align:left; width:160px;">Laboratoriya / Joyi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; font-weight:700;">Qon zardobida Kreatinin</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; font-weight:900; font-size:11.5px;">${displayKrVal}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; color:#475569;">${krRef}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center;">${displayKrDate}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px;" rowspan="2">${displaySource}</td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; font-weight:700;">Qon zardobida Mochevina</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; font-weight:900; font-size:11.5px;">${displayMochVal}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center; color:#475569;">${mochRef}</td>
+                  <td style="border:1px solid #94a3b8; padding:3px 6px; text-align:center;">${displayMochDate}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         `;
       }
@@ -2994,7 +3157,7 @@ Tel: 1303
     .consent-stmt { background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 10.5px; line-height: 1.4; }
     .sig-table { width: 100%; margin-top: 16px; border-collapse: collapse; }
     .sig-table td { width: 50%; vertical-align: top; padding: 4px 12px; font-size: 11px; }
-    .sig-line { border-bottom: 1px solid #000; height: 26px; margin-bottom: 4px; }
+    .sig-line { border-bottom: 1px solid #000; height: 22px; margin-top: 6px; margin-bottom: 4px; }
   </style>
 </head>
 <body onload="window.print()">
@@ -3016,12 +3179,14 @@ Tel: 1303
     <tr>
       <td class="lbl">Tug'ilgan sana:</td>
       <td>${escapeHtml(p.birthDate || '-')} (${p.age ? p.age + ' yosh' : '-'})</td>
-      <td class="lbl">Telefon raqami:</td>
+      <td class="lbl">Asosiy Telefon:</td>
       <td><b>${escapeHtml(p.phone || '-')}</b></td>
     </tr>
     <tr>
+      <td class="lbl">Qo'shimcha Telefon:</td>
+      <td><b>${escapeHtml(p.extraPhone || '_____________________')}</b></td>
       <td class="lbl">Tekshiruv xizmati:</td>
-      <td colspan="3"><b>${escapeHtml(p.primaryService || p.serviceName)}</b></td>
+      <td><b>${escapeHtml(p.primaryService || p.serviceName || '')}</b></td>
     </tr>
     <tr>
       <td class="lbl">Talon / Sana / Vaqt:</td>
@@ -3059,18 +3224,24 @@ Tel: 1303
   <table class="sig-table">
     <tr>
       <td>
-        <div><b>Bemor yoki uning qonuniy vakili:</b></div>
+        <div style="font-weight:800;">Bemor yoki uning qonuniy vakili:</div>
+        <div style="font-size:10.5px; color:#0f172a; margin-top:5px;">
+          F.I.SH.: _________________________________________________
+        </div>
         <div class="sig-line"></div>
-        <div style="font-size:10px; color:#444; display:flex; justify-content:space-between;">
-          <span>(F.I.SH. va Imzo)</span>
+        <div style="font-size:10px; color:#475569; display:flex; justify-content:space-between;">
+          <span>(Imzo)</span>
           <span>Sana: "_____" ____________ 202___ y.</span>
         </div>
       </td>
       <td>
-        <div><b>Registrator / Tibbiyot xodimi:</b></div>
+        <div style="font-weight:800;">Tibbiy ro'yxatga oluvchi xodim (Tibbiy ro'yxatchi):</div>
+        <div style="font-size:10.5px; color:#0f172a; margin-top:5px;">
+          F.I.SH.: _________________________________________________
+        </div>
         <div class="sig-line"></div>
-        <div style="font-size:10px; color:#444; display:flex; justify-content:space-between;">
-          <span>${escapeHtml(p.operatorName || 'Registrator')} (Imzo)</span>
+        <div style="font-size:10px; color:#475569; display:flex; justify-content:space-between;">
+          <span>(Imzo)</span>
           <span>Sana: "_____" ____________ 202___ y.</span>
         </div>
       </td>
