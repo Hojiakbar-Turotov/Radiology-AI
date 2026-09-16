@@ -1890,12 +1890,12 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      latestVersion: "8.0.0",
-      versionCode: 800,
+      latestVersion: "8.1.0",
+      versionCode: 810,
       apkFileName: "UTT_TV_Navbat.apk",
       downloadUrl: "/download/UTT_TV_Navbat.apk",
       releaseDate: "16.09.2026",
-      releaseNotes: "v8.0.0: TV Monitor va Vrachlar ko'rigida Sug'urta, Rezident, Order, Statsionar/Ambulator toifalari va barcha ustunlar bo'yicha saralash va filtrlar.",
+      releaseNotes: "v8.1.0: Android TV pulti orqali 0-9 raqamlar bilan xonalarga tezkor o'tish (0=UTT10, 1..9=UTT1..9), BACK tugmasi bilan umumiy ekranga qaytish va eski Android TV mosligi.",
       minSupportedVersion: "1.0.0"
     }));
     return;

@@ -53,6 +53,42 @@
       return undefined;
     };
   }
+  if (typeof Object.assign !== 'function') {
+    Object.assign = function(target) {
+      if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+      var to = Object(target);
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+        if (nextSource != null) {
+          for (var nextKey in nextSource) {
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    };
+  }
+  if (!Array.from) {
+    Array.from = function(object) {
+      return [].slice.call(object);
+    };
+  }
+  if (!Object.values) {
+    Object.values = function(obj) {
+      if (obj == null) return [];
+      return Object.keys(obj).map(function(key) { return obj[key]; });
+    };
+  }
+  if (!Object.entries) {
+    Object.entries = function(obj) {
+      if (obj == null) return [];
+      var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i);
+      while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+      return resArray;
+    };
+  }
 
   // 1. DOM ELEMENTLARI
   const body = document.body;
@@ -345,6 +381,12 @@
       currentRoomId = targetRoomId;
     }
 
+    try {
+      if (window.AndroidTV && typeof window.AndroidTV.onModeChanged === 'function') {
+        window.AndroidTV.onModeChanged(mode, currentRoomId || '');
+      }
+    } catch (e) {}
+
     body.className = `mode-${mode}`;
 
     if (btnModeTv) btnModeTv.classList.toggle('active', mode === 'tv');
@@ -403,6 +445,78 @@
   if (btnModePost) btnModePost.addEventListener('click', () => setViewMode('post'));
   if (btnModeMobile) btnModeMobile.addEventListener('click', () => setViewMode('mobile'));
   if (btnSrBackToAll) btnSrBackToAll.addEventListener('click', () => setViewMode('tv'));
+
+  // 6.1 TV PULITI VA KLAVIATURA RAQAMLARI ORQALI XONAGA TEZKOR O'TISH (0-9)
+  // Foydalanuvchi talabi: 0 -> UTT 10, 1 -> UTT 1, ..., 9 -> UTT 9
+  const NUMBER_TO_ROOM = {
+    1: 'Ultratovush-1',
+    2: 'Ultratovush-2',
+    3: 'Ultratovush-3',
+    4: 'Ultratovush-4',
+    5: 'Ultratovush-5',
+    6: 'Ultratovush-6',
+    7: 'Ultratovush-7',
+    8: 'Ultratovush-8',
+    9: 'Ultratovush-9',
+    0: 'Ultratovush-10',
+    10: 'Ultratovush-10'
+  };
+
+  window.uttSwitchRoomByNumber = function(num) {
+    const targetRoom = NUMBER_TO_ROOM[num];
+    if (!targetRoom) {
+      setViewMode('tv');
+      return;
+    }
+
+    // Agar allaqachon shu xona ochilgan bo'lsa -> umumiy TV ekranga toggle qilish!
+    if (currentMode === 'single-room' && currentRoomId === targetRoom) {
+      setViewMode('tv');
+      return;
+    }
+
+    // Xonani ochish
+    setViewMode('single-room', targetRoom);
+  };
+
+  window.uttBackToAllRooms = function() {
+    if (currentMode === 'single-room') {
+      setViewMode('tv');
+      return true;
+    }
+    return false;
+  };
+
+  // Klaviaturadan va TV pultidan 0-9 raqamlari bosilganda xonani ochish / qaytish
+  window.addEventListener('keydown', function(e) {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+      return;
+    }
+
+    // Escape yoki Backspace
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      if (currentMode === 'single-room') {
+        e.preventDefault();
+        setViewMode('tv');
+        return;
+      }
+    }
+
+    var digit = null;
+    if (e.key >= '0' && e.key <= '9') {
+      digit = parseInt(e.key, 10);
+    } else if (e.keyCode >= 48 && e.keyCode <= 57) { // 0-9
+      digit = e.keyCode - 48;
+    } else if (e.keyCode >= 96 && e.keyCode <= 105) { // Numpad 0-9
+      digit = e.keyCode - 96;
+    }
+
+    if (digit !== null) {
+      e.preventDefault();
+      window.uttSwitchRoomByNumber(digit);
+    }
+  }, true);
 
   // Xona tanlash dropdownlari (Server o'chiq bo'lsa ham ROOM_MAP dan to'ldiriladi)
   function populateRoomDropdowns() {

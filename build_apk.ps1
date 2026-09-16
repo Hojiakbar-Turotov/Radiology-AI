@@ -1,10 +1,10 @@
 # ==============================================================================
-# UTT ANDROID TV APK BUILD SCRIPT (v8.0.0)
+# UTT ANDROID TV APK BUILD SCRIPT (v8.1.0)
 # ==============================================================================
 $ErrorActionPreference = 'Stop'
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "  UTT NAVBAT TIZIMI — ANDROID TV APK YIG'ISH JARAYONI (v8.0.0)" -ForegroundColor Cyan
+Write-Host "  UTT NAVBAT TIZIMI — ANDROID TV APK YIG'ISH JARAYONI (v8.1.0)" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # 1. YO'LLAR VA QURILMALAR
