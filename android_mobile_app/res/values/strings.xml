@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UTT Bemor Navbat</string>
+    <string name="title_activity_main">UTT Bemor Portali</string>
+    <string name="settings_title">Bemor Portali Sozlamalari</string>
+    <string name="server_ip_hint">Server IP (Masalan: 10.34.17.210)</string>
+    <string name="server_port_hint">Port (Standart: 9877)</string>
+    <string name="btn_save">Saqlash va Ulanish</string>
+    <string name="btn_cancel">Bekor qilish</string>
+    <string name="btn_retry">Qayta ulanish</string>
+    <string name="error_connecting">Server bilan aloqa o\'rnatilmadi</string>
+    <string name="error_hint">Iltimos, Wi-Fi tarmog\'iga ulanishni va server yoqilganligini tekshiring.</string>
+</resources>

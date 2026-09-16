@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UTT Bemor Portali — Vrachni Tanlash va Navbat</title>
+  <link rel="icon" href="icons/logo-onko.png" type="image/png">
+  <link rel="stylesheet" href="bemor.css?v=8.2.0">
+  <meta name="theme-color" content="#0d9488">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <div class="page-container">
+    <!-- Header -->
+    <header class="portal-header">
+      <div class="header-content">
+        <div class="logo-wrap">
+          <img src="icons/logo-onko.png" alt="Onkologiya Logotipi" class="logo-img" onerror="this.style.display='none'">
+          <div class="logo-text">
+            <span class="org-name">RESPUBLIKA ONKOLOGIYA VA RADIOLOGIYA MARKAZI</span>
+            <h1 class="portal-title">UTT Bemor Navbat Portali</h1>
+          </div>
+        </div>
+        <div class="header-status">
+          <span class="live-dot"></span>
+          <span id="liveClock">--:--:--</span>
+        </div>
+      </div>
+
+      <!-- App Download Banner -->
+      <a href="/download/UTT_Bemor_Navbat.apk" class="app-banner" download>
+        <span class="banner-icon">📱</span>
+        <div class="banner-info">
+          <strong>UTT Bemor Android Ilovasi</strong>
+          <small>Wi-Fi tarmog'ida tezkor foydalanish uchun yuklab oling</small>
+        </div>
+        <span class="banner-btn">Yuklab olish</span>
+      </a>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- STEP 1: Qidiruv Bo'limi -->
+      <section class="card search-card" id="searchSection">
+        <div class="card-header">
+          <span class="card-step">1</span>
+          <h2>Bemor Ma'lumotlarini Qidirish</h2>
+        </div>
+        <p class="card-desc">O'z navbatingiz va biriktirilgan shifokoringizni ko'rish uchun <strong>ID raqam</strong> yoki 14 xonali <strong>PINFL / JSHSHIR</strong> kodini kiriting:</p>
+
+        <form id="searchForm" class="search-form" onsubmit="return false;">
+          <div class="input-group">
+            <span class="input-icon">🔍</span>
+            <input 
+              type="text" 
+              id="patientQueryInput" 
+              class="search-input" 
+              placeholder="Masalan: 57095 yoki 31234567890012" 
+              autocomplete="off" 
+              inputmode="numeric"
+              required>
+            <button type="button" id="clearSearchBtn" class="clear-btn" title="Tozalash" style="display:none;">&times;</button>
+          </div>
+          <button type="submit" id="searchSubmitBtn" class="btn btn-primary btn-block">
+            <span class="btn-text">Qidirish</span>
+            <span class="btn-spinner" style="display:none;"></span>
+          </button>
+        </form>
+
+        <div id="searchErrorAlert" class="alert alert-danger" style="display:none;"></div>
+      </section>
+
+      <!-- STEP 2: Bemor Kartasi (Qidiruvdan so'ng chiqadi) -->
+      <section class="card patient-card" id="patientSection" style="display:none;">
+        <div class="card-header">
+          <span class="card-step">2</span>
+          <h2>Bemor va Navbat Holati</h2>
+          <button type="button" class="btn-link-refresh" id="refreshPatientBtn" title="Yangilash">🔄 Yangilash</button>
+        </div>
+
+        <div class="patient-details">
+          <div class="patient-name-row">
+            <div class="name-box">
+              <span class="label">Bemor F.I.Sh.:</span>
+              <h3 id="pFullName" class="patient-name">—</h3>
+            </div>
+            <div class="badge-box">
+              <span id="pStatusBadge" class="status-badge status-waiting">Navbatda kutmoqda</span>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-lbl">Bemor ID:</span>
+              <strong id="pId" class="info-val">—</strong>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Protokol / Dosya:</span>
+              <strong id="pDosya" class="info-val">—</strong>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Ro'yxatga olingan:</span>
+              <strong id="pRegTime" class="info-val">—</strong>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Toifasi:</span>
+              <strong id="pCategory" class="info-val">—</strong>
+            </div>
+          </div>
+
+          <!-- Navbat va Xona Bloklari -->
+          <div class="queue-highlight-box">
+            <div class="q-box-item q-box-num">
+              <span class="q-title">SIZNING NAVBAT RAQAMINGIZ</span>
+              <div class="q-big-number" id="pQueueNo">0</div>
+              <small class="q-sub" id="pPatientsAheadText">Oldingizda: 0 nafar bemor</small>
+            </div>
+            <div class="q-box-item q-box-room">
+              <span class="q-title">BIRIKTIRILGAN VRACH VA XONA</span>
+              <div class="q-room-title" id="pRoomTitle">—</div>
+              <div class="q-doc-name" id="pDoctorName">—</div>
+              <div class="q-room-badge" id="pRoomBadge">— xona</div>
+            </div>
+          </div>
+
+          <!-- Agar ko'rik tugagan bo'lsa ogohlantirish -->
+          <div id="completedWarningAlert" class="alert alert-warning" style="display:none;">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-text">
+              <strong>Tekshiruv yakunlangan!</strong>
+              <p>Siz allaqachon ushbu yo'llanma bo'yicha ko'rikdan o'tib bo'lgansiz. Shu sababli vrachni o'zgartirish imkoniyati cheklangan.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: Vrachlar Ro'yxati va O'zgartirish (Faqat kutayotgan bemorlar uchun) -->
+      <section class="card doctors-card" id="doctorsSection" style="display:none;">
+        <div class="card-header">
+          <span class="card-step">3</span>
+          <div>
+            <h2>UTT Shifokorlari va Jonli Navbat</h2>
+            <p class="card-subtitle">Boshqa vrachni tanlash uchun quyidagi ro'yxatdan qulay xonani tanlang:</p>
+          </div>
+        </div>
+
+        <div class="queue-legend">
+          <span class="legend-item"><span class="legend-color legend-green"></span> Navbat kam (0-2 kishi)</span>
+          <span class="legend-item"><span class="legend-color legend-yellow"></span> O'rtacha (3-5 kishi)</span>
+          <span class="legend-item"><span class="legend-color legend-red"></span> Ko'p navbat (6+ kishi)</span>
+        </div>
+
+        <div class="doctors-grid" id="doctorsListContainer">
+          <!-- Vrachlar kartalari JS orqali to'ldiriladi -->
+        </div>
+      </section>
+
+      <!-- STEP 4: Yangi Berilgan Talon (Vrach o'zgarganda ko'rsatiladi) -->
+      <section class="card ticket-card" id="ticketSection" style="display:none;">
+        <div class="card-header success-header">
+          <span class="card-step success-step">✓</span>
+          <div>
+            <h2>Vrach Muvaffaqiyatli O'zgartirildi!</h2>
+            <p class="card-subtitle">Yangi navbat taloningiz shakllantirildi:</p>
+          </div>
+        </div>
+
+        <div class="ticket-printable" id="printableTicket">
+          <div class="t-top-center">
+            <h4 class="t-org">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</h4>
+            <div class="t-sub">Ultratovush Tekshiruvi (UTT) Navbat Taloni</div>
+          </div>
+          <hr class="t-divider">
+
+          <div class="t-queue-block">
+            <div class="t-q-title">NAVBAT RAQAMI</div>
+            <div class="t-q-number" id="tQueueNum">0</div>
+            <div class="t-q-sub">Ushbu raqam TV ekranda chaqiriladi</div>
+          </div>
+
+          <div class="t-details">
+            <div class="t-row">
+              <span class="t-lbl">Bemor:</span>
+              <strong class="t-val" id="tPatientName">—</strong>
+            </div>
+            <div class="t-row">
+              <span class="t-lbl">Bemor ID:</span>
+              <span class="t-val" id="tPatientId">—</span>
+            </div>
+            <div class="t-row t-highlight">
+              <span class="t-lbl">Yangi Xona:</span>
+              <strong class="t-val t-room" id="tRoomName">—</strong>
+            </div>
+            <div class="t-row">
+              <span class="t-lbl">Yangi Shifokor:</span>
+              <strong class="t-val" id="tDoctorName">—</strong>
+            </div>
+            <div class="t-row">
+              <span class="t-lbl">Sana va vaqt:</span>
+              <span class="t-val" id="tDateTime">—</span>
+            </div>
+          </div>
+
+          <div class="t-notice" id="tNotice">
+            ℹ️ Iltimos, xona eshigi oldida kuting va hamshiraga ismingizni ro'yxatga yozdiring.
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button type="button" class="btn btn-primary" onclick="window.print();">🖨️ Talonni Chop Etish / Saqlash</button>
+          <button type="button" class="btn btn-secondary" id="searchAnotherBtn">🔍 Boshqa Bemor Qidirish</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal: Vrachni O'zgartirishni Tasdiqlash -->
+    <div class="modal-backdrop" id="confirmModal" style="display:none;">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>Vrachni O'zgartirishni Tasdiqlang</h3>
+          <button type="button" class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Haqiqatan ham quyidagi shifokor qabuliga o'tishni istaysizmi?</p>
+          <div class="modal-target-box">
+            <div class="m-room" id="modalTargetRoom">—</div>
+            <div class="m-doc" id="modalTargetDoc">—</div>
+            <div class="m-queue" id="modalTargetQueue">Navbatdagi bemorlar: 0 nafar</div>
+          </div>
+          <div class="alert alert-info">
+            <small>⚠️ Vrach o'zgartirilgach, siz tanlangan xona navbatiga qo'shilasiz va yangi talon beriladi.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelModalBtn">Bekor qilish</button>
+          <button type="button" class="btn btn-success" id="confirmChangeBtn">
+            <span class="btn-text">Ha, O'zgartirilsin</span>
+            <span class="btn-spinner" style="display:none;"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="portal-footer">
+      <p>&copy; 2026 Respublika Onkologiya Markazi • UTT Bo'limi Axborot Tizimi</p>
+      <div class="footer-links">
+        <a href="/tv" target="_blank">📺 TV Monitor</a>
+        <span>•</span>
+        <a href="/download/UTT_Bemor_Navbat.apk" download>📱 Android APK</a>
+        <span>•</span>
+        <a href="/status" target="_blank">⚡ Holat</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="bemor.js?v=8.2.0"></script>
+</body>
+</html>
