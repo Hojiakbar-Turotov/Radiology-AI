@@ -223,37 +223,48 @@
     };
   }
 
-  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI (BUGUN TASDIQLANGANLAR)
+  // 2.1 SHIFOKOR KO'RIB BO'LGAN BEMORLAR STATISTIKASI (4 TA KO'RSATKICH: SHU KUNI, KEYINGI KUNDA, KUTMOQDA, JAMI)
   function getDoctorCompletedStats(docIdOrRoom) {
-    if (!queueData) return { completed: 0, completedToday: 0, completedEarlier: 0, waiting: 0, inProgress: 0, total: 0 };
+    if (!queueData) return { completed: 0, completedToday: 0, completedEarlier: 0, seenToday: 0, seenLater: 0, waiting: 0, inProgress: 0, total: 0 };
     const rKey = String(docIdOrRoom || '').trim();
     let completed = 0;
     let completedToday = 0;
     let completedEarlier = 0;
+    let seenToday = 0;
+    let seenLater = 0;
     let waiting = 0;
     let inProgress = 0;
+    let total = 0;
 
     // 1. Agar queueData.doctors ro'yxatida docObj topilsa
     const docObj = queueData.doctors ? queueData.doctors.find(d => (d.id === rKey || d.room === rKey)) : null;
     if (docObj) {
-      completed = typeof docObj.completedCount === 'number' ? docObj.completedCount : 0;
-      completedToday = typeof docObj.completedTodayCount === 'number' ? docObj.completedTodayCount : completed;
-      completedEarlier = typeof docObj.completedEarlierCount === 'number' ? docObj.completedEarlierCount : 0;
+      seenToday = typeof docObj.seenTodayCount === 'number' ? docObj.seenTodayCount : (typeof docObj.completedCount === 'number' ? docObj.completedCount : 0);
+      seenLater = typeof docObj.seenLaterCount === 'number' ? docObj.seenLaterCount : (typeof docObj.completedEarlierCount === 'number' ? docObj.completedEarlierCount : 0);
+      completed = seenToday;
+      completedToday = seenToday;
+      completedEarlier = seenLater;
       waiting = typeof docObj.waitingCount === 'number' ? docObj.waitingCount : (docObj.patients ? docObj.patients.filter(p => p.statusCode !== 4).length : 0);
       inProgress = docObj.patients ? docObj.patients.filter(p => p.statusCode === 4).length : 0;
+      total = typeof docObj.totalCount === 'number' ? docObj.totalCount : (completed + seenLater + waiting + inProgress);
     } else if (queueData.summary && queueData.summary.completedByDoctor && typeof queueData.summary.completedByDoctor[rKey] === 'number') {
       completed = queueData.summary.completedByDoctor[rKey];
+      seenToday = completed;
       completedToday = (queueData.summary.completedTodayByDoctor && queueData.summary.completedTodayByDoctor[rKey]) || completed;
       completedEarlier = (queueData.summary.completedEarlierByDoctor && queueData.summary.completedEarlierByDoctor[rKey]) || 0;
+      seenLater = completedEarlier;
+      total = completed + waiting;
     }
 
     return { 
       completed, 
       completedToday, 
       completedEarlier, 
+      seenToday,
+      seenLater,
       waiting, 
       inProgress, 
-      total: completed + waiting + inProgress 
+      total: total || (completed + seenLater + waiting + inProgress)
     };
   }
 
@@ -1022,57 +1033,90 @@
 
     if (selectedArchiveDate) {
       var dDisplay = selectedArchiveDate;
+      var dFullYear = '';
       if (/^\d{4}-\d{2}-\d{2}$/.test(selectedArchiveDate)) {
         var dp = selectedArchiveDate.split('-');
         dDisplay = dp[2] + '.' + dp[1];
+        dFullYear = dp[2] + '.' + dp[1] + '.' + dp[0];
+      } else {
+        dFullYear = selectedArchiveDate;
       }
       if (lblTodayReg) lblTodayReg.textContent = dDisplay + " da ro'yxatga olingan:";
       if (lblTodayCompleted) lblTodayCompleted.textContent = dDisplay + " da ko'rildi:";
+
+      // Arxiv bannerini Karmed jonli ko'rsatkichlari bilan boyitish
+      if (archiveStatusBanner) {
+        var sToday = summary.seenTodayTotal !== undefined ? summary.seenTodayTotal : (summary.totalCompleted || 0);
+        var sLater = summary.seenLaterTotal !== undefined ? summary.seenLaterTotal : 0;
+        var sWait = summary.waitingTotal !== undefined ? summary.waitingTotal : (summary.totalWaiting || 0);
+        var sTotal = summary.totalPatients || (sToday + sLater + sWait);
+
+        archiveStatusBanner.innerHTML = `
+          <div class="archive-banner-content" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%;">
+            <div class="archive-banner-left" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="archive-banner-icon">⚡</span>
+              <span>KARMED JONLI: <b>${dFullYear}</b> da yo'naltirilgan bemorlar:</span>
+              <span style="display:inline-flex; gap:6px; font-weight:800;">
+                <span style="color:#4ade80; background:rgba(34,197,94,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(34,197,94,0.3);" title="Shu kuni ko'rilgan">[Shu kuni: ${sToday}]</span>
+                <span style="color:#38bdf8; background:rgba(56,189,248,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.3);" title="Keyingi boshqa kunda ko'rilgan">[Keyingi kunda: ${sLater}]</span>
+                <span style="color:#fbbf24; background:rgba(245,158,11,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);" title="Hali ko'rikdan o'tmagan (kutmoqda)">[Hali o'tmagan: ${sWait}]</span>
+                <span style="color:#c084fc; background:rgba(168,85,247,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(168,85,247,0.3);" title="Jami yo'naltirilgan">[Jami: ${sTotal}]</span>
+              </span>
+            </div>
+            <button type="button" id="btnReturnTodayDyn" class="btn-return-today">↩ Bugungi jonli navbatga qaytish</button>
+          </div>
+        `;
+        const bDyn = document.getElementById('btnReturnTodayDyn');
+        if (bDyn) bDyn.addEventListener('click', switchToLiveToday);
+      }
     } else {
       if (lblTodayReg) lblTodayReg.textContent = "Bugun ro'yxatga olingan:";
       if (lblTodayCompleted) lblTodayCompleted.textContent = "Bugun ko'rildi:";
     }
     
-    // Navbatdagi bemorlar soni
-    const waiting = typeof summary.totalWaiting === 'number' 
-      ? summary.totalWaiting 
-      : (queueData.totalPatients || (queueData.allPatients ? queueData.allPatients.length : 0));
+    // Navbatdagi / Hali tekshiruvdan o'tmagan bemorlar soni
+    const waiting = typeof summary.waitingTotal === 'number'
+      ? summary.waitingTotal
+      : (typeof summary.totalWaiting === 'number' 
+        ? summary.totalWaiting 
+        : (queueData.totalPatients || (queueData.allPatients ? queueData.allPatients.length : 0)));
     if (totalPatientsCount) totalPatientsCount.textContent = waiting;
 
-    // Bugun ro'yxatga olinganlar va oldingi kundan qolganlar
+    // Bugun / Shu kuni ro'yxatga olinganlar
     let todayReg = 0;
-    if (typeof summary.totalTodayRegistered === 'number') {
-      todayReg = summary.totalTodayRegistered;
-    } else if (typeof summary.totalPatients === 'number') {
+    if (typeof summary.totalPatients === 'number') {
       todayReg = summary.totalPatients;
+    } else if (typeof summary.totalTodayRegistered === 'number') {
+      todayReg = summary.totalTodayRegistered;
     } else if (Array.isArray(queueData.allPatients)) {
       todayReg = queueData.allPatients.filter(p => p.isRegToday).length;
     } else {
       todayReg = waiting;
     }
 
-    let earlierReg = 0;
-    if (typeof summary.totalEarlierRegistered === 'number') {
-      earlierReg = summary.totalEarlierRegistered;
-    } else if (Array.isArray(queueData.allPatients)) {
-      earlierReg = queueData.allPatients.filter(p => p.isRegEarlier || p.isRegYesterday).length;
-    }
+    let earlierReg = typeof summary.seenLaterTotal === 'number' 
+      ? summary.seenLaterTotal 
+      : (typeof summary.totalEarlierRegistered === 'number' ? summary.totalEarlierRegistered : 0);
     if (todayRegPatientsCount) todayRegPatientsCount.textContent = todayReg;
     if (earlierRegPatientsCount) {
-      earlierRegPatientsCount.textContent = earlierReg > 0 ? `(+${earlierReg} oldin)` : '';
+      earlierRegPatientsCount.textContent = earlierReg > 0 ? (selectedArchiveDate ? `(${earlierReg} keyin)` : `(+${earlierReg} oldin)`) : '';
       earlierRegPatientsCount.style.display = earlierReg > 0 ? 'inline-block' : 'none';
     }
 
     // Faol qabuldagi shifokorlar
-    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0 || (d.completedCount && d.completedCount > 0))).length : 0;
+    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0 || (d.completedCount && d.completedCount > 0) || (d.seenTodayCount && d.seenTodayCount > 0))).length : 0;
     if (activeDoctorsCount) activeDoctorsCount.textContent = activeDocs;
 
-    // Faqat tasdiqlangan sanasi bugun bo'lgan ko'riklar
-    const totalComp = typeof summary.totalCompleted === 'number' ? summary.totalCompleted : 0;
-    const earlierComp = typeof summary.totalCompletedEarlier === 'number' ? summary.totalCompletedEarlier : 0;
+    // Faqat tasdiqlangan sanasi shu kuni bo'lgan ko'riklar
+    const totalComp = typeof summary.seenTodayTotal === 'number' 
+      ? summary.seenTodayTotal 
+      : (typeof summary.totalCompleted === 'number' ? summary.totalCompleted : 0);
+    const earlierComp = typeof summary.seenLaterTotal === 'number'
+      ? summary.seenLaterTotal
+      : (typeof summary.totalCompletedEarlier === 'number' ? summary.totalCompletedEarlier : 0);
     if (totalCompletedCount) totalCompletedCount.textContent = totalComp;
     if (completedEarlierSubText) {
-      completedEarlierSubText.textContent = earlierComp > 0 ? `(${earlierComp} oldin)` : '';
+      completedEarlierSubText.textContent = earlierComp > 0 ? (selectedArchiveDate ? `(${earlierComp} keyin)` : `(${earlierComp} oldin)`) : '';
       completedEarlierSubText.style.display = earlierComp > 0 ? 'inline-block' : 'none';
     }
 
@@ -1400,9 +1444,11 @@
       const waitingList = hasWaiting ? waitingPatients.slice(1) : [];
 
       const stats = getDoctorCompletedStats(docId);
-      const completedCount = typeof doc.completedCount === 'number' ? doc.completedCount : stats.completed;
-      const waitingCount = waitingPatients.length;
-      const totalDocCount = stats.total || (completedCount + patients.length);
+      const seenTodayCount = typeof doc.seenTodayCount === 'number' ? doc.seenTodayCount : (typeof doc.completedCount === 'number' ? doc.completedCount : stats.seenToday);
+      const seenLaterCount = typeof doc.seenLaterCount === 'number' ? doc.seenLaterCount : (stats.seenLater || 0);
+      const waitingCount = typeof doc.waitingCount === 'number' ? doc.waitingCount : waitingPatients.length;
+      const totalDocCount = typeof doc.totalCount === 'number' ? doc.totalCount : (stats.total || (seenTodayCount + seenLaterCount + waitingCount));
+      const completedCount = seenTodayCount;
       const progressPercent = totalDocCount > 0 ? Math.round((completedCount / totalDocCount) * 100) : 0;
 
       html += `
@@ -1419,13 +1465,35 @@
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <span class="doc-queue-badge ${(waitingCount > 0 || activeCall || completedCount > 0) ? '' : 'empty'}" title="Ko'rildi: ${completedCount} | Navbatda: ${waitingCount} | Jami: ${totalDocCount}">
-                <span style="color: #4ade80;" title="Ko'rilgan bemorlar soni">${completedCount}</span>
-                <span style="opacity: 0.5; margin: 0 3px;">/</span>
-                <span style="color: #fbbf24;" title="Navbat kutayotganlar soni">${waitingCount}</span>
-                <span style="opacity: 0.5; margin: 0 3px;">/</span>
-                <span style="color: #38bdf8;" title="Jami bemorlar soni">${totalDocCount}</span>
+              <span class="doc-queue-badge ${(waitingCount > 0 || activeCall || completedCount > 0 || seenLaterCount > 0) ? '' : 'empty'}" title="Shu kuni: ${seenTodayCount} | Keyingi kunda: ${seenLaterCount} | Hali o'tmagan: ${waitingCount} | Jami: ${totalDocCount}">
+                <span style="color: #4ade80;" title="Shu kuni ko'rilgan">${seenTodayCount}</span>
+                <span style="opacity: 0.5; margin: 0 2px;">/</span>
+                <span style="color: #38bdf8;" title="Keyingi kunda ko'rilgan">${seenLaterCount}</span>
+                <span style="opacity: 0.5; margin: 0 2px;">/</span>
+                <span style="color: #fbbf24;" title="Hali o'tmagan">${waitingCount}</span>
+                <span style="opacity: 0.5; margin: 0 2px;">/</span>
+                <span style="color: #c084fc;" title="Jami bemorlar">${totalDocCount}</span>
               </span>
+            </div>
+          </div>
+
+          <!-- 4 TA ALOHIDA KO'RSATKICH: [Shu kuni] [Keyingi kunda] [Hali o'tmagan] [Jami] -->
+          <div class="doc-four-metrics-bar">
+            <div class="dfm-item dfm-today" title="Shu kuni ko'rilgan bemorlar soni">
+              <span class="dfm-num">${seenTodayCount}</span>
+              <span class="dfm-label">Shu kuni</span>
+            </div>
+            <div class="dfm-item dfm-later" title="Shu kuni yo'naltirilgan ammo keyingi boshqa kunda ko'rilgan bemorlar soni">
+              <span class="dfm-num">${seenLaterCount}</span>
+              <span class="dfm-label">Keyingi kunda</span>
+            </div>
+            <div class="dfm-item dfm-waiting" title="Shu kuni yo'naltirilgan ammo hali tekshiruvdan o'tmagan bemorlar soni">
+              <span class="dfm-num">${waitingCount}</span>
+              <span class="dfm-label">Hali o'tmagan</span>
+            </div>
+            <div class="dfm-item dfm-total" title="Jami yo'naltirilgan bemorlar soni">
+              <span class="dfm-num">${totalDocCount}</span>
+              <span class="dfm-label">Jami</span>
             </div>
           </div>
 

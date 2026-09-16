@@ -696,6 +696,108 @@ body.mode-post .post-controls-panel {
   color: #94a3b8;
 }
 
+/* =========================================================================
+   VRACH QABULXONASI: 4 TA ALOHIDA KO'RSATKICH BAR (v11.1.0)
+   [Shu kuni ko'rildi] [Keyingi kunda ko'rildi] [Hali o'tmagan] [Jami]
+   ========================================================================= */
+.doc-four-metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.dfm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  min-width: 0;
+  cursor: default;
+}
+
+.dfm-item:hover {
+  transform: translateY(-1px);
+}
+
+.dfm-item .dfm-num {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.1;
+  font-family: 'Arial Black', Impact, sans-serif;
+}
+
+.dfm-item .dfm-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+/* 1. Shu kuni ko'rilgan (Yashil) */
+.dfm-item.dfm-today {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.dfm-item.dfm-today .dfm-num {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+.dfm-item.dfm-today .dfm-label {
+  color: #86efac;
+}
+
+/* 2. Keyingi kunda ko'rilgan (Havorang / Moviy) */
+.dfm-item.dfm-later {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.dfm-item.dfm-later .dfm-num {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+.dfm-item.dfm-later .dfm-label {
+  color: #7dd3fc;
+}
+
+/* 3. Hali tekshiruvdan o'tmagan / Navbatda (Sarg'ish / Oltinrang) */
+.dfm-item.dfm-waiting {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.dfm-item.dfm-waiting .dfm-num {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+.dfm-item.dfm-waiting .dfm-label {
+  color: #fde68a;
+}
+
+/* 4. Jami bemorlar (Binafsharang) */
+.dfm-item.dfm-total {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+.dfm-item.dfm-total .dfm-num {
+  color: #c084fc;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+.dfm-item.dfm-total .dfm-label {
+  color: #e9d5ff;
+}
+
 /* Hozirgi chaqirilayotgan yoki 1-navbatdagi bemor */
 .current-patient-box {
   background: linear-gradient(180deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 28, 63, 0.6) 100%);
