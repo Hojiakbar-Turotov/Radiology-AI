@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>UTT Bemor Portali — Vrachni Tanlash va Navbat</title>
   <link rel="icon" href="icons/logo-onko.png" type="image/png">
-  <link rel="stylesheet" href="bemor.css?v=8.2.0">
+  <link rel="stylesheet" href="bemor.css?v=11.0.0">
   <meta name="theme-color" content="#0d9488">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,7 +18,7 @@
         <div class="logo-wrap">
           <img src="icons/logo-onko.png" alt="Onkologiya Logotipi" class="logo-img" onerror="this.style.display='none'">
           <div class="logo-text">
-            <span class="org-name">RESPUBLIKA ONKOLOGIYA VA RADIOLOGIYA MARKAZI</span>
+            <span class="org-name">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI</span>
             <h1 class="portal-title">UTT Bemor Navbat Portali</h1>
           </div>
         </div>
@@ -230,7 +230,25 @@
             <div class="m-doc" id="modalTargetDoc">—</div>
             <div class="m-queue" id="modalTargetQueue">Navbatdagi bemorlar: 0 nafar</div>
           </div>
-          <div class="alert alert-info">
+
+          <div class="form-group" style="margin-top: 14px; text-align: left;">
+            <label for="switchReasonSelect" style="display: block; font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 6px;">
+              📝 Vrachni o'zgartirish sababini ko'rsating: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="switchReasonSelect" class="form-control" style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 13px; background: #ffffff; color: #1e293b; outline: none; margin-bottom: 8px;">
+              <option value="">-- Sababni tanlang --</option>
+              <option value="Navbat juda ko'p / uzoq kutilmoqda">⏳ Navbat juda ko'p / uzoq kutilmoqda</option>
+              <option value="Avval ko'rikdan o'tgan o'z shifokorimga">👨‍⚕️ Avval ko'rikdan o'tgan o'z shifokorimga</option>
+              <option value="Yo'llanma / Shifokor tavsiyasiga ko'ra">📋 Yo'llanma / Shifokor tavsiyasiga ko'ra</option>
+              <option value="Boshqa sabab">✏️ Boshqa sabab (quyida yozing)</option>
+            </select>
+            <input type="text" id="switchReasonCustom" class="form-control" placeholder="Boshqa sabab bo'lsa batafsil yozing..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 13px; display: none; box-sizing: border-box;">
+            <div id="switchReasonError" style="display: none; color: #ef4444; font-size: 12px; font-weight: 600; margin-top: 4px;">
+              Iltimos, vrachni o'zgartirish sababini tanlang yoki yozing!
+            </div>
+          </div>
+
+          <div class="alert alert-info" style="margin-top: 12px;">
             <small>⚠️ Vrach o'zgartirilgach, siz tanlangan xona navbatiga qo'shilasiz va yangi talon beriladi.</small>
           </div>
         </div>
@@ -246,10 +264,8 @@
 
     <!-- Footer -->
     <footer class="portal-footer">
-      <p>&copy; 2026 Respublika Onkologiya Markazi • UTT Bo'limi Axborot Tizimi</p>
+      <p>&copy; 2026 Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi • UTT Bo'limi Axborot Tizimi</p>
       <div class="footer-links">
-        <a href="/tv" target="_blank">📺 TV Monitor</a>
-        <span>•</span>
         <a href="/download/UTT_Bemor_Navbat.apk" download>📱 Android APK</a>
         <span>•</span>
         <a href="/status" target="_blank">⚡ Holat</a>
@@ -257,6 +273,6 @@
     </footer>
   </div>
 
-  <script src="bemor.js?v=8.2.0"></script>
+  <script src="bemor.js?v=11.0.0"></script>
 </body>
 </html>

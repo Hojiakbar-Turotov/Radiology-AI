@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * UTT BEMOR VA VRACHNI O'ZGARTIRISH PORTALI (bemor.js v8.2.0)
+ * UTT BEMOR VA VRACHNI O'ZGARTIRISH PORTALI (bemor.js v11.0.0)
  * ==============================================================================
  */
 
@@ -51,6 +51,9 @@
   const modalTargetRoom = document.getElementById('modalTargetRoom');
   const modalTargetDoc = document.getElementById('modalTargetDoc');
   const modalTargetQueue = document.getElementById('modalTargetQueue');
+  const switchReasonSelect = document.getElementById('switchReasonSelect');
+  const switchReasonCustom = document.getElementById('switchReasonCustom');
+  const switchReasonError = document.getElementById('switchReasonError');
 
   // Holat o'zgaruvchilari
   let currentPatientData = null;
@@ -252,12 +255,43 @@
     });
   }
 
+  if (switchReasonSelect) {
+    switchReasonSelect.addEventListener('change', function() {
+      if (this.value === 'Boshqa sabab') {
+        if (switchReasonCustom) {
+          switchReasonCustom.style.display = 'block';
+          switchReasonCustom.focus();
+        }
+      } else {
+        if (switchReasonCustom) {
+          switchReasonCustom.style.display = 'none';
+          switchReasonCustom.value = '';
+        }
+      }
+      if (switchReasonError) switchReasonError.style.display = 'none';
+    });
+  }
+
+  if (switchReasonCustom) {
+    switchReasonCustom.addEventListener('input', function() {
+      if (switchReasonError) switchReasonError.style.display = 'none';
+    });
+  }
+
   // 6. Tasdiqlash Modali
   function openConfirmModal(targetDoc) {
     selectedTargetDoc = targetDoc;
     modalTargetRoom.textContent = `${targetDoc.roomNum}-Xona (${targetDoc.roomTitle})`;
     modalTargetDoc.textContent = targetDoc.doctorName;
     modalTargetQueue.textContent = `Hozirda ushbu xonada kutayotgan bemorlar: ${targetDoc.waitingCount} nafar`;
+
+    if (switchReasonSelect) switchReasonSelect.value = '';
+    if (switchReasonCustom) {
+      switchReasonCustom.value = '';
+      switchReasonCustom.style.display = 'none';
+    }
+    if (switchReasonError) switchReasonError.style.display = 'none';
+
     confirmModal.style.display = 'flex';
   }
 
@@ -277,6 +311,23 @@
   confirmChangeBtn.addEventListener('click', async function () {
     if (!selectedTargetDoc || !currentPatientData) return;
 
+    let finalReason = '';
+    const selectedVal = switchReasonSelect ? switchReasonSelect.value.trim() : '';
+    if (selectedVal === 'Boshqa sabab') {
+      finalReason = switchReasonCustom ? switchReasonCustom.value.trim() : '';
+    } else {
+      finalReason = selectedVal;
+    }
+
+    if (!finalReason) {
+      if (switchReasonError) {
+        switchReasonError.style.display = 'block';
+      }
+      if (!selectedVal && switchReasonSelect) switchReasonSelect.focus();
+      else if (switchReasonCustom) switchReasonCustom.focus();
+      return;
+    }
+
     setModalLoading(true);
 
     try {
@@ -287,7 +338,8 @@
           patientId: currentPatientData.patientId,
           labDosyaId: currentPatientData.labDosyaId,
           targetKod: selectedTargetDoc.kod,
-          targetRoom: selectedTargetDoc.room
+          targetRoom: selectedTargetDoc.room,
+          reason: finalReason
         })
       });
 

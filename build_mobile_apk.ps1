@@ -1,10 +1,10 @@
 # ==============================================================================
-# UTT BEMOR MOBIL APK BUILD SCRIPT (v8.2.0)
+# UTT BEMOR MOBIL APK BUILD SCRIPT (v11.0.0)
 # ==============================================================================
 $ErrorActionPreference = 'Stop'
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "  UTT BEMOR NAVBAT — ANDROID MOBIL APK YIG'ISH JARAYONI (v8.2.0)" -ForegroundColor Cyan
+Write-Host "  UTT BEMOR NAVBAT — ANDROID MOBIL APK YIG'ISH JARAYONI (v11.0.0)" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # 1. YO'LLAR VA QURILMALAR

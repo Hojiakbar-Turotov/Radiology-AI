@@ -1594,21 +1594,35 @@
 
     // 1. Tab Switching
     function switchTab(tabName) {
+      const tabBtnSwitches = document.getElementById('tab-btn-switches');
+      const viewSwitches = document.getElementById('view-switches');
+
+      tabBtnDashboard?.classList.remove('active');
+      tabBtnReestr?.classList.remove('active');
+      tabBtnSwitches?.classList.remove('active');
+
+      if (viewDashboard) viewDashboard.style.display = 'none';
+      if (viewReestr) viewReestr.style.display = 'none';
+      if (viewSwitches) viewSwitches.style.display = 'none';
+
       if (tabName === 'reestr') {
-        tabBtnDashboard?.classList.remove('active');
         tabBtnReestr?.classList.add('active');
-        if (viewDashboard) viewDashboard.style.display = 'none';
         if (viewReestr) viewReestr.style.display = 'block';
+      } else if (tabName === 'switches') {
+        tabBtnSwitches?.classList.add('active');
+        if (viewSwitches) viewSwitches.style.display = 'block';
+        if (window.loadDoctorSwitchesData) {
+          window.loadDoctorSwitchesData();
+        }
       } else {
-        tabBtnReestr?.classList.remove('active');
         tabBtnDashboard?.classList.add('active');
-        if (viewReestr) viewReestr.style.display = 'none';
         if (viewDashboard) viewDashboard.style.display = 'block';
       }
     }
 
     tabBtnDashboard?.addEventListener('click', () => switchTab('dashboard'));
     tabBtnReestr?.addEventListener('click', () => switchTab('reestr'));
+    document.getElementById('tab-btn-switches')?.addEventListener('click', () => switchTab('switches'));
 
     // 2. ID Counter & Parsing
     function parseIdsList(text) {
@@ -1926,12 +1940,206 @@
   }
 
   // =========================================================================
+  // 8.1 BEMORLAR VRACHINI O'ZGARTIRISH JURNALI MODULI (v11.0.0)
+  // =========================================================================
+  let switchesAllData = [];
+  let switchesFilteredData = [];
+
+  function initDoctorSwitchesModule() {
+    const searchInput = document.getElementById('switches-search-input');
+    const reasonFilter = document.getElementById('switches-reason-filter');
+    const btnRefresh = document.getElementById('btn-refresh-switches');
+    const btnExportCsv = document.getElementById('btn-export-switches-csv');
+    const tbody = document.getElementById('tbody-switches');
+    const countBadge = document.getElementById('switches-table-count');
+
+    const kpiTotal = document.getElementById('kpi-switches-total');
+    const kpiToday = document.getElementById('kpi-switches-today');
+    const kpiTopReason = document.getElementById('kpi-switches-top-reason');
+
+    async function loadDoctorSwitchesData() {
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center" style="padding: 24px; color: #94a3b8;">Ma\'lumotlar yuklanmoqda...</td></tr>';
+      }
+      try {
+        const res = await fetch('/api/doctor-switches');
+        if (!res.ok) throw new Error("Serverdan ma'lumot olib bo'lmadi");
+        const data = await res.json();
+        switchesAllData = Array.isArray(data.switches) ? data.switches : [];
+        applySwitchesFilters();
+        updateSwitchesKpis();
+      } catch (err) {
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="10" class="text-center" style="padding: 24px; color: #f87171;">Xatolik: ${err.message}</td></tr>`;
+        }
+      }
+    }
+    window.loadDoctorSwitchesData = loadDoctorSwitchesData;
+
+    function updateSwitchesKpis() {
+      if (kpiTotal) kpiTotal.textContent = formatNumber(switchesAllData.length);
+      
+      const today = new Date();
+      const todayStr1 = formatDateDDMMYYYY(today);
+      const todayStr2 = today.toLocaleDateString('ru-RU');
+      const todayIso = today.toISOString().slice(0, 10);
+
+      const todaySwitches = switchesAllData.filter(s => {
+        const d = String(s.date || s.timestamp || '');
+        return d.includes(todayStr1) || d.includes(todayStr2) || d.includes(todayIso);
+      });
+      if (kpiToday) kpiToday.textContent = formatNumber(todaySwitches.length);
+
+      // Eng ko'p sababni topish
+      const reasonCounts = {};
+      switchesAllData.forEach(s => {
+        const r = (s.reason || "Sabab ko'rsatilmadi").trim();
+        reasonCounts[r] = (reasonCounts[r] || 0) + 1;
+      });
+      let topReason = '—';
+      let maxCount = 0;
+      for (const [r, count] of Object.entries(reasonCounts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          topReason = `${r} (${count} ta)`;
+        }
+      }
+      if (kpiTopReason) kpiTopReason.textContent = topReason;
+    }
+
+    function applySwitchesFilters() {
+      const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const rFilter = reasonFilter ? reasonFilter.value.trim() : 'ALL';
+
+      switchesFilteredData = switchesAllData.filter(item => {
+        if (rFilter !== 'ALL') {
+          const itemReason = (item.reason || '').toLowerCase();
+          if (!itemReason.includes(rFilter.toLowerCase())) return false;
+        }
+
+        if (q) {
+          const combined = [
+            item.patientId,
+            item.patientName,
+            item.pinfl,
+            item.fromRoom,
+            item.fromDoctor,
+            item.toRoom,
+            item.toDoctor,
+            item.reason,
+            item.clientIp,
+            item.date
+          ].filter(Boolean).join(' ').toLowerCase();
+
+          if (!combined.includes(q)) return false;
+        }
+
+        return true;
+      });
+
+      renderSwitchesTable();
+    }
+
+    function renderSwitchesTable() {
+      if (!tbody) return;
+      if (countBadge) countBadge.textContent = `${switchesFilteredData.length} ta yozuv`;
+
+      if (switchesFilteredData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center" style="padding: 24px; color: #94a3b8;">Hech qanday o\'zgartirish yozuvi topilmadi</td></tr>';
+        return;
+      }
+
+      const rowsHtml = switchesFilteredData.map((s, idx) => {
+        const reasonText = s.reason || "Sabab ko'rsatilmadi";
+        let reasonBadgeStyle = 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);';
+        if (reasonText.includes('kamroq') || reasonText.includes('navbat')) {
+          reasonBadgeStyle = 'background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35);';
+        } else if (reasonText.includes('uzoq') || reasonText.includes('kutil')) {
+          reasonBadgeStyle = 'background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);';
+        } else if (reasonText.includes('tavsiya') || reasonText.includes('maslahat')) {
+          reasonBadgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);';
+        }
+
+        return `
+          <tr>
+            <td class="text-center" style="color: #64748b; font-weight: 600;">${idx + 1}</td>
+            <td><strong>${s.date || (s.timestamp ? s.timestamp.slice(0,10) : '—')}</strong></td>
+            <td style="color: #94a3b8;">${s.time || (s.timestamp ? s.timestamp.slice(11,19) : '—')}</td>
+            <td><code style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-weight: 600;">${s.patientId || '—'}</code></td>
+            <td><strong style="color: #f8fafc;">${s.patientName || '—'}</strong></td>
+            <td style="color: #94a3b8; font-size: 12px;">${s.pinfl || '—'}</td>
+            <td style="color: #f87171;">
+              <span style="display: block; font-weight: 600;">${s.fromRoom || '—'}</span>
+              <span style="font-size: 11px; opacity: 0.85;">${s.fromDoctor && s.fromDoctor !== s.fromRoom ? s.fromDoctor : ''}</span>
+            </td>
+            <td style="color: #34d399;">
+              <span style="display: block; font-weight: 600;">${s.toRoom || '—'}</span>
+              <span style="font-size: 11px; opacity: 0.85;">${s.toDoctor && s.toDoctor !== s.toRoom ? s.toDoctor : ''}</span>
+            </td>
+            <td>
+              <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; ${reasonBadgeStyle}">
+                💬 ${reasonText}
+              </span>
+            </td>
+            <td style="color: #64748b; font-size: 11px;">${s.clientIp ? s.clientIp.replace('::ffff:', '') : 'Lokal'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+    }
+
+    searchInput?.addEventListener('input', applySwitchesFilters);
+    reasonFilter?.addEventListener('change', applySwitchesFilters);
+    btnRefresh?.addEventListener('click', loadDoctorSwitchesData);
+
+    // CSV Export
+    btnExportCsv?.addEventListener('click', () => {
+      if (switchesFilteredData.length === 0) {
+        alert("Eksport qilish uchun ma'lumot mavjud emas!");
+        return;
+      }
+      const BOM = '\uFEFF';
+      const headers = ['№', 'Sana', 'Vaqt', 'Bemor ID', 'Bemor F.I.SH', 'PINFL', 'Oldingi Xona / Vrach', 'Yangi Xona / Vrach', 'O\'zgartirish Sababi', 'IP Manzili'];
+      let csv = BOM + headers.join(';') + '\n';
+
+      switchesFilteredData.forEach((s, idx) => {
+        const row = [
+          idx + 1,
+          `"${s.date || ''}"`,
+          `"${s.time || ''}"`,
+          `"${s.patientId || ''}"`,
+          `"${(s.patientName || '').replace(/"/g, '""')}"`,
+          `"${s.pinfl || ''}"`,
+          `"${(s.fromRoom || s.fromDoctor || '').replace(/"/g, '""')}"`,
+          `"${(s.toRoom || s.toDoctor || '').replace(/"/g, '""')}"`,
+          `"${(s.reason || '').replace(/"/g, '""')}"`,
+          `"${(s.clientIp || '').replace(/"/g, '""')}"`
+        ];
+        csv += row.join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Vrach_Ozgartirish_Jurnali_${getTodayString()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Initial load
+    loadDoctorSwitchesData();
+  }
+
+  // =========================================================================
   // 9. DASTUR BOSHLANISHI
   // =========================================================================
   initTheme();
   initMoneyVisibility();
   initEventListeners();
   initCustomReestrModule();
+  initDoctorSwitchesModule();
   fetchPriceCatalog();
 
   // DASTUR BIRINCHI BO'LIB DOIMIY RAVISHTA BUGUNGI KUN MA'LUMOTLARINI YUKLAYDI:

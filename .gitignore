@@ -8,6 +8,7 @@ dist/
 build-installer/runtime/
 *.exe
 android_tv_app/build/
+android_mobile_app/build/
 *.idsig
 
 # Large data logs and dynamic files

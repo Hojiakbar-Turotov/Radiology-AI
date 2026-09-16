@@ -767,6 +767,36 @@ function broadcastEvent(payloadObj) {
   }
 }
 
+// BEMORLAR VRACHINI O'ZGARTIRISH JURNALI (PERSISTENT DATA - v11.0.0)
+const SWITCHES_FILE = path.join(ROOT_DIR, 'data', 'doctor_switches.json');
+let cachedDoctorSwitches = null;
+
+function getDoctorSwitchesList() {
+  if (cachedDoctorSwitches) return cachedDoctorSwitches;
+  try {
+    if (fs.existsSync(SWITCHES_FILE)) {
+      cachedDoctorSwitches = JSON.parse(fs.readFileSync(SWITCHES_FILE, 'utf8'));
+    } else {
+      cachedDoctorSwitches = [];
+    }
+  } catch (e) {
+    cachedDoctorSwitches = [];
+  }
+  return cachedDoctorSwitches;
+}
+
+function saveDoctorSwitchRecord(record) {
+  const list = getDoctorSwitchesList();
+  list.unshift(record); // Eng oxirgi birinchi
+  try {
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(SWITCHES_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving doctor switch record:', e);
+  }
+}
+
 // =========================================================================
 // TV VA SMART QURILMALAR REAL-TIME MONITORING TIZIMI (v6.0.0)
 // =========================================================================
@@ -1199,16 +1229,19 @@ async function syncMasterQueueFromKarmedDirect() {
         categoryBadge = `🏥 ${kurumRaw}`;
       }
 
-      // Bo'limda yotgan (Yatan / Statsionar) yoki yotmagan (Ambulator / Poliklinika)
+      // Bo'limda yotgan (Statsionar) yoki Poliklinikadan (Ambulator) yo'naltirilgan bemorlarni Ustuvorlik bo'yicha aniqlash
       const yatPolVal = String(kp.YatPol || '').toUpperCase();
+      const oncelikVal = String(kp.OncelikAciklama || kp.OncelikAciklamaDb || kp.Oncelik || kp.OncelikAdi || '').trim();
       const servisAdi = String(kp.ServisAdi || kp.AltServisAdi || kp.BolumAdi || '').trim();
-      const isYatan = (yatPolVal === 'Y') || 
-                      servisAdi.toLowerCase().includes('yatan') || 
-                      (servisAdi && !servisAdi.toLowerCase().includes('poliklinik') && !servisAdi.toLowerCase().includes('ambulator'));
+
+      const isYatan = (oncelikVal.toLowerCase().includes('statsionar')) || 
+                      (yatPolVal === 'Y') || 
+                      (servisAdi.toLowerCase().includes('yatan') || servisAdi.toLowerCase().includes('statsionar'));
+
       const stayType = isYatan ? 'yatan' : 'ambulator';
-      const stayTitle = isYatan ? "Bo'limda yotgan (Statsionar)" : "Bo'limda yotmagan (Ambulator)";
-      const stayBadge = isYatan ? "🏥 Yotgan bemor" : "🚶 Ambulator";
-      const departmentName = servisAdi || (isYatan ? 'Statsionar bo\'lim' : 'Ambulatoriya');
+      const stayTitle = isYatan ? "Bo'limda yotgan (Statsionar)" : "Poliklinikadan (Ambulator)";
+      const stayBadge = isYatan ? "🏥 Bo'limda yotgan" : "🚶 Poliklinika";
+      const departmentName = servisAdi || (isYatan ? "Statsionar bo'lim" : "Poliklinika");
 
       const patientObj = {
         patientId: String(kp.KimlikNo || kp.Id),
@@ -1249,6 +1282,7 @@ async function syncMasterQueueFromKarmedDirect() {
         patientCategory: patientCategory,
         categoryTitle: categoryTitle,
         categoryBadge: categoryBadge,
+        ustuvorlik: oncelikVal || (isYatan ? 'Statsionar' : 'Poliklinika'),
         yatPol: yatPolVal || (isYatan ? 'Y' : 'P'),
         isYatan: isYatan,
         stayType: stayType,
@@ -3691,8 +3725,9 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
         return;
       }
 
-      const { patientId, targetKod, targetRoom } = body;
+      const { patientId, targetKod, targetRoom, reason } = body;
       const clientIp = req.socket.remoteAddress || '';
+      const switchReason = (reason || body.switchReason || '').trim() || "Sabab ko'rsatilmadi";
 
       if (!patientId || (!targetKod && !targetRoom)) {
         res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -3751,6 +3786,7 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
 
       const finishChangeLocally = (karmedSuccess = true, karmedNote = '') => {
         const prevRoom = patient.currentRoomTitle || patient.currentRoom;
+        const switchText = `Bemor so'rovi (${switchReason}) [${prevRoom} -> ${targetDoc.roomTitle}]`;
 
         // 1. latestQueueData.allPatients ro'yxatida yangilash
         if (latestQueueData && Array.isArray(latestQueueData.allPatients)) {
@@ -3763,7 +3799,8 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
             pInAll.roomTitle = targetDoc.roomTitle;
             pInAll.doctorName = targetDoc.doctorName;
             pInAll.hasDoctorSwitch = true;
-            pInAll.switchText = `Bemor so'rovi bilan o'zgartirildi (${prevRoom} -> ${targetDoc.roomTitle})`;
+            pInAll.switchText = switchText;
+            pInAll.switchReason = switchReason;
           }
         }
 
@@ -3803,7 +3840,8 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
             roomTitle: targetDoc.roomTitle,
             doctorName: targetDoc.doctorName,
             hasDoctorSwitch: true,
-            switchText: `Bemor so'rovi bilan o'zgartirildi (${prevRoom} -> ${targetDoc.roomTitle})`
+            switchText: switchText,
+            switchReason: switchReason
           };
           targetGroup.patients.push(updatedPatientObj);
           targetGroup.patients.sort((a, b) => (a.timeMinutes || 0) - (b.timeMinutes || 0));
@@ -3818,13 +3856,25 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
         });
 
         // 4. Tizim jurnali va auditiga yozish
-        const logMsg = `Bemor o'z vrachini o'zgartirdi: ${patient.fullName} (ID: ${patient.patientId}) [${prevRoom} -> ${targetDoc.roomTitle}] ${karmedNote}`;
-        recordSystemEvent('PATIENT_SELF_CHANGE', logMsg, clientIp, {
-          patientId: patient.patientId,
+        const logMsg = `Bemor o'z vrachini o'zgartirdi: ${patient.fullName} (ID: ${patient.patientId}) [${prevRoom} -> ${targetDoc.roomTitle}] Sabab: ${switchReason} ${karmedNote}`;
+        const switchRecord = {
+          id: 'sw_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          timestamp: new Date().toISOString(),
+          date: getDailyLogInfo().dateStr,
+          time: new Date().toLocaleTimeString(),
+          patientId: String(patient.patientId || ''),
+          patientName: patient.fullName || '',
+          pinfl: patient.tckn || patient.pinfl || '',
           fromRoom: prevRoom,
+          fromDoctor: patient.doctorName || prevRoom,
           toRoom: targetDoc.roomTitle,
-          karmedSuccess
-        });
+          toDoctor: targetDoc.doctorName,
+          reason: switchReason,
+          clientIp: clientIp,
+          karmedSuccess: karmedSuccess
+        };
+        saveDoctorSwitchRecord(switchRecord);
+        recordSystemEvent('PATIENT_SELF_CHANGE', logMsg, clientIp, switchRecord);
         writeToDailyLog(`[PATIENT_SELF_CHANGE] ${logMsg}`);
 
         // 5. Yangi Talon va muvaffaqiyatli javob
@@ -3894,6 +3944,18 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     return;
   }
 
+  // 4. VRACHNI O'ZGARTIRISH JURNALI (/api/doctor-switches)
+  if (req.method === 'GET' && pathname === '/api/doctor-switches') {
+    const switches = getDoctorSwitchesList();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      count: switches.length,
+      switches: switches
+    }));
+    return;
+  }
+
   // =========================================================================
   // STATIK VEB SAHIFA VA FAYLLARNI TARQATISH
   // =========================================================================
@@ -3952,7 +4014,7 @@ serverMobileMrt.listen(PORT_MOBILE_MRT, HOST, () => {
 
   console.log(`[Port ${PORT_MOBILE_MRT}] 🧲 MRT Mobil Agenti ishga tushdi: http://localhost:${PORT_MOBILE_MRT}`);
   console.log(`\n================================================================================`);
-  console.log(`  RESPUBLIKA ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI — UTT / MSKT / MRT (8 PORT)`);
+  console.log(`  RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI (v11.0.0)`);
   console.log(`================================================================================`);
   console.log(`  📅 Bugungi sana:          ${dateStr}`);
   console.log(`  📁 Kunlik log fayl:       ${logFile}`);
