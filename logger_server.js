@@ -1166,6 +1166,50 @@ async function syncMasterQueueFromKarmedDirect() {
       else if (statusCode === 4) statusText = 'Kabul Edilen';
       else if (statusCode === 8) statusText = 'Rapor Onaylı';
 
+      // 4. Toifasi (Sug'urta, Rezident, Order, No-rezident) va Joylashuvi (Bo'limda yotgan / yotmagan)
+      const kurumRaw = String(kp.KurumAdi || kp.SosyalGuvence || '').trim();
+      const kurumLower = kurumRaw.toLowerCase();
+      let patientCategory = 'rezident';
+      let categoryTitle = "Rezident (O'zbekiston)";
+      let categoryBadge = "🇺🇿 Rezident";
+
+      if (kurumLower.includes('no rezident') || kurumLower.includes('norezident') || kurumLower.includes('no-rezident')) {
+        patientCategory = 'norezident';
+        categoryTitle = "No-rezident (Chet el fuqarosi)";
+        categoryBadge = "🌐 No-rezident";
+      } else if (kurumLower.includes('order')) {
+        patientCategory = 'order';
+        categoryTitle = "Orderli (Davlat orderi)";
+        categoryBadge = "📋 Orderli";
+      } else if (kurumLower.includes('sugurta')) {
+        patientCategory = 'sugurta';
+        categoryTitle = "Sug'urta";
+        categoryBadge = "🏥 Sug'urta";
+      } else if (kurumLower.includes('rezident')) {
+        patientCategory = 'rezident';
+        categoryTitle = "Rezident (O'zbekiston)";
+        categoryBadge = "🇺🇿 Rezident";
+      } else if (kurumLower.includes('vaqf') || kurumLower.includes('fond') || kurumLower.includes('hokimiyat')) {
+        patientCategory = 'order';
+        categoryTitle = "Imtiyozli jamg'arma";
+        categoryBadge = "🏛️ Imtiyozli";
+      } else if (kurumRaw) {
+        patientCategory = 'sugurta';
+        categoryTitle = kurumRaw;
+        categoryBadge = `🏥 ${kurumRaw}`;
+      }
+
+      // Bo'limda yotgan (Yatan / Statsionar) yoki yotmagan (Ambulator / Poliklinika)
+      const yatPolVal = String(kp.YatPol || '').toUpperCase();
+      const servisAdi = String(kp.ServisAdi || kp.AltServisAdi || kp.BolumAdi || '').trim();
+      const isYatan = (yatPolVal === 'Y') || 
+                      servisAdi.toLowerCase().includes('yatan') || 
+                      (servisAdi && !servisAdi.toLowerCase().includes('poliklinik') && !servisAdi.toLowerCase().includes('ambulator'));
+      const stayType = isYatan ? 'yatan' : 'ambulator';
+      const stayTitle = isYatan ? "Bo'limda yotgan (Statsionar)" : "Bo'limda yotmagan (Ambulator)";
+      const stayBadge = isYatan ? "🏥 Yotgan bemor" : "🚶 Ambulator";
+      const departmentName = servisAdi || (isYatan ? 'Statsionar bo\'lim' : 'Ambulatoriya');
+
       const patientObj = {
         patientId: String(kp.KimlikNo || kp.Id),
         dosyaNo: kp.ProtokolNo || kp.DosyaNo || '',
@@ -1201,6 +1245,16 @@ async function syncMasterQueueFromKarmedDirect() {
         examiningRoomTitle: acceptingDoc ? acceptingDoc.roomTitle : '',
         hasDoctorSwitch: hasDoctorSwitch,
         switchText: switchText,
+        kurumAdi: kurumRaw,
+        patientCategory: patientCategory,
+        categoryTitle: categoryTitle,
+        categoryBadge: categoryBadge,
+        yatPol: yatPolVal || (isYatan ? 'Y' : 'P'),
+        isYatan: isYatan,
+        stayType: stayType,
+        stayTitle: stayTitle,
+        stayBadge: stayBadge,
+        department: departmentName,
         karmedIndex: idx
       };
 

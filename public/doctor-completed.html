@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vrach Ko'rgan Bemorlar</title>
+  <title>Vrach Ko'rgan Bemorlar — KARMED UTT</title>
   <style>
     * {
       box-sizing: border-box;
@@ -14,7 +14,7 @@
     body {
       background: #0b1329;
       color: #f1f5f9;
-      padding: 18px 22px;
+      padding: 16px 20px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -27,9 +27,9 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      padding-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid rgba(59, 130, 246, 0.25);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .doctor-info-wrap {
       display: flex;
@@ -62,17 +62,22 @@
     .stats-pills-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
     .pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
+      gap: 5px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .pill:hover {
+      transform: translateY(-1px);
     }
     .pill-total {
       background: rgba(34, 197, 94, 0.2);
@@ -89,32 +94,76 @@
       color: #fbbf24;
       border: 1px solid rgba(245, 158, 11, 0.45);
     }
+    .pill-switched {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+    .pill-yatan {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+    .pill-ambulator {
+      background: rgba(148, 163, 184, 0.2);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+    .pill-order {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
+    .pill-sugurta {
+      background: rgba(14, 165, 233, 0.2);
+      color: #7dd3fc;
+      border: 1px solid rgba(14, 165, 233, 0.45);
+    }
+    .pill-rezident {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.45);
+    }
+    .pill-norezident {
+      background: rgba(168, 85, 247, 0.2);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.45);
+    }
 
-    /* Qidiruv va saralash vositalari */
-    .controls-row {
+    /* Qidiruv va filtrlash boshqaruvi */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .controls-row-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 14px;
     }
     .search-box {
       position: relative;
       flex: 1;
-      min-width: 260px;
-      max-width: 480px;
+      min-width: 280px;
+      max-width: 500px;
     }
     .search-input {
       width: 100%;
-      background: #1e293b;
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.35);
       border-radius: 8px;
       padding: 8px 36px 8px 34px;
       color: #f8fafc;
-      font-size: 14px;
+      font-size: 13.5px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
     .search-input:focus {
       border-color: #38bdf8;
@@ -142,39 +191,64 @@
       display: none;
     }
 
-    .filter-options {
+    .filter-pills-wrap {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: wrap;
     }
     .filter-btn {
       background: #1e293b;
       border: 1px solid rgba(148, 163, 184, 0.3);
       color: #cbd5e1;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover {
+      background: #334155;
+      color: #ffffff;
     }
     .filter-btn.active {
       background: #2563eb;
       border-color: #3b82f6;
       color: #ffffff;
     }
-    .btn-print {
-      background: #0f766e;
-      border: 1px solid #14b8a6;
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 13px;
+
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-action {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+    .btn-csv {
+      background: #15803d;
+      color: #fff;
+    }
+    .btn-print {
+      background: #0f766e;
+      color: #fff;
+    }
+    .btn-reset {
+      background: #475569;
+      color: #e2e8f0;
     }
 
     /* Jadval konteyneri */
@@ -190,7 +264,7 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 13.5px;
+      font-size: 13px;
     }
     thead {
       position: sticky;
@@ -199,16 +273,77 @@
       z-index: 10;
     }
     th {
-      padding: 12px 14px;
+      padding: 10px 12px;
       color: #e2e8f0;
       font-weight: 700;
       letter-spacing: 0.3px;
       text-transform: uppercase;
-      font-size: 12px;
+      font-size: 11.5px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      vertical-align: middle;
     }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    th.sortable:hover {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    th.sort-active {
+      background: #1d4ed8;
+      color: #38bdf8;
+    }
+    .sort-icon {
+      display: inline-block;
+      font-size: 10px;
+      margin-left: 4px;
+      opacity: 0.6;
+    }
+    th.sort-active .sort-icon {
+      opacity: 1;
+      color: #38bdf8;
+    }
+
+    /* Ustunlar bo'yicha tezkor filtr qatori */
+    .col-filter-row th {
+      background: #0f2352;
+      padding: 5px 8px;
+      border-bottom: 2px solid rgba(59, 130, 246, 0.4);
+    }
+    .col-filter-input, .col-filter-select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 6px;
+      color: #f1f5f9;
+      font-size: 11.5px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .col-filter-input:focus, .col-filter-select:focus {
+      border-color: #38bdf8;
+      background: #0f172a;
+    }
+    .btn-clear-col-filters {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 3px 6px;
+      font-size: 11px;
+      display: block;
+      margin: 0 auto;
+    }
+    .btn-clear-col-filters:hover {
+      background: rgba(239, 68, 68, 0.4);
+    }
+
     td {
-      padding: 11px 14px;
+      padding: 9px 12px;
       border-bottom: 1px solid rgba(148, 163, 184, 0.12);
       color: #f1f5f9;
       vertical-align: middle;
@@ -223,7 +358,7 @@
     /* Nishonlar */
     .badge-idx {
       display: inline-block;
-      min-width: 24px;
+      min-width: 22px;
       text-align: center;
       font-weight: 800;
       color: #94a3b8;
@@ -232,8 +367,9 @@
       font-weight: 800;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.12);
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
+      font-size: 12px;
     }
     .patient-name {
       font-weight: 700;
@@ -242,13 +378,74 @@
     }
     .refer-doc {
       color: #cbd5e1;
-      font-size: 12.5px;
+      font-size: 12px;
+    }
+    .dept-subtext {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
     }
     .time-cell {
       color: #94a3b8;
-      font-size: 12.5px;
+      font-size: 12px;
       white-space: nowrap;
     }
+
+    /* Toifasi (Karmed) nishonlari */
+    .badge-cat {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-cat-order {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
+    .badge-cat-sugurta {
+      background: rgba(14, 165, 233, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(14, 165, 233, 0.45);
+    }
+    .badge-cat-rezident {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.45);
+    }
+    .badge-cat-norezident {
+      background: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.45);
+    }
+
+    /* Joylashuvi (Yotgan / Yotmagan) nishonlari */
+    .badge-stay {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-stay-yatan {
+      background: rgba(245, 158, 11, 0.22);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+    .badge-stay-amb {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    /* Holat nishonlari */
     .tag-completed {
       display: inline-flex;
       align-items: center;
@@ -256,7 +453,7 @@
       background: rgba(34, 197, 94, 0.2);
       color: #4ade80;
       border: 1px solid rgba(34, 197, 94, 0.4);
-      padding: 3px 8px;
+      padding: 3px 7px;
       border-radius: 6px;
       font-size: 11.5px;
       font-weight: 700;
@@ -269,10 +466,24 @@
       background: rgba(245, 158, 11, 0.2);
       color: #fbbf24;
       border: 1px solid rgba(245, 158, 11, 0.45);
-      padding: 3px 8px;
+      padding: 3px 7px;
       border-radius: 6px;
       font-size: 11.5px;
       font-weight: 700;
+      white-space: nowrap;
+    }
+    .tag-switched {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 6px;
       white-space: nowrap;
     }
 
@@ -292,13 +503,14 @@
     /* Chop etish uslublari */
     @media print {
       body { background: #fff; color: #000; padding: 10px; }
-      .controls-row, .btn-print { display: none !important; }
+      .controls-panel, .btn-action { display: none !important; }
       .table-container { background: #fff; border: 1px solid #ccc; box-shadow: none; }
       th { background: #eee; color: #000; }
       td { color: #000; border-bottom: 1px solid #ddd; }
+      .col-filter-row { display: none !important; }
       .badge-id { background: transparent; color: #000; border: 1px solid #ccc; }
       .room-badge { background: #000; color: #fff; }
-      .tag-completed, .tag-earlier-completed { background: transparent; color: #000; border: 1px solid #999; }
+      .tag-completed, .tag-earlier-completed, .tag-switched, .badge-cat, .badge-stay { background: transparent; color: #000; border: 1px solid #999; }
     }
   </style>
 </head>
@@ -314,45 +526,131 @@
       </div>
     </div>
     <div class="stats-pills-row">
-      <div class="pill pill-total" id="statPillTotal">✅ Jami: 0 ta</div>
-      <div class="pill pill-today" id="statPillToday">📅 Bugun ro'yxat: 0 ta</div>
-      <div class="pill pill-earlier" id="statPillEarlier">🔄 Oldin yo'naltirilgan: 0 ta</div>
-      <div class="pill pill-earlier" id="statPillSwitched" style="display:none; background:rgba(245, 158, 11, 0.2); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.45);">⚠️ Boshqa xonadan o'tgan: 0 ta</div>
+      <div class="pill pill-total" id="statPillTotal" title="Barcha ko'rilgan bemorlar">✅ Jami: 0 ta</div>
+      <div class="pill pill-today" id="statPillToday" title="Bugun ro'yxatga olinganlar">📅 Bugun: 0 ta</div>
+      <div class="pill pill-earlier" id="statPillEarlier" title="Oldingi kundan yo'naltirilib bugun ko'rilganlar">🔄 Oldin: 0 ta</div>
+      <div class="pill pill-switched" id="statPillSwitched" style="display:none;" title="Boshqa vrach navbatidan qabul qilinganlar">⚠️ Boshqa xonadan: 0 ta</div>
+      <div class="pill pill-yatan" id="statPillYatan" title="Bo'limda yotgan statsionar bemorlar">🏥 Yotgan: 0 ta</div>
+      <div class="pill pill-ambulator" id="statPillAmbulator" title="Poliklinika ambulator bemorlari">🚶 Ambulator: 0 ta</div>
+      <div class="pill pill-order" id="statPillOrder" title="Davlat orderi bo'yicha imtiyozli bemorlar">📋 Order: 0 ta</div>
+      <div class="pill pill-sugurta" id="statPillSugurta" title="Sug'urtali bemorlar">🏥 Sug'urta: 0 ta</div>
+      <div class="pill pill-rezident" id="statPillRezident" title="O'zbekiston rezident fuqarolari">🇺🇿 Rezident: 0 ta</div>
+      <div class="pill pill-norezident" id="statPillNoRezident" style="display:none;" title="Chet el fuqarolari">🌐 No-rezident: 0 ta</div>
     </div>
   </div>
 
   <!-- Qidiruv va filtrlash boshqaruvi -->
-  <div class="controls-row">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="Bemor ID, F.I.Sh. yoki yo'naltiruvchi shifokor..." />
-      <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Tozalash">✕</button>
-    </div>
-    <div class="filter-options">
-      <button type="button" class="filter-btn active" data-filter="all" id="btnFilterAll">Barchasi</button>
-      <button type="button" class="filter-btn" data-filter="today" id="btnFilterToday">Bugun yo'naltirilgan</button>
-      <button type="button" class="filter-btn" data-filter="earlier" id="btnFilterEarlier">Oldin yo'naltirilgan</button>
-      <button type="button" class="btn-print" id="btnPrint" title="Chop etish">🖨️ Chop etish</button>
+  <div class="controls-panel">
+    <div class="controls-row-top">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Bemor ID, F.I.Sh., shifokor, bo'lim yoki toifa..." />
+        <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Tozalash">✕</button>
+      </div>
+
+      <div class="filter-pills-wrap">
+        <!-- Status filtrlari -->
+        <button type="button" class="filter-btn active" data-filter="all">Barchasi</button>
+        <button type="button" class="filter-btn" data-filter="today">📅 Bugun</button>
+        <button type="button" class="filter-btn" data-filter="earlier">🔄 Oldin</button>
+        <button type="button" class="filter-btn" data-filter="switched">⚠️ Boshqa xona</button>
+
+        <!-- Joylashuv filtrlari -->
+        <button type="button" class="filter-btn" data-filter="yatan">🏥 Yotgan</button>
+        <button type="button" class="filter-btn" data-filter="ambulator">🚶 Ambulator</button>
+
+        <!-- Toifa filtrlari -->
+        <button type="button" class="filter-btn" data-filter="order">📋 Order</button>
+        <button type="button" class="filter-btn" data-filter="sugurta">🏥 Sug'urta</button>
+        <button type="button" class="filter-btn" data-filter="rezident">🇺🇿 Rezident</button>
+        <button type="button" class="filter-btn" data-filter="norezident">🌐 No-rezident</button>
+      </div>
+
+      <div class="actions-group">
+        <button type="button" class="btn-action btn-csv" id="btnExportCsv" title="Excel (CSV) yuklab olish">
+          📥 Excel (CSV)
+        </button>
+        <button type="button" class="btn-action btn-print" id="btnPrint" title="Chop etish">
+          🖨️ Chop etish
+        </button>
+        <button type="button" class="btn-action btn-reset" id="btnResetFilters" title="Barcha filtrlarni tozalash">
+          🧹 Tozalash
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Bemorlar jadvali -->
   <div class="table-container">
-    <table>
+    <table id="completedPatientsTable">
       <thead>
+        <!-- Asosiy saralash sarlavhalari -->
         <tr>
-          <th style="width: 45px; text-align: center;">#</th>
-          <th style="width: 110px;">Bemor ID</th>
-          <th>Bemor F.I.Sh.</th>
-          <th>Yo'naltiruvchi Shifokor</th>
-          <th>Ro'yxatga Olingan</th>
-          <th>Tasdiqlangan Sana</th>
-          <th>Holati</th>
+          <th class="sortable" data-sort="idx" style="width: 45px; text-align: center;"># <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="patientId" style="width: 95px;">Bemor ID <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="fullName" style="min-width: 170px;">Bemor F.I.Sh. <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="category" style="width: 140px;">Toifasi (Karmed) <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="stay" style="width: 160px;">Joylashuvi <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="referringDoctor" style="min-width: 160px;">Yo'naltiruvchi Shifokor <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="regDate" style="width: 125px;">Ro'yxat Sanasi <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="confDate" style="width: 125px;">Tasdiqlangan Sana <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-sort="status" style="width: 155px;">Holati <span class="sort-icon">↕</span></th>
+        </tr>
+
+        <!-- Barcha ustunlar bo'yicha mustaqil inline filtr qatori -->
+        <tr class="col-filter-row">
+          <th style="text-align:center;">
+            <button type="button" class="btn-clear-col-filters" id="btnClearColFilters" title="Filtrlarni tozalash">✕</button>
+          </th>
+          <th>
+            <input type="text" class="col-filter-input" data-col="patientId" placeholder="ID..." />
+          </th>
+          <th>
+            <input type="text" class="col-filter-input" data-col="fullName" placeholder="F.I.Sh..." />
+          </th>
+          <th>
+            <select class="col-filter-select" data-col="category">
+              <option value="">Barchasi</option>
+              <option value="order">📋 Orderli</option>
+              <option value="sugurta">🏥 Sug'urta</option>
+              <option value="rezident">🇺🇿 Rezident</option>
+              <option value="norezident">🌐 No-rezident</option>
+            </select>
+          </th>
+          <th>
+            <select class="col-filter-select" data-col="stay">
+              <option value="">Barchasi</option>
+              <option value="yatan">🏥 Yotgan</option>
+              <option value="ambulator">🚶 Ambulator</option>
+            </select>
+          </th>
+          <th>
+            <input type="text" class="col-filter-input" data-col="referringDoctor" placeholder="Shifokor..." />
+          </th>
+          <th>
+            <select class="col-filter-select" data-col="regDate">
+              <option value="">Barchasi</option>
+              <option value="today">Bugun</option>
+              <option value="yesterday">Kecha</option>
+              <option value="earlier">Oldinroq</option>
+            </select>
+          </th>
+          <th>
+            <input type="text" class="col-filter-input" data-col="confDate" placeholder="Vaqt..." />
+          </th>
+          <th>
+            <select class="col-filter-select" data-col="status">
+              <option value="">Barchasi</option>
+              <option value="today">Bugun ko'rildi</option>
+              <option value="earlier">Oldin yo'naltirilgan</option>
+              <option value="switched">⚠️ Boshqa xonadan</option>
+            </select>
+          </th>
         </tr>
       </thead>
       <tbody id="tableBody">
         <tr>
-          <td colspan="7" class="empty-state">
+          <td colspan="9" class="empty-state">
             <span class="empty-icon">⏳</span>
             Ma'lumotlar yuklanmoqda...
           </td>
@@ -363,6 +661,8 @@
 
   <script>
     (function() {
+      'use strict';
+
       const urlParams = new URLSearchParams(window.location.search);
       let targetRoom = urlParams.get('room') || urlParams.get('id') || '';
       if (!targetRoom && window.location.hash) {
@@ -370,19 +670,50 @@
       }
 
       let allCompletedPatients = [];
-      let currentFilter = 'all';
+      let currentFilterPill = 'all';
       let currentQuery = '';
+
+      // Ustunlar bo'yicha mustaqil filtr holati
+      let colFilters = {
+        patientId: '',
+        fullName: '',
+        category: '',
+        stay: '',
+        referringDoctor: '',
+        regDate: '',
+        confDate: '',
+        status: ''
+      };
+
+      // Saralash holati
+      let currentSort = {
+        col: 'idx',
+        dir: 'asc'
+      };
 
       const dispRoomBadge = document.getElementById('dispRoomBadge');
       const dispDoctorName = document.getElementById('dispDoctorName');
       const dispDateLabel = document.getElementById('dispDateLabel');
+
+      // Statistika chiplari
       const statPillTotal = document.getElementById('statPillTotal');
       const statPillToday = document.getElementById('statPillToday');
       const statPillEarlier = document.getElementById('statPillEarlier');
+      const statPillSwitched = document.getElementById('statPillSwitched');
+      const statPillYatan = document.getElementById('statPillYatan');
+      const statPillAmbulator = document.getElementById('statPillAmbulator');
+      const statPillOrder = document.getElementById('statPillOrder');
+      const statPillSugurta = document.getElementById('statPillSugurta');
+      const statPillRezident = document.getElementById('statPillRezident');
+      const statPillNoRezident = document.getElementById('statPillNoRezident');
+
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearchBtn');
       const tableBody = document.getElementById('tableBody');
       const btnPrint = document.getElementById('btnPrint');
+      const btnExportCsv = document.getElementById('btnExportCsv');
+      const btnResetFilters = document.getElementById('btnResetFilters');
+      const btnClearColFilters = document.getElementById('btnClearColFilters');
 
       // Bugungi sana formatlash
       const now = new Date();
@@ -390,15 +721,33 @@
       const todayStr = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`;
       dispDateLabel.textContent = `📅 Bugun: ${todayStr} da tasdiqlangan ko'riklar`;
 
+      // Helper: Toifani aniqlash (Zaxira avto-aniqlagich)
+      function getPatientCategory(p) {
+        if (p.patientCategory) return p.patientCategory;
+        const kurum = String(p.kurumAdi || '').toLowerCase();
+        if (kurum.includes('no rezident') || kurum.includes('norezident') || kurum.includes('no-rezident')) return 'norezident';
+        if (kurum.includes('order')) return 'order';
+        if (kurum.includes('sugurta')) return 'sugurta';
+        if (kurum.includes('vaqf') || kurum.includes('fond') || kurum.includes('hokimiyat')) return 'order';
+        return 'rezident';
+      }
+
+      // Helper: Yotgan yoki Yotmaganligini aniqlash
+      function getStayType(p) {
+        if (p.stayType) return p.stayType;
+        if (p.yatPol === 'Y' || p.isYatan) return 'yatan';
+        const dep = String(p.department || '').toLowerCase();
+        if (dep.includes('yatan') || (dep && !dep.includes('poliklinik') && !dep.includes('ambulator'))) return 'yatan';
+        return 'ambulator';
+      }
+
       // 1. Ma'lumotlarni yuklash (Parent window dan yoki API dan)
       function loadData() {
-        // A. Agar parent oynada queueData bo'lsa darhol o'qish (0ms kechikish)
         if (window.parent && window.parent.queueData) {
           applyDataFromQueue(window.parent.queueData);
           return;
         }
 
-        // B. API orqali yuklash
         fetch('/api/queue-live?t=' + Date.now())
           .then(res => res.json())
           .then(data => {
@@ -406,7 +755,6 @@
           })
           .catch(err => {
             console.error('Yuklashda xato:', err);
-            // Zaxira endpoint
             fetch('/api/doctor-completed-patients?room=' + encodeURIComponent(targetRoom))
               .then(res => res.json())
               .then(resData => {
@@ -419,7 +767,7 @@
                 }
               })
               .catch(() => {
-                tableBody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="empty-icon">⚠️</span>Ma'lumotlarni yuklashda xatolik yuz berdi.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="empty-state"><span class="empty-icon">⚠️</span>Ma'lumotlarni yuklashda xatolik yuz berdi.</td></tr>`;
               });
           });
       }
@@ -442,13 +790,11 @@
           if (doc.completedPatients && Array.isArray(doc.completedPatients)) {
             allCompletedPatients = doc.completedPatients;
           } else if (qData.summary && qData.summary.earlierPatientsList) {
-            // Agar oldingi kundan yo'naltirilib bugun tasdiqlangan bo'lsa
             allCompletedPatients = qData.summary.earlierPatientsList.filter(p => 
               (p.room === doc.room || p.doctorName === doc.doctorName) && (p.isConfirmedToday || p.statusCode === 8)
             );
           }
         } else {
-          // Barcha shifokorlar bo'yicha qidirish
           if (qData.summary && qData.summary.earlierPatientsList) {
             allCompletedPatients = qData.summary.earlierPatientsList.filter(p => p.isConfirmedToday || p.statusCode === 8);
           }
@@ -458,50 +804,244 @@
         renderTable();
       }
 
+      // Statistika hisob-kitobi va yangilash
       function updateStats() {
         const total = allCompletedPatients.length;
         const todayReg = allCompletedPatients.filter(p => p.isRegToday).length;
         const earlierReg = allCompletedPatients.filter(p => p.isRegEarlier || p.isRegYesterday).length;
         const switchedCount = allCompletedPatients.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom)).length;
 
+        let yatanCount = 0;
+        let ambulatorCount = 0;
+        let orderCount = 0;
+        let sugurtaCount = 0;
+        let rezidentCount = 0;
+        let noRezidentCount = 0;
+
+        allCompletedPatients.forEach(p => {
+          const stay = getStayType(p);
+          if (stay === 'yatan') yatanCount++;
+          else ambulatorCount++;
+
+          const cat = getPatientCategory(p);
+          if (cat === 'order') orderCount++;
+          else if (cat === 'sugurta') sugurtaCount++;
+          else if (cat === 'norezident') noRezidentCount++;
+          else rezidentCount++;
+        });
+
         statPillTotal.textContent = `✅ Jami: ${total} ta`;
-        statPillToday.textContent = `📅 Bugun ro'yxat: ${todayReg} ta`;
-        statPillEarlier.textContent = `🔄 Oldin yo'naltirilgan: ${earlierReg} ta`;
+        statPillToday.textContent = `📅 Bugun: ${todayReg} ta`;
+        statPillEarlier.textContent = `🔄 Oldin: ${earlierReg} ta`;
         statPillEarlier.style.display = earlierReg > 0 ? 'inline-flex' : 'none';
 
-        const statPillSwitched = document.getElementById('statPillSwitched');
         if (statPillSwitched) {
           statPillSwitched.textContent = `⚠️ Boshqa xonadan: ${switchedCount} ta`;
           statPillSwitched.style.display = switchedCount > 0 ? 'inline-flex' : 'none';
         }
+
+        statPillYatan.textContent = `🏥 Yotgan: ${yatanCount} ta`;
+        statPillAmbulator.textContent = `🚶 Ambulator: ${ambulatorCount} ta`;
+        statPillOrder.textContent = `📋 Order: ${orderCount} ta`;
+        statPillSugurta.textContent = `🏥 Sug'urta: ${sugurtaCount} ta`;
+        statPillRezident.textContent = `🇺🇿 Rezident: ${rezidentCount} ta`;
+
+        if (statPillNoRezident) {
+          statPillNoRezident.textContent = `🌐 No-rezident: ${noRezidentCount} ta`;
+          statPillNoRezident.style.display = noRezidentCount > 0 ? 'inline-flex' : 'none';
+        }
       }
 
-      function renderTable() {
+      // Filtrlash mexanizmi
+      function getFilteredPatients() {
         let list = allCompletedPatients;
 
-        // Filtr
-        if (currentFilter === 'today') {
+        // 1. Tepa tezkor filtr tugmalari (Filter Pills)
+        if (currentFilterPill === 'today') {
           list = list.filter(p => p.isRegToday);
-        } else if (currentFilter === 'earlier') {
+        } else if (currentFilterPill === 'earlier') {
           list = list.filter(p => p.isRegEarlier || p.isRegYesterday);
+        } else if (currentFilterPill === 'switched') {
+          list = list.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom));
+        } else if (currentFilterPill === 'yatan') {
+          list = list.filter(p => getStayType(p) === 'yatan');
+        } else if (currentFilterPill === 'ambulator') {
+          list = list.filter(p => getStayType(p) === 'ambulator');
+        } else if (currentFilterPill === 'order') {
+          list = list.filter(p => getPatientCategory(p) === 'order');
+        } else if (currentFilterPill === 'sugurta') {
+          list = list.filter(p => getPatientCategory(p) === 'sugurta');
+        } else if (currentFilterPill === 'rezident') {
+          list = list.filter(p => getPatientCategory(p) === 'rezident');
+        } else if (currentFilterPill === 'norezident') {
+          list = list.filter(p => getPatientCategory(p) === 'norezident');
         }
 
-        // Qidiruv
+        // 2. Universal umumiy qidiruv qatori
         if (currentQuery) {
           const q = currentQuery.toLowerCase();
-          list = list.filter(p => 
-            (p.patientId && String(p.patientId).toLowerCase().includes(q)) ||
-            (p.fullName && p.fullName.toLowerCase().includes(q)) ||
-            (p.referringDoctor && p.referringDoctor.toLowerCase().includes(q))
-          );
+          list = list.filter(p => {
+            const pId = String(p.patientId || '').toLowerCase();
+            const fName = String(p.fullName || '').toLowerCase();
+            const refDoc = String(p.referringDoctor || '').toLowerCase();
+            const dept = String(p.department || '').toLowerCase();
+            const kur = String(p.kurumAdi || '').toLowerCase();
+            const stayTitle = getStayType(p) === 'yatan' ? 'yotgan statsionar' : 'ambulator poliklinika';
+            const catTitle = getPatientCategory(p);
+            return pId.includes(q) || fName.includes(q) || refDoc.includes(q) || dept.includes(q) || kur.includes(q) || stayTitle.includes(q) || catTitle.includes(q);
+          });
         }
+
+        // 3. Har bir ustun bo'yicha mustaqil inline filtrlar
+        if (colFilters.patientId) {
+          const q = colFilters.patientId.toLowerCase();
+          list = list.filter(p => String(p.patientId || '').toLowerCase().includes(q));
+        }
+
+        if (colFilters.fullName) {
+          const q = colFilters.fullName.toLowerCase();
+          list = list.filter(p => String(p.fullName || '').toLowerCase().includes(q));
+        }
+
+        if (colFilters.category) {
+          list = list.filter(p => getPatientCategory(p) === colFilters.category);
+        }
+
+        if (colFilters.stay) {
+          list = list.filter(p => getStayType(p) === colFilters.stay);
+        }
+
+        if (colFilters.referringDoctor) {
+          const q = colFilters.referringDoctor.toLowerCase();
+          list = list.filter(p => {
+            const ref = String(p.referringDoctor || '').toLowerCase();
+            const dept = String(p.department || '').toLowerCase();
+            return ref.includes(q) || dept.includes(q);
+          });
+        }
+
+        if (colFilters.regDate) {
+          if (colFilters.regDate === 'today') list = list.filter(p => p.isRegToday);
+          else if (colFilters.regDate === 'yesterday') list = list.filter(p => p.isRegYesterday);
+          else if (colFilters.regDate === 'earlier') list = list.filter(p => p.isRegEarlier);
+        }
+
+        if (colFilters.confDate) {
+          const q = colFilters.confDate.toLowerCase();
+          list = list.filter(p => {
+            const cDate = String(p.confirmationDate || '').toLowerCase();
+            const cTime = String(p.confirmationTime || '').toLowerCase();
+            return cDate.includes(q) || cTime.includes(q);
+          });
+        }
+
+        if (colFilters.status) {
+          if (colFilters.status === 'today') list = list.filter(p => p.isRegToday);
+          else if (colFilters.status === 'earlier') list = list.filter(p => p.isRegEarlier || p.isRegYesterday);
+          else if (colFilters.status === 'switched') list = list.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom));
+        }
+
+        // 4. Saralash (Sorting)
+        list = [...list].sort((a, b) => {
+          let valA = '';
+          let valB = '';
+
+          switch (currentSort.col) {
+            case 'idx':
+              return currentSort.dir === 'asc' ? (a.queueNo || 0) - (b.queueNo || 0) : (b.queueNo || 0) - (a.queueNo || 0);
+            case 'patientId':
+              return currentSort.dir === 'asc' 
+                ? String(a.patientId || '').localeCompare(String(b.patientId || ''), undefined, { numeric: true })
+                : String(b.patientId || '').localeCompare(String(a.patientId || ''), undefined, { numeric: true });
+            case 'fullName':
+              valA = String(a.fullName || '');
+              valB = String(b.fullName || '');
+              break;
+            case 'category':
+              valA = getPatientCategory(a);
+              valB = getPatientCategory(b);
+              break;
+            case 'stay':
+              valA = getStayType(a);
+              valB = getStayType(b);
+              break;
+            case 'referringDoctor':
+              valA = String(a.referringDoctor || '');
+              valB = String(b.referringDoctor || '');
+              break;
+            case 'regDate':
+              valA = `${a.registrationIso || ''} ${a.registrationTime || ''}`;
+              valB = `${b.registrationIso || ''} ${b.registrationTime || ''}`;
+              break;
+            case 'confDate':
+              valA = `${a.confirmationDate || ''} ${a.confirmationTime || ''}`;
+              valB = `${b.confirmationDate || ''} ${b.confirmationTime || ''}`;
+              break;
+            case 'status':
+              valA = a.hasDoctorSwitch ? '0' : (a.isRegToday ? '1' : '2');
+              valB = b.hasDoctorSwitch ? '0' : (b.isRegToday ? '1' : '2');
+              break;
+            default:
+              return 0;
+          }
+
+          const res = valA.localeCompare(valB, 'uz');
+          return currentSort.dir === 'asc' ? res : -res;
+        });
+
+        return list;
+      }
+
+      // Toifa nishonini chizish
+      function renderCategoryBadge(p) {
+        const cat = getPatientCategory(p);
+        if (cat === 'order') {
+          return `<span class="badge-cat badge-cat-order" title="Davlat orderi / Imtiyozli asosda">📋 Orderli</span>`;
+        }
+        if (cat === 'sugurta') {
+          return `<span class="badge-cat badge-cat-sugurta" title="${escapeHtml(p.kurumAdi || "Sug'urta")}">🏥 Sug'urta</span>`;
+        }
+        if (cat === 'norezident') {
+          return `<span class="badge-cat badge-cat-norezident" title="Chet el fuqarosi">🌐 No-rezident</span>`;
+        }
+        return `<span class="badge-cat badge-cat-rezident" title="O'zbekiston Respublikasi fuqarosi">🇺🇿 Rezident</span>`;
+      }
+
+      // Joylashuv nishonini chizish (Yotgan / Yotmagan)
+      function renderStayBadge(p) {
+        const stay = getStayType(p);
+        const dept = p.department && !p.department.toLowerCase().includes('ambulator') ? p.department : '';
+        const deptHtml = dept ? `<div class="dept-subtext" title="${escapeHtml(dept)}">📍 ${escapeHtml(dept)}</div>` : '';
+
+        if (stay === 'yatan') {
+          return `<div><span class="badge-stay badge-stay-yatan" title="Statsionar bo'limda yotgan bemor">🏥 Bo'limda yotgan</span>${deptHtml}</div>`;
+        }
+        return `<div><span class="badge-stay badge-stay-amb" title="Poliklinikaga kelgan ambulator bemor">🚶 Ambulator</span>${deptHtml}</div>`;
+      }
+
+      // Jadvalni render qilish
+      function renderTable() {
+        const list = getFilteredPatients();
+
+        // Saralash ikonlarini yangilash
+        document.querySelectorAll('th.sortable').forEach(th => {
+          const col = th.getAttribute('data-sort');
+          const icon = th.querySelector('.sort-icon');
+          if (col === currentSort.col) {
+            th.classList.add('sort-active');
+            if (icon) icon.textContent = currentSort.dir === 'asc' ? '▲' : '▼';
+          } else {
+            th.classList.remove('sort-active');
+            if (icon) icon.textContent = '↕';
+          }
+        });
 
         if (list.length === 0) {
           tableBody.innerHTML = `
             <tr>
-              <td colspan="7" class="empty-state">
+              <td colspan="9" class="empty-state">
                 <span class="empty-icon">📋</span>
-                ${allCompletedPatients.length === 0 ? "Ushbu shifokor bugun hali bemor ko'rmagan yoki tasdiqlanmagan." : "Qidiruv bo'yicha hech qanday bemor topilmadi."}
+                ${allCompletedPatients.length === 0 ? "Ushbu shifokor bugun hali bemor ko'rmagan yoki tasdiqlanmagan." : "Tanlangan filtrlar bo'yicha hech qanday bemor topilmadi."}
               </td>
             </tr>
           `;
@@ -516,7 +1056,7 @@
 
           const isSwitched = p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom);
           const switchBadge = isSwitched
-            ? `<span class="tag-switched" style="display:inline-flex; align-items:center; gap:4px; background:rgba(245,158,11,0.25); color:#fbbf24; border:1px solid rgba(245,158,11,0.5); padding:2px 7px; border-radius:6px; font-size:11px; font-weight:700; margin-left:6px;" title="${escapeHtml(p.switchText || (p.queuedRoom + ' dan o\'tgan'))}">⚠️ ${escapeHtml(p.queuedRoom || 'Boshqa xona')}dan o'tgan</span>`
+            ? `<span class="tag-switched" title="${escapeHtml(p.switchText || (p.queuedRoom + ' dan o\'tgan'))}">⚠️ ${escapeHtml(p.queuedRoom || 'Boshqa xona')}dan o'tgan</span>`
             : '';
 
           const regDateTime = `${escapeHtml(p.registrationDate || '-')} ${escapeHtml(p.registrationTime || '')}`.trim();
@@ -527,6 +1067,8 @@
               <td style="text-align: center;"><span class="badge-idx">${idx + 1}</span></td>
               <td><span class="badge-id">${escapeHtml(p.patientId || '-')}</span></td>
               <td><span class="patient-name">${escapeHtml(p.fullName || '-')}</span>${switchBadge}</td>
+              <td>${renderCategoryBadge(p)}</td>
+              <td>${renderStayBadge(p)}</td>
               <td><span class="refer-doc">${escapeHtml(p.referringDoctor || '-')}</span></td>
               <td><span class="time-cell">${regDateTime}</span></td>
               <td><span class="time-cell">${confDateTime}</span></td>
@@ -546,7 +1088,42 @@
           .replace(/'/g, '&#039;');
       }
 
-      // Hodisalar
+      // Excel (CSV) eksport
+      function exportToCsv() {
+        const list = getFilteredPatients();
+        if (list.length === 0) {
+          alert("Eksport qilish uchun bemorlar mavjud emas.");
+          return;
+        }
+
+        const BOM = '\uFEFF';
+        let csv = "№;Bemor ID;Bemor F.I.Sh.;Toifasi;Joylashuvi;Bo'limi;Yo'naltiruvchi Shifokor;Ro'yxatga Olingan;Tasdiqlangan Sana;Holati;Farq Holati\n";
+
+        list.forEach((p, idx) => {
+          const cat = getPatientCategory(p);
+          const catTitle = cat === 'order' ? 'Orderli' : (cat === 'sugurta' ? 'Sug\'urta' : (cat === 'norezident' ? 'No-rezident' : 'Rezident'));
+          const stay = getStayType(p) === 'yatan' ? 'Bo\'limda yotgan (Statsionar)' : 'Ambulator (Yotmagan)';
+          const dept = p.department || '';
+          const regDateTime = `${p.registrationDate || ''} ${p.registrationTime || ''}`.trim();
+          const confDateTime = `${p.confirmationDate || ''} ${p.confirmationTime || ''}`.trim();
+          const statusStr = p.isRegToday ? 'Bugun ko\'rildi' : 'Oldin yo\'naltirilgan';
+          const switchStr = p.hasDoctorSwitch ? (p.switchText || 'Boshqa xonadan o\'tgan') : 'Mos';
+
+          csv += `${idx + 1};"${p.patientId || ''}";"${p.fullName || ''}";"${catTitle}";"${stay}";"${dept}";"${p.referringDoctor || ''}";"${regDateTime}";"${confDateTime}";"${statusStr}";"${switchStr}"\n`;
+        });
+
+        const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Vrach_${targetRoom || 'UTT'}_Bemorlar_${todayStr}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      // Hodisalarni ulash
       searchInput.addEventListener('input', (e) => {
         currentQuery = e.target.value.trim();
         clearSearchBtn.style.display = currentQuery ? 'block' : 'none';
@@ -561,18 +1138,90 @@
         searchInput.focus();
       });
 
+      // Tepa tezkor filtr tugmalari
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          currentFilter = btn.getAttribute('data-filter');
+          currentFilterPill = btn.getAttribute('data-filter');
           renderTable();
         });
       });
 
-      if (btnPrint) {
-        btnPrint.addEventListener('click', () => window.print());
+      // Tepa statistika chiplari bosilganda ham filtrlash
+      statPillTotal?.addEventListener('click', () => setPillFilter('all'));
+      statPillToday?.addEventListener('click', () => setPillFilter('today'));
+      statPillEarlier?.addEventListener('click', () => setPillFilter('earlier'));
+      statPillSwitched?.addEventListener('click', () => setPillFilter('switched'));
+      statPillYatan?.addEventListener('click', () => setPillFilter('yatan'));
+      statPillAmbulator?.addEventListener('click', () => setPillFilter('ambulator'));
+      statPillOrder?.addEventListener('click', () => setPillFilter('order'));
+      statPillSugurta?.addEventListener('click', () => setPillFilter('sugurta'));
+      statPillRezident?.addEventListener('click', () => setPillFilter('rezident'));
+      statPillNoRezident?.addEventListener('click', () => setPillFilter('norezident'));
+
+      function setPillFilter(val) {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-filter') === val);
+        });
+        currentFilterPill = val;
+        renderTable();
       }
+
+      // Ustunlar bo'yicha mustaqil inline filtr hodisalari
+      document.querySelectorAll('.col-filter-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const col = inp.getAttribute('data-col');
+          colFilters[col] = e.target.value.trim();
+          renderTable();
+        });
+      });
+
+      document.querySelectorAll('.col-filter-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const col = sel.getAttribute('data-col');
+          colFilters[col] = e.target.value;
+          renderTable();
+        });
+      });
+
+      // Ustun sarlavhasini bosganda saralash (Sort)
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.getAttribute('data-sort');
+          if (currentSort.col === col) {
+            currentSort.dir = (currentSort.dir === 'asc') ? 'desc' : 'asc';
+          } else {
+            currentSort.col = col;
+            currentSort.dir = 'asc';
+          }
+          renderTable();
+        });
+      });
+
+      // Barcha filtrlarni tozalash
+      function resetAllFilters() {
+        currentFilterPill = 'all';
+        currentQuery = '';
+        searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-filter') === 'all');
+        });
+
+        document.querySelectorAll('.col-filter-input').forEach(inp => inp.value = '');
+        document.querySelectorAll('.col-filter-select').forEach(sel => sel.value = '');
+        Object.keys(colFilters).forEach(k => colFilters[k] = '');
+
+        currentSort = { col: 'idx', dir: 'asc' };
+        renderTable();
+      }
+
+      btnResetFilters?.addEventListener('click', resetAllFilters);
+      btnClearColFilters?.addEventListener('click', resetAllFilters);
+      btnExportCsv?.addEventListener('click', exportToCsv);
+      btnPrint?.addEventListener('click', () => window.print());
 
       // Dastlabki yuklash va har 4 soniyada yangilash
       loadData();
