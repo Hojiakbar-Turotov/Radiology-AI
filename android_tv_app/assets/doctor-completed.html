@@ -526,12 +526,13 @@
       </div>
     </div>
     <div class="stats-pills-row">
-      <div class="pill pill-total" id="statPillTotal" title="Barcha ko'rilgan bemorlar">✅ Jami: 0 ta</div>
-      <div class="pill pill-today" id="statPillToday" title="Bugun ro'yxatga olinganlar">📅 Bugun: 0 ta</div>
-      <div class="pill pill-earlier" id="statPillEarlier" title="Oldingi kundan yo'naltirilib bugun ko'rilganlar">🔄 Oldin: 0 ta</div>
+      <div class="pill" style="background:rgba(34,197,94,0.22); color:#4ade80; border:1px solid rgba(34,197,94,0.5);" id="statPillSeenToday" title="Tanlangan sanada ko'rilgan bemorlar">🟢 Shu kuni: 0 ta</div>
+      <div class="pill" style="background:rgba(56,189,248,0.22); color:#38bdf8; border:1px solid rgba(56,189,248,0.5);" id="statPillSeenLater" title="Tanlangan sanada yo'naltirilib, keyingi kunda ko'rilganlar">🔵 Keyingi kunda: 0 ta</div>
+      <div class="pill" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.5);" id="statPillWaiting" title="Tanlangan sanada yo'naltirilib hali ko'rikdan o'tmaganlar">🟡 Hali o'tmagan: 0 ta</div>
+      <div class="pill" style="background:rgba(168,85,247,0.22); color:#c084fc; border:1px solid rgba(168,85,247,0.5);" id="statPillTotal" title="Barcha yo'naltirilgan bemorlar">🟣 Jami: 0 ta</div>
       <div class="pill pill-switched" id="statPillSwitched" style="display:none;" title="Boshqa vrach navbatidan qabul qilinganlar">⚠️ Boshqa xonadan: 0 ta</div>
       <div class="pill pill-yatan" id="statPillYatan" title="Bo'limda yotgan statsionar bemorlar">🏥 Yotgan: 0 ta</div>
-      <div class="pill pill-ambulator" id="statPillAmbulator" title="Poliklinika ambulator bemorlari">🚶 Ambulator: 0 ta</div>
+      <div class="pill pill-ambulator" id="statPillAmbulator" title="Poliklinikadan yo'naltirilgan bemorlar">🚶 Poliklinika: 0 ta</div>
       <div class="pill pill-order" id="statPillOrder" title="Davlat orderi bo'yicha imtiyozli bemorlar">📋 Order: 0 ta</div>
       <div class="pill pill-sugurta" id="statPillSugurta" title="Sug'urtali bemorlar">🏥 Sug'urta: 0 ta</div>
       <div class="pill pill-rezident" id="statPillRezident" title="O'zbekiston rezident fuqarolari">🇺🇿 Rezident: 0 ta</div>
@@ -549,15 +550,15 @@
       </div>
 
       <div class="filter-pills-wrap">
-        <!-- Status filtrlari -->
+        <!-- 4 TA ASOSIY KO'RSATKICH FILTRLARI (v11.1.0) -->
         <button type="button" class="filter-btn active" data-filter="all">Barchasi</button>
-        <button type="button" class="filter-btn" data-filter="today">📅 Bugun</button>
-        <button type="button" class="filter-btn" data-filter="earlier">🔄 Oldin</button>
-        <button type="button" class="filter-btn" data-filter="switched">⚠️ Boshqa xona</button>
+        <button type="button" class="filter-btn" data-filter="seen_today" id="btnFilterSeenToday" style="color:#4ade80; font-weight:700;">🟢 Shu kuni ko'rilgan</button>
+        <button type="button" class="filter-btn" data-filter="seen_later" id="btnFilterSeenLater" style="color:#38bdf8; font-weight:700;">🔵 Keyingi kunda</button>
+        <button type="button" class="filter-btn" data-filter="waiting" id="btnFilterWaiting" style="color:#fbbf24; font-weight:700;">🟡 Hali o'tmagan</button>
 
         <!-- Joylashuv filtrlari -->
         <button type="button" class="filter-btn" data-filter="yatan">🏥 Yotgan</button>
-        <button type="button" class="filter-btn" data-filter="ambulator">🚶 Ambulator</button>
+        <button type="button" class="filter-btn" data-filter="ambulator">🚶 Poliklinika</button>
 
         <!-- Toifa filtrlari -->
         <button type="button" class="filter-btn" data-filter="order">📋 Order</button>
@@ -698,6 +699,12 @@
 
       // Statistika chiplari
       const statPillTotal = document.getElementById('statPillTotal');
+      const statPillSeenToday = document.getElementById('statPillSeenToday');
+      const statPillSeenLater = document.getElementById('statPillSeenLater');
+      const statPillWaiting = document.getElementById('statPillWaiting');
+      const btnFilterSeenToday = document.getElementById('btnFilterSeenToday');
+      const btnFilterSeenLater = document.getElementById('btnFilterSeenLater');
+      const btnFilterWaiting = document.getElementById('btnFilterWaiting');
       const statPillToday = document.getElementById('statPillToday');
       const statPillEarlier = document.getElementById('statPillEarlier');
       const statPillSwitched = document.getElementById('statPillSwitched');
@@ -733,12 +740,16 @@
         return 'rezident';
       }
 
-      // Helper: Yotgan yoki Yotmaganligini aniqlash
+      // Helper: Yotgan yoki Poliklinikaligini aniqlash (Ustuvorlik / YatPol bo'yicha)
       function getStayType(p) {
-        if (p.stayType) return p.stayType;
-        if (p.yatPol === 'Y' || p.isYatan) return 'yatan';
-        const dep = String(p.department || '').toLowerCase();
-        if (dep.includes('yatan') || (dep && !dep.includes('poliklinik') && !dep.includes('ambulator'))) return 'yatan';
+        if (p.isYatan === true || p.stayType === 'yatan') return 'yatan';
+        if (p.isYatan === false || p.stayType === 'ambulator') return 'ambulator';
+        const ust = String(p.ustuvorlik || p.OncelikAciklama || '').toLowerCase();
+        if (ust.includes('statsionar')) return 'yatan';
+        const yat = String(p.yatPol || p.YatPol || '').toUpperCase();
+        if (yat === 'Y') return 'yatan';
+        const dep = String(p.department || p.ServisAdi || '').toLowerCase();
+        if (dep.includes('yatan') || dep.includes('statsionar')) return 'yatan';
         return 'ambulator';
       }
 
@@ -828,16 +839,18 @@
           dispRoomBadge.textContent = doc.room ? doc.room.replace('Ultratovush-', 'U-') : targetRoom;
           dispDoctorName.textContent = `${doc.room || targetRoom} — ${doc.doctorName || 'Shifokor'}`;
           
-          if (doc.completedPatients && Array.isArray(doc.completedPatients)) {
+          if (doc.allAssignedPatients && Array.isArray(doc.allAssignedPatients) && doc.allAssignedPatients.length > 0) {
+            allCompletedPatients = doc.allAssignedPatients;
+          } else if (doc.completedPatients && Array.isArray(doc.completedPatients) && doc.completedPatients.length > 0) {
             allCompletedPatients = doc.completedPatients;
           } else if (qData.summary && qData.summary.earlierPatientsList) {
             allCompletedPatients = qData.summary.earlierPatientsList.filter(p => 
-              (p.room === doc.room || p.doctorName === doc.doctorName) && (p.isConfirmedToday || p.statusCode === 8)
+              (p.room === doc.room || p.doctorName === doc.doctorName)
             );
           }
         } else {
           if (qData.summary && qData.summary.earlierPatientsList) {
-            allCompletedPatients = qData.summary.earlierPatientsList.filter(p => p.isConfirmedToday || p.statusCode === 8);
+            allCompletedPatients = qData.summary.earlierPatientsList;
           }
         }
 
@@ -848,6 +861,10 @@
       // Statistika hisob-kitobi va yangilash
       function updateStats() {
         const total = allCompletedPatients.length;
+        const seenTodayCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && (!p.timingCategory || p.timingCategory !== 'seen_later'))).length;
+        const seenLaterCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_later').length;
+        const waitingCount = allCompletedPatients.filter(p => p.timingCategory === 'waiting' || (p.statusCode === 1 && !p.isConfirmedToday)).length;
+
         const todayReg = allCompletedPatients.filter(p => p.isRegToday).length;
         const earlierReg = allCompletedPatients.filter(p => p.isRegEarlier || p.isRegYesterday).length;
         const switchedCount = allCompletedPatients.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom)).length;
@@ -871,10 +888,20 @@
           else rezidentCount++;
         });
 
-        statPillTotal.textContent = `✅ Jami: ${total} ta`;
-        statPillToday.textContent = `📅 Bugun: ${todayReg} ta`;
-        statPillEarlier.textContent = `🔄 Oldin: ${earlierReg} ta`;
-        statPillEarlier.style.display = earlierReg > 0 ? 'inline-flex' : 'none';
+        if (statPillSeenToday) statPillSeenToday.textContent = `🟢 Shu kuni: ${seenTodayCount} ta`;
+        if (statPillSeenLater) statPillSeenLater.textContent = `🔵 Keyingi kunda: ${seenLaterCount} ta`;
+        if (statPillWaiting) statPillWaiting.textContent = `🟡 Hali o'tmagan: ${waitingCount} ta`;
+        if (statPillTotal) statPillTotal.textContent = `🟣 Jami: ${total} ta`;
+
+        if (btnFilterSeenToday) btnFilterSeenToday.textContent = `🟢 Shu kuni (${seenTodayCount})`;
+        if (btnFilterSeenLater) btnFilterSeenLater.textContent = `🔵 Keyingi kunda (${seenLaterCount})`;
+        if (btnFilterWaiting) btnFilterWaiting.textContent = `🟡 Hali o'tmagan (${waitingCount})`;
+
+        if (statPillToday) statPillToday.textContent = `📅 Bugun: ${todayReg} ta`;
+        if (statPillEarlier) {
+          statPillEarlier.textContent = `🔄 Oldin: ${earlierReg} ta`;
+          statPillEarlier.style.display = earlierReg > 0 ? 'inline-flex' : 'none';
+        }
 
         if (statPillSwitched) {
           statPillSwitched.textContent = `⚠️ Boshqa xonadan: ${switchedCount} ta`;
@@ -882,7 +909,7 @@
         }
 
         statPillYatan.textContent = `🏥 Yotgan: ${yatanCount} ta`;
-        statPillAmbulator.textContent = `🚶 Ambulator: ${ambulatorCount} ta`;
+        statPillAmbulator.textContent = `🚶 Poliklinika: ${ambulatorCount} ta`;
         statPillOrder.textContent = `📋 Order: ${orderCount} ta`;
         statPillSugurta.textContent = `🏥 Sug'urta: ${sugurtaCount} ta`;
         statPillRezident.textContent = `🇺🇿 Rezident: ${rezidentCount} ta`;
@@ -898,7 +925,13 @@
         let list = allCompletedPatients;
 
         // 1. Tepa tezkor filtr tugmalari (Filter Pills)
-        if (currentFilterPill === 'today') {
+        if (currentFilterPill === 'seen_today') {
+          list = list.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && (!p.timingCategory || p.timingCategory !== 'seen_later')));
+        } else if (currentFilterPill === 'seen_later') {
+          list = list.filter(p => p.timingCategory === 'seen_later');
+        } else if (currentFilterPill === 'waiting') {
+          list = list.filter(p => p.timingCategory === 'waiting' || (p.statusCode === 1 && !p.isConfirmedToday));
+        } else if (currentFilterPill === 'today') {
           list = list.filter(p => p.isRegToday);
         } else if (currentFilterPill === 'earlier') {
           list = list.filter(p => p.isRegEarlier || p.isRegYesterday);
@@ -1048,16 +1081,16 @@
         return `<span class="badge-cat badge-cat-rezident" title="O'zbekiston Respublikasi fuqarosi">🇺🇿 Rezident</span>`;
       }
 
-      // Joylashuv nishonini chizish (Yotgan / Yotmagan)
+      // Joylashuv nishonini chizish (Statsionar / Poliklinika)
       function renderStayBadge(p) {
         const stay = getStayType(p);
-        const dept = p.department && !p.department.toLowerCase().includes('ambulator') ? p.department : '';
+        const dept = p.department || '';
         const deptHtml = dept ? `<div class="dept-subtext" title="${escapeHtml(dept)}">📍 ${escapeHtml(dept)}</div>` : '';
 
         if (stay === 'yatan') {
           return `<div><span class="badge-stay badge-stay-yatan" title="Statsionar bo'limda yotgan bemor">🏥 Bo'limda yotgan</span>${deptHtml}</div>`;
         }
-        return `<div><span class="badge-stay badge-stay-amb" title="Poliklinikaga kelgan ambulator bemor">🚶 Ambulator</span>${deptHtml}</div>`;
+        return `<div><span class="badge-stay badge-stay-amb" title="Poliklinika tomonidan yo'naltirilgan bemor">🚶 Poliklinika</span>${deptHtml}</div>`;
       }
 
       // Jadvalni render qilish
@@ -1090,10 +1123,19 @@
         }
 
         tableBody.innerHTML = list.map((p, idx) => {
-          const isEarlier = p.isRegEarlier || p.isRegYesterday;
-          const statusTag = isEarlier 
-            ? `<span class="tag-earlier-completed">🔄 ${escapeHtml(p.dateTag || "Oldin yo'naltirilgan, bugun o'tgan")}</span>`
-            : `<span class="tag-completed">✅ Bugun ko'rildi</span>`;
+          let statusTag = '';
+          if (p.timingCategory === 'seen_today') {
+            statusTag = `<span class="tag-completed" style="background:rgba(34,197,94,0.2); color:#4ade80; border:1px solid rgba(34,197,94,0.45);">🟢 Shu kuni ko'rilgan</span>`;
+          } else if (p.timingCategory === 'seen_later') {
+            statusTag = `<span class="tag-earlier-completed" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.45);" title="${escapeHtml(p.confirmationDate || '')} da o'tgan">🔵 Keyingi kunda (${escapeHtml(p.confirmationDate || 'keyin')})</span>`;
+          } else if (p.timingCategory === 'waiting' || p.statusCode === 1) {
+            statusTag = `<span style="display:inline-flex; align-items:center; gap:4px; padding:3px 7px; border-radius:4px; font-size:11.5px; font-weight:700; background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.45);">🟡 Hali o'tmagan</span>`;
+          } else {
+            const isEarlier = p.isRegEarlier || p.isRegYesterday;
+            statusTag = isEarlier 
+              ? `<span class="tag-earlier-completed">🔄 ${escapeHtml(p.dateTag || "Oldin yo'naltirilgan, bugun o'tgan")}</span>`
+              : `<span class="tag-completed">✅ Bugun ko'rildi</span>`;
+          }
 
           const isSwitched = p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom);
           const switchBadge = isSwitched
@@ -1143,7 +1185,7 @@
         list.forEach((p, idx) => {
           const cat = getPatientCategory(p);
           const catTitle = cat === 'order' ? 'Orderli' : (cat === 'sugurta' ? 'Sug\'urta' : (cat === 'norezident' ? 'No-rezident' : 'Rezident'));
-          const stay = getStayType(p) === 'yatan' ? 'Bo\'limda yotgan (Statsionar)' : 'Ambulator (Yotmagan)';
+          const stay = getStayType(p) === 'yatan' ? 'Bo\'limda yotgan (Statsionar)' : 'Poliklinikadan (Ambulator)';
           const dept = p.department || '';
           const regDateTime = `${p.registrationDate || ''} ${p.registrationTime || ''}`.trim();
           const confDateTime = `${p.confirmationDate || ''} ${p.confirmationTime || ''}`.trim();
