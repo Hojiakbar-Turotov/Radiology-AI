@@ -1,10 +1,10 @@
 # ==============================================================================
-# UTT ANDROID TV APK BUILD SCRIPT (v7.0.0)
+# UTT ANDROID TV APK BUILD SCRIPT (v8.0.0)
 # ==============================================================================
 $ErrorActionPreference = 'Stop'
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "  UTT NAVBAT TIZIMI — ANDROID TV APK YIG'ISH JARAYONI (v7.0.0)" -ForegroundColor Cyan
+Write-Host "  UTT NAVBAT TIZIMI — ANDROID TV APK YIG'ISH JARAYONI (v8.0.0)" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # 1. YO'LLAR VA QURILMALAR
@@ -27,12 +27,27 @@ $ANDROID_JAR = "$SDK_DIR\platforms\android-37.0\android.jar"
 
 $FINAL_APK = "$BASE_DIR\UTT_TV_Navbat.apk"
 $PUBLIC_APK = "$BASE_DIR\public\UTT_TV_Navbat.apk"
+$PUBLIC_APP_APK = "$BASE_DIR\public\app.apk"
 $DESKTOP_APK = "c:\Users\Rentgen xona\Desktop\UTT_TV_Navbat.apk"
 
 # Kerakli vositalarni tekshirish
 if (!(Test-Path $JAVAC)) { throw "javac.exe topilmadi: $JAVAC" }
 if (!(Test-Path $AAPT2)) { throw "aapt2.exe topilmadi: $AAPT2" }
 if (!(Test-Path $ANDROID_JAR)) { throw "android.jar topilmadi: $ANDROID_JAR" }
+
+# [0/6] Eng so'nggi TV veb-fayllarini assets papkasiga ko'chirish
+Write-Host "[0/6] Eng so'nggi TV veb-fayllari nusxalanmoqda (public -> assets)..." -ForegroundColor Yellow
+Copy-Item "$BASE_DIR\public\tv.html" "$APP_DIR\assets\tv.html" -Force
+Copy-Item "$BASE_DIR\public\app.js" "$APP_DIR\assets\app.js" -Force
+Copy-Item "$BASE_DIR\public\styles.css" "$APP_DIR\assets\styles.css" -Force
+Copy-Item "$BASE_DIR\public\doctor-completed.html" "$APP_DIR\assets\doctor-completed.html" -Force
+Copy-Item "$BASE_DIR\public\chime_engine.js" "$APP_DIR\assets\chime_engine.js" -Force
+if (Test-Path "$BASE_DIR\public\icons\logo-onko.png") {
+    Copy-Item "$BASE_DIR\public\icons\logo-onko.png" "$APP_DIR\assets\icons\logo-onko.png" -Force
+}
+# Keraksiz eski APKlarni assetsdan tozalash
+if (Test-Path "$APP_DIR\assets\UTT_TV_Navbat.apk") { Remove-Item "$APP_DIR\assets\UTT_TV_Navbat.apk" -Force }
+if (Test-Path "$APP_DIR\assets\app.apk") { Remove-Item "$APP_DIR\assets\app.apk" -Force }
 
 # Build papkasini tozalash va tayyorlash
 if (Test-Path $BUILD_DIR) {
@@ -118,6 +133,7 @@ Write-Host "Imzo tekshirilmoqda..." -ForegroundColor Cyan
 & $APKSIGNER verify $FINAL_APK
 
 Copy-Item -Path $FINAL_APK -Destination $PUBLIC_APK -Force
+Copy-Item -Path $FINAL_APK -Destination $PUBLIC_APP_APK -Force
 Copy-Item -Path $FINAL_APK -Destination $DESKTOP_APK -Force
 
 $apkItem = Get-Item $FINAL_APK

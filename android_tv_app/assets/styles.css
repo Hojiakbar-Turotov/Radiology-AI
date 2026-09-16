@@ -970,7 +970,11 @@ body.mode-single-room #topInfoBar,
 body.mode-single-room #postControlsPanel,
 body.mode-single-room #tvQueueGrid,
 body.mode-single-room #postTableContainer,
-body.mode-single-room #mainAppFooter {
+body.mode-single-room #mainAppFooter,
+body.mode-single-room #tvDoctorSummaryRibbon,
+body.mode-single-room .tv-doctor-summary-ribbon,
+body.mode-single-room #earlierPatientsSection,
+body.mode-single-room .earlier-patients-panel {
   display: none !important;
 }
 
@@ -1666,6 +1670,356 @@ tr.row-accepted {
   border-radius: 8px;
   text-align: center;
   margin-top: 8px;
+}
+
+/* ==========================================================================
+   14. VRACH KO'RGAN BEMORLAR IFRAME MODAL OYNASI VA TUGMASI
+   ========================================================================== */
+.doc-iframe-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.doc-iframe-modal-box {
+  background: #0f172a;
+  border: 1.5px solid #3b82f6;
+  border-radius: 16px;
+  width: 94%;
+  max-width: 1100px;
+  height: 85vh;
+  max-height: 820px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.35);
+  animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPopIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.doc-iframe-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, #1e293b, #0f172a);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+.dimh-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dimh-icon { font-size: 22px; }
+.dimh-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+.dimh-badge {
+  background: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dimh-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dimh-btn-newtab {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dimh-btn-newtab:hover {
+  background: rgba(56, 189, 248, 0.25);
+}
+.dimh-btn-close {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dimh-btn-close:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #fff;
+}
+.doc-iframe-body {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b1329;
+}
+#docCompletedIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* 15. VRACH KO'RGAN BEMORLARNI OCHISH KO'Z (EYE) TUGMASI */
+.btn-doc-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.btn-doc-eye:hover {
+  background: rgba(56, 189, 248, 0.35);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+}
+.btn-doc-eye:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   16. KECHA VA OLDINGI KUNLARDA YO'NALTIRILGAN BEMORLAR PANELI VA FILTRLASH
+   ========================================================================== */
+.earlier-patients-panel {
+  margin-top: 24px;
+  margin-bottom: 20px;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.epp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #1e293b, #0f172a);
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+.epp-header:hover {
+  background: linear-gradient(90deg, #273549, #131c31);
+}
+.epp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.epp-icon { font-size: 20px; }
+.epp-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #f8fafc;
+}
+.epp-badge {
+  background: #3b82f6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.epp-toggle-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.epp-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.epp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.epp-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  font-weight: 700;
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 2px solid #334155;
+  white-space: nowrap;
+}
+.epp-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+.epp-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.epp-row-completed {
+  background: rgba(34, 197, 94, 0.12);
+}
+.epp-row-accepted {
+  background: rgba(59, 130, 246, 0.12);
+}
+.epp-row-waiting {
+  background: rgba(245, 158, 11, 0.08);
+}
+.epp-tag-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.epp-tag-pill.tag-done {
+  background: #16a34a;
+  color: #ffffff;
+}
+.epp-tag-pill.tag-accepted {
+  background: #2563eb;
+  color: #ffffff;
+}
+.epp-tag-pill.tag-waiting {
+  background: #d97706;
+  color: #ffffff;
+}
+
+/* Pastdagi umumiy ro'yxat filter paneli */
+.epp-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #182234;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+.epp-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 400px;
+}
+.epp-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.epp-search-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 7px 32px 7px 32px;
+  color: #f8fafc;
+  font-size: 13px;
+  outline: none;
+}
+.epp-search-input:focus {
+  border-color: #38bdf8;
+}
+.epp-clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  display: none;
+}
+.epp-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.epp-select {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #f8fafc;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+.epp-select:focus {
+  border-color: #38bdf8;
+}
+.epp-filter-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.epp-filter-result-badge {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.epp-reset-btn {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.epp-reset-btn:hover {
+  background: #334155;
+  color: #fff;
 }
 
 

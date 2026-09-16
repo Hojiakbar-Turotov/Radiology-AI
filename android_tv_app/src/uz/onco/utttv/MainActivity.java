@@ -54,8 +54,8 @@ public class MainActivity extends Activity {
     private static final String GITHUB_TUNNEL_CONFIG_URL = "https://raw.githubusercontent.com/Hojiakbar-Turotov/Radiology-AI/main/tunnel_config.json";
     private static final String OFFLINE_ASSET_URL = "file:///android_asset/tv.html";
 
-    public static final int CURRENT_VERSION_CODE = 700;
-    public static final String CURRENT_VERSION_NAME = "7.0.0";
+    public static final int CURRENT_VERSION_CODE = 800;
+    public static final String CURRENT_VERSION_NAME = "8.0.0";
 
     private static final long THIRTY_MINUTES_MS = 30 * 60 * 1000L;
 

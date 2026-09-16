@@ -1890,12 +1890,12 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      latestVersion: "7.1.0",
-      versionCode: 710,
+      latestVersion: "8.0.0",
+      versionCode: 800,
       apkFileName: "UTT_TV_Navbat.apk",
       downloadUrl: "/download/UTT_TV_Navbat.apk",
-      releaseDate: "11.09.2026",
-      releaseNotes: "v7.1.0: Admin panelida ID kodlar va sana oralig'i bo'yicha maxsus Karmed hisob-kitob bo'limi (Google Sheets reestri) va Excel eksport.",
+      releaseDate: "16.09.2026",
+      releaseNotes: "v8.0.0: TV Monitor va Vrachlar ko'rigida Sug'urta, Rezident, Order, Statsionar/Ambulator toifalari va barcha ustunlar bo'yicha saralash va filtrlar.",
       minSupportedVersion: "1.0.0"
     }));
     return;
