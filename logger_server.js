@@ -1779,9 +1779,40 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     return;
   }
 
-  // C. JORIY NAVBATNI OLISH (/api/queue yoki /api/queue-live)
+  // C. JORIY VA ARXIV NAVBATNI OLISH (/api/queue yoki /api/queue-live?date=...)
   if (req.method === 'GET' && (pathname === '/api/queue' || pathname === '/api/queue-live')) {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    const reqDate = (parsedUrl.searchParams.get('date') || '').trim();
+    if (reqDate) {
+      let normDate = reqDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(reqDate)) {
+        const [y, m, d] = reqDate.split('-');
+        normDate = `${d}.${m}.${y}`;
+      }
+
+      const { dateStr } = getDailyLogInfo();
+      if (normDate !== dateStr) {
+        // 1. Log/<normDate>/latest_queue.json faylidan qidirish
+        const logPath1 = path.join(ROOT_DIR, 'Log', normDate, 'latest_queue.json');
+        const targetLog = fs.existsSync(logPath1) ? logPath1 : null;
+        if (targetLog) {
+          try {
+            const archiveData = JSON.parse(fs.readFileSync(targetLog, 'utf8'));
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({
+              success: true,
+              isArchive: true,
+              archiveDate: normDate,
+              data: archiveData,
+              ...archiveData,
+              activeCalls: {}
+            }));
+            return;
+          } catch (e) {}
+        }
+      }
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({
       success: true,
       data: {
@@ -1794,14 +1825,31 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     return;
   }
 
-  // C.2 SHIFOKORNING BUGUNGI TASDIQLANGAN BEMORLARI (/api/doctor-completed-patients)
+  // C.2 SHIFOKORNING TASDIQLANGAN BEMORLARI (/api/doctor-completed-patients)
   if (req.method === 'GET' && pathname === '/api/doctor-completed-patients') {
     const qRoom = (parsedUrl.searchParams.get('room') || parsedUrl.searchParams.get('id') || '').trim();
+    const reqDate = (parsedUrl.searchParams.get('date') || '').trim();
+    let targetQueue = latestQueueData;
+
+    if (reqDate) {
+      let normDate = reqDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(reqDate)) {
+        const [y, m, d] = reqDate.split('-');
+        normDate = `${d}.${m}.${y}`;
+      }
+      const logPath1 = path.join(ROOT_DIR, 'Log', normDate, 'latest_queue.json');
+      if (fs.existsSync(logPath1)) {
+        try {
+          targetQueue = JSON.parse(fs.readFileSync(logPath1, 'utf8'));
+        } catch (e) {}
+      }
+    }
+
     let docObj = null;
-    if (latestQueueData && latestQueueData.doctors) {
-      docObj = latestQueueData.doctors.find(d => (d.id === qRoom || d.room === qRoom));
+    if (targetQueue && targetQueue.doctors) {
+      docObj = targetQueue.doctors.find(d => (d.id === qRoom || d.room === qRoom));
       if (!docObj) {
-        docObj = latestQueueData.doctors.find(d => 
+        docObj = targetQueue.doctors.find(d => 
           (d.room && d.room.toLowerCase().includes(String(qRoom).toLowerCase())) ||
           String(d.num) === String(qRoom)
         );
@@ -1817,6 +1865,35 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
       completedTodayCount: docObj ? docObj.completedTodayCount : 0,
       completedEarlierCount: docObj ? docObj.completedEarlierCount : 0,
       patients: patients
+    }));
+    return;
+  }
+
+  // C.3 MAVJUD ARXIV SANALAR RO'YXATI (/api/available-dates)
+  if (req.method === 'GET' && pathname === '/api/available-dates') {
+    const logBase = path.join(ROOT_DIR, 'Log');
+    const dates = [];
+    if (fs.existsSync(logBase)) {
+      try {
+        const dirs = fs.readdirSync(logBase);
+        dirs.forEach(d => {
+          if (/^\d{2}\.\d{2}\.\d{4}$/.test(d)) {
+            const qf = path.join(logBase, d, 'latest_queue.json');
+            if (fs.existsSync(qf)) dates.push(d);
+          }
+        });
+      } catch (e) {}
+    }
+    dates.sort((a, b) => {
+      const [d1, m1, y1] = a.split('.').map(Number);
+      const [d2, m2, y2] = b.split('.').map(Number);
+      return new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1);
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      today: getDailyLogInfo().dateStr,
+      dates: dates
     }));
     return;
   }

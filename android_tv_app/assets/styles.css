@@ -304,6 +304,125 @@ html, body {
   color: var(--accent-gold);
 }
 
+.date-filter-pill {
+  border-color: #3b82f6;
+  background: #111e48;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+}
+
+.date-filter-pill .stat-lbl {
+  color: #93c5fd;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-filter-pill .stats-date-input {
+  background: #091024;
+  border: 1.5px solid #3b82f6;
+  color: #38bdf8;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.date-filter-pill .stats-date-input:focus,
+.date-filter-pill .stats-date-input:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.date-filter-pill .stats-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.btn-today-reset {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.btn-today-reset:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* Arxiv ko'rsatkichlari status banneri */
+.archive-status-banner {
+  background: linear-gradient(90deg, #9a3412 0%, #c2410c 50%, #b45309 100%);
+  border: 1.5px solid #f97316;
+  border-radius: 10px;
+  padding: 9px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(194, 65, 12, 0.35);
+  animation: slideDownArchive 0.25s ease-out;
+}
+
+@keyframes slideDownArchive {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.archive-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.archive-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.archive-banner-icon {
+  font-size: 18px;
+}
+
+.btn-return-today {
+  background: #ffffff;
+  color: #9a3412;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+
+.btn-return-today:hover {
+  background: #ffedd5;
+  transform: translateY(-1px);
+}
+
+
 .wifi-marquee-card {
   display: flex;
   align-items: center;

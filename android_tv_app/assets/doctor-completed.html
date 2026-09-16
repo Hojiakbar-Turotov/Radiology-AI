@@ -665,6 +665,7 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       let targetRoom = urlParams.get('room') || urlParams.get('id') || '';
+      const qDate = (urlParams.get('date') || '').trim();
       if (!targetRoom && window.location.hash) {
         targetRoom = window.location.hash.replace('#', '');
       }
@@ -743,7 +744,47 @@
 
       // 1. Ma'lumotlarni yuklash (Parent window dan yoki API dan)
       function loadData() {
-        if (window.parent && window.parent.queueData) {
+        if (qDate) {
+          let normDate = qDate;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(qDate)) {
+            const [y, m, d] = qDate.split('-');
+            normDate = `${d}.${m}.${y}`;
+          }
+          if (dispDateLabel) {
+            dispDateLabel.textContent = `📅 ${normDate} sanasidagi yakuniy ko'riklar`;
+          }
+
+          if (window.parent && window.parent.queueData && (window.parent.selectedArchiveDate === qDate || window.parent.queueData.archiveDate === normDate)) {
+            applyDataFromQueue(window.parent.queueData);
+            return;
+          }
+
+          fetch('/api/queue-live?date=' + encodeURIComponent(qDate) + '&t=' + Date.now())
+            .then(res => res.json())
+            .then(data => {
+              applyDataFromQueue(data);
+            })
+            .catch(err => {
+              console.error('Arxiv yuklashda xato:', err);
+              fetch('/api/doctor-completed-patients?room=' + encodeURIComponent(targetRoom) + '&date=' + encodeURIComponent(qDate))
+                .then(res => res.json())
+                .then(resData => {
+                  if (resData && resData.patients) {
+                    allCompletedPatients = resData.patients;
+                    if (dispDoctorName) dispDoctorName.textContent = resData.doctorName || targetRoom;
+                    if (dispRoomBadge) dispRoomBadge.textContent = resData.room || targetRoom;
+                    updateStats();
+                    renderTable();
+                  }
+                })
+                .catch(() => {
+                  tableBody.innerHTML = `<tr><td colspan="9" class="empty-state"><span class="empty-icon">⚠️</span>Ma'lumotlarni yuklashda xatolik yuz berdi.</td></tr>`;
+                });
+            });
+          return;
+        }
+
+        if (window.parent && window.parent.queueData && !window.parent.selectedArchiveDate) {
           applyDataFromQueue(window.parent.queueData);
           return;
         }
@@ -1223,9 +1264,11 @@
       btnExportCsv?.addEventListener('click', exportToCsv);
       btnPrint?.addEventListener('click', () => window.print());
 
-      // Dastlabki yuklash va har 4 soniyada yangilash
+      // Dastlabki yuklash va har 4 soniyada yangilash (faqat jonli rejimda)
       loadData();
-      setInterval(loadData, 4000);
+      if (!qDate) {
+        setInterval(loadData, 4000);
+      }
     })();
   </script>
 </body>

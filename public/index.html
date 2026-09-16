@@ -72,18 +72,23 @@
           <span class="stat-val" id="totalPatientsCount">0</span>
         </div>
         <div class="stat-pill reg-pill" title="Bugun ro'yxatga olingan bemorlar soni">
-          <span class="stat-lbl">Bugun ro'yxatga olingan:</span>
+          <span class="stat-lbl" id="lblTodayReg">Bugun ro'yxatga olingan:</span>
           <span class="stat-val" id="todayRegPatientsCount">0</span>
           <span class="stat-subval" id="earlierRegPatientsCount" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #38bdf8;">(+0 oldin)</span>
         </div>
         <div class="stat-pill completed-pill" title="Tasdiqlangan sanasi bugun bo'lgan barcha bemorlar soni">
-          <span class="stat-lbl">Bugun ko'rildi:</span>
+          <span class="stat-lbl" id="lblTodayCompleted">Bugun ko'rildi:</span>
           <span class="stat-val" id="totalCompletedCount">0</span>
           <span class="stat-subval" id="completedEarlierSubText" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #86efac;">(0 oldin)</span>
         </div>
         <div class="stat-pill active-docs-pill">
           <span class="stat-lbl">Qabuldagi shifokorlar:</span>
           <span class="stat-val" id="activeDoctorsCount">0</span>
+        </div>
+        <div class="stat-pill date-filter-pill" id="dateFilterPill" title="Sana bo'yicha arxiv yoki yakuniy hisobotni ko'rish">
+          <span class="stat-lbl">📅 Sana:</span>
+          <input type="date" id="statsDateInput" class="stats-date-input" title="Sanani tanlang">
+          <button type="button" id="btnTodayReset" class="btn-today-reset" title="Bugungi jonli navbatga qaytish" style="display: none;">Bugun</button>
         </div>
       </div>
 
@@ -97,6 +102,17 @@
         </button>
       </div>
     </section>
+
+    <!-- ARXIV HOLATI BANNERI -->
+    <div id="archiveStatusBanner" class="archive-status-banner" style="display: none;">
+      <div class="archive-banner-content">
+        <div class="archive-banner-left">
+          <span class="archive-banner-icon">📁</span>
+          <span>Siz <b><span id="archiveDateDisplay">15.09.2026</span></b> sanasidagi yakuniy ko'rsatkichlar arxivini ko'rmoqdasiz.</span>
+        </div>
+        <button type="button" id="btnReturnToday" class="btn-return-today">↩ Bugungi jonli navbatga qaytish</button>
+      </div>
+    </div>
 
     <!-- 3. POST KOMPYUTERI FILTRLARI (POST MODE) -->
     <section class="post-controls-panel" id="postControlsPanel">

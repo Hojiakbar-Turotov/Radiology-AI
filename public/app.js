@@ -176,6 +176,26 @@
   const btnDimhNewTab = document.getElementById('btnDimhNewTab');
   const btnDimhClose = document.getElementById('btnDimhClose');
 
+  // Sana tanlash va arxiv ko'rsatkichlari elementlari
+  const statsDateInput = document.getElementById('statsDateInput');
+  const btnTodayReset = document.getElementById('btnTodayReset');
+  const archiveStatusBanner = document.getElementById('archiveStatusBanner');
+  const archiveDateDisplay = document.getElementById('archiveDateDisplay');
+  const btnReturnToday = document.getElementById('btnReturnToday');
+  const lblTodayReg = document.getElementById('lblTodayReg');
+  const lblTodayCompleted = document.getElementById('lblTodayCompleted');
+
+  let selectedArchiveDate = null; // null bo'lsa - bugungi jonli navbat; aks holda 'YYYY-MM-DD'
+  let cachedLiveQueueData = null; // Bugungi jonli navbat ma'lumotlari keshda saqlanadi
+
+  function getTodayYmd() {
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, '0');
+    var d = String(now.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
     'Ultratovush-1': { title: 'UTT1-53 XONA', roomNum: '53', doctorName: 'Juravlev Igor Ivanovich', shortName: 'Juravlev' },
@@ -262,7 +282,8 @@
       dimhCompletedCountBadge.textContent = `${stats.completed} ta ko'rildi${stats.completedEarlier > 0 ? ` (${stats.completedEarlier} ta oldindan)` : ''}`;
     }
 
-    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`;
+    const dateParam = selectedArchiveDate ? ('&date=' + encodeURIComponent(selectedArchiveDate)) : '';
+    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}${dateParam}`;
     doctorCompletedModal.style.display = 'flex';
   };
 
@@ -278,7 +299,8 @@
   if (btnDimhNewTab) {
     btnDimhNewTab.addEventListener('click', () => {
       if (currentModalRoom) {
-        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`, '_blank');
+        const dateParam = selectedArchiveDate ? ('&date=' + encodeURIComponent(selectedArchiveDate)) : '';
+        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}${dateParam}`, '_blank');
       }
     });
   }
@@ -820,9 +842,15 @@
               if (data.activeCalls) {
                 activeCalls = data.activeCalls;
               }
-              if (currentMode === 'single-room') renderSingleRoomView(currentRoomId);
-              else if (currentMode === 'tv' || currentMode === 'mobile') renderTvGrid();
-              else if (currentMode === 'post') renderPostView();
+              if (!selectedArchiveDate) {
+                if (currentMode === 'single-room') renderSingleRoomView(currentRoomId);
+                else if (currentMode === 'tv' || currentMode === 'mobile') renderTvGrid();
+                else if (currentMode === 'post') renderPostView();
+              }
+              return;
+            }
+            cachedLiveQueueData = data;
+            if (selectedArchiveDate) {
               return;
             }
             handleNewQueueData(data);
@@ -831,7 +859,7 @@
 
         sseSource.onerror = function () {
           // SSE uzilsa ham polling ishlab turadi
-          if (liveConnChip) {
+          if (liveConnChip && !selectedArchiveDate) {
             liveConnChip.className = 'live-connection-chip connected';
             liveConnText.textContent = 'Jonli Aloqa (Auto)';
           }
@@ -844,6 +872,10 @@
   function pollQueueData() {
     universalGet('/api/queue-live?t=' + Date.now(), function(data) {
       consecutivePollErrors = 0;
+      cachedLiveQueueData = data;
+      if (selectedArchiveDate) {
+        return;
+      }
       handleNewQueueData(data);
       if (liveConnChip) {
         liveConnChip.className = 'live-connection-chip connected';
@@ -851,7 +883,7 @@
       }
     }, function(err) {
       consecutivePollErrors++;
-      if (liveConnChip) {
+      if (!selectedArchiveDate && liveConnChip) {
         liveConnChip.className = 'live-connection-chip disconnected';
         liveConnText.textContent = 'Aloqa qidirilmoqda...';
       }
@@ -859,6 +891,78 @@
         window.reportTvTelemetry('TV_API_POLL_ERROR', { error: String(err && err.message ? err.message : err), consecutiveFails: consecutivePollErrors }, 500);
       }
     });
+  }
+
+  // 10.1 SANA BO'YICHA ARXIV VA YAKUNIY KO'RSATKICHLARNI YUKLASH
+  function initDateFilterControls() {
+    if (statsDateInput) {
+      var todayYmd = getTodayYmd();
+      statsDateInput.value = todayYmd;
+      statsDateInput.max = todayYmd;
+
+      statsDateInput.addEventListener('change', function() {
+        var chosenVal = statsDateInput.value;
+        if (!chosenVal || chosenVal === getTodayYmd()) {
+          switchToLiveToday();
+        } else {
+          loadDataForDate(chosenVal);
+        }
+      });
+    }
+
+    if (btnTodayReset) {
+      btnTodayReset.addEventListener('click', switchToLiveToday);
+    }
+    if (btnReturnToday) {
+      btnReturnToday.addEventListener('click', switchToLiveToday);
+    }
+  }
+
+  function loadDataForDate(dateStr) {
+    if (!dateStr) return;
+    selectedArchiveDate = dateStr;
+
+    var normDate = dateStr;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      var parts = dateStr.split('-');
+      normDate = parts[2] + '.' + parts[1] + '.' + parts[0];
+    }
+
+    if (archiveStatusBanner) archiveStatusBanner.style.display = 'block';
+    if (archiveDateDisplay) archiveDateDisplay.textContent = normDate;
+    if (btnTodayReset) btnTodayReset.style.display = 'inline-block';
+    if (liveConnChip) {
+      liveConnChip.className = 'live-connection-chip connected';
+      liveConnText.textContent = 'Arxiv (' + normDate + ')';
+    }
+
+    universalGet('/api/queue-live?date=' + encodeURIComponent(dateStr) + '&t=' + Date.now(), function(resp) {
+      if (resp) {
+        handleNewQueueData(resp);
+      }
+    }, function(err) {
+      console.error('Arxiv yuklashda xato:', err);
+    });
+  }
+
+  function switchToLiveToday() {
+    selectedArchiveDate = null;
+    var todayYmd = getTodayYmd();
+    if (statsDateInput) statsDateInput.value = todayYmd;
+    if (archiveStatusBanner) archiveStatusBanner.style.display = 'none';
+    if (btnTodayReset) btnTodayReset.style.display = 'none';
+    if (lblTodayReg) lblTodayReg.textContent = "Bugun ro'yxatga olingan:";
+    if (lblTodayCompleted) lblTodayCompleted.textContent = "Bugun ko'rildi:";
+
+    if (liveConnChip) {
+      liveConnChip.className = 'live-connection-chip connected';
+      liveConnText.textContent = 'Jonli Aloqa (v8.0)';
+    }
+
+    if (cachedLiveQueueData) {
+      handleNewQueueData(cachedLiveQueueData);
+    }
+    pollQueueData();
   }
 
   function handleNewQueueData(data) {
@@ -915,6 +1019,19 @@
   function updateStatsBar() {
     if (!queueData) return;
     const summary = queueData.summary || {};
+
+    if (selectedArchiveDate) {
+      var dDisplay = selectedArchiveDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(selectedArchiveDate)) {
+        var dp = selectedArchiveDate.split('-');
+        dDisplay = dp[2] + '.' + dp[1];
+      }
+      if (lblTodayReg) lblTodayReg.textContent = dDisplay + " da ro'yxatga olingan:";
+      if (lblTodayCompleted) lblTodayCompleted.textContent = dDisplay + " da ko'rildi:";
+    } else {
+      if (lblTodayReg) lblTodayReg.textContent = "Bugun ro'yxatga olingan:";
+      if (lblTodayCompleted) lblTodayCompleted.textContent = "Bugun ko'rildi:";
+    }
     
     // Navbatdagi bemorlar soni
     const waiting = typeof summary.totalWaiting === 'number' 
@@ -947,7 +1064,7 @@
     }
 
     // Faol qabuldagi shifokorlar
-    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0)).length : 0;
+    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0 || (d.completedCount && d.completedCount > 0))).length : 0;
     if (activeDoctorsCount) activeDoctorsCount.textContent = activeDocs;
 
     // Faqat tasdiqlangan sanasi bugun bo'lgan ko'riklar
@@ -1633,10 +1750,19 @@
     } else {
       setViewMode('tv');
     }
+
+    const dateParam = urlParams.get('date');
+    if (dateParam) {
+      setTimeout(function() {
+        if (statsDateInput) statsDateInput.value = dateParam;
+        loadDataForDate(dateParam);
+      }, 100);
+    }
   }
 
-  // Dastlabki ishga tushirish (v7.0.0)
+  // Dastlabki ishga tushirish (v8.2.0)
   initFromUrlParams();
+  initDateFilterControls();
   initRealtimeEvents();
   pollQueueData();
 

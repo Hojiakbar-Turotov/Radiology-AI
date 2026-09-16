@@ -53,6 +53,42 @@
       return undefined;
     };
   }
+  if (typeof Object.assign !== 'function') {
+    Object.assign = function(target) {
+      if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+      var to = Object(target);
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+        if (nextSource != null) {
+          for (var nextKey in nextSource) {
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    };
+  }
+  if (!Array.from) {
+    Array.from = function(object) {
+      return [].slice.call(object);
+    };
+  }
+  if (!Object.values) {
+    Object.values = function(obj) {
+      if (obj == null) return [];
+      return Object.keys(obj).map(function(key) { return obj[key]; });
+    };
+  }
+  if (!Object.entries) {
+    Object.entries = function(obj) {
+      if (obj == null) return [];
+      var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i);
+      while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+      return resArray;
+    };
+  }
 
   // 1. DOM ELEMENTLARI
   const body = document.body;
@@ -140,6 +176,26 @@
   const btnDimhNewTab = document.getElementById('btnDimhNewTab');
   const btnDimhClose = document.getElementById('btnDimhClose');
 
+  // Sana tanlash va arxiv ko'rsatkichlari elementlari
+  const statsDateInput = document.getElementById('statsDateInput');
+  const btnTodayReset = document.getElementById('btnTodayReset');
+  const archiveStatusBanner = document.getElementById('archiveStatusBanner');
+  const archiveDateDisplay = document.getElementById('archiveDateDisplay');
+  const btnReturnToday = document.getElementById('btnReturnToday');
+  const lblTodayReg = document.getElementById('lblTodayReg');
+  const lblTodayCompleted = document.getElementById('lblTodayCompleted');
+
+  let selectedArchiveDate = null; // null bo'lsa - bugungi jonli navbat; aks holda 'YYYY-MM-DD'
+  let cachedLiveQueueData = null; // Bugungi jonli navbat ma'lumotlari keshda saqlanadi
+
+  function getTodayYmd() {
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, '0');
+    var d = String(now.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+
   // 2. XONALAR NOM VA XONA RAQAMLARI XARITASI (VRACHLAR KATALOGI BILAN)
   const ROOM_MAP = {
     'Ultratovush-1': { title: 'UTT1-53 XONA', roomNum: '53', doctorName: 'Juravlev Igor Ivanovich', shortName: 'Juravlev' },
@@ -226,7 +282,8 @@
       dimhCompletedCountBadge.textContent = `${stats.completed} ta ko'rildi${stats.completedEarlier > 0 ? ` (${stats.completedEarlier} ta oldindan)` : ''}`;
     }
 
-    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`;
+    const dateParam = selectedArchiveDate ? ('&date=' + encodeURIComponent(selectedArchiveDate)) : '';
+    docCompletedIframe.src = `/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}${dateParam}`;
     doctorCompletedModal.style.display = 'flex';
   };
 
@@ -242,7 +299,8 @@
   if (btnDimhNewTab) {
     btnDimhNewTab.addEventListener('click', () => {
       if (currentModalRoom) {
-        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}`, '_blank');
+        const dateParam = selectedArchiveDate ? ('&date=' + encodeURIComponent(selectedArchiveDate)) : '';
+        window.open(`/doctor-completed.html?room=${encodeURIComponent(currentModalRoom)}${dateParam}`, '_blank');
       }
     });
   }
@@ -345,6 +403,12 @@
       currentRoomId = targetRoomId;
     }
 
+    try {
+      if (window.AndroidTV && typeof window.AndroidTV.onModeChanged === 'function') {
+        window.AndroidTV.onModeChanged(mode, currentRoomId || '');
+      }
+    } catch (e) {}
+
     body.className = `mode-${mode}`;
 
     if (btnModeTv) btnModeTv.classList.toggle('active', mode === 'tv');
@@ -403,6 +467,78 @@
   if (btnModePost) btnModePost.addEventListener('click', () => setViewMode('post'));
   if (btnModeMobile) btnModeMobile.addEventListener('click', () => setViewMode('mobile'));
   if (btnSrBackToAll) btnSrBackToAll.addEventListener('click', () => setViewMode('tv'));
+
+  // 6.1 TV PULITI VA KLAVIATURA RAQAMLARI ORQALI XONAGA TEZKOR O'TISH (0-9)
+  // Foydalanuvchi talabi: 0 -> UTT 10, 1 -> UTT 1, ..., 9 -> UTT 9
+  const NUMBER_TO_ROOM = {
+    1: 'Ultratovush-1',
+    2: 'Ultratovush-2',
+    3: 'Ultratovush-3',
+    4: 'Ultratovush-4',
+    5: 'Ultratovush-5',
+    6: 'Ultratovush-6',
+    7: 'Ultratovush-7',
+    8: 'Ultratovush-8',
+    9: 'Ultratovush-9',
+    0: 'Ultratovush-10',
+    10: 'Ultratovush-10'
+  };
+
+  window.uttSwitchRoomByNumber = function(num) {
+    const targetRoom = NUMBER_TO_ROOM[num];
+    if (!targetRoom) {
+      setViewMode('tv');
+      return;
+    }
+
+    // Agar allaqachon shu xona ochilgan bo'lsa -> umumiy TV ekranga toggle qilish!
+    if (currentMode === 'single-room' && currentRoomId === targetRoom) {
+      setViewMode('tv');
+      return;
+    }
+
+    // Xonani ochish
+    setViewMode('single-room', targetRoom);
+  };
+
+  window.uttBackToAllRooms = function() {
+    if (currentMode === 'single-room') {
+      setViewMode('tv');
+      return true;
+    }
+    return false;
+  };
+
+  // Klaviaturadan va TV pultidan 0-9 raqamlari bosilganda xonani ochish / qaytish
+  window.addEventListener('keydown', function(e) {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+      return;
+    }
+
+    // Escape yoki Backspace
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      if (currentMode === 'single-room') {
+        e.preventDefault();
+        setViewMode('tv');
+        return;
+      }
+    }
+
+    var digit = null;
+    if (e.key >= '0' && e.key <= '9') {
+      digit = parseInt(e.key, 10);
+    } else if (e.keyCode >= 48 && e.keyCode <= 57) { // 0-9
+      digit = e.keyCode - 48;
+    } else if (e.keyCode >= 96 && e.keyCode <= 105) { // Numpad 0-9
+      digit = e.keyCode - 96;
+    }
+
+    if (digit !== null) {
+      e.preventDefault();
+      window.uttSwitchRoomByNumber(digit);
+    }
+  }, true);
 
   // Xona tanlash dropdownlari (Server o'chiq bo'lsa ham ROOM_MAP dan to'ldiriladi)
   function populateRoomDropdowns() {
@@ -469,9 +605,20 @@
     });
   }
 
+  // 6.2 SERVER VAQTINI SINXRONLASH (TV VA QURILMALARDA SANA TO'G'RI CHIQISHI UCHUN)
+  // Eski Android TV'larda ichki soat noto'g'ri (yoki batareyasi o'tirgan) bo'lsa ham,
+  // serverdan kelgan aniq sana va vaqtga avtomatik sinxronlanadi.
+  let serverTimeOffset = 0; // ms: serverTime - clientLocalTime
+  let serverDateString = ''; // Serverdan keluvchi aniq sana (masalan: "16.09.2026")
+  let serverTimeSynched = false;
+
+  function getServerNow() {
+    return new Date(Date.now() + serverTimeOffset);
+  }
+
   // 7. JONLI SOAT VA SANA
   function updateLiveClock() {
-    const now = new Date();
+    const now = getServerNow();
     const pad = (n) => (n < 10 ? '0' : '') + n;
     const d = pad(now.getDate());
     const m = pad(now.getMonth() + 1);
@@ -480,11 +627,14 @@
     const min = pad(now.getMinutes());
     const s = pad(now.getSeconds());
 
+    // Agar serverdan aniq sana kelgan bo'lsa o'shani chiqaramiz
+    const displayDate = serverDateString || `${d}.${m}.${y}`;
+
     // Header soati
-    if (liveDate) liveDate.textContent = `📅 ${d}.${m}.${y}`;
+    if (liveDate) liveDate.textContent = `📅 ${displayDate}`;
     if (liveTime) liveTime.textContent = `${h}:${min}:${s}`;
 
-    // Single Room TV soati va sanasi (Screenshot 2: Seshanba 8 Sentabr 2026 | 10:28:34)
+    // Single Room TV soati va sanasi
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
     if (srFullClockTime) srFullClockTime.textContent = `${h}:${min}:${s}`;
 
@@ -674,7 +824,7 @@
         sseSource.onopen = function () {
           if (liveConnChip) {
             liveConnChip.className = 'live-connection-chip connected';
-            liveConnText.textContent = 'Jonli TV v7.1.0-dev (Test)';
+            liveConnText.textContent = 'Jonli Aloqa (v8.0)';
           }
         };
 
@@ -692,9 +842,15 @@
               if (data.activeCalls) {
                 activeCalls = data.activeCalls;
               }
-              if (currentMode === 'single-room') renderSingleRoomView(currentRoomId);
-              else if (currentMode === 'tv' || currentMode === 'mobile') renderTvGrid();
-              else if (currentMode === 'post') renderPostView();
+              if (!selectedArchiveDate) {
+                if (currentMode === 'single-room') renderSingleRoomView(currentRoomId);
+                else if (currentMode === 'tv' || currentMode === 'mobile') renderTvGrid();
+                else if (currentMode === 'post') renderPostView();
+              }
+              return;
+            }
+            cachedLiveQueueData = data;
+            if (selectedArchiveDate) {
               return;
             }
             handleNewQueueData(data);
@@ -703,9 +859,9 @@
 
         sseSource.onerror = function () {
           // SSE uzilsa ham polling ishlab turadi
-          if (liveConnChip) {
+          if (liveConnChip && !selectedArchiveDate) {
             liveConnChip.className = 'live-connection-chip connected';
-            liveConnText.textContent = 'Jonli TV v7.1.0-dev (Auto)';
+            liveConnText.textContent = 'Jonli Aloqa (Auto)';
           }
         };
       } catch (e) {}
@@ -716,14 +872,18 @@
   function pollQueueData() {
     universalGet('/api/queue-live?t=' + Date.now(), function(data) {
       consecutivePollErrors = 0;
+      cachedLiveQueueData = data;
+      if (selectedArchiveDate) {
+        return;
+      }
       handleNewQueueData(data);
       if (liveConnChip) {
         liveConnChip.className = 'live-connection-chip connected';
-        liveConnText.textContent = 'Jonli TV v7.1.0-dev (Test)';
+        liveConnText.textContent = 'Jonli Aloqa (v8.0)';
       }
     }, function(err) {
       consecutivePollErrors++;
-      if (liveConnChip) {
+      if (!selectedArchiveDate && liveConnChip) {
         liveConnChip.className = 'live-connection-chip disconnected';
         liveConnText.textContent = 'Aloqa qidirilmoqda...';
       }
@@ -733,9 +893,106 @@
     });
   }
 
+  // 10.1 SANA BO'YICHA ARXIV VA YAKUNIY KO'RSATKICHLARNI YUKLASH
+  function initDateFilterControls() {
+    if (statsDateInput) {
+      var todayYmd = getTodayYmd();
+      statsDateInput.value = todayYmd;
+      statsDateInput.max = todayYmd;
+
+      statsDateInput.addEventListener('change', function() {
+        var chosenVal = statsDateInput.value;
+        if (!chosenVal || chosenVal === getTodayYmd()) {
+          switchToLiveToday();
+        } else {
+          loadDataForDate(chosenVal);
+        }
+      });
+    }
+
+    if (btnTodayReset) {
+      btnTodayReset.addEventListener('click', switchToLiveToday);
+    }
+    if (btnReturnToday) {
+      btnReturnToday.addEventListener('click', switchToLiveToday);
+    }
+  }
+
+  function loadDataForDate(dateStr) {
+    if (!dateStr) return;
+    selectedArchiveDate = dateStr;
+
+    var normDate = dateStr;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      var parts = dateStr.split('-');
+      normDate = parts[2] + '.' + parts[1] + '.' + parts[0];
+    }
+
+    if (archiveStatusBanner) archiveStatusBanner.style.display = 'block';
+    if (archiveDateDisplay) archiveDateDisplay.textContent = normDate;
+    if (btnTodayReset) btnTodayReset.style.display = 'inline-block';
+    if (liveConnChip) {
+      liveConnChip.className = 'live-connection-chip connected';
+      liveConnText.textContent = 'Arxiv (' + normDate + ')';
+    }
+
+    universalGet('/api/queue-live?date=' + encodeURIComponent(dateStr) + '&t=' + Date.now(), function(resp) {
+      if (resp) {
+        handleNewQueueData(resp);
+      }
+    }, function(err) {
+      console.error('Arxiv yuklashda xato:', err);
+    });
+  }
+
+  function switchToLiveToday() {
+    selectedArchiveDate = null;
+    var todayYmd = getTodayYmd();
+    if (statsDateInput) statsDateInput.value = todayYmd;
+    if (archiveStatusBanner) archiveStatusBanner.style.display = 'none';
+    if (btnTodayReset) btnTodayReset.style.display = 'none';
+    if (lblTodayReg) lblTodayReg.textContent = "Bugun ro'yxatga olingan:";
+    if (lblTodayCompleted) lblTodayCompleted.textContent = "Bugun ko'rildi:";
+
+    if (liveConnChip) {
+      liveConnChip.className = 'live-connection-chip connected';
+      liveConnText.textContent = 'Jonli Aloqa (v8.0)';
+    }
+
+    if (cachedLiveQueueData) {
+      handleNewQueueData(cachedLiveQueueData);
+    }
+    pollQueueData();
+  }
+
   function handleNewQueueData(data) {
     if (!data) return;
     queueData = data;
+
+    // Server vaqtini sinxronlash
+    if (data.date) {
+      serverDateString = String(data.date).trim();
+    }
+    if (data.timestamp) {
+      var sTime = new Date(data.timestamp).getTime();
+      if (!isNaN(sTime)) {
+        serverTimeOffset = sTime - Date.now();
+        if (!serverTimeSynched) {
+          serverTimeSynched = true;
+          updateLiveClock();
+          if (window.reportTvTelemetry) {
+            var driftSec = Math.round(serverTimeOffset / 1000);
+            window.reportTvTelemetry('TV_TIME_SYNC', {
+              serverDate: serverDateString,
+              clientLocalIso: new Date().toISOString(),
+              driftSeconds: driftSec,
+              note: Math.abs(driftSec) > 30 ? 'TV ichki soati noto\'g\'ri, serverdan to\'g\'rilandi' : 'Soat to\'g\'ri'
+            }, 200);
+          }
+        }
+      }
+    }
+
     if (data.activeCalls) {
       activeCalls = data.activeCalls;
     }
@@ -762,6 +1019,19 @@
   function updateStatsBar() {
     if (!queueData) return;
     const summary = queueData.summary || {};
+
+    if (selectedArchiveDate) {
+      var dDisplay = selectedArchiveDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(selectedArchiveDate)) {
+        var dp = selectedArchiveDate.split('-');
+        dDisplay = dp[2] + '.' + dp[1];
+      }
+      if (lblTodayReg) lblTodayReg.textContent = dDisplay + " da ro'yxatga olingan:";
+      if (lblTodayCompleted) lblTodayCompleted.textContent = dDisplay + " da ko'rildi:";
+    } else {
+      if (lblTodayReg) lblTodayReg.textContent = "Bugun ro'yxatga olingan:";
+      if (lblTodayCompleted) lblTodayCompleted.textContent = "Bugun ko'rildi:";
+    }
     
     // Navbatdagi bemorlar soni
     const waiting = typeof summary.totalWaiting === 'number' 
@@ -794,7 +1064,7 @@
     }
 
     // Faol qabuldagi shifokorlar
-    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0)).length : 0;
+    const activeDocs = queueData.doctors ? queueData.doctors.filter(d => (d.patients && d.patients.length > 0 || (d.completedCount && d.completedCount > 0))).length : 0;
     if (activeDoctorsCount) activeDoctorsCount.textContent = activeDocs;
 
     // Faqat tasdiqlangan sanasi bugun bo'lgan ko'riklar
@@ -1294,7 +1564,7 @@
     const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
 
     // 3. Sana va soatni yangilash
-    const now = new Date();
+    const now = getServerNow();
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
 
     // 4. Jadvalni to'ldirish (Foydalanuvchi talabi: 7 talik cheklov, qolganlari yangi sahifaga o'tsin)
@@ -1480,10 +1750,33 @@
     } else {
       setViewMode('tv');
     }
+
+    const dateParam = urlParams.get('date');
+    if (dateParam) {
+      setTimeout(function() {
+        if (statsDateInput) statsDateInput.value = dateParam;
+        loadDataForDate(dateParam);
+      }, 100);
+    }
   }
 
-  // Dastlabki ishga tushirish (v7.0.0)
+  // Dastlabki ishga tushirish (v8.2.0)
   initFromUrlParams();
+  initDateFilterControls();
   initRealtimeEvents();
   pollQueueData();
+
+  // Har 60 soniyada TV holati va soat sinxronligini serverga telemetriya orqali yuborish
+  setInterval(function() {
+    if (window.reportTvTelemetry) {
+      var driftSec = Math.round(serverTimeOffset / 1000);
+      window.reportTvTelemetry('TV_HEARTBEAT', {
+        serverDate: serverDateString,
+        currentMode: currentMode,
+        currentRoomId: currentRoomId,
+        driftSeconds: driftSec,
+        deviceTime: new Date().toISOString()
+      }, 200);
+    }
+  }, 60000);
 })();
