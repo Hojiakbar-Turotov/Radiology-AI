@@ -252,11 +252,25 @@
             lastStatus: l.status || 200,
             hasActiveError: isErr,
             errorCount: isErr ? 1 : 0,
-            errorDetail: isErr ? (l.detail || l.type) : null
+            errorDetail: isErr ? (l.detail || l.type) : null,
+            driftSeconds: (l.detail && typeof l.detail.driftSeconds === 'number') ? l.detail.driftSeconds : null,
+            serverDate: (l.detail && l.detail.serverDate) ? l.detail.serverDate : null,
+            currentMode: (l.detail && l.detail.currentMode) ? l.detail.currentMode : null,
+            currentRoomId: (l.detail && l.detail.currentRoomId) ? l.detail.currentRoomId : null
           };
         } else {
           if (isErr) {
             deviceMap[ip].errorCount = (deviceMap[ip].errorCount || 0) + 1;
+          }
+          if (deviceMap[ip].driftSeconds === null && l.detail && typeof l.detail.driftSeconds === 'number') {
+            deviceMap[ip].driftSeconds = l.detail.driftSeconds;
+          }
+          if (!deviceMap[ip].serverDate && l.detail && l.detail.serverDate) {
+            deviceMap[ip].serverDate = l.detail.serverDate;
+          }
+          if (!deviceMap[ip].currentMode && l.detail && l.detail.currentMode) {
+            deviceMap[ip].currentMode = l.detail.currentMode;
+            deviceMap[ip].currentRoomId = l.detail.currentRoomId;
           }
         }
       });
@@ -276,12 +290,28 @@
           var d = deviceMap[k];
           var badgeClass = d.hasActiveError ? 'badge-err' : 'badge-ok';
           var badgeText = d.hasActiveError ? '⚠️ Muammo bor' : (d.errorCount > 0 ? '🟢 Normal (' + d.errorCount + ' ta eski)' : '🟢 Normal');
+          
+          var syncInfoHtml = '';
+          if (d.driftSeconds !== null) {
+            var driftAbs = Math.abs(d.driftSeconds);
+            if (driftAbs > 60) {
+              syncInfoHtml = '<div style="font-size:12px; margin-top:4px; color:#f59e0b;">⚠️ <b>Soat og\'ishi: ' + d.driftSeconds + ' soniya</b> (Serverdan avto-to\'g\'rilandi) • Sana: ' + (d.serverDate || '16.09.2026') + '</div>';
+            } else {
+              syncInfoHtml = '<div style="font-size:12px; margin-top:4px; color:#4ade80;">⏱️ <b>Soat sinxron:</b> ' + d.driftSeconds + 's farq • Sana: ' + (d.serverDate || '16.09.2026') + '</div>';
+            }
+          }
+          if (d.currentMode) {
+            var modeLabel = d.currentMode === 'single-room' ? ('Yagona Xona (' + (d.currentRoomId || '') + ')') : 'Barcha xonalar (TV)';
+            syncInfoHtml += '<div style="font-size:12px; margin-top:2px; color:#38bdf8;">🖥️ Ko\'rsatayotgan ekrani: <b>' + modeLabel + '</b></div>';
+          }
+
           devHtml += '<div class="device-card">' +
             '<div class="device-icon">' + (d.deviceType.indexOf('TV') !== -1 ? '📺' : (d.deviceType.indexOf('Mobil') !== -1 ? '📱' : '💻')) + '</div>' +
             '<div class="device-info">' +
               '<div class="device-ip">' + d.ip + ' <span style="font-size:12px; font-weight:normal; color:var(--text-muted);">' + d.deviceType + '</span></div>' +
               '<div class="device-ua">' + (d.ua.substring(0, 85) || 'No UA') + '</div>' +
-              '<div style="font-size:12px; margin-top:4px; color:' + (d.hasActiveError ? '#f87171' : '#4ade80') + ';">Oxirgi hodisa: <b>' + d.lastType + '</b> (' + d.lastSeen + ')</div>' +
+              syncInfoHtml +
+              '<div style="font-size:12px; margin-top:4px; color:' + (d.hasActiveError ? '#f87171' : '#94a3b8') + ';">Oxirgi signal: <b>' + d.lastType + '</b> (' + d.lastSeen + ')</div>' +
             '</div>' +
             '<div><span class="device-badge ' + badgeClass + '">' + badgeText + '</span></div>' +
           '</div>';

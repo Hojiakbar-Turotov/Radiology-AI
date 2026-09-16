@@ -583,9 +583,20 @@
     });
   }
 
+  // 6.2 SERVER VAQTINI SINXRONLASH (TV VA QURILMALARDA SANA TO'G'RI CHIQISHI UCHUN)
+  // Eski Android TV'larda ichki soat noto'g'ri (yoki batareyasi o'tirgan) bo'lsa ham,
+  // serverdan kelgan aniq sana va vaqtga avtomatik sinxronlanadi.
+  let serverTimeOffset = 0; // ms: serverTime - clientLocalTime
+  let serverDateString = ''; // Serverdan keluvchi aniq sana (masalan: "16.09.2026")
+  let serverTimeSynched = false;
+
+  function getServerNow() {
+    return new Date(Date.now() + serverTimeOffset);
+  }
+
   // 7. JONLI SOAT VA SANA
   function updateLiveClock() {
-    const now = new Date();
+    const now = getServerNow();
     const pad = (n) => (n < 10 ? '0' : '') + n;
     const d = pad(now.getDate());
     const m = pad(now.getMonth() + 1);
@@ -594,11 +605,14 @@
     const min = pad(now.getMinutes());
     const s = pad(now.getSeconds());
 
+    // Agar serverdan aniq sana kelgan bo'lsa o'shani chiqaramiz
+    const displayDate = serverDateString || `${d}.${m}.${y}`;
+
     // Header soati
-    if (liveDate) liveDate.textContent = `📅 ${d}.${m}.${y}`;
+    if (liveDate) liveDate.textContent = `📅 ${displayDate}`;
     if (liveTime) liveTime.textContent = `${h}:${min}:${s}`;
 
-    // Single Room TV soati va sanasi (Screenshot 2: Seshanba 8 Sentabr 2026 | 10:28:34)
+    // Single Room TV soati va sanasi
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
     if (srFullClockTime) srFullClockTime.textContent = `${h}:${min}:${s}`;
 
@@ -850,6 +864,31 @@
   function handleNewQueueData(data) {
     if (!data) return;
     queueData = data;
+
+    // Server vaqtini sinxronlash
+    if (data.date) {
+      serverDateString = String(data.date).trim();
+    }
+    if (data.timestamp) {
+      var sTime = new Date(data.timestamp).getTime();
+      if (!isNaN(sTime)) {
+        serverTimeOffset = sTime - Date.now();
+        if (!serverTimeSynched) {
+          serverTimeSynched = true;
+          updateLiveClock();
+          if (window.reportTvTelemetry) {
+            var driftSec = Math.round(serverTimeOffset / 1000);
+            window.reportTvTelemetry('TV_TIME_SYNC', {
+              serverDate: serverDateString,
+              clientLocalIso: new Date().toISOString(),
+              driftSeconds: driftSec,
+              note: Math.abs(driftSec) > 30 ? 'TV ichki soati noto\'g\'ri, serverdan to\'g\'rilandi' : 'Soat to\'g\'ri'
+            }, 200);
+          }
+        }
+      }
+    }
+
     if (data.activeCalls) {
       activeCalls = data.activeCalls;
     }
@@ -1408,7 +1447,7 @@
     const patients = (targetDoc && targetDoc.patients) ? targetDoc.patients : [];
 
     // 3. Sana va soatni yangilash
-    const now = new Date();
+    const now = getServerNow();
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
 
     // 4. Jadvalni to'ldirish (Foydalanuvchi talabi: 7 talik cheklov, qolganlari yangi sahifaga o'tsin)
@@ -1600,4 +1639,18 @@
   initFromUrlParams();
   initRealtimeEvents();
   pollQueueData();
+
+  // Har 60 soniyada TV holati va soat sinxronligini serverga telemetriya orqali yuborish
+  setInterval(function() {
+    if (window.reportTvTelemetry) {
+      var driftSec = Math.round(serverTimeOffset / 1000);
+      window.reportTvTelemetry('TV_HEARTBEAT', {
+        serverDate: serverDateString,
+        currentMode: currentMode,
+        currentRoomId: currentRoomId,
+        driftSeconds: driftSec,
+        deviceTime: new Date().toISOString()
+      }, 200);
+    }
+  }, 60000);
 })();
