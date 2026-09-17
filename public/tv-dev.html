@@ -679,9 +679,9 @@
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
           <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="2-Rejim: Xona navbat jadvali (2 ustun)">📋 2-Rejim: Navbat jadvali</button>
-          <button type="button" class="view-btn" id="btnModeClassicRoom" title="3-Rejim: Klassik xona ekrani (v11.0.0)">📊 3-Rejim: Klassik xona</button>
-          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Xonada bemor yo'q">🚪 4-Rejim: Bemor yo'q</button>
+          <button type="button" class="view-btn" id="btnModeClassicRoom" title="2-Rejim: Xona navbat jadvali (v11.0.0 3 ustun)">📋 2-Rejim: Xona jadvali</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="3-Rejim: 2 ustunli navbat jadvali">📊 3-Rejim: 2 Ustunli</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Bo'sh xona (Bemor yo'q)">🚪 4-Rejim: Bo'sh rejim</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -830,88 +830,54 @@
       <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 ASL KO'RINISHI - FOYDALANUVCHI TALABI BO'YICHA O'ZGARISHSIZ) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
+          <!-- Chap tomondagi sana va soat (Screenshot v11.0.0 kabi) -->
           <div class="sr-header-left">
-            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
-            <div class="sr-room-selector">
-              <label for="srRoomDropdown">Xona:</label>
-              <select id="srRoomDropdown" class="sr-room-select"></select>
-            </div>
-            <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
-            <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
-          </div>
-
-          <!-- Markaz logotipi va rasmiy sarlavhasi (4-rejimda chiqadi) -->
-          <div class="sr-header-branding" id="srHeaderBranding" style="display: none;">
-            <img src="icons/logo-onko.png" alt="Logo" class="sr-brand-logo" onerror="this.style.display='none'">
-            <div class="sr-brand-titles">
-              <div class="sr-brand-org">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI</div>
-              <div class="sr-brand-dept">Ultratovush Tekshiruvi (UTT) Bo'limi • TV Jonli Xona Monitori</div>
-            </div>
-          </div>
-
-          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT8-49 XONA</div>
-
-          <div class="sr-header-right">
             <div class="sr-full-date" id="srFullDateUz">17 Sentabr 2026</div>
             <div class="sr-full-clock" id="srFullClockTime">--:--:--</div>
+          </div>
+
+          <!-- Markaziy yirik xona sarlavhasi (UTT3-46 XONA) -->
+          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT3-46 XONA</div>
+
+          <!-- O'ng tomondagi boshqaruv tugmalari (TV ekranda yashirin, sichqoncha kelganda ko'rinadi) -->
+          <div class="sr-header-right">
+            <div class="sr-controls-overlay">
+              <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
+              <div class="sr-room-selector">
+                <label for="srRoomDropdown">Xona:</label>
+                <select id="srRoomDropdown" class="sr-room-select"></select>
+              </div>
+              <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
+              <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
+            </div>
           </div>
         </div>
 
         <div class="sr-main-card">
-          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)</div>
+          <div class="sr-doctor-title" id="srDoctorFullTitle">
+            <span class="sr-doc-name-txt">Ultratovush-3(Abidjanov Alisher Maxamataliyevich)</span>
+            <span class="sr-page-badge" id="srPageBadge" style="display: none;">📄 Sahifa 1 / 2 (Jami: 9 ta)</span>
+          </div>
           
-          <!-- Faol chaqirilayotgan bemor banneri (3-rejim Klassik v11.0.0 uchun) -->
+          <!-- Faol chaqirilayotgan bemor banneri (2-rejim Klassik v11.0.0 uchun) -->
           <div id="srActiveCallContainer" style="display: none;"></div>
 
           <!-- NAVBAT JADVALI (2-Rejim va 3-Rejim uchun) -->
           <div class="sr-table-scroll-container" id="srTableContainer">
             <table class="sr-patient-table" id="srPatientTable">
               <thead id="srPatientTableHead">
-                <!-- Javascript orqali 2-rejimda 2 ustun, 3-rejimda 3 ustun chiziladi -->
+                <!-- Javascript orqali 2-rejimda 3 ustun, 3-rejimda 2 ustun chiziladi -->
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
           </div>
 
-          <!-- 4-REJIM: XONA EKRANI (BEMOR FISH CHIQMASIN, ASOSIY REJIM USLUBI) -->
-          <div class="sr-empty-room-box" id="srEmptyRoomBox" style="display: none;">
-            <div class="sr-dark-card-header" id="srDarkCardHeader">
-              <div class="sr-dark-room-badge" id="srDarkRoomBadge">UTT-X XONA</div>
-              <div class="sr-dark-doc-name" id="srDarkDocName">Vrach F.I.SH.</div>
-            </div>
-            
-            <div class="sr-dark-four-metrics" id="srDarkFourMetrics">
-              <div class="dfm-item dfm-today" title="Shu kuni ko'rilgan bemorlar soni">
-                <span class="dfm-num" id="srDfmToday">0</span>
-                <span class="dfm-label">Shu kuni</span>
-              </div>
-              <div class="dfm-item dfm-earlier" title="Kechadan yoki oldin ro'yxatdan o'tib ko'rilgan">
-                <span class="dfm-num" id="srDfmEarlier">0</span>
-                <span class="dfm-label">Kechadan</span>
-              </div>
-              <div class="dfm-item dfm-later" title="Keyingi kunda ko'rilgan">
-                <span class="dfm-num" id="srDfmLater">0</span>
-                <span class="dfm-label">Keyingi kunda</span>
-              </div>
-              <div class="dfm-item dfm-pending" title="Hali o'tmagan (kutayotgan)">
-                <span class="dfm-num" id="srDfmWaiting">0</span>
-                <span class="dfm-label">Hali o'tmagan</span>
-              </div>
-              <div class="dfm-item dfm-total" title="Jami biriktirilgan">
-                <span class="dfm-num" id="srDfmTotal">0</span>
-                <span class="dfm-label">Jami</span>
-              </div>
-            </div>
-
-            <div class="sr-dark-status-area" id="srDarkStatusArea">
-              <div class="sr-dark-call-banner" id="srDarkCallBanner" style="display: none;"></div>
-              <div class="sr-dark-empty-box" id="srDarkEmptyBox">
-                <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
-                <div class="sr-dark-empty-title" id="srDarkEmptyTitle">XONADA BEMOR YO'Q</div>
-                <div class="sr-dark-empty-desc" id="srDarkEmptyDesc">Navbat kutayotganlar yo'q</div>
-                <div class="sr-dark-empty-hint" id="srDarkEmptyHint">Iltimos, shifokor chaqiruvini kuting</div>
-              </div>
-            </div>
+          <!-- 4-REJIM: BO'SH XONA EKRANI (BEMOR FISH YO'Q, KLASSIK ASL USLUB) -->
+          <div class="sr-classic-empty-box" id="srClassicEmptyBox" style="display: none;">
+            <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
+            <div class="sr-empty-status-title" id="srEmptyStateTitle">XONADA BEMOR YO'Q</div>
+            <div class="sr-empty-status-desc" id="srEmptyStateDesc">Navbat kutayotganlar yo'q</div>
+            <div class="sr-empty-status-hint" id="srEmptyStateHint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>
 

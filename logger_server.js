@@ -1142,28 +1142,29 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
         const tDoc = queuedDoc || acceptingDoc;
         targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
         targetDocObj.seenLaterCount++;
-      } else if (isRegEarlier || isRegYesterday) {
-        // Kecha yoki oldin ro'yxatdan o'tib, shu kuni ko'rilgan (FOYDALANUVCHI TALABI)
-        timingCategory = 'seen_earlier_reg';
-        timingCategoryTitle = isRegYesterday 
-          ? "Kecha ro'yxatdan o'tgan, shu kuni ko'rilgan" 
-          : `${regPretty || 'Oldin'} da ro'yxatdan o'tgan, shu kuni ko'rilgan`;
-        dateTag = isRegYesterday 
-          ? "Kecha yo'naltirilgan, shu kuni tekshiruvdan o'tgan" 
-          : `${regPretty || 'Oldin'} da yo'naltirilgan, shu kuni tekshiruvdan o'tgan`;
-        dateTagType = isRegYesterday ? 'yesterday_done' : 'earlier_done';
-        const tDoc = acceptingDoc || queuedDoc;
-        targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
-        targetDocObj.seenEarlierRegCount = (targetDocObj.seenEarlierRegCount || 0) + 1;
       } else {
-        // Shu kuni ro'yxatdan o'tib, shu kuni ko'rilgan
-        timingCategory = 'seen_today';
-        timingCategoryTitle = "Shu kuni ko'rilgan";
-        dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
-        dateTagType = 'today_done';
+        // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+        // Qabul qiluvchi vrach va hisobot tasdiqlangan sana bo'yicha saralansin, qaysi kuni ro'yxatdan olinganiga e'tibor berilmasin!
         const tDoc = acceptingDoc || queuedDoc;
         targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
         targetDocObj.seenTodayCount++;
+
+        if (isRegEarlier || isRegYesterday) {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = isRegYesterday 
+            ? "Kecha ro'yxatdan o'tgan, shu kuni ko'rilgan" 
+            : `${regPretty || 'Oldin'} da ro'yxatdan o'tgan, shu kuni ko'rilgan`;
+          dateTag = isRegYesterday 
+            ? "Kecha yo'naltirilgan, shu kuni tekshiruvdan o'tgan" 
+            : `${regPretty || 'Oldin'} da yo'naltirilgan, shu kuni tekshiruvdan o'tgan`;
+          dateTagType = isRegYesterday ? 'yesterday_done' : 'earlier_done';
+          targetDocObj.seenEarlierRegCount = (targetDocObj.seenEarlierRegCount || 0) + 1;
+        } else {
+          timingCategory = 'seen_today';
+          timingCategoryTitle = "Shu kuni ko'rilgan";
+          dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
+          dateTagType = 'today_done';
+        }
       }
     } else {
       // Hali tekshiruvdan o'tmagan
@@ -1280,14 +1281,13 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     allPatients.push(patientObj);
     targetDocObj.allAssignedPatients.push(patientObj);
 
-    if (timingCategory === 'seen_today') {
+    if (timingCategory === 'seen_today' || timingCategory === 'seen_earlier_reg') {
       targetDocObj.seenTodayPatients.push(patientObj);
       targetDocObj.completedPatients.push(patientObj);
       allCompletedList.push(patientObj);
-    } else if (timingCategory === 'seen_earlier_reg') {
-      targetDocObj.seenEarlierRegPatients.push(patientObj);
-      targetDocObj.completedPatients.push(patientObj);
-      allCompletedList.push(patientObj);
+      if (timingCategory === 'seen_earlier_reg') {
+        targetDocObj.seenEarlierRegPatients.push(patientObj);
+      }
     } else if (timingCategory === 'seen_later') {
       targetDocObj.seenLaterPatients.push(patientObj);
       targetDocObj.completedPatients.push(patientObj);
@@ -1328,10 +1328,11 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     d.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
     d.waitingPatientsList.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
 
-    // Shifokor ko'rgan bemorlar: Shu kuni ro'yxatdan o'tganlar + Kechadan/oldingi kundan o'tganlar
-    d.completedCount = d.seenTodayCount + (d.seenEarlierRegCount || 0);
+    // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+    d.completedCount = d.seenTodayCount;
     d.count = d.patients.length;
     d.waitingCount = d.waitingPatientsList.length;
+    d.totalCount = d.seenTodayCount + d.seenLaterCount + d.waitingCount;
     completedByDoctor[d.room] = d.completedCount;
     completedTodayByDoctor[d.room] = d.seenTodayCount;
     completedEarlierByDoctor[d.room] = d.seenEarlierRegCount || 0;
@@ -1901,10 +1902,13 @@ async function syncMasterQueueFromKarmedDirect() {
       doc.allAssignedPatients = [...completedList, ...doc.patients];
 
       // 4 ta aniq ko'rsatkich (Shu kuni ko'rilgan, Kechadan ko'rilgan, Keyingi kunda, Kutmoqda, Jami)
-      doc.seenTodayCount = doc.completedTodayCount;
+      // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+      // Bunda faqat qabul qiluvchi vrach va hisobot tasdiqlangan sana bo'yicha saralab olinsin, qaysi kuni ro'yxatdan olinganiga e'tibor berilmasin!
+      doc.seenTodayCount = doc.completedCount;
       doc.seenEarlierRegCount = doc.completedEarlierCount;
       doc.seenLaterCount = 0;
       doc.totalCount = doc.totalAll || (doc.completedCount + doc.waitingCount);
+      doc.seenTodayPatients = completedList;
 
       summaryByDoctor[rId] = doc.patients.length;
     });

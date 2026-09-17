@@ -880,7 +880,7 @@
       // Statistika hisob-kitobi va yangilash
       function updateStats() {
         const total = allCompletedPatients.length;
-        const seenTodayCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && p.isRegToday)).length;
+        const seenTodayCount = allCompletedPatients.filter(p => p.isConfirmedToday || p.timingCategory === 'seen_today' || p.timingCategory === 'seen_earlier_reg').length;
         const seenEarlierRegCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday))).length;
         const seenLaterCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_later').length;
         const waitingCount = allCompletedPatients.filter(p => p.timingCategory === 'waiting' || (p.statusCode === 1 && !p.isConfirmedToday)).length;
@@ -948,7 +948,7 @@
 
         // 1. Tepa tezkor filtr tugmalari (Filter Pills)
         if (currentFilterPill === 'seen_today') {
-          list = list.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && p.isRegToday));
+          list = list.filter(p => p.isConfirmedToday || p.timingCategory === 'seen_today' || p.timingCategory === 'seen_earlier_reg');
         } else if (currentFilterPill === 'seen_earlier_reg') {
           list = list.filter(p => p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday)));
         } else if (currentFilterPill === 'seen_later') {

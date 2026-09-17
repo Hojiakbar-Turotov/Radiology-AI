@@ -1242,15 +1242,59 @@ body.mode-empty-room #singleRoomWrapper {
   justify-content: space-between;
   position: relative;
   width: 100%;
-  padding: 2px 4px 6px 4px;
+  padding: 4px 6px 8px 6px;
 }
 
-/* Pult yoki sichqoncha kelganda ko'rinuvchi boshqaruv tugmalari (TV ekranda 100% yashirin) */
+/* Chap tomondagi sana va soat: Payshanba 17 Sentabr 2026 | 12:23:11 */
 .sr-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  z-index: 5;
+}
+
+.sr-full-date {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.sr-full-clock {
+  font-size: 40px;
+  font-weight: 900;
+  font-family: monospace, Arial, sans-serif;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+/* Markazdagi sarlavha: UTT3-46 XONA */
+.sr-center-title {
   position: absolute;
-  top: 4px;
-  left: 6px;
-  z-index: 100;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 46px;
+  font-weight: 900;
+  color: #172554;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* O'ng tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) */
+.sr-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 50;
+  min-height: 48px;
+  min-width: 220px;
+}
+
+.sr-controls-overlay {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1259,9 +1303,10 @@ body.mode-empty-room #singleRoomWrapper {
   transition: opacity 0.25s ease-in-out;
 }
 
-.sr-top-header:hover .sr-header-left,
-.sr-header-left:hover,
-.sr-header-left:focus-within {
+.sr-top-header:hover .sr-controls-overlay,
+.sr-header-right:hover .sr-controls-overlay,
+.sr-controls-overlay:hover,
+.sr-controls-overlay:focus-within {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1341,45 +1386,6 @@ body.mode-empty-room #singleRoomWrapper {
 .sr-mode-btn:hover {
   background: #0369a1;
   transform: translateY(-1px);
-}
-
-/* Markazdagi sarlavha: UTT10-51 XONA */
-.sr-center-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 46px;
-  font-weight: 900;
-  color: #172554;
-  letter-spacing: 0.5px;
-  text-align: center;
-  white-space: nowrap;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-}
-
-/* O'ng tomondagi sana va soat: Seshanba 8 Sentabr 2026 | 10:28:34 */
-.sr-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  z-index: 5;
-}
-
-.sr-full-date {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.2;
-}
-
-.sr-full-clock {
-  font-size: 40px;
-  font-weight: 900;
-  font-family: monospace, Arial, sans-serif;
-  color: #0f172a;
-  line-height: 1.1;
-  letter-spacing: 1px;
 }
 
 /* 8.2. ASOSIY OQ KARTA (QIZIL TEPALIK CHIZIQ BILAN) */
@@ -1560,273 +1566,71 @@ body.mode-empty-room #singleRoomWrapper {
 }
 
 /* ==========================================================================
-   8.2.1. 4-REJIM: XONA EKRANI (BEMOR FISH CHIQMASIN, ASOSIY REJIM USLUBI)
+   8.2.1. 4-REJIM: BO'SH XONA EKRANI (KLASSIK BILAN 100% BIR XIL, BEMOR FISH YO'Q)
    ========================================================================== */
 
-/* 4-rejimda fon rangi qorong'i tibbiy navy (aynan asosiy rejim kabi) */
+/* 4-rejim klassik rejim bilan aynan bir xil och kulrang fonda bo'ladi */
 body.mode-empty-room {
-  background: radial-gradient(circle at 50% 18%, #0d1e4c 0%, #081028 70%, #040817 100%) !important;
-  color: #f8fafc !important;
-  overflow: hidden;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
 
 body.mode-empty-room .sr-main-card {
-  background: rgba(15, 23, 42, 0.88) !important;
-  border: 1.5px solid rgba(59, 130, 246, 0.45) !important;
-  border-top: 6px solid #38bdf8 !important;
+  background: #ffffff !important;
   border-radius: 20px !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 35px rgba(56, 189, 248, 0.15) !important;
-  backdrop-filter: blur(16px);
-  padding: 20px 28px;
-  gap: 16px;
+  border-top: 6px solid #ef4444 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+  padding: 16px 24px 20px 24px !important;
 }
 
-body.mode-empty-room .sr-doctor-title,
 body.mode-empty-room .sr-table-scroll-container,
-body.mode-empty-room .sr-center-title {
+body.mode-empty-room #srActiveCallContainer {
   display: none !important;
 }
 
-body.mode-empty-room .sr-header-branding {
-  display: flex !important;
-}
-
-body.mode-empty-room .sr-full-date {
-  color: #94a3b8 !important;
-  font-size: 18px;
-}
-
-body.mode-empty-room .sr-full-clock {
-  color: #ffffff !important;
-  font-size: 42px;
-  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-}
-
-body.mode-empty-room .sr-running-ticker {
-  background: rgba(15, 23, 42, 0.95) !important;
-  border: 1px solid rgba(59, 130, 246, 0.35) !important;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* 4-rejim xona sarlavhasi (karta ichida yirik) */
-.sr-dark-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-wrap: wrap;
-}
-
-.sr-dark-room-badge {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0284c7 100%);
-  color: #ffffff;
-  font-size: 34px;
-  font-weight: 900;
-  padding: 8px 24px;
-  border-radius: 14px;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  text-transform: uppercase;
-}
-
-.sr-dark-doc-name {
-  font-size: 30px;
-  font-weight: 800;
-  color: #f8fafc;
-  letter-spacing: 0.4px;
-}
-
-/* 4 ta alohida ko'rsatkich (Shu kuni, Kechadan, Keyingi kunda, Hali o'tmagan, Jami) */
-.sr-dark-four-metrics {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  width: 100%;
-  margin: 4px 0 8px 0;
-}
-
-.sr-dark-four-metrics .dfm-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
-}
-
-.sr-dark-four-metrics .dfm-item:hover {
-  transform: translateY(-2px);
-}
-
-.sr-dark-four-metrics .dfm-num {
-  font-size: 36px;
-  font-weight: 900;
-  line-height: 1;
-  font-family: monospace, Arial, sans-serif;
-}
-
-.sr-dark-four-metrics .dfm-label {
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.sr-dark-four-metrics .dfm-today .dfm-num { color: #4ade80; }
-.sr-dark-four-metrics .dfm-today .dfm-label { color: #86efac; }
-.sr-dark-four-metrics .dfm-today { border-color: rgba(74, 222, 128, 0.3); background: rgba(34, 197, 94, 0.12); }
-
-.sr-dark-four-metrics .dfm-earlier .dfm-num { color: #2dd4bf; }
-.sr-dark-four-metrics .dfm-earlier .dfm-label { color: #5eead4; }
-.sr-dark-four-metrics .dfm-earlier { border-color: rgba(45, 212, 191, 0.3); background: rgba(20, 184, 166, 0.12); }
-
-.sr-dark-four-metrics .dfm-later .dfm-num { color: #38bdf8; }
-.sr-dark-four-metrics .dfm-later .dfm-label { color: #7dd3fc; }
-.sr-dark-four-metrics .dfm-later { border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.12); }
-
-.sr-dark-four-metrics .dfm-pending .dfm-num { color: #fbbf24; }
-.sr-dark-four-metrics .dfm-pending .dfm-label { color: #fcd34d; }
-.sr-dark-four-metrics .dfm-pending { border-color: rgba(251, 191, 36, 0.3); background: rgba(245, 158, 11, 0.12); }
-
-.sr-dark-four-metrics .dfm-total .dfm-num { color: #c084fc; }
-.sr-dark-four-metrics .dfm-total .dfm-label { color: #d8b4fe; }
-.sr-dark-four-metrics .dfm-total { border-color: rgba(192, 132, 252, 0.3); background: rgba(168, 85, 247, 0.12); }
-
-/* Holat maydoni */
-.sr-empty-room-box {
+/* Klassik bo'sh holat qutisi (Oq karta ichida markazda) */
+.sr-classic-empty-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  width: 100%;
-}
-
-.sr-dark-status-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 240px;
-}
-
-.sr-dark-call-banner {
-  width: 100%;
-  padding: 20px 30px;
-  border-radius: 16px;
+  padding: 60px 20px;
   text-align: center;
-  font-size: 32px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 16px;
-  animation: bannerPulse 2s infinite ease-in-out;
-  margin-bottom: 12px;
 }
 
-.sr-dark-call-banner.banner-accepted {
-  background: linear-gradient(135deg, rgba(22, 101, 52, 0.9) 0%, rgba(34, 197, 94, 0.35) 100%);
-  border: 2px solid #22c55e;
-  color: #f0fdf4;
-  box-shadow: 0 0 30px rgba(34, 197, 94, 0.4);
-}
-
-.sr-dark-call-banner.banner-calling {
-  background: linear-gradient(135deg, rgba(161, 98, 7, 0.9) 0%, rgba(234, 179, 8, 0.35) 100%);
-  border: 2px solid #eab308;
-  color: #fefce8;
-  box-shadow: 0 0 30px rgba(234, 179, 8, 0.4);
-}
-
-.sr-dark-empty-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 26px 36px;
-  border-radius: 16px;
-  background: rgba(30, 41, 59, 0.45);
-  border: 2px dashed rgba(59, 130, 246, 0.35);
-  text-align: center;
-  width: 100%;
-  max-width: 800px;
-}
-
-.sr-dark-empty-box .sr-empty-status-pill {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  font-size: 15px;
-  font-weight: 800;
-  padding: 6px 18px;
-  border-radius: 20px;
-  margin-bottom: 14px;
-}
-
-.sr-dark-empty-title {
-  font-size: 32px;
+.sr-classic-empty-box .sr-empty-status-pill {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1.5px solid #38bdf8;
+  padding: 8px 24px;
+  border-radius: 24px;
   font-weight: 900;
-  color: #38bdf8;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-}
-
-.sr-dark-empty-desc {
-  font-size: 22px;
-  font-weight: 700;
-  color: #4ade80;
-  margin-bottom: 8px;
-}
-
-.sr-dark-empty-hint {
-  font-size: 16px;
-  color: #94a3b8;
-  font-style: italic;
-}
-
-/* Headerda Markaz logotipi va sarlavhasi (4-rejimda chiqadi) */
-.sr-header-branding {
-  display: none;
-  align-items: center;
-  gap: 14px;
-}
-.sr-brand-logo {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
-}
-.sr-brand-titles {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.sr-brand-org {
-  font-size: 14px;
-  font-weight: 800;
-  color: #f8fafc;
+  font-size: 18px;
   letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+}
+
+.sr-empty-status-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
-.sr-brand-dept {
-  font-size: 12px;
+
+.sr-empty-status-desc {
+  font-size: 26px;
   font-weight: 700;
-  color: #38bdf8;
-  letter-spacing: 0.3px;
+  color: #475569;
+}
+
+.sr-empty-status-hint {
+  font-size: 20px;
+  font-weight: 600;
+  color: #64748b;
+  font-style: italic;
 }
 
 .sr-live-chip {

@@ -1172,14 +1172,17 @@ body.mode-post .post-table-container {
    8. YAGONA XONA TV EKRANI (SINGLE ROOM DISPLAY - SCREENSHOT 2)
    ========================================================================== */
 
-/* Single Room rejimida sahifa ko'rinishi */
-body.mode-single-room {
+/* Single Room rejimlarida sahifa ko'rinishi */
+body.mode-single-room,
+body.mode-classic-room {
   background-color: #f1f5f9; /* Yorug', toza, oq TV foni */
   color: #0f172a;
 }
 
-body.mode-single-room .app-container {
-  padding: 12px 24px 16px 24px;
+body.mode-single-room .app-container,
+body.mode-classic-room .app-container,
+body.mode-empty-room .app-container {
+  padding: 10px 20px 14px 20px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1195,17 +1198,41 @@ body.mode-single-room #mainAppFooter,
 body.mode-single-room #tvDoctorSummaryRibbon,
 body.mode-single-room .tv-doctor-summary-ribbon,
 body.mode-single-room #earlierPatientsSection,
-body.mode-single-room .earlier-patients-panel {
+body.mode-single-room .earlier-patients-panel,
+
+body.mode-classic-room #mainAppHeader,
+body.mode-classic-room #topInfoBar,
+body.mode-classic-room #postControlsPanel,
+body.mode-classic-room #tvQueueGrid,
+body.mode-classic-room #postTableContainer,
+body.mode-classic-room #mainAppFooter,
+body.mode-classic-room #tvDoctorSummaryRibbon,
+body.mode-classic-room .tv-doctor-summary-ribbon,
+body.mode-classic-room #earlierPatientsSection,
+body.mode-classic-room .earlier-patients-panel,
+
+body.mode-empty-room #mainAppHeader,
+body.mode-empty-room #topInfoBar,
+body.mode-empty-room #postControlsPanel,
+body.mode-empty-room #tvQueueGrid,
+body.mode-empty-room #postTableContainer,
+body.mode-empty-room #mainAppFooter,
+body.mode-empty-room #tvDoctorSummaryRibbon,
+body.mode-empty-room .tv-doctor-summary-ribbon,
+body.mode-empty-room #earlierPatientsSection,
+body.mode-empty-room .earlier-patients-panel {
   display: none !important;
 }
 
-body.mode-single-room #singleRoomWrapper {
+body.mode-single-room #singleRoomWrapper,
+body.mode-classic-room #singleRoomWrapper,
+body.mode-empty-room #singleRoomWrapper {
   display: flex !important;
   flex-direction: column;
   flex: 1;
   min-height: calc(100vh - 28px);
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* 8.1. XONA EKRANI TEPASI (HEADER) */
@@ -1215,31 +1242,73 @@ body.mode-single-room #singleRoomWrapper {
   justify-content: space-between;
   position: relative;
   width: 100%;
-  padding: 2px 4px 6px 4px;
+  padding: 4px 6px 8px 6px;
 }
 
+/* Chap tomondagi sana va soat: Payshanba 17 Sentabr 2026 | 12:23:11 */
 .sr-header-left {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  z-index: 5;
+}
+
+.sr-full-date {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.sr-full-clock {
+  font-size: 40px;
+  font-weight: 900;
+  font-family: monospace, Arial, sans-serif;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+/* Markazdagi sarlavha: UTT3-46 XONA */
+.sr-center-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 46px;
+  font-weight: 900;
+  color: #172554;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* O'ng tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) */
+.sr-header-right {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  z-index: 10;
-  opacity: 0.05;
-  transition: opacity 0.3s ease-in-out;
+  justify-content: flex-end;
+  z-index: 50;
+  min-height: 48px;
+  min-width: 220px;
 }
 
-.sr-header-left:hover,
-.sr-header-left:focus-within {
+.sr-controls-overlay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.sr-top-header:hover .sr-controls-overlay,
+.sr-header-right:hover .sr-controls-overlay,
+.sr-controls-overlay:hover,
+.sr-controls-overlay:focus-within {
   opacity: 1;
-}
-
-/* To'liq ekranda ham shaffof turishi */
-body.is-fullscreen .sr-header-left {
-  opacity: 0.05;
-}
-
-body.is-fullscreen .sr-header-left:hover,
-body.is-fullscreen .sr-header-left:focus-within {
-  opacity: 1;
+  pointer-events: auto;
 }
 
 .sr-back-btn {
@@ -1301,43 +1370,22 @@ body.is-fullscreen .sr-header-left:focus-within {
   background: #2563eb;
 }
 
-/* Markazdagi sarlavha: UTT10-51 XONA */
-.sr-center-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 46px;
-  font-weight: 900;
-  color: #172554;
-  letter-spacing: 0.5px;
-  text-align: center;
-  white-space: nowrap;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-}
-
-/* O'ng tomondagi sana va soat: Seshanba 8 Sentabr 2026 | 10:28:34 */
-.sr-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  z-index: 5;
-}
-
-.sr-full-date {
-  font-size: 20px;
+.sr-mode-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 800;
-  color: #0f172a;
-  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 
-.sr-full-clock {
-  font-size: 40px;
-  font-weight: 900;
-  font-family: monospace, Arial, sans-serif;
-  color: #0f172a;
-  line-height: 1.1;
-  letter-spacing: 1px;
+.sr-mode-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
 }
 
 /* 8.2. ASOSIY OQ KARTA (QIZIL TEPALIK CHIZIQ BILAN) */
@@ -1392,13 +1440,13 @@ body.is-fullscreen .sr-header-left:focus-within {
 
 /* Jadval sarlavhasi (Ko'k rang) */
 .sr-patient-table thead tr {
-  background: #2563eb;
+  background: #1e7bf2;
   color: #ffffff;
 }
 
 .sr-patient-table th {
-  padding: 14px 20px;
-  font-size: 18px;
+  padding: 16px 24px;
+  font-size: 19px;
   font-weight: 900;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -1410,18 +1458,57 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-name {
-  width: 48%;
+  width: 72%;
   text-align: left;
 }
 
 .col-sr-time {
-  width: 26%;
+  width: 27%;
   text-align: center;
 }
 
 .col-sr-queue {
-  width: 26%;
+  width: 28%;
   text-align: center;
+}
+
+.sr-patient-table.cols-3 .col-sr-name {
+  width: 48%;
+}
+
+.sr-patient-table.cols-3 .col-sr-time {
+  width: 27%;
+}
+
+.sr-patient-table.cols-3 .col-sr-queue {
+  width: 25%;
+}
+
+/* Faol chaqirilayotgan bemor banneri (Klassik v11.0.0 uchun) */
+.sr-active-call-badge {
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sr-active-call-badge.sr-badge-accepted {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.sr-active-call-badge.sr-badge-calling {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #0b1536;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 /* Jadval qatorlari */
@@ -1443,8 +1530,8 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-name-td {
-  padding: 14px 20px;
-  font-size: 20px;
+  padding: 16px 24px;
+  font-size: 22px;
   font-weight: 800;
   color: #1e293b;
   text-transform: uppercase;
@@ -1453,20 +1540,19 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-time-td {
-  padding: 14px 20px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #2563eb;
+  padding: 16px 20px;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0284c7;
   text-align: center;
-  font-family: monospace, -apple-system, BlinkMacSystemFont, Arial;
   border-right: 1.5px solid #e2e8f0;
 }
 
 .col-sr-queue-td {
-  padding: 14px 20px;
-  font-size: 22px;
+  padding: 16px 24px;
+  font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: #1e3a8a;
   text-align: center;
 }
 
@@ -1477,6 +1563,86 @@ body.is-fullscreen .sr-header-left:focus-within {
   color: #64748b;
   font-weight: 600;
   font-style: italic;
+}
+
+/* ==========================================================================
+   8.2.1. 4-REJIM: BO'SH XONA EKRANI (KLASSIK BILAN 100% BIR XIL, BEMOR FISH YO'Q)
+   ========================================================================== */
+
+/* 4-rejim klassik rejim bilan aynan bir xil och kulrang fonda bo'ladi */
+body.mode-empty-room {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+body.mode-empty-room .sr-main-card {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  border-top: 6px solid #ef4444 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+  padding: 16px 24px 20px 24px !important;
+}
+
+body.mode-empty-room .sr-table-scroll-container,
+body.mode-empty-room #srActiveCallContainer {
+  display: none !important;
+}
+
+/* Klassik bo'sh holat qutisi (Oq karta ichida markazda) */
+.sr-classic-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.sr-classic-empty-box .sr-empty-status-pill {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1.5px solid #38bdf8;
+  padding: 8px 24px;
+  border-radius: 24px;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+}
+
+.sr-empty-status-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.sr-empty-status-desc {
+  font-size: 26px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.sr-empty-status-hint {
+  font-size: 20px;
+  font-weight: 600;
+  color: #64748b;
+  font-style: italic;
+}
+
+.sr-live-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.35);
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
 }
 
 /* 8.3. PASTKI YUGURUVCHI SATR (TICKER) */
