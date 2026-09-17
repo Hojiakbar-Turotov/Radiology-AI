@@ -1,5 +1,23 @@
 [
   {
+    "id": "sw_1789639029031_oupbg",
+    "timestamp": "2026-09-17T09:57:09.031Z",
+    "date": "17.09.2026",
+    "time": "14:57:09",
+    "patientId": "38318",
+    "dosyaNo": "260024781",
+    "patientName": "AXMADJON ODILOV",
+    "pinfl": "",
+    "fromRoom": "UTT6-52 XONA",
+    "fromDoctor": "UTT6-52 XONA",
+    "toRoom": "Ultratovush-9",
+    "toRoomTitle": "UTT9-50 XONA",
+    "toDoctor": "Xusanova Feruza Ikromjonovna",
+    "reason": "feruza opani bo'limi",
+    "clientIp": "127.0.0.1",
+    "karmedSuccess": true
+  },
+  {
     "id": "sw_1789631386256_1z1ky",
     "timestamp": "2026-09-17T07:49:46.256Z",
     "date": "17.09.2026",

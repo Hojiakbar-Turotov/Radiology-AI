@@ -150,8 +150,22 @@
   const srTableContainer = document.getElementById('srTableContainer');
   const srPatientTable = document.getElementById('srPatientTable');
   const srPatientTableHead = document.getElementById('srPatientTableHead');
-  const srPatientTableBody = document.getElementById('srPatientTableBody');
   const srEmptyRoomBox = document.getElementById('srEmptyRoomBox');
+
+  // TV Monitorlar faol vaqt oralig'i (Avto-o'chish / Tim qora fon) elementlari
+  const btnTvScheduleSettings = document.getElementById('btnTvScheduleSettings');
+  const btnSrScheduleSettings = document.getElementById('btnSrScheduleSettings');
+  const tvScheduleModal = document.getElementById('tvScheduleModal');
+  const btnSchedClose = document.getElementById('btnSchedClose');
+  const btnSchedCancel = document.getElementById('btnSchedCancel');
+  const btnSchedSave = document.getElementById('btnSchedSave');
+  const btnSchedTestBlackout = document.getElementById('btnSchedTestBlackout');
+  const schedEnabledCheck = document.getElementById('schedEnabledCheck');
+  const schedStartTime = document.getElementById('schedStartTime');
+  const schedEndTime = document.getElementById('schedEndTime');
+  const tvSleepBlackoutOverlay = document.getElementById('tvSleepBlackoutOverlay');
+  const tvSleepWakeHint = document.getElementById('tvSleepWakeHint');
+  const tvSleepRangeText = document.getElementById('tvSleepRangeText');
 
   // TV-DEV: Vrachlar ko'rib bo'lgan va oldingi kundan yo'naltirilgan bemorlar elementlari
   const totalCompletedCount = document.getElementById('totalCompletedCount');
@@ -349,6 +363,21 @@
   let sseSource = null;
   let activeCalls = {};
   let popupTimeout = null;
+
+  // TV Faol vaqt oralig'i (Avto-o'chish / Tim qora fon) sozlamalari
+  let tvScheduleConfig = {
+    enabled: true,
+    startTime: '07:00',
+    endTime: '17:00'
+  };
+  try {
+    const localSched = localStorage.getItem('utt_tv_schedule');
+    if (localSched) {
+      const parsed = JSON.parse(localSched);
+      if (parsed && typeof parsed === 'object') tvScheduleConfig = parsed;
+    }
+  } catch (e) {}
+  let tvManualWakeUntil = 0;
 
   // 4. O'ZBEKCHA SANA FORMATLASH (Masalan: Seshanba 8 Sentabr 2026)
   function getUzbekFullDate(date) {
@@ -756,6 +785,9 @@
 
     // Xona ekrani sahifalarini 45 soniyalik interval bilan avtomatik almashtirish
     checkSingleRoomPageRotation();
+
+    // TV Faol vaqt oralig'i (07:00 - 17:00) tekshiruvi
+    checkTvScheduleSleep();
   }
   setInterval(updateLiveClock, 1000);
   updateLiveClock();
@@ -797,9 +829,159 @@
     }
   }
 
+  // 7.1 TV FAOL VAQT ORALIG'I VA TIM QORA FON (KUTISH REJIMI) MANTIG'I
+  function checkTvScheduleSleep() {
+    if (!tvScheduleConfig || tvScheduleConfig.enabled === false) {
+      if (document.body.classList.contains('is-tv-sleeping')) {
+        document.body.classList.remove('is-tv-sleeping');
+      }
+      if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'none';
+      return;
+    }
+
+    const now = getServerNow();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const startParts = (tvScheduleConfig.startTime || '07:00').split(':').map(Number);
+    const endParts = (tvScheduleConfig.endTime || '17:00').split(':').map(Number);
+    const startMins = (startParts[0] || 0) * 60 + (startParts[1] || 0);
+    const endMins = (endParts[0] || 0) * 60 + (endParts[1] || 0);
+
+    let isAwake = false;
+    if (startMins <= endMins) {
+      isAwake = (currentMins >= startMins && currentMins < endMins);
+    } else {
+      isAwake = (currentMins >= startMins || currentMins < endMins);
+    }
+
+    const isTemporarilyAwake = (Date.now() < tvManualWakeUntil);
+
+    if (isAwake) {
+      if (document.body.classList.contains('is-tv-sleeping')) {
+        document.body.classList.remove('is-tv-sleeping');
+      }
+      if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'none';
+    } else {
+      // 17:00 dan 07:00 gacha: to'liq tim qora fon
+      if (isTemporarilyAwake) {
+        if (document.body.classList.contains('is-tv-sleeping')) {
+          document.body.classList.remove('is-tv-sleeping');
+        }
+        if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'none';
+      } else {
+        if (!document.body.classList.contains('is-tv-sleeping')) {
+          document.body.classList.add('is-tv-sleeping');
+        }
+        if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'flex';
+        if (tvSleepRangeText) {
+          tvSleepRangeText.textContent = `${tvScheduleConfig.startTime || '07:00'} - ${tvScheduleConfig.endTime || '17:00'}`;
+        }
+      }
+    }
+  }
+
+  function wakeTvTemporarily(seconds) {
+    tvManualWakeUntil = Date.now() + (seconds || 30) * 1000;
+    if (document.body.classList.contains('is-tv-sleeping')) {
+      document.body.classList.remove('is-tv-sleeping');
+    }
+    if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'none';
+  }
+
+  if (tvSleepBlackoutOverlay) {
+    tvSleepBlackoutOverlay.addEventListener('click', function() {
+      wakeTvTemporarily(30);
+    });
+  }
+
+  window.addEventListener('keydown', function(e) {
+    if (document.body.classList.contains('is-tv-sleeping')) {
+      wakeTvTemporarily(30);
+    }
+    // 'T' yoki 't' tugmasi orqali tezkor vaqt oralig'i oynasini ochish
+    if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.altKey) {
+      const activeEl = document.activeElement;
+      if (!activeEl || (activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA')) {
+        e.preventDefault();
+        openTvScheduleModal();
+      }
+    }
+  }, true);
+
+  function openTvScheduleModal() {
+    if (!tvScheduleModal) return;
+    if (schedEnabledCheck) schedEnabledCheck.checked = (tvScheduleConfig.enabled !== false);
+    if (schedStartTime) schedStartTime.value = tvScheduleConfig.startTime || '07:00';
+    if (schedEndTime) schedEndTime.value = tvScheduleConfig.endTime || '17:00';
+    tvScheduleModal.style.display = 'flex';
+  }
+
+  function closeTvScheduleModal() {
+    if (!tvScheduleModal) return;
+    tvScheduleModal.style.display = 'none';
+  }
+
+  if (btnTvScheduleSettings) btnTvScheduleSettings.addEventListener('click', openTvScheduleModal);
+  if (btnSrScheduleSettings) btnSrScheduleSettings.addEventListener('click', openTvScheduleModal);
+  if (btnSchedClose) btnSchedClose.addEventListener('click', closeTvScheduleModal);
+  if (btnSchedCancel) btnSchedCancel.addEventListener('click', closeTvScheduleModal);
+
+  if (btnSchedSave) {
+    btnSchedSave.addEventListener('click', function() {
+      const enabled = schedEnabledCheck ? schedEnabledCheck.checked : true;
+      const startTime = (schedStartTime && schedStartTime.value) ? schedStartTime.value : '07:00';
+      const endTime = (schedEndTime && schedEndTime.value) ? schedEndTime.value : '17:00';
+
+      const payload = { enabled, startTime, endTime };
+      btnSchedSave.disabled = true;
+      btnSchedSave.textContent = 'Saqlanmoqda...';
+
+      fetch('/api/tv-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        btnSchedSave.disabled = false;
+        btnSchedSave.textContent = '💾 Saqlash';
+        if (res && res.success) {
+          tvScheduleConfig = res.schedule || payload;
+          try { localStorage.setItem('utt_tv_schedule', JSON.stringify(tvScheduleConfig)); } catch(e) {}
+          closeTvScheduleModal();
+          checkTvScheduleSleep();
+        } else {
+          alert('Xatolik: sozlamani saqlab bo\'lmadi');
+        }
+      })
+      .catch(function(err) {
+        btnSchedSave.disabled = false;
+        btnSchedSave.textContent = '💾 Saqlash';
+        console.error('TV Schedule saqlashda xato:', err);
+        tvScheduleConfig = payload;
+        try { localStorage.setItem('utt_tv_schedule', JSON.stringify(payload)); } catch(e) {}
+        closeTvScheduleModal();
+        checkTvScheduleSleep();
+      });
+    });
+  }
+
+  if (btnSchedTestBlackout) {
+    btnSchedTestBlackout.addEventListener('click', function() {
+      closeTvScheduleModal();
+      document.body.classList.add('is-tv-sleeping');
+      if (tvSleepBlackoutOverlay) tvSleepBlackoutOverlay.style.display = 'flex';
+      if (tvSleepWakeHint) tvSleepWakeHint.style.display = 'block';
+      setTimeout(function() {
+        if (tvSleepWakeHint) tvSleepWakeHint.style.display = 'none';
+        wakeTvTemporarily(30);
+      }, 5000);
+    });
+  }
+
   // 8. OVOZLI BILDIRISHNOMA (25 XIL CHIME ENGINE)
   function playNotificationChime(soundId) {
-    if (!isSoundEnabled) return;
+    if (!isSoundEnabled || document.body.classList.contains('is-tv-sleeping')) return;
     try {
       if (window.ChimeEngine && typeof window.ChimeEngine.play === 'function') {
         window.ChimeEngine.play(soundId || 1);
@@ -970,6 +1152,14 @@
               }
               return;
             }
+            if (data.type === 'tv_schedule_update') {
+              if (data.schedule) {
+                tvScheduleConfig = data.schedule;
+                try { localStorage.setItem('utt_tv_schedule', JSON.stringify(tvScheduleConfig)); } catch(e) {}
+                checkTvScheduleSleep();
+              }
+              return;
+            }
             cachedLiveQueueData = data;
             if (selectedArchiveDate) {
               return;
@@ -1116,6 +1306,12 @@
 
     if (data.activeCalls) {
       activeCalls = data.activeCalls;
+    }
+
+    if (data.tvSchedule) {
+      tvScheduleConfig = data.tvSchedule;
+      try { localStorage.setItem('utt_tv_schedule', JSON.stringify(tvScheduleConfig)); } catch(e) {}
+      checkTvScheduleSleep();
     }
 
     const hash = JSON.stringify(data.summary || {}) + (data.totalPatients || 0);
@@ -1745,11 +1941,21 @@
       return !isAccepted && !isDone;
     });
 
-    // FOYDALANUVCHI TALABI: Bugungi umumiy navbat raqami bo'yicha ketma-ketlikda saralash
+    const isClassic = (currentMode === 'classic-room');
+
+    // FOYDALANUVCHI TALABI:
+    // ?room=3 (single-room): Faqat shu vrach uchun navbat (boshqa vrachlar inobatga olinmaydi)
+    // ?mode=classic&room=3: Barcha vrachlardagi bemorlar hisobga olingan umumiy navbat
     waitingPatients.sort((a, b) => {
-      const qA = a.globalQueueNo || a.queueNo || 0;
-      const qB = b.globalQueueNo || b.queueNo || 0;
-      return qA - qB;
+      if (isClassic) {
+        const qA = a.globalQueueNo || a.queueNo || 0;
+        const qB = b.globalQueueNo || b.queueNo || 0;
+        return qA - qB;
+      } else {
+        const qA = a.doctorQueueNo || a.queueNo || 0;
+        const qB = b.doctorQueueNo || b.queueNo || 0;
+        return qA - qB;
+      }
     });
 
     // 3. Sana va soatni yangilash
@@ -1778,8 +1984,6 @@
 
     if (!srPatientTableBody) return;
 
-    const isClassic = (currentMode === 'classic-room');
-
     // Jadval sarlavhasi (2 ustunli yoki 3 ustunli)
     if (srPatientTable) {
       srPatientTable.className = isClassic ? 'sr-patient-table cols-3' : 'sr-patient-table cols-2';
@@ -1803,16 +2007,25 @@
       }
     }
 
-    // 2-Rejimda (Klassik v11.0.0) faol chaqirilayotgan bemor banneri
+    // Faol chaqirilayotgan yoki qabul qilinayotgan bemor banneri
     const activeCall = activeCalls[targetDoc ? targetDoc.room : currentRoomId] || activeCalls[currentRoomId];
+    const acceptedPatient = patients.find(p => p.statusCode === 4 || (p.status && p.status.toLowerCase().includes('kabul')));
+    const currentActivePatient = activeCall || (acceptedPatient ? {
+      status: 'accepted',
+      globalQueueNo: acceptedPatient.globalQueueNo,
+      doctorQueueNo: acceptedPatient.doctorQueueNo,
+      queueNo: acceptedPatient.queueNo,
+      fullName: acceptedPatient.fullName
+    } : null);
+
     if (srActiveCallContainer) {
-      if (isClassic && activeCall) {
-        const isAccepted = activeCall.status === 'accepted';
-        const callQNo = activeCall.globalQueueNo || activeCall.queueNo || '';
+      if (isClassic && currentActivePatient) {
+        const isAccepted = (currentActivePatient.status === 'accepted' || currentActivePatient.statusCode === 4);
+        const callQNo = currentActivePatient.globalQueueNo || currentActivePatient.queueNo || '';
         srActiveCallContainer.innerHTML = `
           <div class="sr-active-call-badge ${isAccepted ? 'sr-badge-accepted' : 'sr-badge-calling'}">
             <span class="pulse-dot"></span>
-            ${isAccepted ? '🟢 HOZIR QABUL QILMOQDA:' : '📢 CHAQIRILDI:'} №${callQNo} — ${escapeHtml(activeCall.fullName || '')}
+            ${isAccepted ? '🟢 QABUL QILINMOQDA:' : '📢 CHAQIRILDI:'} №${callQNo} — ${escapeHtml(currentActivePatient.fullName || '')}
           </div>
         `;
         srActiveCallContainer.style.display = 'block';
@@ -1864,9 +2077,9 @@
 
     let rowsHtml = '';
     pagePatients.forEach(p => {
-      // FOYDALANUVCHI TALABI: Navbat bugungi umumiy navbat raqamidan olinsin
-      const qNo = p.globalQueueNo || p.queueNo || '-';
       if (isClassic) {
+        // Klassik rejimda (?mode=classic&room=3) barcha vrachlardagi bemorlar hisobga olingan umumiy navbat
+        const qNo = p.globalQueueNo || p.queueNo || '-';
         rowsHtml += `
           <tr>
             <td class="col-sr-name-td">${escapeHtml((p.fullName || '-').toUpperCase())}</td>
@@ -1875,6 +2088,8 @@
           </tr>
         `;
       } else {
+        // Oddiy xona rejimida (?room=3) faqat shu vrach uchun navbat (boshqa vrachlar inobatga olinmaydi)
+        const qNo = p.doctorQueueNo || p.queueNo || '-';
         rowsHtml += `
           <tr>
             <td class="col-sr-name-td">${escapeHtml((p.fullName || '-').toUpperCase())}</td>

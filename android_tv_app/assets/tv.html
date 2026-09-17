@@ -690,6 +690,11 @@
           </select>
         </div>
 
+        <!-- Ish vaqti sozlamasi -->
+        <button type="button" class="schedule-trigger-btn" id="btnTvScheduleSettings" title="Monitorlar faol vaqt oralig'ini sozlash (07:00 - 17:00)">
+          <span>⏱️ Ish vaqti</span>
+        </button>
+
         <!-- Fullscreen -->
         <button type="button" class="fullscreen-btn" id="btnToggleFullscreen" title="To'liq ekran (F11)">
           <span class="fs-icon">⛶</span>
@@ -839,6 +844,7 @@
                 <select id="srRoomDropdown" class="sr-room-select"></select>
               </div>
               <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
+              <button type="button" class="sr-fs-btn" id="btnSrScheduleSettings" title="TV Faol vaqt oralig'ini sozlash (07:00 - 17:00)">⏱️ Ish vaqti</button>
               <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
             </div>
           </div>
@@ -874,8 +880,6 @@
 
           <!-- 4-REJIM: BO'SH XONA EKRANI (BEMOR FISH YO'Q, KLASSIK ASL USLUB) -->
           <div class="sr-classic-empty-box" id="srClassicEmptyBox" style="display: none;">
-            <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
-            <div class="sr-empty-status-title" id="srEmptyStateTitle">XONADA BEMOR YO'Q</div>
             <div class="sr-empty-status-desc" id="srEmptyStateDesc">Kutayotgan bemor yo'q</div>
             <div class="sr-empty-status-hint" id="srEmptyStateHint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
@@ -926,6 +930,60 @@
         <div class="doc-iframe-body">
           <iframe id="docCompletedIframe" src="about:blank" frameborder="0"></iframe>
         </div>
+      </div>
+    </div>
+
+    <!-- 4.6 TV MONITORLAR FAOL VAQT ORALIG'I MODAL OYNASI -->
+    <div id="tvScheduleModal" class="schedule-modal-overlay" style="display: none;">
+      <div class="schedule-modal-card">
+        <div class="schedule-modal-header">
+          <div class="schedule-modal-title">
+            <span class="sched-icon">⏱️</span>
+            <h3>Monitorlar Faol Vaqt Oralig'i</h3>
+          </div>
+          <button type="button" class="schedule-modal-close" id="btnSchedClose" title="Yopish (Esc)">✕</button>
+        </div>
+        <div class="schedule-modal-body">
+          <p class="sched-subtitle">Android TV va monitor ekranlarining avtomatik o'chish / yoqilish jadvali:</p>
+          
+          <div class="sched-toggle-row">
+            <label class="sched-switch">
+              <input type="checkbox" id="schedEnabledCheck" checked>
+              <span class="sched-slider"></span>
+            </label>
+            <label for="schedEnabledCheck" class="sched-switch-label">Vaqt jadvali bo'yicha avto-o'chishni yoqish</label>
+          </div>
+
+          <div class="sched-time-inputs">
+            <div class="sched-input-col">
+              <label for="schedStartTime">☀️ Yoqilish vaqti (Ertalab):</label>
+              <input type="time" id="schedStartTime" value="07:00" class="sched-time-input">
+            </div>
+            <div class="sched-input-col">
+              <label for="schedEndTime">🌙 O'chish vaqti (Kechqurun):</label>
+              <input type="time" id="schedEndTime" value="17:00" class="sched-time-input">
+            </div>
+          </div>
+
+          <div class="sched-info-box">
+            💡 <b>Qoida:</b> Soat <b>07:00 dan 17:00 gacha</b> barcha ekranlar tanlangan rejimda navbatni to'liq ko'rsatadi. Soat <b>17:00 dan 07:00 gacha</b> esa xuddi TV o'chgandek to'liq <b>tim qora fon</b> holatiga o'tadi va ovozlar o'chadi.
+          </div>
+
+          <div class="sched-actions">
+            <button type="button" class="sched-btn-test" id="btnSchedTestBlackout" title="Qora fon qanday ko'rinishini 5 soniya sinab ko'rish">👁️ Tim qora fonni sinash</button>
+            <div class="sched-right-btns">
+              <button type="button" class="sched-btn-cancel" id="btnSchedCancel">Bekor qilish</button>
+              <button type="button" class="sched-btn-save" id="btnSchedSave">💾 Saqlash</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.7 TIM QORA FON (TV KUTISH / AVTO-O'CHISH REJIMI) -->
+    <div id="tvSleepBlackoutOverlay" class="tv-sleep-blackout-overlay" style="display: none;">
+      <div class="tv-sleep-wake-hint" id="tvSleepWakeHint" style="display: none;">
+        🌙 TV Kutish rejimi (Faol vaqt: <span id="tvSleepRangeText">07:00 - 17:00</span>) • Uyg'otish yoki sozlash uchun bosing
       </div>
     </div>
 

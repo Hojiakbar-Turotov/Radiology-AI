@@ -1602,37 +1602,20 @@ body.mode-empty-room #srActiveCallContainer {
   gap: 16px;
 }
 
-.sr-classic-empty-box .sr-empty-status-pill {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1.5px solid #60a5fa;
-  padding: 8px 26px;
-  border-radius: 24px;
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
-}
-
-.sr-empty-status-title {
+.sr-classic-empty-box .sr-empty-status-desc {
   font-size: 44px;
   font-weight: 900;
   color: #1e3a8a;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
-.sr-empty-status-desc {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0284c7;
-}
-
-.sr-empty-status-hint {
-  font-size: 20px;
+.sr-classic-empty-box .sr-empty-status-hint {
+  font-size: 22px;
   font-weight: 600;
-  color: #64748b;
+  color: #0284c7;
   font-style: italic;
+  margin-top: 4px;
 }
 
 .sr-live-chip {
@@ -2409,6 +2392,350 @@ tr.row-accepted {
 .epp-reset-btn:hover {
   background: #334155;
   color: #fff;
+}
+
+/* ==========================================================================
+   14. TV MONITORLAR FAOL VAQT ORALIG'I VA TIM QORA FON KUTISH REJIMI
+   ========================================================================== */
+
+.schedule-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 58, 138, 0.45);
+  border: 1.5px solid rgba(96, 165, 250, 0.5);
+  color: #bfdbfe;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.schedule-trigger-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+/* Modal qatlami */
+.schedule-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.schedule-modal-card {
+  background: #ffffff;
+  color: #0f172a;
+  width: 100%;
+  max-width: 540px;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-top: 6px solid #2563eb;
+  overflow: hidden;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.schedule-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.schedule-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-modal-title .sched-icon {
+  font-size: 24px;
+}
+
+.schedule-modal-title h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.schedule-modal-close {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 900;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.schedule-modal-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.schedule-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sched-subtitle {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.sched-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #eff6ff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #bfdbfe;
+}
+
+.sched-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.sched-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.sched-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 26px;
+}
+
+.sched-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.sched-switch input:checked + .sched-slider {
+  background-color: #2563eb;
+}
+
+.sched-switch input:checked + .sched-slider:before {
+  transform: translateX(22px);
+}
+
+.sched-switch-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.sched-time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sched-input-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sched-input-col label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.sched-time-input {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  font-family: monospace, Arial, sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sched-time-input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.sched-info-box {
+  background: #f1f5f9;
+  border-left: 4px solid #0284c7;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.sched-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.sched-btn-test {
+  background: #f8fafc;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sched-btn-test:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.sched-right-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sched-btn-cancel {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sched-btn-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.sched-btn-save {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.sched-btn-save:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   15. TIM QORA FON OVERLAY (XUDDI TV O'CHGANDEK TURISHI UCHUN)
+   ========================================================================== */
+
+.tv-sleep-blackout-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #000000 !important;
+  z-index: 2147483647 !important;
+  cursor: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+body.is-tv-sleeping .tv-sleep-blackout-overlay {
+  display: flex !important;
+}
+
+body.is-tv-sleeping {
+  overflow: hidden !important;
+}
+
+.tv-sleep-wake-hint {
+  background: rgba(15, 23, 42, 0.88);
+  color: #cbd5e1;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tv-sleep-wake-hint:hover {
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #60a5fa;
 }
 
 

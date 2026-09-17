@@ -717,6 +717,51 @@ function saveQueueToFile(data) {
   } catch (e) {}
 }
 
+// 3.1 TV MONITORLAR FAOL VAQT ORALIG'I SOZLAMASI (AVTO-O'CHISH / TIM QORA FON)
+const TV_SCHEDULE_FILE = path.join(ROOT_DIR, 'data', 'tv_schedule_config.json');
+let tvScheduleConfig = {
+  enabled: true,
+  startTime: '07:00',
+  endTime: '17:00'
+};
+
+try {
+  if (fs.existsSync(TV_SCHEDULE_FILE)) {
+    const rawSched = JSON.parse(fs.readFileSync(TV_SCHEDULE_FILE, 'utf8'));
+    if (rawSched && typeof rawSched === 'object') {
+      tvScheduleConfig = {
+        enabled: rawSched.enabled !== false,
+        startTime: rawSched.startTime || '07:00',
+        endTime: rawSched.endTime || '17:00'
+      };
+      console.log(`[TV Schedule] Faol vaqt oralig'i yuklandi: ${tvScheduleConfig.startTime} - ${tvScheduleConfig.endTime} (Aktiv: ${tvScheduleConfig.enabled})`);
+    }
+  } else {
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(TV_SCHEDULE_FILE, JSON.stringify(tvScheduleConfig, null, 2), 'utf8');
+  }
+} catch (e) {
+  console.warn('[TV Schedule] Sozlama yuklashda ogohlantirish:', e.message);
+}
+
+function saveTvScheduleConfig(newConfig) {
+  try {
+    tvScheduleConfig = {
+      enabled: newConfig.enabled !== false,
+      startTime: String(newConfig.startTime || '07:00').trim(),
+      endTime: String(newConfig.endTime || '17:00').trim()
+    };
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(TV_SCHEDULE_FILE, JSON.stringify(tvScheduleConfig, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('[TV Schedule] Saqlashda xatolik:', err);
+    return false;
+  }
+}
+
 // 4. SSE (SERVER-SENT EVENTS) REAL-TIME STREAM
 const sseClients = new Set();
 const adminSseClients = new Set();
@@ -1936,7 +1981,7 @@ async function syncMasterQueueFromKarmedDirect() {
         doctorName: doc.doctorName || p.doctorName || 'Shifokor',
         source: 'karmed_accepted',
         status: 'accepted',
-        statusText: 'Qabul qilmoqda',
+        statusText: 'Qabul qilinmoqda',
         calledAt: p.registrationTime || new Date().toISOString()
       };
     });
@@ -2388,11 +2433,14 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({
       success: true,
+      tvSchedule: tvScheduleConfig,
       data: {
         ...latestQueueData,
+        tvSchedule: tvScheduleConfig,
         activeCalls
       },
       ...latestQueueData,
+      tvSchedule: tvScheduleConfig,
       activeCalls
     }));
     return;
@@ -2664,6 +2712,37 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
     recordTvEvent('LOGS_CLEARED', req.socket.remoteAddress, req.headers['user-agent'], pathname, 200, 'Foydalanuvchi tomonidan loglar tozalandi');
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ success: true, message: 'Loglar tozalandi' }));
+    return;
+  }
+
+  // F7. TV FAOL VAQT ORALIG'I SOZLAMASI (/api/tv-schedule)
+  if (req.method === 'GET' && pathname === '/api/tv-schedule') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      schedule: tvScheduleConfig
+    }));
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/tv-schedule') {
+    parseJsonBody(req, (err, body) => {
+      if (err || !body) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, error: "Noto'g'ri JSON formati" }));
+        return;
+      }
+      const saved = saveTvScheduleConfig(body);
+      if (saved) {
+        broadcastSseEvent('tv_schedule_update', tvScheduleConfig);
+        recordTvEvent('TV_SCHEDULE_UPDATED', req.socket.remoteAddress, req.headers['user-agent'], pathname, 200, `Faol vaqt oralig'i yangilandi: ${tvScheduleConfig.startTime} - ${tvScheduleConfig.endTime} (Aktiv: ${tvScheduleConfig.enabled})`);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: true, schedule: tvScheduleConfig }));
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, error: "Saqlashda xatolik yuz berdi" }));
+      }
+    });
     return;
   }
   if (req.method === 'GET' && pathname === '/api/karmed-overview-stats') {
