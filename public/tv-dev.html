@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>UTT Jonli TV Ekrani [DEV / YANGILANISHLAR] — Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</title>
+  <title>UTT Jonli TV Ekrani — Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="icons/logo-onko.png" type="image/png">
   <style>
@@ -573,6 +573,42 @@
           return undefined;
         };
       }
+      if (typeof Object.assign !== 'function') {
+        Object.assign = function(target) {
+          if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+          var to = Object(target);
+          for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+              for (var nextKey in nextSource) {
+                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                  to[nextKey] = nextSource[nextKey];
+                }
+              }
+            }
+          }
+          return to;
+        };
+      }
+      if (!Array.from) {
+        Array.from = function(object) {
+          return [].slice.call(object);
+        };
+      }
+      if (!Object.values) {
+        Object.values = function(obj) {
+          if (obj == null) return [];
+          return Object.keys(obj).map(function(key) { return obj[key]; });
+        };
+      }
+      if (!Object.entries) {
+        Object.entries = function(obj) {
+          if (obj == null) return [];
+          var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i);
+          while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+          return resArray;
+        };
+      }
 
       function sendTelemetry(type, detail, status) {
         try {
@@ -642,8 +678,9 @@
       <div class="header-right">
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
-          <button type="button" class="view-btn active" id="btnModeTv" title="Barcha xonalar">🖥️ Barcha xonalar</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="Xona ekrani">📺 Xona ekrani</button>
+          <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="2-Rejim: Xona navbat jadvali">📋 2-Rejim: Navbat jadvali</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="3-Rejim: Xonada bemor yo'q">🚪 3-Rejim: Bemor yo'q</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -660,11 +697,11 @@
 
         <!-- Soat -->
         <div class="live-clock-card">
-          <div class="live-date" id="liveDate">08.09.2026</div>
-          <div class="live-time" id="liveTime">08:00:00</div>
-          <div class="live-connection-chip connected" id="liveConnChip" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5);">
-            <span class="pulse-dot" style="background: #f59e0b;"></span>
-            <span id="liveConnText" style="color: #fbbf24;">Jonli TV v7.1.0-dev (Test)</span>
+          <div class="live-date" id="liveDate">📅 17.09.2026</div>
+          <div class="live-time" id="liveTime">--:--:--</div>
+          <div class="live-connection-chip connected" id="liveConnChip">
+            <span class="pulse-dot"></span>
+            <span id="liveConnText">Jonli TV v11.6.0</span>
           </div>
           <span id="karmedBadge" style="display:inline-block; font-size:11px; font-weight:700; color:#4ade80; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.35); padding:3px 8px; border-radius:20px; margin-top:4px;" title="Karmed serveridan har 20 soniyada avto-yangilanadi">🟢 Karmed Direct</span>
         </div>
@@ -793,35 +830,46 @@
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
           <div class="sr-header-left">
-            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ Barcha xonalar</button>
+            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
             <div class="sr-room-selector">
               <label for="srRoomDropdown">Xona:</label>
               <select id="srRoomDropdown" class="sr-room-select"></select>
             </div>
+            <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="2-rejim va 3-rejim o'rtasida almashtirish">🚪 3-Rejim</button>
             <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
-          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT10-51 XONA</div>
+          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT8-49 XONA</div>
 
           <div class="sr-header-right">
-            <div class="sr-full-date" id="srFullDateUz">Seshanba 8 Sentabr 2026</div>
-            <div class="sr-full-clock" id="srFullClockTime">10:28:34</div>
+            <div class="sr-full-date" id="srFullDateUz">17 Sentabr 2026</div>
+            <div class="sr-full-clock" id="srFullClockTime">--:--:--</div>
           </div>
         </div>
 
         <div class="sr-main-card">
-          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)</div>
-          <div class="sr-table-scroll-container">
+          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)</div>
+          
+          <!-- 2-REJIM: NAVBAT JADVALI (2 USTUNLI: ISM FAMILYA | NAVBAT RAQAMI) -->
+          <div class="sr-table-scroll-container" id="srTableContainer">
             <table class="sr-patient-table">
               <thead>
                 <tr>
                   <th class="col-sr-name">ISM FAMILYA</th>
-                  <th class="col-sr-time">RO'YXATGA OLINGAN VAQTI</th>
                   <th class="col-sr-queue">NAVBAT RAQAMI</th>
                 </tr>
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
+          </div>
+
+          <!-- 3-REJIM: XONADA BEMOR YO'Q HOLATI (O'RTACHA YOZUVDA) -->
+          <div class="sr-empty-room-box" id="srEmptyRoomBox" style="display: none;">
+            <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
+            <div class="sr-empty-title">XONADA BEMOR YO'Q</div>
+            <div class="sr-empty-desc">Hozirda xonada bemor qabul qilinmayapti</div>
+            <div class="sr-empty-waiting-info" id="srEmptyWaitingInfo" style="display: none;"></div>
+            <div class="sr-empty-footer-hint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>
 
@@ -880,15 +928,16 @@
       </div>
       <div class="footer-center">
         <span>⚠️ Navbat bo'yicha savollar bo'lsa, xona oldidagi hamshiraga uchrashing</span>
+        <span class="tv-remote-hint" style="margin-left: 14px; background: rgba(59, 130, 246, 0.22); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.45); color: #93c5fd; font-weight: 700; font-size: 11.5px;">🎮 Pult: 1-9 = UTT 1..9 | 0 = UTT 10 | BACK = Barcha xonalar</span>
       </div>
       <div class="footer-right">
-        <span id="footerServerInfo">TV Monitor v11.0.0-dev • Rivojlantirish & Sinov Maydoni • Karmed Direct</span>
+        <span id="footerServerInfo">TV Monitor v11.6.0 • Jonli Navbat • Karmed Direct</span>
       </div>
     </footer>
 
   </div>
 
   <script src="chime_engine.js"></script>
-  <script src="app-dev.js?v=11.0.0"></script>
+  <script src="app.js?v=11.6.0"></script>
 </body>
 </html>

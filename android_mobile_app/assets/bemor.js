@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * UTT BEMOR VA VRACHNI O'ZGARTIRISH PORTALI (bemor.js v11.0.0)
+ * UTT BEMOR VA VRACHNI O'ZGARTIRISH PORTALI (bemor.js v11.6.0)
  * ==============================================================================
  */
 
@@ -176,7 +176,7 @@
     pRegTime.textContent = (p.registrationDate ? p.registrationDate + ' ' : '') + (p.registrationTime || '—');
     pCategory.textContent = p.categoryTitle || p.kurumAdi || p.stayTitle || 'Standart';
 
-    pQueueNo.textContent = p.globalQueueNo || p.queueNo || '—';
+    pQueueNo.textContent = p.doctorQueueNo || p.queueNo || p.globalQueueNo || '—';
     pPatientsAheadText.textContent = `Oldingizda: ${p.patientsAhead || 0} nafar bemor`;
 
     pRoomTitle.textContent = p.currentRoomTitle || p.currentRoom || 'Umumiy navbat';
@@ -357,7 +357,7 @@
 
       // Yangi Talonni Ko'rsatish
       renderTicket(result.ticket || {
-        queueNo: currentPatientData.globalQueueNo || currentPatientData.queueNo,
+        queueNo: currentPatientData.doctorQueueNo || currentPatientData.queueNo || currentPatientData.globalQueueNo,
         patientName: currentPatientData.fullName,
         patientId: currentPatientData.patientId,
         roomTitle: selectedTargetDoc.roomTitle,

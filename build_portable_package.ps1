@@ -1,10 +1,15 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $base = "c:\Users\Rentgen xona\Desktop\UTT"
 $dist = "$base\dist_portable\UTT_TIZIMI"
 
 if (Test-Path "$base\dist_portable") {
     Remove-Item -Path "$base\dist_portable" -Recurse -Force
 }
+
+Write-Host "0. UTT_SERVER.exe qayta kompilyatsiya qilinmoqda (v11.6.0)..." -ForegroundColor Cyan
+$csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+& $csc /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll /win32icon:"$base\build-installer\app.ico" /out:"$base\UTT_SERVER.exe" "$base\src_launcher\UttTrayLauncher.cs"
+if ($LASTEXITCODE -ne 0) { throw "UTT_SERVER.exe kompilyatsiya qilinmadi" }
 
 New-Item -ItemType Directory -Path "$dist\runtime" -Force | Out-Null
 New-Item -ItemType Directory -Path "$dist\public" -Force | Out-Null
@@ -42,7 +47,7 @@ Write-Host "5. Qollanma fayli yaratilmoqda..." -ForegroundColor Cyan
 $readme = @"
 ================================================================================
 RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI
-UTT / MSKT / MRT NAVBAT VA BOSHQARUV TIZIMI (v11.1.0 PORTABLE)
+UTT / MSKT / MRT NAVBAT VA BOSHQARUV TIZIMI (v11.6.0 PORTABLE)
 ================================================================================
 
 USHBU TO'PLAM TO'LIQ MUSTAQIL (STANDALONE) BO'LIB, BOSHQA KOMPYUTERDA ISHLATISH

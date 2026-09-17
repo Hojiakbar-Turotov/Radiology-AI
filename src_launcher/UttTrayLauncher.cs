@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -17,24 +17,34 @@ using System.Windows.Forms;
 [assembly: AssemblyCopyright("Copyright (c) 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("11.1.0.0")]
-[assembly: AssemblyFileVersion("11.1.0.0")]
+[assembly: AssemblyVersion("11.6.0.0")]
+[assembly: AssemblyFileVersion("11.6.0.0")]
 
 namespace UttServerLauncher
 {
     static class Program
     {
-        private const string MutexGuid = "Global\\UTT_NAVBAR_SYSTEM_TRAY_MUTEX_V11";
+        private const string MutexGuid = "Local\\UTT_NAVBAR_SYSTEM_TRAY_MUTEX_V11_6";
 
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            bool createdNew;
-            using (Mutex mutex = new Mutex(true, MutexGuid, out createdNew))
+            try
             {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+
+                bool createdNew = true;
+                Mutex mutex = null;
+                try
+                {
+                    mutex = new Mutex(true, MutexGuid, out createdNew);
+                }
+                catch
+                {
+                    createdNew = true;
+                }
+
                 if (!createdNew)
                 {
                     MessageBox.Show(
@@ -49,6 +59,14 @@ namespace UttServerLauncher
                 }
 
                 Application.Run(new TrayApplicationContext());
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launcher_crash.txt"), ex.ToString());
+                }
+                catch { }
             }
         }
     }
@@ -169,7 +187,7 @@ namespace UttServerLauncher
             titleItem.Enabled = false;
             contextMenu.Items.Add(titleItem);
 
-            ToolStripMenuItem subTitleItem = new ToolStripMenuItem("    UTT Navbat & Boshqaruv Serveri (v11.1.0)");
+            ToolStripMenuItem subTitleItem = new ToolStripMenuItem("    UTT Navbat & Boshqaruv Serveri (v11.6.0)");
             subTitleItem.Font = new Font("Segoe UI", 8.5f, FontStyle.Italic);
             subTitleItem.Enabled = false;
             contextMenu.Items.Add(subTitleItem);
@@ -279,7 +297,7 @@ namespace UttServerLauncher
                 try { Process.Start("http://localhost:9877"); } catch { }
             };
 
-            notifyIcon.BalloonTipTitle = "UTT Server Ishga Tushdi (v11.1.0)";
+            notifyIcon.BalloonTipTitle = "UTT Server Ishga Tushdi (v11.6.0)";
             notifyIcon.BalloonTipText = "Server orqa fonda faol ishlamoqda.\nTV manzili: http://" + localIp + ":9877";
             notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
             notifyIcon.ShowBalloonTip(3000);
@@ -447,23 +465,13 @@ namespace UttServerLauncher
         {
             try
             {
-                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                IPAddress[] addresses = Dns.GetHostAddresses(Environment.MachineName);
+                foreach (IPAddress addr in addresses)
                 {
-                    socket.Connect("8.8.8.8", 65530);
-                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                    if (endPoint != null) return endPoint.Address.ToString();
-                }
-            }
-            catch { }
-
-            try
-            {
-                var host = Dns.GetHostEntry(Dns.GetHostName());
-                foreach (var ip in host.AddressList)
-                {
-                    if (ip.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip))
+                    if (addr.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(addr))
                     {
-                        return ip.ToString();
+                        string s = addr.ToString();
+                        if (!s.StartsWith("169.254.")) return s;
                     }
                 }
             }

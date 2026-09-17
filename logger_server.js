@@ -785,9 +785,25 @@ function getDoctorSwitchesList() {
   return cachedDoctorSwitches;
 }
 
+function getActiveSwitchesMapForToday() {
+  const switches = getDoctorSwitchesList();
+  const todayStr = getDailyLogInfo().dateStr;
+  const map = new Map();
+  switches.forEach(sw => {
+    if (sw.date === todayStr) {
+      const pid = String(sw.patientId || '').trim();
+      const pDosya = String(sw.dosyaNo || '').trim();
+      if (pid && !map.has(pid)) map.set(pid, sw);
+      if (pDosya && !map.has(pDosya)) map.set(pDosya, sw);
+    }
+  });
+  return map;
+}
+
 function saveDoctorSwitchRecord(record) {
   const list = getDoctorSwitchesList();
   list.unshift(record); // Eng oxirgi birinchi
+  cachedDoctorSwitches = list;
   try {
     const dataDir = path.join(ROOT_DIR, 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
@@ -1184,8 +1200,10 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
       dosyaNo: kp.ProtokolNo || kp.DosyaNo || '',
       labDosyaId: kp.Id,
       fullName: (kp.AdSoyad || ((kp.HastaAdi || '') + ' ' + (kp.Soyadi || ''))).trim(),
+      muayeneSirano: kp.MuayeneSirano || kp.OnkayitSiraNo || kp.SiraNo || null,
       queueNo: kp.MuayeneSirano || (idx + 1),
       globalQueueNo: idx + 1,
+      doctorQueueNo: kp.MuayeneSirano || (idx + 1),
       status: kp.Durum || (isDone ? 'Rapor Onaylı' : 'Bekleyen'),
       statusCode: statusCode,
       registrationDate: targetDateStr,
@@ -1245,6 +1263,17 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
   const completedByDoctor = {};
 
   docsList.forEach(d => {
+    d.patients.forEach((p, pIdx) => {
+      p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
+      p.queueNo = p.doctorQueueNo;
+    });
+    d.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
+    d.waitingPatientsList.forEach((p, pIdx) => {
+      p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
+      p.queueNo = p.doctorQueueNo;
+    });
+    d.waitingPatientsList.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
+
     // Foydalanuvchi talabi: keyingi kunda ko'rilganlar o'sha kunda ko'rilganlarga qo'shilmasin!
     d.completedCount = d.seenTodayCount;
     d.count = d.patients.length;
@@ -1479,6 +1508,7 @@ async function syncMasterQueueFromKarmedDirect() {
     // Qabul qilingan bemorlar ro'yxatini shakllantirish
     const allPatients = [];
     let totalWaitingCount = 0;
+    const activeSwitchesMap = getActiveSwitchesMapForToday();
 
     rawList.forEach((kp, idx) => {
       const queuedDoc = resolveQueuedRoomDoctor(kp, docsAuth);
@@ -1507,12 +1537,29 @@ async function syncMasterQueueFromKarmedDirect() {
       // QOIDAGA BINOAN:
       // - Kutayotgan bemor: Ulangan bo'lim xonasi navbatida turadi (queuedDoc || acceptingDoc)
       // - Qabul qilingan yoki ko'rikdan o'tgan: Tekshiruvni QABUL QILGAN VRACH o'tkazgan (acceptingDoc || queuedDoc)
-      const activeDoc = (isAccepted || isFinished) ? (acceptingDoc || queuedDoc) : (queuedDoc || acceptingDoc);
+      let activeDoc = (isAccepted || isFinished) ? (acceptingDoc || queuedDoc) : (queuedDoc || acceptingDoc);
 
       // Boshqa vrachga o'tganlik (Discrepancy / Transfer):
       let hasDoctorSwitch = false;
       let switchText = 'Mos keladi';
-      if (!isWaiting && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
+      let switchReason = '';
+
+      // Bemor portali orqali almashtirilgan shifokorni tekshirish va Karmed syncda saqlab qolish (v11.6.0)
+      const pIdStr = String(kp.KimlikNo || kp.Id || '').trim();
+      const pDosyaStr = String(kp.ProtokolNo || kp.DosyaNo || '').trim();
+      const userSwitch = activeSwitchesMap.get(pIdStr) || activeSwitchesMap.get(pDosyaStr);
+      if (userSwitch && isWaiting) {
+        const targetDocAuth = UTT_ROOMS_CATALOG.find(c => c.room === userSwitch.toRoom || c.roomTitle === userSwitch.toRoomTitle || c.roomTitle === userSwitch.toRoom);
+        if (targetDocAuth) {
+          const docAuthObj = Object.values(docsAuth).find(d => d.roomId === targetDocAuth.room);
+          if (docAuthObj) {
+            activeDoc = docAuthObj;
+            hasDoctorSwitch = true;
+            switchReason = userSwitch.reason || "Bemor so'rovi";
+            switchText = `Bemor so'rovi: ${userSwitch.fromRoom || ''} ➔ ${targetDocAuth.roomTitle} (${switchReason})`;
+          }
+        }
+      } else if (!isWaiting && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
         hasDoctorSwitch = true;
         switchText = `Ulangan: ${queuedDoc.shortName} ➔ Qabul: ${acceptingDoc.shortName}`;
       }
@@ -1618,8 +1665,10 @@ async function syncMasterQueueFromKarmedDirect() {
         dosyaNo: kp.ProtokolNo || kp.DosyaNo || '',
         labDosyaId: kp.Id,
         fullName: (kp.AdSoyad || ((kp.HastaAdi || '') + ' ' + (kp.Soyadi || ''))).trim(),
+        muayeneSirano: kp.MuayeneSirano || kp.OnkayitSiraNo || kp.SiraNo || null,
         queueNo: kp.MuayeneSirano || (idx + 1),
         globalQueueNo: idx + 1,
+        doctorQueueNo: kp.MuayeneSirano || (idx + 1),
         status: statusText,
         statusCode: statusCode,
         registrationDate: regPretty || todayDmy,
@@ -1735,14 +1784,16 @@ async function syncMasterQueueFromKarmedDirect() {
     });
 
     Object.values(doctorMap).forEach(doc => {
-      doc.patients.forEach(p => {
+      doc.patients.forEach((p, pIdx) => {
         const pKey = String(p.patientId).trim();
         if (idToGlobalQueue.has(pKey)) {
-          p.queueNo = idToGlobalQueue.get(pKey);
           p.globalQueueNo = idToGlobalQueue.get(pKey);
         }
+        // Vrach bo'yicha alohida navbat raqami (v11.6.0)
+        p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
+        p.queueNo = p.doctorQueueNo;
       });
-      doc.patients.sort((a, b) => (a.queueNo || 0) - (b.queueNo || 0));
+      doc.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
       doc.count = doc.patients.length;
       doc.waitingCount = doc.patients.filter(p => p.statusCode !== 4).length;
       const rId = doc.room || doc.id;
@@ -3978,9 +4029,27 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
       }
     }
 
-    // 3. F.I.Sh. bo'yicha qisman qidiruv (kamida 3 harf bo'lsa)
-    if (!found && qStr.length >= 3 && isNaN(Number(qStr))) {
-      found = allPatients.find(p => String(p.fullName || '').toLowerCase().includes(qStr));
+    // 3. F.I.Sh. bo'yicha qisman qidiruv (kamida 2 harf bo'lsa, Lotin va Kirill qo'llab-quvvatlanadi)
+    if (!found && qStr.length >= 2 && isNaN(Number(qStr))) {
+      function translitUz(s) {
+        if (!s) return '';
+        const m = {
+          'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'j','з':'z',
+          'и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r',
+          'с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'ts','ч':'ch','ш':'sh','щ':'sh',
+          'ъ':'','ы':'i','ь':'','э':'e','ю':'yu','я':'ya','ў':'o','қ':'q','ғ':'g','ҳ':'h'
+        };
+        return String(s).toLowerCase().split('').map(c => m[c] || c).join('').replace(/[^a-z0-9]/g, '');
+      }
+      const qNorm = translitUz(qStr);
+      found = allPatients.find(p => translitUz(p.fullName || '').includes(qNorm));
+
+      if (!found && latestQueueData && Array.isArray(latestQueueData.doctors)) {
+        for (const doc of latestQueueData.doctors) {
+          const m = (doc.patients || []).find(p => translitUz(p.fullName || '').includes(qNorm));
+          if (m) { found = m; break; }
+        }
+      }
     }
 
     if (!found) return null;
@@ -4024,7 +4093,8 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
       currentRoomNum: docMeta ? docMeta.roomNum : '',
       currentRoomTitle: found.roomTitle || (docMeta ? docMeta.roomTitle : found.room || ''),
       currentDoctor: found.doctorName || (docMeta ? docMeta.doctorName : ''),
-      queueNo: found.queueNo || found.globalQueueNo || 1,
+      queueNo: found.doctorQueueNo || found.queueNo || found.globalQueueNo || 1,
+      doctorQueueNo: found.doctorQueueNo || found.queueNo || (patientsAhead + 1),
       globalQueueNo: found.globalQueueNo || found.queueNo || 1,
       patientsAhead: patientsAhead,
       kurumAdi: found.kurumAdi || '',
@@ -4276,11 +4346,13 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
           date: getDailyLogInfo().dateStr,
           time: new Date().toLocaleTimeString(),
           patientId: String(patient.patientId || ''),
+          dosyaNo: String(patient.dosyaNo || ''),
           patientName: patient.fullName || '',
           pinfl: patient.tckn || patient.pinfl || '',
           fromRoom: prevRoom,
           fromDoctor: patient.doctorName || prevRoom,
-          toRoom: targetDoc.roomTitle,
+          toRoom: targetDoc.room,
+          toRoomTitle: targetDoc.roomTitle,
           toDoctor: targetDoc.doctorName,
           reason: switchReason,
           clientIp: clientIp,
