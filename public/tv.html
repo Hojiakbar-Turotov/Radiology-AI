@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>UTT Jonli TV Ekrani — Respublika Onkologiya Markazi</title>
+  <title>UTT Jonli TV Ekrani — Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="icons/logo-onko.png" type="image/png">
   <style>
@@ -573,6 +573,42 @@
           return undefined;
         };
       }
+      if (typeof Object.assign !== 'function') {
+        Object.assign = function(target) {
+          if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+          var to = Object(target);
+          for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+              for (var nextKey in nextSource) {
+                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                  to[nextKey] = nextSource[nextKey];
+                }
+              }
+            }
+          }
+          return to;
+        };
+      }
+      if (!Array.from) {
+        Array.from = function(object) {
+          return [].slice.call(object);
+        };
+      }
+      if (!Object.values) {
+        Object.values = function(obj) {
+          if (obj == null) return [];
+          return Object.keys(obj).map(function(key) { return obj[key]; });
+        };
+      }
+      if (!Object.entries) {
+        Object.entries = function(obj) {
+          if (obj == null) return [];
+          var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i);
+          while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+          return resArray;
+        };
+      }
 
       function sendTelemetry(type, detail, status) {
         try {
@@ -642,8 +678,10 @@
       <div class="header-right">
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
-          <button type="button" class="view-btn active" id="btnModeTv" title="Barcha xonalar">🖥️ Barcha xonalar</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="Xona ekrani">📺 Xona ekrani</button>
+          <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
+          <button type="button" class="view-btn" id="btnModeClassicRoom" title="2-Rejim: Xona navbat jadvali (v11.0.0 3 ustun)">📋 2-Rejim: Xona jadvali</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="3-Rejim: 2 ustunli navbat jadvali">📊 3-Rejim: 2 Ustunli</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Bo'sh xona (Bemor yo'q)">🚪 4-Rejim: Bo'sh rejim</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -651,6 +689,11 @@
             <option value="all">Barcha xonalar</option>
           </select>
         </div>
+
+        <!-- Ish vaqti sozlamasi -->
+        <button type="button" class="schedule-trigger-btn" id="btnTvScheduleSettings" title="Monitorlar faol vaqt oralig'ini sozlash (07:00 - 17:00)">
+          <span>⏱️ Ish vaqti</span>
+        </button>
 
         <!-- Fullscreen -->
         <button type="button" class="fullscreen-btn" id="btnToggleFullscreen" title="To'liq ekran (F11)">
@@ -660,11 +703,11 @@
 
         <!-- Soat -->
         <div class="live-clock-card">
-          <div class="live-date" id="liveDate">08.09.2026</div>
-          <div class="live-time" id="liveTime">08:00:00</div>
+          <div class="live-date" id="liveDate">📅 17.09.2026</div>
+          <div class="live-time" id="liveTime">--:--:--</div>
           <div class="live-connection-chip connected" id="liveConnChip">
             <span class="pulse-dot"></span>
-            <span id="liveConnText">Jonli TV v8.0.0</span>
+            <span id="liveConnText">Jonli TV v11.6.0</span>
           </div>
           <span id="karmedBadge" style="display:inline-block; font-size:11px; font-weight:700; color:#4ade80; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.35); padding:3px 8px; border-radius:20px; margin-top:4px;" title="Karmed serveridan har 20 soniyada avto-yangilanadi">🟢 Karmed Direct</span>
         </div>
@@ -679,18 +722,23 @@
           <span class="stat-val" id="totalPatientsCount">0</span>
         </div>
         <div class="stat-pill reg-pill" title="Bugun ro'yxatga olingan bemorlar soni">
-          <span class="stat-lbl">Bugun ro'yxatga olingan:</span>
+          <span class="stat-lbl" id="lblTodayReg">Bugun ro'yxatga olingan:</span>
           <span class="stat-val" id="todayRegPatientsCount">0</span>
           <span class="stat-subval" id="earlierRegPatientsCount" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #38bdf8;">(+0 oldin)</span>
         </div>
         <div class="stat-pill completed-pill" title="Tasdiqlangan sanasi bugun bo'lgan barcha bemorlar soni">
-          <span class="stat-lbl">Bugun ko'rildi:</span>
+          <span class="stat-lbl" id="lblTodayCompleted">Bugun ko'rildi:</span>
           <span class="stat-val" id="totalCompletedCount">0</span>
           <span class="stat-subval" id="completedEarlierSubText" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #86efac;">(0 oldin)</span>
         </div>
         <div class="stat-pill active-docs-pill">
           <span class="stat-lbl">Qabuldagi shifokorlar:</span>
           <span class="stat-val" id="activeDoctorsCount">0</span>
+        </div>
+        <div class="stat-pill date-filter-pill" id="dateFilterPill" title="Sana bo'yicha arxiv yoki yakuniy hisobotni ko'rish">
+          <span class="stat-lbl">📅 Sana:</span>
+          <input type="date" id="statsDateInput" class="stats-date-input" title="Sanani tanlang">
+          <button type="button" id="btnTodayReset" class="btn-today-reset" title="Bugungi jonli navbatga qaytish" style="display: none;">Bugun</button>
         </div>
       </div>
 
@@ -704,6 +752,17 @@
         </button>
       </div>
     </section>
+
+    <!-- ARXIV HOLATI BANNERI -->
+    <div id="archiveStatusBanner" class="archive-status-banner" style="display: none;">
+      <div class="archive-banner-content">
+        <div class="archive-banner-left">
+          <span class="archive-banner-icon">📁</span>
+          <span>Siz <b><span id="archiveDateDisplay">15.09.2026</span></b> sanasidagi yakuniy ko'rsatkichlar arxivini ko'rmoqdasiz.</span>
+        </div>
+        <button type="button" id="btnReturnToday" class="btn-return-today">↩ Bugungi jonli navbatga qaytish</button>
+      </div>
+    </div>
 
     <!-- 3. ASOSIY MAZMUN -->
     <main class="main-content">
@@ -776,36 +835,53 @@
       <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 ASL KO'RINISHI - FOYDALANUVCHI TALABI BO'YICHA O'ZGARISHSIZ) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
+          <!-- Chap tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) -->
           <div class="sr-header-left">
-            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ Barcha xonalar</button>
-            <div class="sr-room-selector">
-              <label for="srRoomDropdown">Xona:</label>
-              <select id="srRoomDropdown" class="sr-room-select"></select>
+            <div class="sr-controls-overlay">
+              <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
+              <div class="sr-room-selector">
+                <label for="srRoomDropdown">Xona:</label>
+                <select id="srRoomDropdown" class="sr-room-select"></select>
+              </div>
+              <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
+              <button type="button" class="sr-fs-btn" id="btnSrScheduleSettings" title="TV Faol vaqt oralig'ini sozlash (07:00 - 17:00)">⏱️ Ish vaqti</button>
+              <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
             </div>
-            <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
-          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT10-51 XONA</div>
+          <!-- Markaziy yirik xona sarlavhasi (UTT3-46 XONA) -->
+          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT3-46 XONA</div>
 
+          <!-- O'NG TOMONDAGI SANA VA SOAT (FOYDALANUVCHI TALABI: SOAT O'NG YUQORI BURCHAKDA BO'LSIN) -->
           <div class="sr-header-right">
-            <div class="sr-full-date" id="srFullDateUz">Seshanba 8 Sentabr 2026</div>
-            <div class="sr-full-clock" id="srFullClockTime">10:28:34</div>
+            <div class="sr-full-date" id="srFullDateUz">17 Sentabr 2026</div>
+            <div class="sr-full-clock" id="srFullClockTime">--:--:--</div>
           </div>
         </div>
 
         <div class="sr-main-card">
-          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)</div>
-          <div class="sr-table-scroll-container">
-            <table class="sr-patient-table">
-              <thead>
-                <tr>
-                  <th class="col-sr-name">ISM FAMILYA</th>
-                  <th class="col-sr-time">RO'YXATGA OLINGAN VAQTI</th>
-                  <th class="col-sr-queue">NAVBAT RAQAMI</th>
-                </tr>
+          <div class="sr-doctor-title" id="srDoctorFullTitle">
+            <span class="sr-doc-name-txt">Ultratovush-3(Abidjanov Alisher Maxamataliyevich)</span>
+            <span class="sr-page-badge" id="srPageBadge" style="display: none;">📄 Sahifa 1 / 2 (Jami: 9 ta)</span>
+          </div>
+          
+          <!-- Faol chaqirilayotgan bemor banneri (2-rejim Klassik v11.0.0 uchun) -->
+          <div id="srActiveCallContainer" style="display: none;"></div>
+
+          <!-- NAVBAT JADVALI (2-Rejim va 3-Rejim uchun) -->
+          <div class="sr-table-scroll-container" id="srTableContainer">
+            <table class="sr-patient-table" id="srPatientTable">
+              <thead id="srPatientTableHead">
+                <!-- Javascript orqali 2-rejimda 3 ustun, 3-rejimda 2 ustun chiziladi -->
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
+          </div>
+
+          <!-- 4-REJIM: BO'SH XONA EKRANI (BEMOR FISH YO'Q, KLASSIK ASL USLUB) -->
+          <div class="sr-classic-empty-box" id="srClassicEmptyBox" style="display: none;">
+            <div class="sr-empty-status-desc" id="srEmptyStateDesc">Kutayotgan bemor yo'q</div>
+            <div class="sr-empty-status-hint" id="srEmptyStateHint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>
 
@@ -857,22 +933,77 @@
       </div>
     </div>
 
+    <!-- 4.6 TV MONITORLAR FAOL VAQT ORALIG'I MODAL OYNASI -->
+    <div id="tvScheduleModal" class="schedule-modal-overlay" style="display: none;">
+      <div class="schedule-modal-card">
+        <div class="schedule-modal-header">
+          <div class="schedule-modal-title">
+            <span class="sched-icon">⏱️</span>
+            <h3>Monitorlar Faol Vaqt Oralig'i</h3>
+          </div>
+          <button type="button" class="schedule-modal-close" id="btnSchedClose" title="Yopish (Esc)">✕</button>
+        </div>
+        <div class="schedule-modal-body">
+          <p class="sched-subtitle">Android TV va monitor ekranlarining avtomatik o'chish / yoqilish jadvali:</p>
+          
+          <div class="sched-toggle-row">
+            <label class="sched-switch">
+              <input type="checkbox" id="schedEnabledCheck" checked>
+              <span class="sched-slider"></span>
+            </label>
+            <label for="schedEnabledCheck" class="sched-switch-label">Vaqt jadvali bo'yicha avto-o'chishni yoqish</label>
+          </div>
+
+          <div class="sched-time-inputs">
+            <div class="sched-input-col">
+              <label for="schedStartTime">☀️ Yoqilish vaqti (Ertalab):</label>
+              <input type="time" id="schedStartTime" value="07:00" class="sched-time-input">
+            </div>
+            <div class="sched-input-col">
+              <label for="schedEndTime">🌙 O'chish vaqti (Kechqurun):</label>
+              <input type="time" id="schedEndTime" value="17:00" class="sched-time-input">
+            </div>
+          </div>
+
+          <div class="sched-info-box">
+            💡 <b>Qoida:</b> Soat <b>07:00 dan 17:00 gacha</b> barcha ekranlar tanlangan rejimda navbatni to'liq ko'rsatadi. Soat <b>17:00 dan 07:00 gacha</b> esa xuddi TV o'chgandek to'liq <b>tim qora fon</b> holatiga o'tadi va ovozlar o'chadi.
+          </div>
+
+          <div class="sched-actions">
+            <button type="button" class="sched-btn-test" id="btnSchedTestBlackout" title="Qora fon qanday ko'rinishini 5 soniya sinab ko'rish">👁️ Tim qora fonni sinash</button>
+            <div class="sched-right-btns">
+              <button type="button" class="sched-btn-cancel" id="btnSchedCancel">Bekor qilish</button>
+              <button type="button" class="sched-btn-save" id="btnSchedSave">💾 Saqlash</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.7 TIM QORA FON (TV KUTISH / AVTO-O'CHISH REJIMI) -->
+    <div id="tvSleepBlackoutOverlay" class="tv-sleep-blackout-overlay" style="display: none;">
+      <div class="tv-sleep-wake-hint" id="tvSleepWakeHint" style="display: none;">
+        🌙 TV Kutish rejimi (Faol vaqt: <span id="tvSleepRangeText">07:00 - 17:00</span>) • Uyg'otish yoki sozlash uchun bosing
+      </div>
+    </div>
+
     <!-- 5. FOOTER -->
     <footer class="app-footer" id="mainAppFooter">
       <div class="footer-left">
-        <span>© 2026 Respublika Onkologiya Markazi • UTT Bo'limi</span>
+        <span>© 2026 Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi • UTT Bo'limi</span>
       </div>
       <div class="footer-center">
         <span>⚠️ Navbat bo'yicha savollar bo'lsa, xona oldidagi hamshiraga uchrashing</span>
+        <span class="tv-remote-hint" style="margin-left: 14px; background: rgba(59, 130, 246, 0.22); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.45); color: #93c5fd; font-weight: 700; font-size: 11.5px;">🎮 Pult: 1-9 = UTT 1..9 | 0 = UTT 10 | BACK = Barcha xonalar</span>
       </div>
       <div class="footer-right">
-        <span id="footerServerInfo">TV Monitor v8.0.0 • Jonli Navbat • Karmed Direct</span>
+        <span id="footerServerInfo">TV Monitor v11.6.0 • Jonli Navbat • Karmed Direct</span>
       </div>
     </footer>
 
   </div>
 
   <script src="chime_engine.js"></script>
-  <script src="app.js?v=8.0.0"></script>
+  <script src="app.js?v=11.6.0"></script>
 </body>
 </html>

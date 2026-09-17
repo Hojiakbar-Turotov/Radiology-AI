@@ -304,6 +304,125 @@ html, body {
   color: var(--accent-gold);
 }
 
+.date-filter-pill {
+  border-color: #3b82f6;
+  background: #111e48;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+}
+
+.date-filter-pill .stat-lbl {
+  color: #93c5fd;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-filter-pill .stats-date-input {
+  background: #091024;
+  border: 1.5px solid #3b82f6;
+  color: #38bdf8;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.date-filter-pill .stats-date-input:focus,
+.date-filter-pill .stats-date-input:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.date-filter-pill .stats-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.btn-today-reset {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.btn-today-reset:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* Arxiv ko'rsatkichlari status banneri */
+.archive-status-banner {
+  background: linear-gradient(90deg, #9a3412 0%, #c2410c 50%, #b45309 100%);
+  border: 1.5px solid #f97316;
+  border-radius: 10px;
+  padding: 9px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(194, 65, 12, 0.35);
+  animation: slideDownArchive 0.25s ease-out;
+}
+
+@keyframes slideDownArchive {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.archive-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.archive-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.archive-banner-icon {
+  font-size: 18px;
+}
+
+.btn-return-today {
+  background: #ffffff;
+  color: #9a3412;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+
+.btn-return-today:hover {
+  background: #ffedd5;
+  transform: translateY(-1px);
+}
+
+
 .wifi-marquee-card {
   display: flex;
   align-items: center;
@@ -575,6 +694,108 @@ body.mode-post .post-controls-panel {
 .doc-queue-badge.empty {
   background: #334155;
   color: #94a3b8;
+}
+
+/* =========================================================================
+   VRACH QABULXONASI: 4 TA ALOHIDA KO'RSATKICH BAR (v11.1.0)
+   [Shu kuni ko'rildi] [Keyingi kunda ko'rildi] [Hali o'tmagan] [Jami]
+   ========================================================================= */
+.doc-four-metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.dfm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  min-width: 0;
+  cursor: default;
+}
+
+.dfm-item:hover {
+  transform: translateY(-1px);
+}
+
+.dfm-item .dfm-num {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.1;
+  font-family: 'Arial Black', Impact, sans-serif;
+}
+
+.dfm-item .dfm-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+/* 1. Shu kuni ko'rilgan (Yashil) */
+.dfm-item.dfm-today {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.dfm-item.dfm-today .dfm-num {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+.dfm-item.dfm-today .dfm-label {
+  color: #86efac;
+}
+
+/* 2. Keyingi kunda ko'rilgan (Havorang / Moviy) */
+.dfm-item.dfm-later {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.dfm-item.dfm-later .dfm-num {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+.dfm-item.dfm-later .dfm-label {
+  color: #7dd3fc;
+}
+
+/* 3. Hali tekshiruvdan o'tmagan / Navbatda (Sarg'ish / Oltinrang) */
+.dfm-item.dfm-waiting {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.dfm-item.dfm-waiting .dfm-num {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+.dfm-item.dfm-waiting .dfm-label {
+  color: #fde68a;
+}
+
+/* 4. Jami bemorlar (Binafsharang) */
+.dfm-item.dfm-total {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+.dfm-item.dfm-total .dfm-num {
+  color: #c084fc;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+.dfm-item.dfm-total .dfm-label {
+  color: #e9d5ff;
 }
 
 /* Hozirgi chaqirilayotgan yoki 1-navbatdagi bemor */
@@ -951,14 +1172,17 @@ body.mode-post .post-table-container {
    8. YAGONA XONA TV EKRANI (SINGLE ROOM DISPLAY - SCREENSHOT 2)
    ========================================================================== */
 
-/* Single Room rejimida sahifa ko'rinishi */
-body.mode-single-room {
+/* Single Room rejimlarida sahifa ko'rinishi */
+body.mode-single-room,
+body.mode-classic-room {
   background-color: #f1f5f9; /* Yorug', toza, oq TV foni */
   color: #0f172a;
 }
 
-body.mode-single-room .app-container {
-  padding: 12px 24px 16px 24px;
+body.mode-single-room .app-container,
+body.mode-classic-room .app-container,
+body.mode-empty-room .app-container {
+  padding: 10px 20px 14px 20px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -970,17 +1194,45 @@ body.mode-single-room #topInfoBar,
 body.mode-single-room #postControlsPanel,
 body.mode-single-room #tvQueueGrid,
 body.mode-single-room #postTableContainer,
-body.mode-single-room #mainAppFooter {
+body.mode-single-room #mainAppFooter,
+body.mode-single-room #tvDoctorSummaryRibbon,
+body.mode-single-room .tv-doctor-summary-ribbon,
+body.mode-single-room #earlierPatientsSection,
+body.mode-single-room .earlier-patients-panel,
+
+body.mode-classic-room #mainAppHeader,
+body.mode-classic-room #topInfoBar,
+body.mode-classic-room #postControlsPanel,
+body.mode-classic-room #tvQueueGrid,
+body.mode-classic-room #postTableContainer,
+body.mode-classic-room #mainAppFooter,
+body.mode-classic-room #tvDoctorSummaryRibbon,
+body.mode-classic-room .tv-doctor-summary-ribbon,
+body.mode-classic-room #earlierPatientsSection,
+body.mode-classic-room .earlier-patients-panel,
+
+body.mode-empty-room #mainAppHeader,
+body.mode-empty-room #topInfoBar,
+body.mode-empty-room #postControlsPanel,
+body.mode-empty-room #tvQueueGrid,
+body.mode-empty-room #postTableContainer,
+body.mode-empty-room #mainAppFooter,
+body.mode-empty-room #tvDoctorSummaryRibbon,
+body.mode-empty-room .tv-doctor-summary-ribbon,
+body.mode-empty-room #earlierPatientsSection,
+body.mode-empty-room .earlier-patients-panel {
   display: none !important;
 }
 
-body.mode-single-room #singleRoomWrapper {
+body.mode-single-room #singleRoomWrapper,
+body.mode-classic-room #singleRoomWrapper,
+body.mode-empty-room #singleRoomWrapper {
   display: flex !important;
   flex-direction: column;
   flex: 1;
   min-height: calc(100vh - 28px);
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* 8.1. XONA EKRANI TEPASI (HEADER) */
@@ -990,31 +1242,75 @@ body.mode-single-room #singleRoomWrapper {
   justify-content: space-between;
   position: relative;
   width: 100%;
-  padding: 2px 4px 6px 4px;
+  padding: 4px 6px 8px 6px;
 }
 
+/* Chap tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) */
 .sr-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
-  z-index: 10;
-  opacity: 0.05;
-  transition: opacity 0.3s ease-in-out;
+  justify-content: flex-start;
+  z-index: 50;
+  min-height: 48px;
+  min-width: 220px;
 }
 
-.sr-header-left:hover,
-.sr-header-left:focus-within {
+.sr-controls-overlay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.sr-top-header:hover .sr-controls-overlay,
+.sr-header-left:hover .sr-controls-overlay,
+.sr-controls-overlay:hover,
+.sr-controls-overlay:focus-within {
   opacity: 1;
+  pointer-events: auto;
 }
 
-/* To'liq ekranda ham shaffof turishi */
-body.is-fullscreen .sr-header-left {
-  opacity: 0.05;
+/* Markazdagi sarlavha: UTT3-46 XONA */
+.sr-center-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 46px;
+  font-weight: 900;
+  color: #172554;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-body.is-fullscreen .sr-header-left:hover,
-body.is-fullscreen .sr-header-left:focus-within {
-  opacity: 1;
+/* O'NG TOMONDAGI SANA VA SOAT (FOYDALANUVCHI TALABI: SOAT O'NG YUQORI BURCHAKDA BO'LSIN) */
+.sr-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  z-index: 5;
+}
+
+.sr-full-date {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.sr-full-clock {
+  font-size: 40px;
+  font-weight: 900;
+  font-family: monospace, Arial, sans-serif;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: 1px;
+  text-align: right;
 }
 
 .sr-back-btn {
@@ -1076,43 +1372,22 @@ body.is-fullscreen .sr-header-left:focus-within {
   background: #2563eb;
 }
 
-/* Markazdagi sarlavha: UTT10-51 XONA */
-.sr-center-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 46px;
-  font-weight: 900;
-  color: #172554;
-  letter-spacing: 0.5px;
-  text-align: center;
-  white-space: nowrap;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-}
-
-/* O'ng tomondagi sana va soat: Seshanba 8 Sentabr 2026 | 10:28:34 */
-.sr-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  z-index: 5;
-}
-
-.sr-full-date {
-  font-size: 20px;
+.sr-mode-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 800;
-  color: #0f172a;
-  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 
-.sr-full-clock {
-  font-size: 40px;
-  font-weight: 900;
-  font-family: monospace, Arial, sans-serif;
-  color: #0f172a;
-  line-height: 1.1;
-  letter-spacing: 1px;
+.sr-mode-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
 }
 
 /* 8.2. ASOSIY OQ KARTA (QIZIL TEPALIK CHIZIQ BILAN) */
@@ -1167,13 +1442,13 @@ body.is-fullscreen .sr-header-left:focus-within {
 
 /* Jadval sarlavhasi (Ko'k rang) */
 .sr-patient-table thead tr {
-  background: #2563eb;
+  background: #1e7bf2;
   color: #ffffff;
 }
 
 .sr-patient-table th {
-  padding: 14px 20px;
-  font-size: 18px;
+  padding: 16px 24px;
+  font-size: 19px;
   font-weight: 900;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -1185,18 +1460,57 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-name {
-  width: 48%;
+  width: 72%;
   text-align: left;
 }
 
 .col-sr-time {
-  width: 26%;
+  width: 27%;
   text-align: center;
 }
 
 .col-sr-queue {
-  width: 26%;
+  width: 28%;
   text-align: center;
+}
+
+.sr-patient-table.cols-3 .col-sr-name {
+  width: 48%;
+}
+
+.sr-patient-table.cols-3 .col-sr-time {
+  width: 27%;
+}
+
+.sr-patient-table.cols-3 .col-sr-queue {
+  width: 25%;
+}
+
+/* Faol chaqirilayotgan bemor banneri (Klassik v11.0.0 uchun) */
+.sr-active-call-badge {
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sr-active-call-badge.sr-badge-accepted {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.sr-active-call-badge.sr-badge-calling {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #0b1536;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 /* Jadval qatorlari */
@@ -1218,8 +1532,8 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-name-td {
-  padding: 14px 20px;
-  font-size: 20px;
+  padding: 16px 24px;
+  font-size: 22px;
   font-weight: 800;
   color: #1e293b;
   text-transform: uppercase;
@@ -1228,20 +1542,19 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .col-sr-time-td {
-  padding: 14px 20px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #2563eb;
+  padding: 16px 20px;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0284c7;
   text-align: center;
-  font-family: monospace, -apple-system, BlinkMacSystemFont, Arial;
   border-right: 1.5px solid #e2e8f0;
 }
 
 .col-sr-queue-td {
-  padding: 14px 20px;
-  font-size: 22px;
+  padding: 16px 24px;
+  font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: #1e3a8a;
   text-align: center;
 }
 
@@ -1252,6 +1565,69 @@ body.is-fullscreen .sr-header-left:focus-within {
   color: #64748b;
   font-weight: 600;
   font-style: italic;
+}
+
+/* ==========================================================================
+   8.2.1. 4-REJIM: BO'SH XONA EKRANI (KLASSIK BILAN 100% BIR XIL, BEMOR FISH YO'Q)
+   ========================================================================== */
+
+/* 4-rejim klassik rejim bilan aynan bir xil och kulrang fonda bo'ladi */
+body.mode-empty-room {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+body.mode-empty-room .sr-main-card {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  border-top: 6px solid #ef4444 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+  padding: 16px 24px 20px 24px !important;
+}
+
+body.mode-empty-room .sr-table-scroll-container,
+body.mode-empty-room #srActiveCallContainer {
+  display: none !important;
+}
+
+/* Klassik bo'sh holat qutisi (Oq karta ichida markazda) */
+.sr-classic-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.sr-classic-empty-box .sr-empty-status-desc {
+  font-size: 44px;
+  font-weight: 900;
+  color: #1e3a8a;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sr-classic-empty-box .sr-empty-status-hint {
+  font-size: 22px;
+  font-weight: 600;
+  color: #0284c7;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.sr-live-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.35);
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
 }
 
 /* 8.3. PASTKI YUGURUVCHI SATR (TICKER) */
@@ -1666,6 +2042,700 @@ tr.row-accepted {
   border-radius: 8px;
   text-align: center;
   margin-top: 8px;
+}
+
+/* ==========================================================================
+   14. VRACH KO'RGAN BEMORLAR IFRAME MODAL OYNASI VA TUGMASI
+   ========================================================================== */
+.doc-iframe-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.doc-iframe-modal-box {
+  background: #0f172a;
+  border: 1.5px solid #3b82f6;
+  border-radius: 16px;
+  width: 94%;
+  max-width: 1100px;
+  height: 85vh;
+  max-height: 820px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.35);
+  animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPopIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.doc-iframe-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, #1e293b, #0f172a);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+.dimh-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dimh-icon { font-size: 22px; }
+.dimh-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+.dimh-badge {
+  background: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dimh-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dimh-btn-newtab {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dimh-btn-newtab:hover {
+  background: rgba(56, 189, 248, 0.25);
+}
+.dimh-btn-close {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dimh-btn-close:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #fff;
+}
+.doc-iframe-body {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b1329;
+}
+#docCompletedIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* 15. VRACH KO'RGAN BEMORLARNI OCHISH KO'Z (EYE) TUGMASI */
+.btn-doc-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.btn-doc-eye:hover {
+  background: rgba(56, 189, 248, 0.35);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+}
+.btn-doc-eye:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   16. KECHA VA OLDINGI KUNLARDA YO'NALTIRILGAN BEMORLAR PANELI VA FILTRLASH
+   ========================================================================== */
+.earlier-patients-panel {
+  margin-top: 24px;
+  margin-bottom: 20px;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.epp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #1e293b, #0f172a);
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+.epp-header:hover {
+  background: linear-gradient(90deg, #273549, #131c31);
+}
+.epp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.epp-icon { font-size: 20px; }
+.epp-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #f8fafc;
+}
+.epp-badge {
+  background: #3b82f6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.epp-toggle-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.epp-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.epp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.epp-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  font-weight: 700;
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 2px solid #334155;
+  white-space: nowrap;
+}
+.epp-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+.epp-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.epp-row-completed {
+  background: rgba(34, 197, 94, 0.12);
+}
+.epp-row-accepted {
+  background: rgba(59, 130, 246, 0.12);
+}
+.epp-row-waiting {
+  background: rgba(245, 158, 11, 0.08);
+}
+.epp-tag-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.epp-tag-pill.tag-done {
+  background: #16a34a;
+  color: #ffffff;
+}
+.epp-tag-pill.tag-accepted {
+  background: #2563eb;
+  color: #ffffff;
+}
+.epp-tag-pill.tag-waiting {
+  background: #d97706;
+  color: #ffffff;
+}
+
+/* Pastdagi umumiy ro'yxat filter paneli */
+.epp-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #182234;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+.epp-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 400px;
+}
+.epp-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.epp-search-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 7px 32px 7px 32px;
+  color: #f8fafc;
+  font-size: 13px;
+  outline: none;
+}
+.epp-search-input:focus {
+  border-color: #38bdf8;
+}
+.epp-clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  display: none;
+}
+.epp-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.epp-select {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #f8fafc;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+.epp-select:focus {
+  border-color: #38bdf8;
+}
+.epp-filter-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.epp-filter-result-badge {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.epp-reset-btn {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.epp-reset-btn:hover {
+  background: #334155;
+  color: #fff;
+}
+
+/* ==========================================================================
+   14. TV MONITORLAR FAOL VAQT ORALIG'I VA TIM QORA FON KUTISH REJIMI
+   ========================================================================== */
+
+.schedule-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 58, 138, 0.45);
+  border: 1.5px solid rgba(96, 165, 250, 0.5);
+  color: #bfdbfe;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.schedule-trigger-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+/* Modal qatlami */
+.schedule-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.schedule-modal-card {
+  background: #ffffff;
+  color: #0f172a;
+  width: 100%;
+  max-width: 540px;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-top: 6px solid #2563eb;
+  overflow: hidden;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.schedule-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.schedule-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-modal-title .sched-icon {
+  font-size: 24px;
+}
+
+.schedule-modal-title h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.schedule-modal-close {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 900;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.schedule-modal-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.schedule-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sched-subtitle {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.sched-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #eff6ff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #bfdbfe;
+}
+
+.sched-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.sched-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.sched-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 26px;
+}
+
+.sched-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.sched-switch input:checked + .sched-slider {
+  background-color: #2563eb;
+}
+
+.sched-switch input:checked + .sched-slider:before {
+  transform: translateX(22px);
+}
+
+.sched-switch-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.sched-time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sched-input-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sched-input-col label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.sched-time-input {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  font-family: monospace, Arial, sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sched-time-input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.sched-info-box {
+  background: #f1f5f9;
+  border-left: 4px solid #0284c7;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.sched-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.sched-btn-test {
+  background: #f8fafc;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sched-btn-test:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.sched-right-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sched-btn-cancel {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sched-btn-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.sched-btn-save {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.sched-btn-save:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   15. TIM QORA FON OVERLAY (XUDDI TV O'CHGANDEK TURISHI UCHUN)
+   ========================================================================== */
+
+.tv-sleep-blackout-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #000000 !important;
+  z-index: 2147483647 !important;
+  cursor: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+body.is-tv-sleeping .tv-sleep-blackout-overlay {
+  display: flex !important;
+}
+
+body.is-tv-sleeping {
+  overflow: hidden !important;
+}
+
+.tv-sleep-wake-hint {
+  background: rgba(15, 23, 42, 0.88);
+  color: #cbd5e1;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tv-sleep-wake-hint:hover {
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #60a5fa;
 }
 
 

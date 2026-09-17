@@ -717,6 +717,51 @@ function saveQueueToFile(data) {
   } catch (e) {}
 }
 
+// 3.1 TV MONITORLAR FAOL VAQT ORALIG'I SOZLAMASI (AVTO-O'CHISH / TIM QORA FON)
+const TV_SCHEDULE_FILE = path.join(ROOT_DIR, 'data', 'tv_schedule_config.json');
+let tvScheduleConfig = {
+  enabled: true,
+  startTime: '07:00',
+  endTime: '17:00'
+};
+
+try {
+  if (fs.existsSync(TV_SCHEDULE_FILE)) {
+    const rawSched = JSON.parse(fs.readFileSync(TV_SCHEDULE_FILE, 'utf8'));
+    if (rawSched && typeof rawSched === 'object') {
+      tvScheduleConfig = {
+        enabled: rawSched.enabled !== false,
+        startTime: rawSched.startTime || '07:00',
+        endTime: rawSched.endTime || '17:00'
+      };
+      console.log(`[TV Schedule] Faol vaqt oralig'i yuklandi: ${tvScheduleConfig.startTime} - ${tvScheduleConfig.endTime} (Aktiv: ${tvScheduleConfig.enabled})`);
+    }
+  } else {
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(TV_SCHEDULE_FILE, JSON.stringify(tvScheduleConfig, null, 2), 'utf8');
+  }
+} catch (e) {
+  console.warn('[TV Schedule] Sozlama yuklashda ogohlantirish:', e.message);
+}
+
+function saveTvScheduleConfig(newConfig) {
+  try {
+    tvScheduleConfig = {
+      enabled: newConfig.enabled !== false,
+      startTime: String(newConfig.startTime || '07:00').trim(),
+      endTime: String(newConfig.endTime || '17:00').trim()
+    };
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(TV_SCHEDULE_FILE, JSON.stringify(tvScheduleConfig, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('[TV Schedule] Saqlashda xatolik:', err);
+    return false;
+  }
+}
+
 // 4. SSE (SERVER-SENT EVENTS) REAL-TIME STREAM
 const sseClients = new Set();
 const adminSseClients = new Set();
@@ -764,6 +809,52 @@ function broadcastEvent(payloadObj) {
     } catch (e) {
       adminSseClients.delete(clientRes);
     }
+  }
+}
+
+// BEMORLAR VRACHINI O'ZGARTIRISH JURNALI (PERSISTENT DATA - v11.0.0)
+const SWITCHES_FILE = path.join(ROOT_DIR, 'data', 'doctor_switches.json');
+let cachedDoctorSwitches = null;
+
+function getDoctorSwitchesList() {
+  if (cachedDoctorSwitches) return cachedDoctorSwitches;
+  try {
+    if (fs.existsSync(SWITCHES_FILE)) {
+      cachedDoctorSwitches = JSON.parse(fs.readFileSync(SWITCHES_FILE, 'utf8'));
+    } else {
+      cachedDoctorSwitches = [];
+    }
+  } catch (e) {
+    cachedDoctorSwitches = [];
+  }
+  return cachedDoctorSwitches;
+}
+
+function getActiveSwitchesMapForToday() {
+  const switches = getDoctorSwitchesList();
+  const todayStr = getDailyLogInfo().dateStr;
+  const map = new Map();
+  switches.forEach(sw => {
+    if (sw.date === todayStr) {
+      const pid = String(sw.patientId || '').trim();
+      const pDosya = String(sw.dosyaNo || '').trim();
+      if (pid && !map.has(pid)) map.set(pid, sw);
+      if (pDosya && !map.has(pDosya)) map.set(pDosya, sw);
+    }
+  });
+  return map;
+}
+
+function saveDoctorSwitchRecord(record) {
+  const list = getDoctorSwitchesList();
+  list.unshift(record); // Eng oxirgi birinchi
+  cachedDoctorSwitches = list;
+  try {
+    const dataDir = path.join(ROOT_DIR, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(SWITCHES_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving doctor switch record:', e);
   }
 }
 
@@ -924,6 +1015,504 @@ function mapKarmedRecordToDoctor(kp, docsAuth) {
   return resolveQueuedRoomDoctor(kp, docsAuth) || resolveAcceptingDoctor(kp, docsAuth);
 }
 
+// Karmed HastaSorgula so'rov parametrlari (Ixtiyoriy sana uchun)
+async function executeKarmedHastaSorgula(token, cookie, targetDateStr) {
+  const queryDate = targetDateStr || getDailyLogInfo().dateStr;
+  const sParams = new URLSearchParams();
+  sParams.set('submitDirectEventConfig', JSON.stringify({
+    config: { extraParams: { aDosyaDurumu: null, aHizliAra: false } }
+  }));
+  sParams.set('cbYil', queryDate.split('.')[2] || '2026');
+  sParams.set('_cbYil_state', JSON.stringify([{ value: sParams.get('cbYil'), text: sParams.get('cbYil'), index: 1 }]));
+  sParams.set('cbHizliAramaTur', 'Bemor ID');
+  sParams.set('_cbHizliAramaTur_state', JSON.stringify([{ value: '0', text: 'Bemor ID', index: 0 }]));
+  sParams.set('tfHizliAramaDeger', '');
+  sParams.set('BaslangicDt', queryDate);
+  sParams.set('BitisDt', queryDate);
+  sParams.set('cbBolum', 'Ultratovush, Dopler Ultratovush');
+  sParams.set('_cbBolum_state', JSON.stringify([
+    { value: '10', text: 'Ultratovush', index: 9 },
+    { value: '24', text: 'Dopler Ultratovush', index: 0 }
+  ]));
+  sParams.set('cbAltBolum', '(Subbirliklar)');
+  sParams.set('_cbAltBolum_state', JSON.stringify([{ value: '0', text: '(Subbirliklar)', index: 0 }]));
+  sParams.set('cbBolumOda', '(Barcha Xonalar)');
+  sParams.set('_cbBolumOda_state', JSON.stringify([{ value: '0', text: '(Barcha Xonalar)', index: 0 }]));
+  sParams.set('cbBirimTuru', '(Butun Birlik)');
+  sParams.set('_cbBirimTuru_state', JSON.stringify([{ value: '0', text: '(Butun Birlik)', index: 0 }]));
+  sParams.set('cbBina', '(Butun Binolar)');
+  sParams.set('_cbBina_state', JSON.stringify([{ value: '0', text: '(Butun Binolar)', index: 0 }]));
+  sParams.set('cbKayitSayisiSecim', '500');
+  sParams.set('_cbKayitSayisiSecim_state', JSON.stringify([{ value: '500', text: '500', index: 3 }]));
+  sParams.set('hdnDosyaDurumu', '');
+  sParams.set('btnTumu_Pressed', 'true');
+  sParams.set('btnBekleyen_Pressed', '');
+  sParams.set('HdnBaseYazdirmaTuru', '-1');
+  sParams.set('__VIEWSTATEGENERATOR', '5DE5E74B');
+  sParams.set('hdnKrmdLoginBilgi', token);
+  sParams.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
+  sParams.set('__EVENTARGUMENT', '-|public|HastaSorgula');
+
+  const spData = sParams.toString();
+  return await karmedRawRequest({
+    hostname: '192.168.150.111',
+    port: 2025,
+    path: '/Radiology/Rbys.aspx?action=HastaSorgula',
+    method: 'POST',
+    headers: {
+      'X-Ext-Net': 'delta=true',
+      'action': 'HastaSorgula',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Cookie': cookie,
+      'Content-Length': Buffer.byteLength(spData)
+    }
+  }, spData);
+}
+
+// Tanlangan sana bemorlarini Karmed ma'lumotlaridan ajratish (4 ta aniq ko'rsatkich bilan)
+function processKarmedPatientsForDate(rawList, targetDateStr) {
+  const [d, mth, y] = targetDateStr.split('.');
+  const targetDateIso = `${y}-${mth}-${d}`;
+  const pad2 = (n) => (n < 10 ? '0' : '') + n;
+  const tDateObj = new Date(parseInt(y, 10), parseInt(mth, 10) - 1, parseInt(d, 10));
+  const yDateObj = new Date(tDateObj.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayIso = `${yDateObj.getFullYear()}-${pad2(yDateObj.getMonth() + 1)}-${pad2(yDateObj.getDate())}`;
+
+  const docsAuth = getDoctorsAuth();
+  const doctorKeys = Object.keys(docsAuth || {});
+  const doctorMap = {};
+
+  doctorKeys.forEach(key => {
+    const dObj = docsAuth[key] || {};
+    const roomId = dObj.roomId || ('Ultratovush-' + key.replace('U', ''));
+    doctorMap[roomId] = {
+      id: roomId,
+      room: roomId,
+      num: key.replace('U', ''),
+      shortName: dObj.shortName || roomId,
+      doctorName: dObj.doctorName || 'Shifokor',
+      roomTitle: dObj.roomTitle || `${roomId} XONA`,
+      roomNum: dObj.roomNum || '',
+      kod: dObj.kod || '',
+      soundId: dObj.soundId || 1,
+      patients: [],
+      completedPatients: [],
+      seenTodayPatients: [],
+      seenEarlierRegPatients: [],
+      seenLaterPatients: [],
+      waitingPatientsList: [],
+      allAssignedPatients: [],
+      seenTodayCount: 0,
+      seenEarlierRegCount: 0,
+      seenLaterCount: 0,
+      waitingCount: 0,
+      totalCount: 0,
+      completedCount: 0,
+      count: 0
+    };
+  });
+
+  const fallbackDoc = {
+    id: 'Boshqa',
+    room: 'Boshqa',
+    num: '99',
+    shortName: 'Boshqa',
+    doctorName: 'Biriktirilmagan',
+    roomTitle: 'Boshqa xonalar',
+    roomNum: '',
+    kod: '',
+    soundId: 1,
+    patients: [],
+    completedPatients: [],
+    seenTodayPatients: [],
+    seenEarlierRegPatients: [],
+    seenLaterPatients: [],
+    waitingPatientsList: [],
+    allAssignedPatients: [],
+    seenTodayCount: 0,
+    seenEarlierRegCount: 0,
+    seenLaterCount: 0,
+    waitingCount: 0,
+    totalCount: 0,
+    completedCount: 0,
+    count: 0
+  };
+  doctorMap['Boshqa'] = fallbackDoc;
+
+  const allPatients = [];
+  const allCompletedList = [];
+
+  function formatIsoToDmy(isoStr) {
+    if (!isoStr) return '';
+    const parts = isoStr.split('-');
+    if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    return isoStr;
+  }
+
+  rawList.forEach((kp, idx) => {
+    const queuedDoc = resolveQueuedRoomDoctor(kp, docsAuth);
+    const acceptingDoc = resolveAcceptingDoctor(kp, docsAuth);
+
+    const regIso = kp.KayitTarihi ? kp.KayitTarihi.split('T')[0] : '';
+    const regPretty = formatIsoToDmy(regIso);
+    const regTime = formatKarmedTimeString(kp.KayitTarihi || kp.KabulTarihi || kp.Saat);
+    const acceptIso = kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '';
+    const acceptTime = kp.KabulTarihi ? formatKarmedTimeString(kp.KabulTarihi) : '';
+    const confirmIso = kp.HakedisTarihi ? kp.HakedisTarihi.split('T')[0] : (kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '');
+    const confirmTime = kp.HakedisTarihi ? formatKarmedTimeString(kp.HakedisTarihi) : acceptTime;
+
+    const statusCode = kp.DosyaDurumu || (kp.Durum === 'Bekleyen' ? 1 : (kp.Durum === 'Kabul Edilen' ? 4 : (kp.Durum === 'Rapor Onaylı' ? 8 : 1)));
+    const isDone = statusCode === 8 || (kp.Durum && String(kp.Durum).toLowerCase().includes('onay'));
+
+    const isRegToday = (regIso === targetDateIso);
+    const isRegYesterday = (regIso === yesterdayIso);
+    const isRegEarlier = (!isRegToday && regIso && regIso < targetDateIso);
+    const isConfirmedToday = isDone && (confirmIso === targetDateIso);
+    const isConfirmedLater = isDone && confirmIso && (confirmIso > targetDateIso);
+
+    let timingCategory = 'seen_today';
+    let timingCategoryTitle = "Shu kuni ko'rilgan";
+    let dateTag = '';
+    let dateTagType = 'today';
+    let targetDocObj = null;
+
+    if (isDone) {
+      if (isConfirmedLater) {
+        // Shu kuni yo'naltirilgan ammo keyingi boshqa kunda ko'rilgan
+        timingCategory = 'seen_later';
+        timingCategoryTitle = `Keyingi boshqa kunda ko'rilgan (${formatIsoToDmy(confirmIso)})`;
+        dateTag = `${formatIsoToDmy(confirmIso)} da tekshiruvdan o'tgan`;
+        dateTagType = 'seen_later';
+        const tDoc = queuedDoc || acceptingDoc;
+        targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
+        targetDocObj.seenLaterCount++;
+      } else {
+        // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+        // Qabul qiluvchi vrach va hisobot tasdiqlangan sana bo'yicha saralansin, qaysi kuni ro'yxatdan olinganiga e'tibor berilmasin!
+        const tDoc = acceptingDoc || queuedDoc;
+        targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
+        targetDocObj.seenTodayCount++;
+
+        if (isRegEarlier || isRegYesterday) {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = isRegYesterday 
+            ? "Kecha ro'yxatdan o'tgan, shu kuni ko'rilgan" 
+            : `${regPretty || 'Oldin'} da ro'yxatdan o'tgan, shu kuni ko'rilgan`;
+          dateTag = isRegYesterday 
+            ? "Kecha yo'naltirilgan, shu kuni tekshiruvdan o'tgan" 
+            : `${regPretty || 'Oldin'} da yo'naltirilgan, shu kuni tekshiruvdan o'tgan`;
+          dateTagType = isRegYesterday ? 'yesterday_done' : 'earlier_done';
+          targetDocObj.seenEarlierRegCount = (targetDocObj.seenEarlierRegCount || 0) + 1;
+        } else {
+          timingCategory = 'seen_today';
+          timingCategoryTitle = "Shu kuni ko'rilgan";
+          dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
+          dateTagType = 'today_done';
+        }
+      }
+    } else {
+      // Hali tekshiruvdan o'tmagan
+      timingCategory = 'waiting';
+      timingCategoryTitle = "Hali tekshiruvdan o'tmagan";
+      dateTag = isRegToday ? "Bugun ro'yxatga olingan" : (isRegYesterday ? "Kecha yo'naltirilgan, navbatda kutmoqda" : `${regPretty} da yo'naltirilgan, navbatda kutmoqda`);
+      dateTagType = isRegToday ? 'today_waiting' : (isRegYesterday ? 'yesterday_waiting' : 'earlier_waiting');
+      const tDoc = queuedDoc || acceptingDoc;
+      targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
+      targetDocObj.waitingCount++;
+    }
+
+    targetDocObj.totalCount++;
+
+    // Toifasi va Joylashuvi (Statsionar / Poliklinika)
+    const kurumRaw = String(kp.KurumAdi || kp.SosyalGuvence || '').trim();
+    const kurumLower = kurumRaw.toLowerCase();
+    let patientCategory = 'rezident';
+    let categoryTitle = "Rezident (O'zbekiston)";
+    let categoryBadge = "🇺🇿 Rezident";
+
+    if (kurumLower.includes('no rezident') || kurumLower.includes('norezident') || kurumLower.includes('no-rezident')) {
+      patientCategory = 'norezident';
+      categoryTitle = "No-rezident (Chet el fuqarosi)";
+      categoryBadge = "🌐 No-rezident";
+    } else if (kurumLower.includes('order')) {
+      patientCategory = 'order';
+      categoryTitle = "Orderli (Davlat orderi)";
+      categoryBadge = "📋 Orderli";
+    } else if (kurumLower.includes('sugurta')) {
+      patientCategory = 'sugurta';
+      categoryTitle = "Sug'urta";
+      categoryBadge = "🏥 Sug'urta";
+    } else if (kurumLower.includes('rezident')) {
+      patientCategory = 'rezident';
+      categoryTitle = "Rezident (O'zbekiston)";
+      categoryBadge = "🇺🇿 Rezident";
+    } else if (kurumLower.includes('vaqf') || kurumLower.includes('fond') || kurumLower.includes('hokimiyat')) {
+      patientCategory = 'order';
+      categoryTitle = "Imtiyozli jamg'arma";
+      categoryBadge = "🏛️ Imtiyozli";
+    } else if (kurumRaw) {
+      patientCategory = 'sugurta';
+      categoryTitle = kurumRaw;
+      categoryBadge = `🏥 ${kurumRaw}`;
+    }
+
+    const yatPolVal = String(kp.YatPol || '').toUpperCase();
+    const oncelikVal = String(kp.OncelikAciklama || kp.OncelikAciklamaDb || kp.Oncelik || kp.OncelikAdi || '').trim();
+    const servisAdi = String(kp.ServisAdi || kp.AltServisAdi || kp.BolumAdi || '').trim();
+
+    const isYatan = (oncelikVal.toLowerCase().includes('statsionar')) || 
+                    (yatPolVal === 'Y') || 
+                    (servisAdi.toLowerCase().includes('yatan') || servisAdi.toLowerCase().includes('statsionar'));
+
+    const stayType = isYatan ? 'yatan' : 'ambulator';
+    const stayTitle = isYatan ? "Bo'limda yotgan (Statsionar)" : "Poliklinikadan (Ambulator)";
+    const stayBadge = isYatan ? "🏥 Bo'limda yotgan" : "🚶 Poliklinika";
+    const departmentName = servisAdi || (isYatan ? "Statsionar bo'lim" : "Poliklinika");
+
+    let hasDoctorSwitch = false;
+    let switchText = 'Mos keladi';
+    if (!isDone && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
+      hasDoctorSwitch = true;
+      switchText = `Ulangan: ${queuedDoc.shortName} ➔ Qabul: ${acceptingDoc.shortName}`;
+    }
+
+    const patientObj = {
+      patientId: String(kp.KimlikNo || kp.Id),
+      dosyaNo: kp.ProtokolNo || kp.DosyaNo || '',
+      labDosyaId: kp.Id,
+      fullName: (kp.AdSoyad || ((kp.HastaAdi || '') + ' ' + (kp.Soyadi || ''))).trim(),
+      muayeneSirano: kp.MuayeneSirano || kp.OnkayitSiraNo || kp.SiraNo || null,
+      queueNo: kp.MuayeneSirano || (idx + 1),
+      globalQueueNo: idx + 1,
+      doctorQueueNo: kp.MuayeneSirano || (idx + 1),
+      status: kp.Durum || (isDone ? 'Rapor Onaylı' : 'Bekleyen'),
+      statusCode: statusCode,
+      registrationDate: regPretty || targetDateStr,
+      registrationIso: regIso,
+      registrationTime: regTime,
+      acceptanceDate: formatIsoToDmy(acceptIso),
+      acceptanceTime: acceptTime,
+      confirmationDate: formatIsoToDmy(confirmIso),
+      confirmationTime: confirmTime,
+      timingCategory: timingCategory,
+      timingCategoryTitle: timingCategoryTitle,
+      dateTag: dateTag,
+      dateTagType: dateTagType,
+      room: targetDocObj.room,
+      doctorName: targetDocObj.doctorName,
+      referringDoctor: kp.DosyaDoktoru || '',
+      queuedRoom: queuedDoc ? queuedDoc.roomId : (kp.AltBolumAdi || ''),
+      examiningRoom: acceptingDoc ? acceptingDoc.roomId : (kp.KabulEden || ''),
+      hasDoctorSwitch: hasDoctorSwitch,
+      switchText: switchText,
+      kurumAdi: kurumRaw,
+      patientCategory: patientCategory,
+      categoryTitle: categoryTitle,
+      categoryBadge: categoryBadge,
+      ustuvorlik: oncelikVal || (isYatan ? 'Statsionar' : 'Poliklinika'),
+      yatPol: yatPolVal || (isYatan ? 'Y' : 'P'),
+      isYatan: isYatan,
+      stayType: stayType,
+      stayTitle: stayTitle,
+      stayBadge: stayBadge,
+      department: departmentName,
+      isRegToday: isRegToday,
+      isRegYesterday: isRegYesterday,
+      isRegEarlier: isRegEarlier,
+      isConfirmedToday: isConfirmedToday
+    };
+
+    allPatients.push(patientObj);
+    targetDocObj.allAssignedPatients.push(patientObj);
+
+    if (timingCategory === 'seen_today' || timingCategory === 'seen_earlier_reg') {
+      targetDocObj.seenTodayPatients.push(patientObj);
+      targetDocObj.completedPatients.push(patientObj);
+      allCompletedList.push(patientObj);
+      if (timingCategory === 'seen_earlier_reg') {
+        targetDocObj.seenEarlierRegPatients.push(patientObj);
+      }
+    } else if (timingCategory === 'seen_later') {
+      targetDocObj.seenLaterPatients.push(patientObj);
+      targetDocObj.completedPatients.push(patientObj);
+      allCompletedList.push(patientObj);
+    } else {
+      targetDocObj.waitingPatientsList.push(patientObj);
+      targetDocObj.patients.push(patientObj);
+    }
+  });
+
+  let seenTodayTotal = 0;
+  let seenEarlierRegTotal = 0;
+  let seenLaterTotal = 0;
+  let waitingTotal = 0;
+  let totalPatients = 0;
+
+  const docsList = Object.values(doctorMap).filter(d => d.totalCount > 0 || d.roomId !== 'Boshqa');
+  const completedByDoctor = {};
+  const completedTodayByDoctor = {};
+  const completedEarlierByDoctor = {};
+
+  docsList.forEach(d => {
+    // Vrach bo'yicha barcha bemorlar (ko'rilganlar va kutayotganlar) ro'yxatini olamiz
+    const allDocPatients = [...(d.completedPatients || []), ...(d.patients || [])];
+    allDocPatients.sort((a, b) => {
+      const tA = a.registrationTime || '00:00';
+      const tB = b.registrationTime || '00:00';
+      if (tA !== tB) return tA.localeCompare(tB);
+      return (a.labDosyaId || 0) - (b.labDosyaId || 0);
+    });
+
+    // Har bir bemorga navbatda takrorlanmas, ketma-ket xronologik navbat raqami beramiz
+    allDocPatients.forEach((p, pIdx) => {
+      p.doctorQueueNo = pIdx + 1;
+      p.queueNo = pIdx + 1;
+    });
+
+    d.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
+    d.waitingPatientsList.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
+
+    // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+    d.completedCount = d.seenTodayCount;
+    d.count = d.patients.length;
+    d.waitingCount = d.waitingPatientsList.length;
+    d.totalCount = d.seenTodayCount + d.seenLaterCount + d.waitingCount;
+    completedByDoctor[d.room] = d.completedCount;
+    completedTodayByDoctor[d.room] = d.seenTodayCount;
+    completedEarlierByDoctor[d.room] = d.seenEarlierRegCount || 0;
+
+    seenTodayTotal += d.seenTodayCount;
+    seenEarlierRegTotal += (d.seenEarlierRegCount || 0);
+    seenLaterTotal += d.seenLaterCount;
+    waitingTotal += d.waitingCount;
+    totalPatients += d.totalCount;
+  });
+
+  return {
+    success: true,
+    isArchive: true,
+    isKarmedLive: true,
+    archiveDate: targetDateStr,
+    targetDate: targetDateStr,
+    targetDateIso: targetDateIso,
+    updatedAt: new Date().toLocaleTimeString('uz-UZ'),
+    doctors: docsList,
+    allPatients: allPatients,
+    totalPatients: totalPatients,
+    activeDoctorsCount: docsList.filter(d => d.totalCount > 0).length,
+    summary: {
+      totalPatients: totalPatients,
+      totalWaiting: waitingTotal,
+      totalCompleted: seenTodayTotal + seenEarlierRegTotal,
+      seenTodayTotal: seenTodayTotal,
+      seenEarlierRegTotal: seenEarlierRegTotal,
+      seenLaterTotal: seenLaterTotal,
+      waitingTotal: waitingTotal,
+      completedTotal: seenTodayTotal + seenEarlierRegTotal,
+      earlierPatientsList: allCompletedList,
+      completedByDoctor: completedByDoctor,
+      completedTodayByDoctor: completedTodayByDoctor,
+      completedEarlierByDoctor: completedEarlierByDoctor
+    }
+  };
+}
+
+// Tanlangan sana uchun Karmeddan to'g'ridan-to'g'ri navbatni olish (Kesh va avto-login bilan)
+const karmedDateCache = new Map();
+
+async function fetchKarmedQueueForDate(targetDateStr) {
+  if (!targetDateStr) {
+    const { dateStr } = getDailyLogInfo();
+    targetDateStr = dateStr;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(targetDateStr)) {
+    const [y, m, d] = targetDateStr.split('-');
+    targetDateStr = `${d}.${m}.${y}`;
+  }
+
+  const now = Date.now();
+  const cached = karmedDateCache.get(targetDateStr);
+  if (cached && (now - cached.timestamp < 20000)) { // 20 soniya xotirada kesh
+    return cached.data;
+  }
+
+  const profiles = getKarmedProfiles();
+  let r5 = profiles['R5'];
+  if (!r5 || !r5.loginBilgi || !r5.cookie) {
+    const logRes = await loginToKarmedLive('R5', '17720');
+    if (logRes && logRes.success) {
+      r5 = saveKarmedProfile({
+        username: 'R5',
+        loginBilgi: logRes.loginBilgi,
+        cookie: logRes.cookie,
+        fullName: logRes.fullName
+      });
+    }
+  }
+
+  let liveToken = r5 ? r5.loginBilgi : '';
+  let cookieStr = r5 ? r5.cookie : '';
+
+  let qRes = null;
+  let dataMatch = null;
+
+  try {
+    qRes = await executeKarmedHastaSorgula(liveToken, cookieStr, targetDateStr);
+    dataMatch = qRes.body.match(/App\.grdHastalarStore\.proxy\.data\s*=\s*(\[.*?\]);/s);
+  } catch (err) {
+    console.warn(`[Karmed Live Date] So'rovda xato (${targetDateStr}):`, err.message);
+  }
+
+  if (!dataMatch) {
+    console.log(`[Karmed Live Date] Sessiyani yangilash (Re-authenticating R5) for ${targetDateStr}...`);
+    const refreshed = await loginToKarmedLive('R5', '17720');
+    if (refreshed && refreshed.success) {
+      liveToken = refreshed.loginBilgi;
+      cookieStr = refreshed.cookie;
+      saveKarmedProfile({
+        username: 'R5',
+        loginBilgi: liveToken,
+        cookie: cookieStr,
+        fullName: refreshed.fullName
+      });
+      try {
+        qRes = await executeKarmedHastaSorgula(liveToken, cookieStr, targetDateStr);
+        dataMatch = qRes.body.match(/App\.grdHastalarStore\.proxy\.data\s*=\s*(\[.*?\]);/s);
+      } catch (err2) {
+        console.error(`[Karmed Live Date] Qayta so'rovda xato:`, err2.message);
+      }
+    }
+  }
+
+  if (dataMatch) {
+    const rawList = safeParseExtNetJson(dataMatch[1]);
+    if (Array.isArray(rawList)) {
+      const result = processKarmedPatientsForDate(rawList, targetDateStr);
+      karmedDateCache.set(targetDateStr, { timestamp: now, data: result });
+      
+      // Zaxira sifatida Log/<targetDateStr>/latest_queue.json ga saqlab qo'yamiz
+      try {
+        const logDateDir = path.join(ROOT_DIR, 'Log', targetDateStr);
+        if (!fs.existsSync(logDateDir)) fs.mkdirSync(logDateDir, { recursive: true });
+        fs.writeFileSync(path.join(logDateDir, 'latest_queue.json'), JSON.stringify(result, null, 2), 'utf8');
+      } catch (fErr) {}
+
+      return result;
+    }
+  }
+
+  // Agar Karmeddan ma'lumot kelmasa (masalan tarmoq uzilsa), mavjud disk logidan o'qiymiz
+  const logPath = path.join(ROOT_DIR, 'Log', targetDateStr, 'latest_queue.json');
+  if (fs.existsSync(logPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(logPath, 'utf8'));
+    } catch (e) {}
+  }
+
+  throw new Error(`Karmeddan ${targetDateStr} sanasi uchun ma'lumot olinmadi`);
+}
+
 async function syncMasterQueueFromKarmedDirect() {
   if (isKarmedSyncInProgress) return;
   isKarmedSyncInProgress = true;
@@ -952,61 +1541,7 @@ async function syncMasterQueueFromKarmedDirect() {
     let liveToken = r5.loginBilgi;
     let cookieStr = r5.cookie;
 
-    // Karmed HastaSorgula so'rov parametrlari
-    async function executeQuery(token, cookie) {
-      const sParams = new URLSearchParams();
-      sParams.set('submitDirectEventConfig', JSON.stringify({
-        config: { extraParams: { aDosyaDurumu: null, aHizliAra: false } }
-      }));
-      sParams.set('cbYil', dateStr.split('.')[2] || '2026');
-      sParams.set('_cbYil_state', JSON.stringify([{ value: sParams.get('cbYil'), text: sParams.get('cbYil'), index: 1 }]));
-      sParams.set('cbHizliAramaTur', 'Bemor ID');
-      sParams.set('_cbHizliAramaTur_state', JSON.stringify([{ value: '0', text: 'Bemor ID', index: 0 }]));
-      sParams.set('tfHizliAramaDeger', '');
-      sParams.set('BaslangicDt', dateStr);
-      sParams.set('BitisDt', dateStr);
-      sParams.set('cbBolum', 'Ultratovush, Dopler Ultratovush');
-      sParams.set('_cbBolum_state', JSON.stringify([
-        { value: '10', text: 'Ultratovush', index: 9 },
-        { value: '24', text: 'Dopler Ultratovush', index: 0 }
-      ]));
-      sParams.set('cbAltBolum', '(Subbirliklar)');
-      sParams.set('_cbAltBolum_state', JSON.stringify([{ value: '0', text: '(Subbirliklar)', index: 0 }]));
-      sParams.set('cbBolumOda', '(Barcha Xonalar)');
-      sParams.set('_cbBolumOda_state', JSON.stringify([{ value: '0', text: '(Barcha Xonalar)', index: 0 }]));
-      sParams.set('cbBirimTuru', '(Butun Birlik)');
-      sParams.set('_cbBirimTuru_state', JSON.stringify([{ value: '0', text: '(Butun Birlik)', index: 0 }]));
-      sParams.set('cbBina', '(Butun Binolar)');
-      sParams.set('_cbBina_state', JSON.stringify([{ value: '0', text: '(Butun Binolar)', index: 0 }]));
-      sParams.set('cbKayitSayisiSecim', '500');
-      sParams.set('_cbKayitSayisiSecim_state', JSON.stringify([{ value: '500', text: '500', index: 3 }]));
-      sParams.set('hdnDosyaDurumu', '');
-      sParams.set('btnTumu_Pressed', 'true');
-      sParams.set('btnBekleyen_Pressed', '');
-      sParams.set('HdnBaseYazdirmaTuru', '-1');
-      sParams.set('__VIEWSTATEGENERATOR', '5DE5E74B');
-      sParams.set('hdnKrmdLoginBilgi', token);
-      sParams.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
-      sParams.set('__EVENTARGUMENT', '-|public|HastaSorgula');
-
-      const spData = sParams.toString();
-      return await karmedRawRequest({
-        hostname: '192.168.150.111',
-        port: 2025,
-        path: '/Radiology/Rbys.aspx?action=HastaSorgula',
-        method: 'POST',
-        headers: {
-          'X-Ext-Net': 'delta=true',
-          'action': 'HastaSorgula',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Cookie': cookie,
-          'Content-Length': Buffer.byteLength(spData)
-        }
-      }, spData);
-    }
-
-    let qRes = await executeQuery(liveToken, cookieStr);
+    let qRes = await executeKarmedHastaSorgula(liveToken, cookieStr, dateStr);
     let dataMatch = qRes.body.match(/App\.grdHastalarStore\.proxy\.data\s*=\s*(\[.*?\]);/s);
 
     // Agar sessiya eskirgan bo'lsa yoki token yangilangan bo'lsa, qayta login qilamiz
@@ -1022,7 +1557,7 @@ async function syncMasterQueueFromKarmedDirect() {
           cookie: cookieStr,
           fullName: refreshed.fullName
         });
-        qRes = await executeQuery(liveToken, cookieStr);
+        qRes = await executeKarmedHastaSorgula(liveToken, cookieStr, dateStr);
         dataMatch = qRes.body.match(/App\.grdHastalarStore\.proxy\.data\s*=\s*(\[.*?\]);/s);
       }
     }
@@ -1079,6 +1614,7 @@ async function syncMasterQueueFromKarmedDirect() {
     // Qabul qilingan bemorlar ro'yxatini shakllantirish
     const allPatients = [];
     let totalWaitingCount = 0;
+    const activeSwitchesMap = getActiveSwitchesMapForToday();
 
     rawList.forEach((kp, idx) => {
       const queuedDoc = resolveQueuedRoomDoctor(kp, docsAuth);
@@ -1107,12 +1643,29 @@ async function syncMasterQueueFromKarmedDirect() {
       // QOIDAGA BINOAN:
       // - Kutayotgan bemor: Ulangan bo'lim xonasi navbatida turadi (queuedDoc || acceptingDoc)
       // - Qabul qilingan yoki ko'rikdan o'tgan: Tekshiruvni QABUL QILGAN VRACH o'tkazgan (acceptingDoc || queuedDoc)
-      const activeDoc = (isAccepted || isFinished) ? (acceptingDoc || queuedDoc) : (queuedDoc || acceptingDoc);
+      let activeDoc = (isAccepted || isFinished) ? (acceptingDoc || queuedDoc) : (queuedDoc || acceptingDoc);
 
       // Boshqa vrachga o'tganlik (Discrepancy / Transfer):
       let hasDoctorSwitch = false;
       let switchText = 'Mos keladi';
-      if (!isWaiting && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
+      let switchReason = '';
+
+      // Bemor portali orqali almashtirilgan shifokorni tekshirish va Karmed syncda saqlab qolish (v11.6.0)
+      const pIdStr = String(kp.KimlikNo || kp.Id || '').trim();
+      const pDosyaStr = String(kp.ProtokolNo || kp.DosyaNo || '').trim();
+      const userSwitch = activeSwitchesMap.get(pIdStr) || activeSwitchesMap.get(pDosyaStr);
+      if (userSwitch && isWaiting) {
+        const targetDocAuth = UTT_ROOMS_CATALOG.find(c => c.room === userSwitch.toRoom || c.roomTitle === userSwitch.toRoomTitle || c.roomTitle === userSwitch.toRoom);
+        if (targetDocAuth) {
+          const docAuthObj = Object.values(docsAuth).find(d => d.roomId === targetDocAuth.room);
+          if (docAuthObj) {
+            activeDoc = docAuthObj;
+            hasDoctorSwitch = true;
+            switchReason = userSwitch.reason || "Bemor so'rovi";
+            switchText = `Bemor so'rovi: ${userSwitch.fromRoom || ''} ➔ ${targetDocAuth.roomTitle} (${switchReason})`;
+          }
+        }
+      } else if (!isWaiting && queuedDoc && acceptingDoc && queuedDoc.roomId !== acceptingDoc.roomId) {
         hasDoctorSwitch = true;
         switchText = `Ulangan: ${queuedDoc.shortName} ➔ Qabul: ${acceptingDoc.shortName}`;
       }
@@ -1123,17 +1676,29 @@ async function syncMasterQueueFromKarmedDirect() {
       const regPretty = formatIsoToDmy(regIso);
       const confPretty = formatIsoToDmy(confirmIso);
 
+      let timingCategory = 'waiting';
+      let timingCategoryTitle = "Hali tekshiruvdan o'tmagan";
+
       if (isConfirmedToday) {
         if (isRegToday) {
+          timingCategory = 'seen_today';
+          timingCategoryTitle = "Shu kuni ko'rilgan";
           dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
           dateTagType = "today_done";
         } else if (isRegYesterday) {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = "Kecha ro'yxatdan o'tgan, bugun tekshiruvdan o'tgan";
           dateTag = "Kecha yo'naltirilgan, bugun tekshiruvdan o'tgan";
           dateTagType = "yesterday_done";
         } else {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = `${regPretty} da ro'yxatdan o'tgan, bugun tekshiruvdan o'tgan`;
           dateTag = `${regPretty} da yo'naltirilgan, bugun tekshiruvdan o'tgan`;
           dateTagType = "earlier_done";
         }
+      } else if (isFinished && confirmIso && confirmIso > todayIso) {
+        timingCategory = 'seen_later';
+        timingCategoryTitle = `Keyingi boshqa kunda ko'rilgan (${confPretty})`;
       } else if (isAccepted && (acceptIso === todayIso)) {
         if (isRegToday) {
           dateTag = "Bugun yo'naltirilgan, bugun qabul qilingan";
@@ -1166,13 +1731,62 @@ async function syncMasterQueueFromKarmedDirect() {
       else if (statusCode === 4) statusText = 'Kabul Edilen';
       else if (statusCode === 8) statusText = 'Rapor Onaylı';
 
+      // 4. Toifasi (Sug'urta, Rezident, Order, No-rezident) va Joylashuvi (Bo'limda yotgan / yotmagan)
+      const kurumRaw = String(kp.KurumAdi || kp.SosyalGuvence || '').trim();
+      const kurumLower = kurumRaw.toLowerCase();
+      let patientCategory = 'rezident';
+      let categoryTitle = "Rezident (O'zbekiston)";
+      let categoryBadge = "🇺🇿 Rezident";
+
+      if (kurumLower.includes('no rezident') || kurumLower.includes('norezident') || kurumLower.includes('no-rezident')) {
+        patientCategory = 'norezident';
+        categoryTitle = "No-rezident (Chet el fuqarosi)";
+        categoryBadge = "🌐 No-rezident";
+      } else if (kurumLower.includes('order')) {
+        patientCategory = 'order';
+        categoryTitle = "Orderli (Davlat orderi)";
+        categoryBadge = "📋 Orderli";
+      } else if (kurumLower.includes('sugurta')) {
+        patientCategory = 'sugurta';
+        categoryTitle = "Sug'urta";
+        categoryBadge = "🏥 Sug'urta";
+      } else if (kurumLower.includes('rezident')) {
+        patientCategory = 'rezident';
+        categoryTitle = "Rezident (O'zbekiston)";
+        categoryBadge = "🇺🇿 Rezident";
+      } else if (kurumLower.includes('vaqf') || kurumLower.includes('fond') || kurumLower.includes('hokimiyat')) {
+        patientCategory = 'order';
+        categoryTitle = "Imtiyozli jamg'arma";
+        categoryBadge = "🏛️ Imtiyozli";
+      } else if (kurumRaw) {
+        patientCategory = 'sugurta';
+        categoryTitle = kurumRaw;
+        categoryBadge = `🏥 ${kurumRaw}`;
+      }
+
+      // Bo'limda yotgan (Statsionar) yoki Poliklinikadan (Ambulator) yo'naltirilgan bemorlarni Ustuvorlik bo'yicha aniqlash
+      const yatPolVal = String(kp.YatPol || '').toUpperCase();
+      const oncelikVal = String(kp.OncelikAciklama || kp.OncelikAciklamaDb || kp.Oncelik || kp.OncelikAdi || '').trim();
+      const servisAdi = String(kp.ServisAdi || kp.AltServisAdi || kp.BolumAdi || '').trim();
+
+      const isYatan = (oncelikVal.toLowerCase().includes('statsionar')) || 
+                      (yatPolVal === 'Y') || 
+                      (servisAdi.toLowerCase().includes('yatan') || servisAdi.toLowerCase().includes('statsionar'));
+
+      const stayType = isYatan ? 'yatan' : 'ambulator';
+      const stayTitle = isYatan ? "Bo'limda yotgan (Statsionar)" : "Poliklinikadan (Ambulator)";
+      const stayBadge = isYatan ? "🏥 Bo'limda yotgan" : "🚶 Poliklinika";
+      const departmentName = servisAdi || (isYatan ? "Statsionar bo'lim" : "Poliklinika");
+
       const patientObj = {
         patientId: String(kp.KimlikNo || kp.Id),
         dosyaNo: kp.ProtokolNo || kp.DosyaNo || '',
         labDosyaId: kp.Id,
         fullName: (kp.AdSoyad || ((kp.HastaAdi || '') + ' ' + (kp.Soyadi || ''))).trim(),
+        muayeneSirano: kp.MuayeneSirano || kp.OnkayitSiraNo || kp.SiraNo || null,
         queueNo: kp.MuayeneSirano || (idx + 1),
         globalQueueNo: idx + 1,
+        doctorQueueNo: kp.MuayeneSirano || (idx + 1),
         status: statusText,
         statusCode: statusCode,
         registrationDate: regPretty || todayDmy,
@@ -1187,6 +1801,8 @@ async function syncMasterQueueFromKarmedDirect() {
         isRegToday: isRegToday,
         isRegYesterday: isRegYesterday,
         isRegEarlier: isRegEarlier,
+        timingCategory: timingCategory,
+        timingCategoryTitle: timingCategoryTitle,
         dateTag: dateTag,
         dateTagType: dateTagType,
         room: activeDoc ? activeDoc.roomId : (kp.AltBolumAdi || 'Biriktirilmagan'),
@@ -1201,6 +1817,17 @@ async function syncMasterQueueFromKarmedDirect() {
         examiningRoomTitle: acceptingDoc ? acceptingDoc.roomTitle : '',
         hasDoctorSwitch: hasDoctorSwitch,
         switchText: switchText,
+        kurumAdi: kurumRaw,
+        patientCategory: patientCategory,
+        categoryTitle: categoryTitle,
+        categoryBadge: categoryBadge,
+        ustuvorlik: oncelikVal || (isYatan ? 'Statsionar' : 'Poliklinika'),
+        yatPol: yatPolVal || (isYatan ? 'Y' : 'P'),
+        isYatan: isYatan,
+        stayType: stayType,
+        stayTitle: stayTitle,
+        stayBadge: stayBadge,
+        department: departmentName,
         karmedIndex: idx
       };
 
@@ -1277,17 +1904,32 @@ async function syncMasterQueueFromKarmedDirect() {
     });
 
     Object.values(doctorMap).forEach(doc => {
-      doc.patients.forEach(p => {
+      const rId = doc.room || doc.id;
+      const completedList = completedPatientsByDoctor[rId] || [];
+      const waitingList = doc.patients || [];
+
+      // Barcha shu vrach bemorlari (ko'rilganlar va kutayotganlar) xronologik tartibda birlashtiriladi
+      const allDocPatients = [...completedList, ...waitingList];
+      allDocPatients.sort((a, b) => {
+        const tA = a.registrationTime || '00:00';
+        const tB = b.registrationTime || '00:00';
+        if (tA !== tB) return tA.localeCompare(tB);
+        return (a.labDosyaId || 0) - (b.labDosyaId || 0);
+      });
+
+      // Har bir bemorga takrorlanmas, ketma-ket xronologik navbat raqami (1, 2, 3...) beriladi
+      allDocPatients.forEach((p, idx) => {
+        p.doctorQueueNo = idx + 1;
+        p.queueNo = idx + 1;
         const pKey = String(p.patientId).trim();
         if (idToGlobalQueue.has(pKey)) {
-          p.queueNo = idToGlobalQueue.get(pKey);
           p.globalQueueNo = idToGlobalQueue.get(pKey);
         }
       });
-      doc.patients.sort((a, b) => (a.queueNo || 0) - (b.queueNo || 0));
+
+      doc.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
       doc.count = doc.patients.length;
       doc.waitingCount = doc.patients.filter(p => p.statusCode !== 4).length;
-      const rId = doc.room || doc.id;
 
       doc.completedCount = completedByDoctor[rId] || 0;
       doc.completedTodayCount = completedTodayByDoctor[rId] || 0;
@@ -1301,7 +1943,17 @@ async function syncMasterQueueFromKarmedDirect() {
       doc.totalEarlier = docEarlierReg;
       doc.totalAll = docTodayReg + docEarlierReg;
       doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId || p.queuedRoom === rId);
-      doc.completedPatients = completedPatientsByDoctor[rId] || [];
+      doc.completedPatients = completedList;
+      doc.allAssignedPatients = [...completedList, ...doc.patients];
+
+      // 4 ta aniq ko'rsatkich (Shu kuni ko'rilgan, Kechadan ko'rilgan, Keyingi kunda, Kutmoqda, Jami)
+      // FOYDALANUVCHI TALABI: Birinchi raqam o'sha kuni tekshiruvdan o'tkazilgan jami bemorlar soni bo'lsin!
+      // Bunda faqat qabul qiluvchi vrach va hisobot tasdiqlangan sana bo'yicha saralab olinsin, qaysi kuni ro'yxatdan olinganiga e'tibor berilmasin!
+      doc.seenTodayCount = doc.completedCount;
+      doc.seenEarlierRegCount = doc.completedEarlierCount;
+      doc.seenLaterCount = 0;
+      doc.totalCount = doc.totalAll || (doc.completedCount + doc.waitingCount);
+      doc.seenTodayPatients = completedList;
 
       summaryByDoctor[rId] = doc.patients.length;
     });
@@ -1329,7 +1981,7 @@ async function syncMasterQueueFromKarmedDirect() {
         doctorName: doc.doctorName || p.doctorName || 'Shifokor',
         source: 'karmed_accepted',
         status: 'accepted',
-        statusText: 'Qabul qilmoqda',
+        statusText: 'Qabul qilinmoqda',
         calledAt: p.registrationTime || new Date().toISOString()
       };
     });
@@ -1469,6 +2121,7 @@ function serveStaticFile(reqPath, res, defaultHtml) {
   else if (cleanPath === 'mrt' || cleanPath === 'mobile_agent_mrt.html') cleanPath = 'mobile_agent_mrt.html';
   else if (cleanPath === 'agent' || cleanPath === 'mobile' || cleanPath === 'mobile_agent.html') cleanPath = 'mobile_agent.html';
   else if (cleanPath === 'doctor-completed' || cleanPath === 'doctor-completed.html') cleanPath = 'doctor-completed.html';
+  else if (cleanPath === 'bemor' || cleanPath === 'bemor.html' || cleanPath === 'change-doctor' || cleanPath === 'change-doctor.html') cleanPath = 'bemor.html';
 
   let filePath = path.join(PUBLIC_DIR, cleanPath);
   if (!fs.existsSync(filePath)) {
@@ -1483,7 +2136,12 @@ function serveStaticFile(reqPath, res, defaultHtml) {
   }
 
   // APK yuklab olish
-  if (cleanPath === 'UTT_TV_Navbat.apk' || cleanPath === 'app.apk' || cleanPath.endsWith('.apk')) {
+  if (cleanPath === 'UTT_Bemor_Navbat.apk' || cleanPath === 'bemor.apk') {
+    const bemorApk = path.join(ROOT_DIR, 'UTT_Bemor_Navbat.apk');
+    if (fs.existsSync(bemorApk)) {
+      filePath = bemorApk;
+    }
+  } else if (cleanPath === 'UTT_TV_Navbat.apk' || cleanPath === 'app.apk' || cleanPath.endsWith('.apk')) {
     const rootApk = path.join(ROOT_DIR, 'UTT_TV_Navbat.apk');
     if (fs.existsSync(rootApk)) {
       filePath = rootApk;
@@ -1592,7 +2250,7 @@ function classifyMedicalService(s) {
   };
 }
 
-function handleHttpRequest(req, res, defaultHtml, serverPort) {
+async function handleHttpRequest(req, res, defaultHtml, serverPort) {
   // CORS sarlavhalari
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -1719,44 +2377,164 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     return;
   }
 
-  // C. JORIY NAVBATNI OLISH (/api/queue yoki /api/queue-live)
+  // C. JORIY VA ARXIV NAVBATNI OLISH (/api/queue yoki /api/queue-live?date=...)
   if (req.method === 'GET' && (pathname === '/api/queue' || pathname === '/api/queue-live')) {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    const reqDate = (parsedUrl.searchParams.get('date') || '').trim();
+    if (reqDate) {
+      let normDate = reqDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(reqDate)) {
+        const [y, m, d] = reqDate.split('-');
+        normDate = `${d}.${m}.${y}`;
+      }
+
+      const { dateStr } = getDailyLogInfo();
+      if (normDate !== dateStr) {
+        try {
+          // Tanlangan sana ma'lumotlari to'g'ridan-to'g'ri Karmeddan olinadi (v11.1.0)
+          const karmedArchive = await fetchKarmedQueueForDate(normDate);
+          if (karmedArchive) {
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({
+              success: true,
+              isArchive: true,
+              isKarmedLive: true,
+              archiveDate: normDate,
+              data: karmedArchive,
+              ...karmedArchive,
+              activeCalls: {}
+            }));
+            return;
+          }
+        } catch (kErr) {
+          console.warn(`[Karmed API Live Date] ${normDate} yuklashda ogohlantirish:`, kErr.message);
+        }
+
+        // Zaxira: Log/<normDate>/latest_queue.json faylidan qidirish
+        const logPath1 = path.join(ROOT_DIR, 'Log', normDate, 'latest_queue.json');
+        const targetLog = fs.existsSync(logPath1) ? logPath1 : null;
+        if (targetLog) {
+          try {
+            const archiveData = JSON.parse(fs.readFileSync(targetLog, 'utf8'));
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({
+              success: true,
+              isArchive: true,
+              archiveDate: normDate,
+              data: archiveData,
+              ...archiveData,
+              activeCalls: {}
+            }));
+            return;
+          } catch (e) {}
+        }
+      }
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({
       success: true,
+      tvSchedule: tvScheduleConfig,
       data: {
         ...latestQueueData,
+        tvSchedule: tvScheduleConfig,
         activeCalls
       },
       ...latestQueueData,
+      tvSchedule: tvScheduleConfig,
       activeCalls
     }));
     return;
   }
 
-  // C.2 SHIFOKORNING BUGUNGI TASDIQLANGAN BEMORLARI (/api/doctor-completed-patients)
+  // C.2 SHIFOKORNING TASDIQLANGAN BEMORLARI (/api/doctor-completed-patients)
   if (req.method === 'GET' && pathname === '/api/doctor-completed-patients') {
     const qRoom = (parsedUrl.searchParams.get('room') || parsedUrl.searchParams.get('id') || '').trim();
+    const reqDate = (parsedUrl.searchParams.get('date') || '').trim();
+    let targetQueue = latestQueueData;
+    let normDate = '';
+
+    if (reqDate) {
+      normDate = reqDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(reqDate)) {
+        const [y, m, d] = reqDate.split('-');
+        normDate = `${d}.${m}.${y}`;
+      }
+      try {
+        targetQueue = await fetchKarmedQueueForDate(normDate);
+      } catch (kErr) {
+        const logPath1 = path.join(ROOT_DIR, 'Log', normDate, 'latest_queue.json');
+        if (fs.existsSync(logPath1)) {
+          try {
+            targetQueue = JSON.parse(fs.readFileSync(logPath1, 'utf8'));
+          } catch (e) {}
+        }
+      }
+    }
+
     let docObj = null;
-    if (latestQueueData && latestQueueData.doctors) {
-      docObj = latestQueueData.doctors.find(d => (d.id === qRoom || d.room === qRoom));
+    if (targetQueue && targetQueue.doctors) {
+      docObj = targetQueue.doctors.find(d => (d.id === qRoom || d.room === qRoom));
       if (!docObj) {
-        docObj = latestQueueData.doctors.find(d => 
+        docObj = targetQueue.doctors.find(d => 
           (d.room && d.room.toLowerCase().includes(String(qRoom).toLowerCase())) ||
           String(d.num) === String(qRoom)
         );
       }
     }
-    const patients = (docObj && docObj.completedPatients) ? docObj.completedPatients : [];
+
+    const patients = (docObj && (docObj.allAssignedPatients || docObj.completedPatients)) 
+      ? (docObj.allAssignedPatients || docObj.completedPatients) 
+      : [];
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({
       success: true,
+      isKarmedLive: true,
+      date: reqDate ? normDate : getDailyLogInfo().dateStr,
       room: docObj ? docObj.room : qRoom,
       doctorName: docObj ? docObj.doctorName : '',
-      totalCompleted: patients.length,
-      completedTodayCount: docObj ? docObj.completedTodayCount : 0,
-      completedEarlierCount: docObj ? docObj.completedEarlierCount : 0,
-      patients: patients
+      seenTodayCount: docObj ? (docObj.seenTodayCount ?? (docObj.completedCount || 0)) : 0,
+      seenEarlierRegCount: docObj ? (docObj.seenEarlierRegCount || 0) : 0,
+      seenLaterCount: docObj ? (docObj.seenLaterCount ?? 0) : 0,
+      waitingCount: docObj ? (docObj.waitingCount ?? 0) : 0,
+      totalCount: docObj ? (docObj.totalCount ?? patients.length) : 0,
+      totalCompleted: docObj ? (docObj.completedCount ?? ((docObj.seenTodayCount || 0) + (docObj.seenEarlierRegCount || 0))) : patients.length,
+      completedTodayCount: docObj ? (docObj.seenTodayCount ?? (docObj.completedCount || 0)) : 0,
+      completedEarlierCount: docObj ? (docObj.seenEarlierRegCount ?? 0) : 0,
+      patients: patients,
+      seenTodayPatients: docObj ? (docObj.seenTodayPatients || []) : [],
+      seenEarlierRegPatients: docObj ? (docObj.seenEarlierRegPatients || []) : [],
+      seenLaterPatients: docObj ? (docObj.seenLaterPatients || []) : [],
+      waitingPatients: docObj ? (docObj.waitingPatientsList || []) : []
+    }));
+    return;
+  }
+
+  // C.3 MAVJUD ARXIV SANALAR RO'YXATI (/api/available-dates)
+  if (req.method === 'GET' && pathname === '/api/available-dates') {
+    const logBase = path.join(ROOT_DIR, 'Log');
+    const dates = [];
+    if (fs.existsSync(logBase)) {
+      try {
+        const dirs = fs.readdirSync(logBase);
+        dirs.forEach(d => {
+          if (/^\d{2}\.\d{2}\.\d{4}$/.test(d)) {
+            const qf = path.join(logBase, d, 'latest_queue.json');
+            if (fs.existsSync(qf)) dates.push(d);
+          }
+        });
+      } catch (e) {}
+    }
+    dates.sort((a, b) => {
+      const [d1, m1, y1] = a.split('.').map(Number);
+      const [d2, m2, y2] = b.split('.').map(Number);
+      return new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1);
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      today: getDailyLogInfo().dateStr,
+      dates: dates
     }));
     return;
   }
@@ -1836,12 +2614,12 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      latestVersion: "7.1.0",
-      versionCode: 710,
+      latestVersion: "8.1.0",
+      versionCode: 810,
       apkFileName: "UTT_TV_Navbat.apk",
       downloadUrl: "/download/UTT_TV_Navbat.apk",
-      releaseDate: "11.09.2026",
-      releaseNotes: "v7.1.0: Admin panelida ID kodlar va sana oralig'i bo'yicha maxsus Karmed hisob-kitob bo'limi (Google Sheets reestri) va Excel eksport.",
+      releaseDate: "16.09.2026",
+      releaseNotes: "v8.1.0: Android TV pulti orqali 0-9 raqamlar bilan xonalarga tezkor o'tish (0=UTT10, 1..9=UTT1..9), BACK tugmasi bilan umumiy ekranga qaytish va eski Android TV mosligi.",
       minSupportedVersion: "1.0.0"
     }));
     return;
@@ -1862,6 +2640,29 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: 'APK fayli topilmadi' }));
+      return;
+    }
+  }
+
+  // F2.1 BEMOR MOBIL APK FAYLINI YUKLAB OLISH (/download/UTT_Bemor_Navbat.apk)
+  if (req.method === 'GET' && (
+    pathname === '/download/UTT_Bemor_Navbat.apk' || pathname === '/UTT_Bemor_Navbat.apk' ||
+    pathname === '/download/bemor.apk' || pathname === '/bemor.apk'
+  )) {
+    const bemorApk = path.join(ROOT_DIR, 'UTT_Bemor_Navbat.apk');
+    const targetApk = fs.existsSync(bemorApk) ? bemorApk : path.join(ROOT_DIR, 'public', 'UTT_Bemor_Navbat.apk');
+    if (fs.existsSync(targetApk)) {
+      const stat = fs.statSync(targetApk);
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Length': stat.size,
+        'Content-Disposition': 'attachment; filename="UTT_Bemor_Navbat.apk"'
+      });
+      fs.createReadStream(targetApk).pipe(res);
+      return;
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Bemor APK fayli topilmadi' }));
       return;
     }
   }
@@ -1911,6 +2712,37 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
     recordTvEvent('LOGS_CLEARED', req.socket.remoteAddress, req.headers['user-agent'], pathname, 200, 'Foydalanuvchi tomonidan loglar tozalandi');
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ success: true, message: 'Loglar tozalandi' }));
+    return;
+  }
+
+  // F7. TV FAOL VAQT ORALIG'I SOZLAMASI (/api/tv-schedule)
+  if (req.method === 'GET' && pathname === '/api/tv-schedule') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      schedule: tvScheduleConfig
+    }));
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/tv-schedule') {
+    parseJsonBody(req, (err, body) => {
+      if (err || !body) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, error: "Noto'g'ri JSON formati" }));
+        return;
+      }
+      const saved = saveTvScheduleConfig(body);
+      if (saved) {
+        broadcastSseEvent('tv_schedule_update', tvScheduleConfig);
+        recordTvEvent('TV_SCHEDULE_UPDATED', req.socket.remoteAddress, req.headers['user-agent'], pathname, 200, `Faol vaqt oralig'i yangilandi: ${tvScheduleConfig.startTime} - ${tvScheduleConfig.endTime} (Aktiv: ${tvScheduleConfig.enabled})`);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: true, schedule: tvScheduleConfig }));
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, error: "Saqlashda xatolik yuz berdi" }));
+      }
+    });
     return;
   }
   if (req.method === 'GET' && pathname === '/api/karmed-overview-stats') {
@@ -3281,63 +4113,505 @@ function handleHttpRequest(req, res, defaultHtml, serverPort) {
   }
 
   // =========================================================================
-  // BEMORLAR MOBIL PORTALI API ENDPOINTLARI (PORT 9879 & BOSHQA PORTLAR)
+  // BEMORLAR VA VRACHNI O'ZGARTIRISH PORTALI API ENDPOINTLARI
   // =========================================================================
 
-  // BEMOR QIDIRUVI: ID raqami yoki Familya/Ism bo'yicha (/api/patient/search?q=...)
-  if (req.method === 'GET' && pathname === '/api/patient/search') {
-    const q = (parsedUrl.searchParams.get('q') || '').toLowerCase().trim();
-    if (!q) {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, matches: [] }));
-      return;
+  const UTT_ROOMS_CATALOG = [
+    { num: "1", kod: 13, room: "Ultratovush-1", roomNum: "53", roomTitle: "UTT1-53 XONA", doctorName: "Juravlev Igor Ivanovich", shortName: "Juravlev" },
+    { num: "2", kod: 15, room: "Ultratovush-2", roomNum: "54", roomTitle: "UTT2-54 XONA", doctorName: "Kurbanova Sevinch Musayevna", shortName: "Kurbanova" },
+    { num: "3", kod: 16, room: "Ultratovush-3", roomNum: "46", roomTitle: "UTT3-46 XONA", doctorName: "Abidjanov Alisher Maxamataliyevich", shortName: "Abidjanov" },
+    { num: "4", kod: 18, room: "Ultratovush-4", roomNum: "47", roomTitle: "UTT4-47 XONA", doctorName: "Ziyayeva Zarina Abduganiyevna", shortName: "Ziyayeva" },
+    { num: "5", kod: 17, room: "Ultratovush-5", roomNum: "48", roomTitle: "UTT5-48 XONA", doctorName: "Xoshimova Lola Kabulovna", shortName: "Xoshimova" },
+    { num: "6", kod: 19, room: "Ultratovush-6", roomNum: "52", roomTitle: "UTT6-52 XONA", doctorName: "Toirova Shaxlo Oybek qizi", shortName: "Toirova" },
+    { num: "7", kod: 32, room: "Ultratovush-7", roomNum: "45", roomTitle: "UTT7-45 XONA", doctorName: "Asadova Dildoraxon Asatullayevna", shortName: "Asadova" },
+    { num: "8", kod: 14, altKod: 20, room: "Ultratovush-8", roomNum: "49", roomTitle: "UTT8-49 XONA", doctorName: "Saidbayeva Zulfiya Yergeshovna", shortName: "Saidbayeva" },
+    { num: "9", kod: 35, altKod: 21, room: "Ultratovush-9", roomNum: "50", roomTitle: "UTT9-50 XONA", doctorName: "Xusanova Feruza Ikromjonovna", shortName: "Xusanova" },
+    { num: "0", kod: 33, room: "Ultratovush-10", roomNum: "51", roomTitle: "UTT10-51 XONA", doctorName: "Xudayberdiyeva Nigora Nizamovna", shortName: "Xudayberdiyeva" }
+  ];
+
+  function getDoctorsLiveSummary(patientRoom) {
+    const docsList = (latestQueueData && Array.isArray(latestQueueData.doctors)) ? latestQueueData.doctors : [];
+    const pRoomNorm = String(patientRoom || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    return UTT_ROOMS_CATALOG.map(cat => {
+      const catNorm = cat.room.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const liveDoc = docsList.find(d => {
+        const dNorm = String(d.room || d.id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return dNorm === catNorm || String(d.num) === String(cat.num);
+      });
+      const waitingList = (liveDoc && Array.isArray(liveDoc.patients)) ? liveDoc.patients : [];
+      const completedList = (liveDoc && Array.isArray(liveDoc.completedPatients)) ? liveDoc.completedPatients : [];
+      const activeCall = activeCalls[cat.room] || null;
+      const isCurrentDoctor = !!(pRoomNorm && (pRoomNorm === catNorm || (patientRoom && patientRoom.includes(cat.roomNum))));
+
+      return {
+        num: cat.num,
+        kod: cat.kod,
+        altKod: cat.altKod || cat.kod,
+        room: cat.room,
+        roomNum: cat.roomNum,
+        roomTitle: cat.roomTitle,
+        doctorName: (liveDoc && liveDoc.doctorName) ? liveDoc.doctorName : cat.doctorName,
+        shortName: cat.shortName,
+        waitingCount: waitingList.length,
+        completedCount: completedList.length,
+        isCurrentDoctor: isCurrentDoctor,
+        activeCall: activeCall ? {
+          patientId: activeCall.patientId || '',
+          queueNo: activeCall.queueNo || '',
+          calledAt: activeCall.calledAt || '',
+          roomTitle: activeCall.roomTitle || cat.roomTitle
+        } : null
+      };
+    });
+  }
+
+  function findPatientInLocalQueue(query) {
+    if (!query) return null;
+    const qStr = String(query).trim().toLowerCase();
+    if (!qStr) return null;
+
+    const allPatients = (latestQueueData && Array.isArray(latestQueueData.allPatients)) ? latestQueueData.allPatients : [];
+    
+    // 1. Aniq ID yoki PINFL/JSHSHIR mosligi
+    let found = allPatients.find(p => 
+      String(p.patientId || '').trim().toLowerCase() === qStr ||
+      String(p.dosyaNo || '').trim().toLowerCase() === qStr ||
+      String(p.labDosyaId || '').trim().toLowerCase() === qStr ||
+      String(p.pinfl || '').trim().toLowerCase() === qStr ||
+      String(p.tckimlik || '').trim().toLowerCase() === qStr ||
+      String(p.jshshir || '').trim().toLowerCase() === qStr
+    );
+
+    // 2. Vrachlar guruhidan qidirish (patients va completedPatients)
+    if (!found && latestQueueData && Array.isArray(latestQueueData.doctors)) {
+      for (const doc of latestQueueData.doctors) {
+        const pMatch = (doc.patients || []).find(p => 
+          String(p.patientId || '').trim().toLowerCase() === qStr ||
+          String(p.dosyaNo || '').trim().toLowerCase() === qStr ||
+          String(p.labDosyaId || '').trim().toLowerCase() === qStr ||
+          String(p.pinfl || '').trim().toLowerCase() === qStr
+        );
+        if (pMatch) { found = pMatch; break; }
+
+        const cMatch = (doc.completedPatients || []).find(p => 
+          String(p.patientId || '').trim().toLowerCase() === qStr ||
+          String(p.dosyaNo || '').trim().toLowerCase() === qStr ||
+          String(p.labDosyaId || '').trim().toLowerCase() === qStr ||
+          String(p.pinfl || '').trim().toLowerCase() === qStr
+        );
+        if (cMatch) { found = cMatch; break; }
+      }
     }
 
-    const matches = [];
-    const doctors = latestQueueData.doctors || [];
+    // 3. F.I.Sh. bo'yicha qisman qidiruv (kamida 2 harf bo'lsa, Lotin va Kirill qo'llab-quvvatlanadi)
+    if (!found && qStr.length >= 2 && isNaN(Number(qStr))) {
+      function translitUz(s) {
+        if (!s) return '';
+        const m = {
+          'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'j','з':'z',
+          'и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r',
+          'с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'ts','ч':'ch','ш':'sh','щ':'sh',
+          'ъ':'','ы':'i','ь':'','э':'e','ю':'yu','я':'ya','ў':'o','қ':'q','ғ':'g','ҳ':'h'
+        };
+        return String(s).toLowerCase().split('').map(c => m[c] || c).join('').replace(/[^a-z0-9]/g, '');
+      }
+      const qNorm = translitUz(qStr);
+      found = allPatients.find(p => translitUz(p.fullName || '').includes(qNorm));
 
-    doctors.forEach(doc => {
-      const patients = doc.patients || [];
-      const totalInRoom = patients.length;
-      const roomKey = doc.room;
-      const roomTitle = doc.roomTitle || doc.room;
-      const doctorName = doc.doctorName;
-      const currentCall = activeCalls[roomKey];
-
-      patients.forEach((p, idx) => {
-        const idMatch = p.patientId && p.patientId.toLowerCase().includes(q);
-        const nameMatch = p.fullName && p.fullName.toLowerCase().includes(q);
-
-        if (idMatch || nameMatch) {
-          const queueNo = p.queueNo || (idx + 1);
-          const patientsAhead = idx; // Navbatda oldinda turganlar soni
-          const isBeingCalled = !!(
-            currentCall && 
-            (
-              (currentCall.patientId && p.patientId && String(currentCall.patientId).trim() === String(p.patientId).trim()) ||
-              (String(currentCall.queueNo) === String(queueNo))
-            )
-          );
-
-          matches.push({
-            patientId: p.patientId || '',
-            fullName: p.fullName || '',
-            queueNo: queueNo,
-            room: roomKey,
-            roomTitle: roomTitle,
-            doctorName: doctorName,
-            registrationTime: p.registrationTime || '',
-            patientsAhead: patientsAhead,
-            totalInRoom: totalInRoom,
-            isBeingCalled: isBeingCalled,
-            calledAt: isBeingCalled && currentCall ? currentCall.calledAt : null
-          });
+      if (!found && latestQueueData && Array.isArray(latestQueueData.doctors)) {
+        for (const doc of latestQueueData.doctors) {
+          const m = (doc.patients || []).find(p => translitUz(p.fullName || '').includes(qNorm));
+          if (m) { found = m; break; }
         }
-      });
-    });
+      }
+    }
 
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, matches }));
+    if (!found) return null;
+
+    const isCompleted = !!(
+      found.statusCode === 8 ||
+      String(found.status || '').toLowerCase().includes('onay') ||
+      String(found.status || '').toLowerCase().includes('yakun') ||
+      String(found.status || '').toLowerCase().includes('bajarildi') ||
+      String(found.status || '').toLowerCase().includes('chiqdi')
+    );
+
+    const docMeta = UTT_ROOMS_CATALOG.find(c => 
+      c.room === found.room ||
+      c.doctorName === found.doctorName ||
+      (found.roomTitle && found.roomTitle.includes(c.roomNum))
+    ) || null;
+
+    // Oldindagi bemorlar sonini aniqlash
+    let patientsAhead = 0;
+    if (latestQueueData && Array.isArray(latestQueueData.doctors)) {
+      const docGroup = latestQueueData.doctors.find(d => d.room === found.room || (docMeta && d.room === docMeta.room));
+      if (docGroup && Array.isArray(docGroup.patients)) {
+        const pIdx = docGroup.patients.findIndex(p => String(p.patientId) === String(found.patientId));
+        if (pIdx >= 0) patientsAhead = pIdx;
+      }
+    }
+
+    return {
+      patientId: String(found.patientId || ''),
+      dosyaNo: String(found.dosyaNo || ''),
+      labDosyaId: found.labDosyaId || found.rawLabDosyaId || found.dosyaId || null,
+      fullName: found.fullName || '',
+      status: found.status || 'Bekleyen',
+      statusCode: found.statusCode || 1,
+      isCompleted: isCompleted,
+      canChangeDoctor: !isCompleted,
+      registrationTime: found.registrationTime || '',
+      registrationDate: found.registrationDate || '',
+      currentRoom: found.room || (docMeta ? docMeta.room : ''),
+      currentRoomNum: docMeta ? docMeta.roomNum : '',
+      currentRoomTitle: found.roomTitle || (docMeta ? docMeta.roomTitle : found.room || ''),
+      currentDoctor: found.doctorName || (docMeta ? docMeta.doctorName : ''),
+      queueNo: found.doctorQueueNo || found.queueNo || found.globalQueueNo || 1,
+      doctorQueueNo: found.doctorQueueNo || found.queueNo || (patientsAhead + 1),
+      globalQueueNo: found.globalQueueNo || found.queueNo || 1,
+      patientsAhead: patientsAhead,
+      kurumAdi: found.kurumAdi || '',
+      patientCategory: found.patientCategory || '',
+      categoryTitle: found.categoryTitle || found.kurumAdi || '',
+      yatPol: found.yatPol || 'P',
+      stayTitle: found.stayTitle || "Ambulator (Kelib ketuvchi)",
+      hasDoctorSwitch: !!found.hasDoctorSwitch,
+      switchText: found.switchText || ''
+    };
+  }
+
+  // 1. BARCHA VRACHLAR JONLI NAVBAT STATISTIKASI (/api/doctors-queue-summary)
+  if (req.method === 'GET' && pathname === '/api/doctors-queue-summary') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      timestamp: Date.now(),
+      totalPatients: latestQueueData.totalPatients || 0,
+      totalWaiting: (latestQueueData.summary && latestQueueData.summary.totalWaiting) || 0,
+      doctors: getDoctorsLiveSummary()
+    }));
+    return;
+  }
+
+  // 2. BEMOR QIDIRUVI (ID, PINFL/JSHSHIR, ISM): GET va POST (/api/patient/search)
+  if (pathname === '/api/patient/search') {
+    const handleSearchExecution = (searchQuery) => {
+      const q = String(searchQuery || '').trim();
+      if (!q) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: true, found: false, matches: [], doctors: getDoctorsLiveSummary() }));
+        return;
+      }
+
+      // Lokal navbatdan qidirish
+      const patient = findPatientInLocalQueue(q);
+
+      // Eski patient.html uchun matches ro'yxatini ham shakllantiramiz
+      const matches = [];
+      const doctors = latestQueueData.doctors || [];
+      doctors.forEach(doc => {
+        const patients = doc.patients || [];
+        const totalInRoom = patients.length;
+        const roomKey = doc.room;
+        const roomTitle = doc.roomTitle || doc.room;
+        const doctorName = doc.doctorName;
+        const currentCall = activeCalls[roomKey];
+
+        patients.forEach((p, idx) => {
+          const idMatch = p.patientId && String(p.patientId).toLowerCase().includes(q.toLowerCase());
+          const nameMatch = p.fullName && String(p.fullName).toLowerCase().includes(q.toLowerCase());
+          if (idMatch || nameMatch) {
+            const queueNo = p.queueNo || (idx + 1);
+            const patientsAhead = idx;
+            const isBeingCalled = !!(
+              currentCall && 
+              (
+                (currentCall.patientId && p.patientId && String(currentCall.patientId).trim() === String(p.patientId).trim()) ||
+                (String(currentCall.queueNo) === String(queueNo))
+              )
+            );
+            matches.push({
+              patientId: p.patientId || '',
+              fullName: p.fullName || '',
+              queueNo: queueNo,
+              room: roomKey,
+              roomTitle: roomTitle,
+              doctorName: doctorName,
+              registrationTime: p.registrationTime || '',
+              patientsAhead: patientsAhead,
+              totalInRoom: totalInRoom,
+              isBeingCalled: isBeingCalled,
+              calledAt: isBeingCalled && currentCall ? currentCall.calledAt : null
+            });
+          }
+        });
+      });
+
+      const doctorsLive = getDoctorsLiveSummary(patient ? patient.currentRoom : null);
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({
+        success: true,
+        found: !!patient,
+        patient: patient,
+        doctors: doctorsLive,
+        matches: matches
+      }));
+    };
+
+    if (req.method === 'POST') {
+      parseJsonBody(req, (err, body) => {
+        const q = (body && (body.query || body.patientId || body.pinfl || body.q)) || '';
+        handleSearchExecution(q);
+      });
+      return;
+    } else {
+      const q = parsedUrl.searchParams.get('q') || parsedUrl.searchParams.get('query') || '';
+      handleSearchExecution(q);
+      return;
+    }
+  }
+
+  // 3. BEMOR VRACHINI O'ZGARTIRISH (/api/patient/change-doctor)
+  if (req.method === 'POST' && pathname === '/api/patient/change-doctor') {
+    parseJsonBody(req, (err, body) => {
+      if (err || !body) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: "Noto'g'ri so'rov formati" }));
+        return;
+      }
+
+      const { patientId, targetKod, targetRoom, reason } = body;
+      const clientIp = req.socket.remoteAddress || '';
+      const switchReason = (reason || body.switchReason || '').trim() || "Sabab ko'rsatilmadi";
+
+      if (!patientId || (!targetKod && !targetRoom)) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: "Bemor ID va yangi vrach kodi kiritilishi shart" }));
+        return;
+      }
+
+      const patient = findPatientInLocalQueue(patientId);
+      if (!patient) {
+        res.writeHead(404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: "Bemor joriy navbat ro'yxatidan topilmadi" }));
+        return;
+      }
+
+      // XAVFSIZLIK: Tekshiruvdan o'tgan bemor vrachini o'zgartira olmaydi
+      if (patient.isCompleted) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({
+          success: false,
+          message: "Ushbu bemor allaqachon tekshiruvdan o'tgan! Ko'rik yakunlangach vrachni o'zgartirish taqiqlanadi."
+        }));
+        return;
+      }
+
+      // Yangi vrach metama'lumotini topish
+      const targetDoc = UTT_ROOMS_CATALOG.find(c => 
+        String(c.kod) === String(targetKod) ||
+        String(c.altKod) === String(targetKod) ||
+        c.room === targetRoom ||
+        c.roomTitle === targetRoom
+      );
+
+      if (!targetDoc) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, message: "Tanlangan shifokor ma'lumotlari topilmadi" }));
+        return;
+      }
+
+      // Agar bemor allaqachon shu vrachda bo'lsa
+      if (patient.currentRoom === targetDoc.room) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({
+          success: true,
+          message: "Bemor allaqachon ushbu vrach navbatida turibdi",
+          patient: patient,
+          newDoctor: targetDoc
+        }));
+        return;
+      }
+
+      // Karmed tizimiga AltBolumuDegistir buyrug'ini yuborish
+      const effectiveLabDosyaId = body.labDosyaId || patient.labDosyaId;
+      const allProfiles = getKarmedProfiles();
+      const activeProf = allProfiles['R5'] || Object.values(allProfiles)[0] || { username: 'R5', loginBilgi: '' };
+      const currentToken = activeProf.loginBilgi || '';
+
+      const finishChangeLocally = (karmedSuccess = true, karmedNote = '') => {
+        const prevRoom = patient.currentRoomTitle || patient.currentRoom;
+        const switchText = `Bemor so'rovi (${switchReason}) [${prevRoom} -> ${targetDoc.roomTitle}]`;
+
+        // 1. latestQueueData.allPatients ro'yxatida yangilash
+        if (latestQueueData && Array.isArray(latestQueueData.allPatients)) {
+          const pInAll = latestQueueData.allPatients.find(p => 
+            String(p.patientId) === String(patient.patientId) || 
+            String(p.dosyaNo) === String(patient.dosyaNo)
+          );
+          if (pInAll) {
+            pInAll.room = targetDoc.room;
+            pInAll.roomTitle = targetDoc.roomTitle;
+            pInAll.doctorName = targetDoc.doctorName;
+            pInAll.hasDoctorSwitch = true;
+            pInAll.switchText = switchText;
+            pInAll.switchReason = switchReason;
+          }
+        }
+
+        // 2. latestQueueData.doctors guruhlari bo'yicha ko'chirish
+        if (latestQueueData && Array.isArray(latestQueueData.doctors)) {
+          // Eski vrachdan o'chirish
+          latestQueueData.doctors.forEach(d => {
+            if (Array.isArray(d.patients)) {
+              d.patients = d.patients.filter(p => 
+                String(p.patientId) !== String(patient.patientId) &&
+                String(p.dosyaNo) !== String(patient.dosyaNo)
+              );
+            }
+          });
+
+          // Yangi vrach navbatiga qo'shish
+          let targetGroup = latestQueueData.doctors.find(d => 
+            d.room === targetDoc.room || 
+            String(d.num) === String(targetDoc.num)
+          );
+          if (!targetGroup) {
+            targetGroup = {
+              id: targetDoc.room,
+              room: targetDoc.room,
+              num: targetDoc.num,
+              doctorName: targetDoc.doctorName,
+              roomTitle: targetDoc.roomTitle,
+              patients: [],
+              completedPatients: []
+            };
+            latestQueueData.doctors.push(targetGroup);
+          }
+
+          const updatedPatientObj = {
+            ...patient,
+            room: targetDoc.room,
+            roomTitle: targetDoc.roomTitle,
+            doctorName: targetDoc.doctorName,
+            hasDoctorSwitch: true,
+            switchText: switchText,
+            switchReason: switchReason
+          };
+          targetGroup.patients.push(updatedPatientObj);
+          targetGroup.patients.sort((a, b) => (a.timeMinutes || 0) - (b.timeMinutes || 0));
+        }
+
+        // 3. Xotiradagi navbatni diskka saqlash va TV ekranlarga SSE orqali tarqatish
+        saveQueueToFile(latestQueueData);
+        broadcastEvent({
+          type: 'QUEUE_SYNC',
+          ...latestQueueData,
+          activeCalls
+        });
+
+        // 4. Tizim jurnali va auditiga yozish
+        const logMsg = `Bemor o'z vrachini o'zgartirdi: ${patient.fullName} (ID: ${patient.patientId}) [${prevRoom} -> ${targetDoc.roomTitle}] Sabab: ${switchReason} ${karmedNote}`;
+        const switchRecord = {
+          id: 'sw_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          timestamp: new Date().toISOString(),
+          date: getDailyLogInfo().dateStr,
+          time: new Date().toLocaleTimeString(),
+          patientId: String(patient.patientId || ''),
+          dosyaNo: String(patient.dosyaNo || ''),
+          patientName: patient.fullName || '',
+          pinfl: patient.tckn || patient.pinfl || '',
+          fromRoom: prevRoom,
+          fromDoctor: patient.doctorName || prevRoom,
+          toRoom: targetDoc.room,
+          toRoomTitle: targetDoc.roomTitle,
+          toDoctor: targetDoc.doctorName,
+          reason: switchReason,
+          clientIp: clientIp,
+          karmedSuccess: karmedSuccess
+        };
+        saveDoctorSwitchRecord(switchRecord);
+        recordSystemEvent('PATIENT_SELF_CHANGE', logMsg, clientIp, switchRecord);
+        writeToDailyLog(`[PATIENT_SELF_CHANGE] ${logMsg}`);
+
+        // 5. Yangi Talon va muvaffaqiyatli javob
+        const ticketData = {
+          centerHeader: "RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI",
+          subHeader: "Ultratovush Tekshiruvi (UTT) Taloni",
+          queueTitle: "NAVBAT RAQAMI",
+          queueNo: patient.globalQueueNo || patient.queueNo,
+          patientName: patient.fullName,
+          patientId: patient.patientId,
+          roomTitle: targetDoc.roomTitle,
+          roomNum: targetDoc.roomNum,
+          doctorName: targetDoc.doctorName,
+          time: new Date().toLocaleTimeString().slice(0, 5),
+          date: new Date().toLocaleDateString(),
+          notice: `Iltimos, ${targetDoc.roomNum}-xona (${targetDoc.doctorName}) oldida kuting va hamshiraga ro'yxatga yozdiring.`
+        };
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Vrach muvaffaqiyatli ${targetDoc.roomTitle} (${targetDoc.doctorName}) ga o'zgartirildi!`,
+          patient: {
+            ...patient,
+            currentRoom: targetDoc.room,
+            currentRoomNum: targetDoc.roomNum,
+            currentRoomTitle: targetDoc.roomTitle,
+            currentDoctor: targetDoc.doctorName
+          },
+          newDoctor: targetDoc,
+          ticket: ticketData,
+          doctors: getDoctorsLiveSummary(targetDoc.room)
+        }));
+      };
+
+      // Karmed Direct Event orqali bazani yangilash
+      if (effectiveLabDosyaId && targetDoc.kod && currentToken) {
+        const params = new URLSearchParams();
+        params.set('submitDirectEventConfig', JSON.stringify({
+          config: {
+            extraParams: {
+              aLabDoysaId: parseInt(effectiveLabDosyaId, 10),
+              aYeniAltBolumId: parseInt(targetDoc.kod, 10),
+              aYeniOdaId: null
+            }
+          }
+        }));
+        params.set('cbBolum', '');
+        params.set('btnBekleyen_Pressed', 'true');
+        params.set('hdnDosyaDurumu', '');
+        params.set('hdnKrmdLoginBilgi', currentToken);
+        params.set('__EVENTTARGET', 'ctl00$ResourceManagerX');
+        params.set('__EVENTARGUMENT', '-|public|AltBolumuDegistir');
+
+        queryKarmedEndpoint('?action=AltBolumuDegistir', params.toString(), activeProf.cookie || '', (kErr, kStatus, kBody) => {
+          if (!kErr && kBody) {
+            const tm = extractKarmedLoginBilgi(kBody);
+            if (tm) saveKarmedProfile({ username: 'R5', loginBilgi: tm });
+          }
+          finishChangeLocally(!kErr, kErr ? `(Karmed xatosi: ${kErr.message})` : '(Karmed yangilandi)');
+        });
+      } else {
+        // Karmed offline yoki token yo'q bo'lsa ham lokal navbatda darhol yangilash
+        finishChangeLocally(false, '(Lokal navbatda yangilandi)');
+      }
+    });
+    return;
+  }
+
+  // 4. VRACHNI O'ZGARTIRISH JURNALI (/api/doctor-switches)
+  if (req.method === 'GET' && pathname === '/api/doctor-switches') {
+    const switches = getDoctorSwitchesList();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      success: true,
+      count: switches.length,
+      switches: switches
+    }));
     return;
   }
 
@@ -3399,7 +4673,7 @@ serverMobileMrt.listen(PORT_MOBILE_MRT, HOST, () => {
 
   console.log(`[Port ${PORT_MOBILE_MRT}] 🧲 MRT Mobil Agenti ishga tushdi: http://localhost:${PORT_MOBILE_MRT}`);
   console.log(`\n================================================================================`);
-  console.log(`  RESPUBLIKA ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI — UTT / MSKT / MRT (8 PORT)`);
+  console.log(`  RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA ILMIY-AMALIY TIBBIYOT MARKAZI (v11.0.0)`);
   console.log(`================================================================================`);
   console.log(`  📅 Bugungi sana:          ${dateStr}`);
   console.log(`  📁 Kunlik log fayl:       ${logFile}`);

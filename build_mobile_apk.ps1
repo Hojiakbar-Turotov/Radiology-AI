@@ -1,15 +1,15 @@
 # ==============================================================================
-# UTT ANDROID TV APK BUILD SCRIPT (v8.1.0)
+# UTT BEMOR MOBIL APK BUILD SCRIPT (v11.0.0)
 # ==============================================================================
 $ErrorActionPreference = 'Stop'
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "  UTT NAVBAT TIZIMI — ANDROID TV APK YIG'ISH JARAYONI (v8.1.0)" -ForegroundColor Cyan
+Write-Host "  UTT BEMOR NAVBAT — ANDROID MOBIL APK YIG'ISH JARAYONI (v11.0.0)" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # 1. YO'LLAR VA QURILMALAR
 $BASE_DIR = "c:\Users\Rentgen xona\Desktop\UTT"
-$APP_DIR = "$BASE_DIR\android_tv_app"
+$APP_DIR = "$BASE_DIR\android_mobile_app"
 $BUILD_DIR = "$APP_DIR\build"
 
 $JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
@@ -25,29 +25,27 @@ $ZIPALIGN = "$BUILD_TOOLS\zipalign.exe"
 $APKSIGNER = "$BUILD_TOOLS\apksigner.bat"
 $ANDROID_JAR = "$SDK_DIR\platforms\android-37.0\android.jar"
 
-$FINAL_APK = "$BASE_DIR\UTT_TV_Navbat.apk"
-$PUBLIC_APK = "$BASE_DIR\public\UTT_TV_Navbat.apk"
-$PUBLIC_APP_APK = "$BASE_DIR\public\app.apk"
-$DESKTOP_APK = "c:\Users\Rentgen xona\Desktop\UTT_TV_Navbat.apk"
+$FINAL_APK = "$BASE_DIR\UTT_Bemor_Navbat.apk"
+$PUBLIC_APK = "$BASE_DIR\public\UTT_Bemor_Navbat.apk"
+$PUBLIC_BEMOR_APK = "$BASE_DIR\public\bemor.apk"
+$DESKTOP_APK = "c:\Users\Rentgen xona\Desktop\UTT_Bemor_Navbat.apk"
 
 # Kerakli vositalarni tekshirish
 if (!(Test-Path $JAVAC)) { throw "javac.exe topilmadi: $JAVAC" }
 if (!(Test-Path $AAPT2)) { throw "aapt2.exe topilmadi: $AAPT2" }
 if (!(Test-Path $ANDROID_JAR)) { throw "android.jar topilmadi: $ANDROID_JAR" }
 
-# [0/6] Eng so'nggi TV veb-fayllarini assets papkasiga ko'chirish
-Write-Host "[0/6] Eng so'nggi TV veb-fayllari nusxalanmoqda (public -> assets)..." -ForegroundColor Yellow
-Copy-Item "$BASE_DIR\public\tv.html" "$APP_DIR\assets\tv.html" -Force
-Copy-Item "$BASE_DIR\public\app.js" "$APP_DIR\assets\app.js" -Force
-Copy-Item "$BASE_DIR\public\styles.css" "$APP_DIR\assets\styles.css" -Force
-Copy-Item "$BASE_DIR\public\doctor-completed.html" "$APP_DIR\assets\doctor-completed.html" -Force
-Copy-Item "$BASE_DIR\public\chime_engine.js" "$APP_DIR\assets\chime_engine.js" -Force
+# [0/6] Eng so'nggi Bemor veb-fayllarini assets papkasiga ko'chirish
+Write-Host "[0/6] Veb fayllar nusxalanmoqda (public -> assets)..." -ForegroundColor Yellow
+if (!(Test-Path "$APP_DIR\assets\icons")) {
+    New-Item -ItemType Directory -Path "$APP_DIR\assets\icons" -Force | Out-Null
+}
+Copy-Item "$BASE_DIR\public\bemor.html" "$APP_DIR\assets\bemor.html" -Force
+Copy-Item "$BASE_DIR\public\bemor.js" "$APP_DIR\assets\bemor.js" -Force
+Copy-Item "$BASE_DIR\public\bemor.css" "$APP_DIR\assets\bemor.css" -Force
 if (Test-Path "$BASE_DIR\public\icons\logo-onko.png") {
     Copy-Item "$BASE_DIR\public\icons\logo-onko.png" "$APP_DIR\assets\icons\logo-onko.png" -Force
 }
-# Keraksiz eski APKlarni assetsdan tozalash
-if (Test-Path "$APP_DIR\assets\UTT_TV_Navbat.apk") { Remove-Item "$APP_DIR\assets\UTT_TV_Navbat.apk" -Force }
-if (Test-Path "$APP_DIR\assets\app.apk") { Remove-Item "$APP_DIR\assets\app.apk" -Force }
 
 # Build papkasini tozalash va tayyorlash
 if (Test-Path $BUILD_DIR) {
@@ -82,7 +80,7 @@ $javaFiles = @(
     $javaFiles
 if ($LASTEXITCODE -ne 0) { throw "javac kompilyatsiya xatoligi" }
 
-Write-Host "[4/6] Baytkodlar Dalvik formatiga o'tkazilmoqda (d8 -> classes.dex)..." -ForegroundColor Yellow
+Write-Host "[4/6] Dalvik formatiga o'tkazilmoqda (d8 -> classes.dex)..." -ForegroundColor Yellow
 $classFiles = (Get-ChildItem -Path "$BUILD_DIR\classes" -Recurse -Filter "*.class").FullName
 
 $env:JAVA_HOME = $JAVA_HOME
@@ -115,7 +113,7 @@ if (!(Test-Path $KEYSTORE)) {
         -keyalg RSA `
         -keysize 2048 `
         -validity 10000 `
-        -dname "CN=UTT Android TV,OU=Radiology,O=Oncology,C=UZ"
+        -dname "CN=UTT Bemor Navbat,OU=Radiology,O=Oncology,C=UZ"
 }
 
 # APKni imzolash
@@ -133,7 +131,7 @@ Write-Host "Imzo tekshirilmoqda..." -ForegroundColor Cyan
 & $APKSIGNER verify $FINAL_APK
 
 Copy-Item -Path $FINAL_APK -Destination $PUBLIC_APK -Force
-Copy-Item -Path $FINAL_APK -Destination $PUBLIC_APP_APK -Force
+Copy-Item -Path $FINAL_APK -Destination $PUBLIC_BEMOR_APK -Force
 Copy-Item -Path $FINAL_APK -Destination $DESKTOP_APK -Force
 
 $apkItem = Get-Item $FINAL_APK
@@ -142,8 +140,8 @@ $apkSizeMB = [math]::Round($apkItem.Length / 1MB, 2)
 
 Write-Host ""
 Write-Host "======================================================================" -ForegroundColor Green
-Write-Host "  MUVAFFAQINLI YAKUNLANDI!" -ForegroundColor Green
+Write-Host "  MUVAFFAQIYATLI YAKUNLANDI!" -ForegroundColor Green
 Write-Host "  APK Fayli: $FINAL_APK" -ForegroundColor Green
-Write-Host "  Nusxalari: $PUBLIC_APK va $DESKTOP_APK" -ForegroundColor Green
+Write-Host "  Nusxalari: $DESKTOP_APK va $PUBLIC_APK" -ForegroundColor Green
 Write-Host "  Hajmi: $apkSizeKB KB ($apkSizeMB MB)" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Green

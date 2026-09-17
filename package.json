@@ -1,6 +1,6 @@
 {
   "name": "utt",
-  "version": "1.0.0",
+  "version": "11.0.0",
   "description": "Ushbu tizim yagona **Google Firebase Realtime Database** bulutli bazasida ishlaydigan 3 ta alohida front-end dasturlaridan iborat:",
   "main": "bot-runner.js",
   "directories": {

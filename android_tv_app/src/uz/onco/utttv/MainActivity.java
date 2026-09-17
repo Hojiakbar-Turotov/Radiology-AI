@@ -54,8 +54,8 @@ public class MainActivity extends Activity {
     private static final String GITHUB_TUNNEL_CONFIG_URL = "https://raw.githubusercontent.com/Hojiakbar-Turotov/Radiology-AI/main/tunnel_config.json";
     private static final String OFFLINE_ASSET_URL = "file:///android_asset/tv.html";
 
-    public static final int CURRENT_VERSION_CODE = 700;
-    public static final String CURRENT_VERSION_NAME = "7.0.0";
+    public static final int CURRENT_VERSION_CODE = 810;
+    public static final String CURRENT_VERSION_NAME = "8.1.0";
 
     private static final long THIRTY_MINUTES_MS = 30 * 60 * 1000L;
 
@@ -72,6 +72,21 @@ public class MainActivity extends Activity {
     private boolean isErrorShown = false;
     private boolean isCheckingUpdate = false;
     private boolean isRunningOnLocal = false;
+    private boolean isSingleRoomModeActive = false;
+    private String currentActiveRoom = "";
+
+    public class AndroidTvBridge {
+        @android.webkit.JavascriptInterface
+        public void onModeChanged(final String mode, final String roomId) {
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    isSingleRoomModeActive = !"tv".equals(mode);
+                    currentActiveRoom = (roomId != null) ? roomId : "";
+                }
+            });
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,8 +171,28 @@ public class MainActivity extends Activity {
         ws.setSupportZoom(false);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        ws.setAllowFileAccess(true);
+        ws.setAllowContentAccess(true);
+        if (Build.VERSION.SDK_INT >= 16) {
+            ws.setAllowFileAccessFromFileURLs(true);
+            ws.setAllowUniversalAccessFromFileURLs(true);
+        }
 
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setFocusable(true);
+        webView.setFocusableInTouchMode(true);
+        webView.requestFocus();
+
+        webView.addJavascriptInterface(new AndroidTvBridge(), "AndroidTV");
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
+                if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR) {
+                    sendApkTelemetry("TV_JS_CONSOLE_ERR", consoleMessage.message() + " [" + consoleMessage.sourceId() + ":" + consoleMessage.lineNumber() + "]");
+                }
+                return super.onConsoleMessage(consoleMessage);
+            }
+        });
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -651,23 +686,104 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_SETTINGS) {
-            showSettingsDialog();
-            return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (isErrorShown) {
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+
+            // 1. TV Pulti Raqamlari (0..9 va Numpad 0..9)
+            // Foydalanuvchi talabi: 0 -> UTT 10, 1 -> UTT 1, ..., 9 -> UTT 9
+            Integer targetRoomNum = null;
+            if (keyCode == KeyEvent.KEYCODE_0 || keyCode == KeyEvent.KEYCODE_NUMPAD_0) targetRoomNum = 0;
+            else if (keyCode == KeyEvent.KEYCODE_1 || keyCode == KeyEvent.KEYCODE_NUMPAD_1) targetRoomNum = 1;
+            else if (keyCode == KeyEvent.KEYCODE_2 || keyCode == KeyEvent.KEYCODE_NUMPAD_2) targetRoomNum = 2;
+            else if (keyCode == KeyEvent.KEYCODE_3 || keyCode == KeyEvent.KEYCODE_NUMPAD_3) targetRoomNum = 3;
+            else if (keyCode == KeyEvent.KEYCODE_4 || keyCode == KeyEvent.KEYCODE_NUMPAD_4) targetRoomNum = 4;
+            else if (keyCode == KeyEvent.KEYCODE_5 || keyCode == KeyEvent.KEYCODE_NUMPAD_5) targetRoomNum = 5;
+            else if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_NUMPAD_6) targetRoomNum = 6;
+            else if (keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_NUMPAD_7) targetRoomNum = 7;
+            else if (keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_NUMPAD_8) targetRoomNum = 8;
+            else if (keyCode == KeyEvent.KEYCODE_9 || keyCode == KeyEvent.KEYCODE_NUMPAD_9) targetRoomNum = 9;
+
+            if (targetRoomNum != null) {
+                switchRoomByNumber(targetRoomNum);
+                return true;
+            }
+
+            // 2. YONGA BOSISH (DPAD_LEFT / DPAD_RIGHT) - Xona ekranida rejimlarni almashtirish (Foydalanuvchi talabi)
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                final String dir = (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) ? "next" : "prev";
+                cycleMode(dir);
+                return true;
+            }
+
+            // 3. BACK (Orqaga) tugmasi: agar yagona xona ekrani ochiq bo'lsa, barcha xonalarga qaytish
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (isSingleRoomModeActive) {
+                    backToAllRooms();
+                    return true;
+                }
+                if (isErrorShown) {
+                    showSettingsDialog();
+                    return true;
+                }
+                if (webView != null && webView.canGoBack()) {
+                    webView.goBack();
+                    return true;
+                }
                 showSettingsDialog();
                 return true;
             }
-            if (webView.canGoBack()) {
-                webView.goBack();
+
+            if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_SETTINGS) {
+                showSettingsDialog();
                 return true;
             }
-            showSettingsDialog();
-            return true;
         }
-        return super.onKeyDown(keyCode, event);
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void cycleMode(final String dir) {
+        if (webView == null) return;
+        final String js = "if (window.uttCycleMode) { window.uttCycleMode('" + dir + "'); }";
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    webView.evaluateJavascript(js, null);
+                } else {
+                    webView.loadUrl("javascript:" + js);
+                }
+            }
+        });
+    }
+
+    private void switchRoomByNumber(final int num) {
+        if (webView == null) return;
+        final String js = "if (window.uttSwitchRoomByNumber) { window.uttSwitchRoomByNumber(" + num + "); }";
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    webView.evaluateJavascript(js, null);
+                } else {
+                    webView.loadUrl("javascript:" + js);
+                }
+            }
+        });
+    }
+
+    private void backToAllRooms() {
+        if (webView == null) return;
+        final String js = "if (window.uttBackToAllRooms) { window.uttBackToAllRooms(); }";
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    webView.evaluateJavascript(js, null);
+                } else {
+                    webView.loadUrl("javascript:" + js);
+                }
+            }
+        });
     }
 }

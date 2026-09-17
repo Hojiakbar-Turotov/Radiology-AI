@@ -3,9 +3,524 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>UTT Jonli TV Ekrani — Respublika Onkologiya Markazi</title>
+  <title>UTT Jonli TV Ekrani — Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="icons/logo-onko.png" type="image/png">
+  <style>
+    /* TV-DEV: Vrachlar Ko'rgan Bemorlar Statistikasi Uslublari */
+    .stat-pill.completed-pill {
+      background: rgba(34, 197, 94, 0.18) !important;
+      border: 1px solid rgba(34, 197, 94, 0.45) !important;
+    }
+    .stat-pill.completed-pill .stat-lbl {
+      color: #86efac !important;
+    }
+    .stat-pill.completed-pill .stat-val {
+      color: #4ade80 !important;
+      font-weight: 800;
+    }
+
+    /* Single room rejimida vrachlar lentasi va oldingi kundan kelganlar paneli yashiriladi */
+    body.mode-single-room #tvDoctorSummaryRibbon,
+    body.mode-single-room .tv-doctor-summary-ribbon,
+    body.mode-single-room #earlierPatientsSection,
+    body.mode-single-room .earlier-patients-panel {
+      display: none !important;
+    }
+
+    /* Vrachlar kesimidagi ko'riklar lentasi (Yuqori panel) */
+    .tv-doctor-summary-ribbon {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      padding: 8px 16px;
+      margin: 0 24px 14px 24px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+    .tv-doctor-summary-ribbon::-webkit-scrollbar {
+      display: none;
+    }
+    .tv-ribbon-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #38bdf8;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .tv-ribbon-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tv-ribbon-chips::-webkit-scrollbar {
+      display: none;
+    }
+    .doc-stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #f8fafc;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .doc-stat-chip:hover {
+      border-color: #38bdf8;
+      background: rgba(51, 65, 85, 0.95);
+      transform: translateY(-1px);
+    }
+    .doc-stat-chip .dsc-room {
+      background: #2563eb;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .doc-stat-chip .dsc-name {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .doc-stat-chip .dsc-completed {
+      background: rgba(34, 197, 94, 0.25);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .doc-stat-chip .dsc-waiting {
+      background: rgba(234, 179, 8, 0.2);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Karta ichidagi ko'rib bo'linganlik nishonlari */
+    .doc-header-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .doc-badge-completed {
+      background: rgba(34, 197, 94, 0.22);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      padding: 4px 9px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .doc-completion-bar-wrap {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    }
+    .dcb-bar {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .dcb-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #10b981);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .dcb-text {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .dcb-done {
+      color: #4ade80;
+      font-weight: 700;
+    }
+    .dcb-wait {
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .dcb-pct {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
+    /* Kecha va oldingi kunlarda yo'naltirilgan bemorlar paneli (Screenshot ko'rinishi) */
+    .earlier-patients-panel {
+      margin-top: 24px;
+      margin-bottom: 20px;
+      background: #1e293b;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .epp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(90deg, #1e293b, #0f172a);
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .epp-header:hover {
+      background: linear-gradient(90deg, #273549, #131c31);
+    }
+    .epp-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .epp-icon { font-size: 20px; }
+    .epp-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #f8fafc;
+    }
+    .epp-badge {
+      background: #3b82f6;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .epp-toggle-btn {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .epp-table-wrap {
+      overflow-x: auto;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .epp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .epp-table th {
+      background: #0f172a;
+      color: #94a3b8;
+      font-weight: 700;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-bottom: 2px solid #334155;
+      white-space: nowrap;
+    }
+    .epp-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .epp-table tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .epp-row-completed {
+      background: rgba(34, 197, 94, 0.12);
+    }
+    .epp-row-accepted {
+      background: rgba(59, 130, 246, 0.12);
+    }
+    .epp-row-waiting {
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .epp-tag-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .epp-tag-pill.tag-done {
+      background: #16a34a;
+      color: #ffffff;
+    }
+    .epp-tag-pill.tag-accepted {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .epp-tag-pill.tag-waiting {
+      background: #d97706;
+      color: #ffffff;
+    }
+
+    /* Iframe Modal oynasi uslublari */
+    .doc-iframe-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .doc-iframe-modal-box {
+      background: #0f172a;
+      border: 1.5px solid #3b82f6;
+      border-radius: 16px;
+      width: 94%;
+      max-width: 1100px;
+      height: 85vh;
+      max-height: 820px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.35);
+      animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPopIn {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .doc-iframe-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #1e293b, #0f172a);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .dimh-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dimh-icon { font-size: 22px; }
+    .dimh-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .dimh-badge {
+      background: rgba(34, 197, 94, 0.25);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .dimh-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dimh-btn-newtab {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .dimh-btn-newtab:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+    .dimh-btn-close {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dimh-btn-close:hover {
+      background: rgba(239, 68, 68, 0.4);
+      color: #fff;
+    }
+    .doc-iframe-body {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0b1329;
+    }
+    #docCompletedIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Vrach ko'rgan bemorlarni ochish Ko'z (Eye) tugmasi */
+    .btn-doc-eye {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      color: #38bdf8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+    .btn-doc-eye:hover {
+      background: rgba(56, 189, 248, 0.35);
+      border-color: #38bdf8;
+      color: #ffffff;
+      transform: scale(1.1);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+    }
+    .btn-doc-eye:active {
+      transform: scale(0.95);
+    }
+
+    /* Pastdagi umumiy ro'yxat filter paneli */
+    .epp-filter-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 18px;
+      background: #182234;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .epp-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+      max-width: 400px;
+    }
+    .epp-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .epp-search-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      padding: 7px 32px 7px 32px;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+    }
+    .epp-search-input:focus {
+      border-color: #38bdf8;
+    }
+    .epp-clear-search-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+      display: none;
+    }
+    .epp-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .epp-select {
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .epp-select:focus {
+      border-color: #38bdf8;
+    }
+    .epp-filter-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .epp-filter-result-badge {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .epp-reset-btn {
+      background: #1e293b;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .epp-reset-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+  </style>
   <script>
     // TV CLIENT TELEMETRY & GLOBAL ERROR TRAPPER (ES5 Universal)
     (function() {
@@ -56,6 +571,42 @@
             if (predicate.call(thisArg, value, i, list)) return value;
           }
           return undefined;
+        };
+      }
+      if (typeof Object.assign !== 'function') {
+        Object.assign = function(target) {
+          if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+          var to = Object(target);
+          for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+              for (var nextKey in nextSource) {
+                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                  to[nextKey] = nextSource[nextKey];
+                }
+              }
+            }
+          }
+          return to;
+        };
+      }
+      if (!Array.from) {
+        Array.from = function(object) {
+          return [].slice.call(object);
+        };
+      }
+      if (!Object.values) {
+        Object.values = function(obj) {
+          if (obj == null) return [];
+          return Object.keys(obj).map(function(key) { return obj[key]; });
+        };
+      }
+      if (!Object.entries) {
+        Object.entries = function(obj) {
+          if (obj == null) return [];
+          var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i);
+          while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+          return resArray;
         };
       }
 
@@ -127,8 +678,10 @@
       <div class="header-right">
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
-          <button type="button" class="view-btn active" id="btnModeTv" title="Barcha xonalar">🖥️ Barcha xonalar</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="Xona ekrani">📺 Xona ekrani</button>
+          <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
+          <button type="button" class="view-btn" id="btnModeClassicRoom" title="2-Rejim: Xona navbat jadvali (v11.0.0 3 ustun)">📋 2-Rejim: Xona jadvali</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="3-Rejim: 2 ustunli navbat jadvali">📊 3-Rejim: 2 Ustunli</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Bo'sh xona (Bemor yo'q)">🚪 4-Rejim: Bo'sh rejim</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -136,6 +689,11 @@
             <option value="all">Barcha xonalar</option>
           </select>
         </div>
+
+        <!-- Ish vaqti sozlamasi -->
+        <button type="button" class="schedule-trigger-btn" id="btnTvScheduleSettings" title="Monitorlar faol vaqt oralig'ini sozlash (07:00 - 17:00)">
+          <span>⏱️ Ish vaqti</span>
+        </button>
 
         <!-- Fullscreen -->
         <button type="button" class="fullscreen-btn" id="btnToggleFullscreen" title="To'liq ekran (F11)">
@@ -145,11 +703,11 @@
 
         <!-- Soat -->
         <div class="live-clock-card">
-          <div class="live-date" id="liveDate">08.09.2026</div>
-          <div class="live-time" id="liveTime">08:00:00</div>
+          <div class="live-date" id="liveDate">📅 17.09.2026</div>
+          <div class="live-time" id="liveTime">--:--:--</div>
           <div class="live-connection-chip connected" id="liveConnChip">
             <span class="pulse-dot"></span>
-            <span id="liveConnText">Jonli TV v7.0.0</span>
+            <span id="liveConnText">Jonli TV v11.6.0</span>
           </div>
           <span id="karmedBadge" style="display:inline-block; font-size:11px; font-weight:700; color:#4ade80; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.35); padding:3px 8px; border-radius:20px; margin-top:4px;" title="Karmed serveridan har 20 soniyada avto-yangilanadi">🟢 Karmed Direct</span>
         </div>
@@ -159,13 +717,28 @@
     <!-- 2. TEZKOR STATISTIKA VA WI-FI BANNERI -->
     <section class="top-info-bar" id="topInfoBar">
       <div class="stats-pills">
-        <div class="stat-pill total-pill">
-          <span class="stat-lbl">Kutayotgan bemorlar:</span>
+        <div class="stat-pill total-pill" title="Hozir navbatda kutayotgan bemorlar soni">
+          <span class="stat-lbl">Navbatda:</span>
           <span class="stat-val" id="totalPatientsCount">0</span>
+        </div>
+        <div class="stat-pill reg-pill" title="Bugun ro'yxatga olingan bemorlar soni">
+          <span class="stat-lbl" id="lblTodayReg">Bugun ro'yxatga olingan:</span>
+          <span class="stat-val" id="todayRegPatientsCount">0</span>
+          <span class="stat-subval" id="earlierRegPatientsCount" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #38bdf8;">(+0 oldin)</span>
+        </div>
+        <div class="stat-pill completed-pill" title="Tasdiqlangan sanasi bugun bo'lgan barcha bemorlar soni">
+          <span class="stat-lbl" id="lblTodayCompleted">Bugun ko'rildi:</span>
+          <span class="stat-val" id="totalCompletedCount">0</span>
+          <span class="stat-subval" id="completedEarlierSubText" style="font-size: 11px; opacity: 0.85; margin-left: 4px; color: #86efac;">(0 oldin)</span>
         </div>
         <div class="stat-pill active-docs-pill">
           <span class="stat-lbl">Qabuldagi shifokorlar:</span>
           <span class="stat-val" id="activeDoctorsCount">0</span>
+        </div>
+        <div class="stat-pill date-filter-pill" id="dateFilterPill" title="Sana bo'yicha arxiv yoki yakuniy hisobotni ko'rish">
+          <span class="stat-lbl">📅 Sana:</span>
+          <input type="date" id="statsDateInput" class="stats-date-input" title="Sanani tanlang">
+          <button type="button" id="btnTodayReset" class="btn-today-reset" title="Bugungi jonli navbatga qaytish" style="display: none;">Bugun</button>
         </div>
       </div>
 
@@ -180,45 +753,135 @@
       </div>
     </section>
 
+    <!-- ARXIV HOLATI BANNERI -->
+    <div id="archiveStatusBanner" class="archive-status-banner" style="display: none;">
+      <div class="archive-banner-content">
+        <div class="archive-banner-left">
+          <span class="archive-banner-icon">📁</span>
+          <span>Siz <b><span id="archiveDateDisplay">15.09.2026</span></b> sanasidagi yakuniy ko'rsatkichlar arxivini ko'rmoqdasiz.</span>
+        </div>
+        <button type="button" id="btnReturnToday" class="btn-return-today">↩ Bugungi jonli navbatga qaytish</button>
+      </div>
+    </div>
+
     <!-- 3. ASOSIY MAZMUN -->
     <main class="main-content">
       
       <!-- A. BARCHA XONALAR TV GRIDI -->
       <div class="tv-queue-grid" id="tvQueueGrid"></div>
 
-      <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 KO'RINISHI) -->
+      <!-- A.2 KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR RO'YXATI -->
+      <section class="earlier-patients-panel" id="earlierPatientsSection">
+        <div class="epp-header" id="btnToggleEarlierPanel" title="Ro'yxatni ochish / yopish">
+          <div class="epp-header-left">
+            <span class="epp-icon">📋</span>
+            <span class="epp-title">KECHA VA OLDINGI KUNLARDA YO'NALTIRILIB, BUGUN TEKSHIRUVDAN O'TGAN YOKI QABUL QILINGAN BEMORLAR</span>
+            <span class="epp-badge" id="earlierPatientsCountBadge">0 ta</span>
+          </div>
+          <div class="epp-header-right">
+            <span class="epp-toggle-btn" id="eppToggleText">▼ Ko'rish</span>
+          </div>
+        </div>
+        <div class="epp-body" id="earlierPatientsBody" style="display: none;">
+          <!-- FILTRLASH VA QIDIRUV PANELI -->
+          <div class="epp-filter-toolbar">
+            <div class="epp-filter-item epp-search-wrap">
+              <span class="epp-search-icon">🔍</span>
+              <input type="text" id="eppSearchInput" class="epp-search-input" placeholder="Bemor ID, F.I.Sh. yoki yo'naltiruvchi shifokor..." />
+              <button type="button" id="btnEppClearSearch" class="epp-clear-search-btn" title="Tozalash">✕</button>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppDoctorSelect">Qabul qiluvchi:</label>
+              <select id="eppDoctorSelect" class="epp-select">
+                <option value="all">👨‍⚕️ Barcha vrachlar</option>
+              </select>
+            </div>
+            <div class="epp-filter-item">
+              <label for="eppStatusSelect">Holati:</label>
+              <select id="eppStatusSelect" class="epp-select">
+                <option value="all">Barcha holatlar</option>
+                <option value="completed">✅ Tekshiruvdan o'tgan</option>
+                <option value="accepted">🟢 Qabulda</option>
+                <option value="waiting">⏳ Navbatda</option>
+              </select>
+            </div>
+            <div class="epp-filter-meta">
+              <span id="eppFilteredCountBadge" class="epp-filter-result-badge">0 ta</span>
+              <button type="button" id="btnEppResetAll" class="epp-reset-btn" title="Barcha filtrlarni tozalash">🔄 Tozalash</button>
+            </div>
+          </div>
+          <div class="epp-table-wrap">
+            <table class="epp-table">
+              <thead>
+                <tr>
+                  <th>Faylning shifokorini</th>
+                  <th>Bemor ID</th>
+                  <th>Qabul qiluvchi shifokor</th>
+                  <th>Bemor F.I.Sh.</th>
+                  <th>Ulangan bo'lim</th>
+                  <th>Ro'yxatga olingan sana</th>
+                  <th>Tasdiqlangan sana</th>
+                  <th>Holati / Tavsif</th>
+                </tr>
+              </thead>
+              <tbody id="earlierPatientsTableBody">
+                <!-- Javascript orqali to'ldiriladi -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 ASL KO'RINISHI - FOYDALANUVCHI TALABI BO'YICHA O'ZGARISHSIZ) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
+          <!-- Chap tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) -->
           <div class="sr-header-left">
-            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ Barcha xonalar</button>
-            <div class="sr-room-selector">
-              <label for="srRoomDropdown">Xona:</label>
-              <select id="srRoomDropdown" class="sr-room-select"></select>
+            <div class="sr-controls-overlay">
+              <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
+              <div class="sr-room-selector">
+                <label for="srRoomDropdown">Xona:</label>
+                <select id="srRoomDropdown" class="sr-room-select"></select>
+              </div>
+              <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
+              <button type="button" class="sr-fs-btn" id="btnSrScheduleSettings" title="TV Faol vaqt oralig'ini sozlash (07:00 - 17:00)">⏱️ Ish vaqti</button>
+              <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
             </div>
-            <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
-          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT10-51 XONA</div>
+          <!-- Markaziy yirik xona sarlavhasi (UTT3-46 XONA) -->
+          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT3-46 XONA</div>
 
+          <!-- O'NG TOMONDAGI SANA VA SOAT (FOYDALANUVCHI TALABI: SOAT O'NG YUQORI BURCHAKDA BO'LSIN) -->
           <div class="sr-header-right">
-            <div class="sr-full-date" id="srFullDateUz">Seshanba 8 Sentabr 2026</div>
-            <div class="sr-full-clock" id="srFullClockTime">10:28:34</div>
+            <div class="sr-full-date" id="srFullDateUz">17 Sentabr 2026</div>
+            <div class="sr-full-clock" id="srFullClockTime">--:--:--</div>
           </div>
         </div>
 
         <div class="sr-main-card">
-          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)</div>
-          <div class="sr-table-scroll-container">
-            <table class="sr-patient-table">
-              <thead>
-                <tr>
-                  <th class="col-sr-name">ISM FAMILYA</th>
-                  <th class="col-sr-time">RO'YXATGA OLINGAN VAQTI</th>
-                  <th class="col-sr-queue">NAVBAT RAQAMI</th>
-                </tr>
+          <div class="sr-doctor-title" id="srDoctorFullTitle">
+            <span class="sr-doc-name-txt">Ultratovush-3(Abidjanov Alisher Maxamataliyevich)</span>
+            <span class="sr-page-badge" id="srPageBadge" style="display: none;">📄 Sahifa 1 / 2 (Jami: 9 ta)</span>
+          </div>
+          
+          <!-- Faol chaqirilayotgan bemor banneri (2-rejim Klassik v11.0.0 uchun) -->
+          <div id="srActiveCallContainer" style="display: none;"></div>
+
+          <!-- NAVBAT JADVALI (2-Rejim va 3-Rejim uchun) -->
+          <div class="sr-table-scroll-container" id="srTableContainer">
+            <table class="sr-patient-table" id="srPatientTable">
+              <thead id="srPatientTableHead">
+                <!-- Javascript orqali 2-rejimda 3 ustun, 3-rejimda 2 ustun chiziladi -->
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
+          </div>
+
+          <!-- 4-REJIM: BO'SH XONA EKRANI (BEMOR FISH YO'Q, KLASSIK ASL USLUB) -->
+          <div class="sr-classic-empty-box" id="srClassicEmptyBox" style="display: none;">
+            <div class="sr-empty-status-desc" id="srEmptyStateDesc">Kutayotgan bemor yo'q</div>
+            <div class="sr-empty-status-hint" id="srEmptyStateHint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>
 
@@ -250,22 +913,97 @@
       </div>
     </div>
 
+    <!-- 4.5 VRACH KO'RGAN BEMORLAR IFRAME MODAL OYNASI -->
+    <div id="doctorCompletedModal" class="doc-iframe-modal-overlay" style="display: none;">
+      <div class="doc-iframe-modal-box">
+        <div class="doc-iframe-modal-header">
+          <div class="dimh-title-wrap">
+            <span class="dimh-icon">👨‍⚕️</span>
+            <h3 class="dimh-title" id="dimhDoctorTitle">Vrach ko'rgan bemorlar</h3>
+            <span class="dimh-badge" id="dimhCompletedCountBadge">0 ta ko'rildi</span>
+          </div>
+          <div class="dimh-actions">
+            <button type="button" class="dimh-btn-newtab" id="btnDimhNewTab" title="Alohida yangi oynada ochish">⛶ Yangi oynada</button>
+            <button type="button" class="dimh-btn-close" id="btnDimhClose" title="Yopish (ESC)">✕</button>
+          </div>
+        </div>
+        <div class="doc-iframe-body">
+          <iframe id="docCompletedIframe" src="about:blank" frameborder="0"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.6 TV MONITORLAR FAOL VAQT ORALIG'I MODAL OYNASI -->
+    <div id="tvScheduleModal" class="schedule-modal-overlay" style="display: none;">
+      <div class="schedule-modal-card">
+        <div class="schedule-modal-header">
+          <div class="schedule-modal-title">
+            <span class="sched-icon">⏱️</span>
+            <h3>Monitorlar Faol Vaqt Oralig'i</h3>
+          </div>
+          <button type="button" class="schedule-modal-close" id="btnSchedClose" title="Yopish (Esc)">✕</button>
+        </div>
+        <div class="schedule-modal-body">
+          <p class="sched-subtitle">Android TV va monitor ekranlarining avtomatik o'chish / yoqilish jadvali:</p>
+          
+          <div class="sched-toggle-row">
+            <label class="sched-switch">
+              <input type="checkbox" id="schedEnabledCheck" checked>
+              <span class="sched-slider"></span>
+            </label>
+            <label for="schedEnabledCheck" class="sched-switch-label">Vaqt jadvali bo'yicha avto-o'chishni yoqish</label>
+          </div>
+
+          <div class="sched-time-inputs">
+            <div class="sched-input-col">
+              <label for="schedStartTime">☀️ Yoqilish vaqti (Ertalab):</label>
+              <input type="time" id="schedStartTime" value="07:00" class="sched-time-input">
+            </div>
+            <div class="sched-input-col">
+              <label for="schedEndTime">🌙 O'chish vaqti (Kechqurun):</label>
+              <input type="time" id="schedEndTime" value="17:00" class="sched-time-input">
+            </div>
+          </div>
+
+          <div class="sched-info-box">
+            💡 <b>Qoida:</b> Soat <b>07:00 dan 17:00 gacha</b> barcha ekranlar tanlangan rejimda navbatni to'liq ko'rsatadi. Soat <b>17:00 dan 07:00 gacha</b> esa xuddi TV o'chgandek to'liq <b>tim qora fon</b> holatiga o'tadi va ovozlar o'chadi.
+          </div>
+
+          <div class="sched-actions">
+            <button type="button" class="sched-btn-test" id="btnSchedTestBlackout" title="Qora fon qanday ko'rinishini 5 soniya sinab ko'rish">👁️ Tim qora fonni sinash</button>
+            <div class="sched-right-btns">
+              <button type="button" class="sched-btn-cancel" id="btnSchedCancel">Bekor qilish</button>
+              <button type="button" class="sched-btn-save" id="btnSchedSave">💾 Saqlash</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.7 TIM QORA FON (TV KUTISH / AVTO-O'CHISH REJIMI) -->
+    <div id="tvSleepBlackoutOverlay" class="tv-sleep-blackout-overlay" style="display: none;">
+      <div class="tv-sleep-wake-hint" id="tvSleepWakeHint" style="display: none;">
+        🌙 TV Kutish rejimi (Faol vaqt: <span id="tvSleepRangeText">07:00 - 17:00</span>) • Uyg'otish yoki sozlash uchun bosing
+      </div>
+    </div>
+
     <!-- 5. FOOTER -->
     <footer class="app-footer" id="mainAppFooter">
       <div class="footer-left">
-        <span>© 2026 Respublika Onkologiya Markazi • UTT Bo'limi</span>
+        <span>© 2026 Respublika Ixtisoslashtirilgan Onkologiya va Radiologiya Ilmiy-Amaliy Tibbiyot Markazi • UTT Bo'limi</span>
       </div>
       <div class="footer-center">
         <span>⚠️ Navbat bo'yicha savollar bo'lsa, xona oldidagi hamshiraga uchrashing</span>
+        <span class="tv-remote-hint" style="margin-left: 14px; background: rgba(59, 130, 246, 0.22); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.45); color: #93c5fd; font-weight: 700; font-size: 11.5px;">🎮 Pult: 1-9 = UTT 1..9 | 0 = UTT 10 | BACK = Barcha xonalar</span>
       </div>
       <div class="footer-right">
-        <span id="footerServerInfo">TV Monitor v7.0.0 • Git Tunnel Broker • Karmed Direct</span>
+        <span id="footerServerInfo">TV Monitor v11.6.0 • Jonli Navbat • Karmed Direct</span>
       </div>
     </footer>
 
   </div>
 
   <script src="chime_engine.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=11.6.0"></script>
 </body>
 </html>
