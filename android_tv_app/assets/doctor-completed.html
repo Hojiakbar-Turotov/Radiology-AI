@@ -472,6 +472,19 @@
       font-weight: 700;
       white-space: nowrap;
     }
+    .tag-earlier-reg {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(20, 184, 166, 0.22);
+      color: #2dd4bf;
+      border: 1px solid rgba(20, 184, 166, 0.5);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
     .tag-switched {
       display: inline-flex;
       align-items: center;
@@ -526,7 +539,8 @@
       </div>
     </div>
     <div class="stats-pills-row">
-      <div class="pill" style="background:rgba(34,197,94,0.22); color:#4ade80; border:1px solid rgba(34,197,94,0.5);" id="statPillSeenToday" title="Tanlangan sanada ko'rilgan bemorlar">🟢 Shu kuni: 0 ta</div>
+      <div class="pill" style="background:rgba(34,197,94,0.22); color:#4ade80; border:1px solid rgba(34,197,94,0.5);" id="statPillSeenToday" title="Tanlangan sanada ro'yxatdan o'tib, shu kuni ko'rilgan bemorlar">🟢 Shu kuni: 0 ta</div>
+      <div class="pill" style="background:rgba(20,184,166,0.22); color:#2dd4bf; border:1px solid rgba(20,184,166,0.5);" id="statPillSeenEarlierReg" title="Kecha yoki oldin ro'yxatdan o'tib, tanlangan kuni ko'rilgan bemorlar">🔄 Kechadan: 0 ta</div>
       <div class="pill" style="background:rgba(56,189,248,0.22); color:#38bdf8; border:1px solid rgba(56,189,248,0.5);" id="statPillSeenLater" title="Tanlangan sanada yo'naltirilib, keyingi kunda ko'rilganlar">🔵 Keyingi kunda: 0 ta</div>
       <div class="pill" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.5);" id="statPillWaiting" title="Tanlangan sanada yo'naltirilib hali ko'rikdan o'tmaganlar">🟡 Hali o'tmagan: 0 ta</div>
       <div class="pill" style="background:rgba(168,85,247,0.22); color:#c084fc; border:1px solid rgba(168,85,247,0.5);" id="statPillTotal" title="Barcha yo'naltirilgan bemorlar">🟣 Jami: 0 ta</div>
@@ -550,9 +564,10 @@
       </div>
 
       <div class="filter-pills-wrap">
-        <!-- 4 TA ASOSIY KO'RSATKICH FILTRLARI (v11.1.0) -->
+        <!-- 5 TA ASOSIY KO'RSATKICH FILTRLARI (v11.6.0) -->
         <button type="button" class="filter-btn active" data-filter="all">Barchasi</button>
         <button type="button" class="filter-btn" data-filter="seen_today" id="btnFilterSeenToday" style="color:#4ade80; font-weight:700;">🟢 Shu kuni ko'rilgan</button>
+        <button type="button" class="filter-btn" data-filter="seen_earlier_reg" id="btnFilterSeenEarlierReg" style="color:#2dd4bf; font-weight:700;">🔄 Kechadan (0)</button>
         <button type="button" class="filter-btn" data-filter="seen_later" id="btnFilterSeenLater" style="color:#38bdf8; font-weight:700;">🔵 Keyingi kunda</button>
         <button type="button" class="filter-btn" data-filter="waiting" id="btnFilterWaiting" style="color:#fbbf24; font-weight:700;">🟡 Hali o'tmagan</button>
 
@@ -642,8 +657,10 @@
           <th>
             <select class="col-filter-select" data-col="status">
               <option value="">Barchasi</option>
-              <option value="today">Bugun ko'rildi</option>
-              <option value="earlier">Oldin yo'naltirilgan</option>
+              <option value="seen_today">🟢 Shu kuni ko'rilgan</option>
+              <option value="seen_earlier_reg">🔄 Kecha ro'yxatdan o'tgan</option>
+              <option value="seen_later">🔵 Keyingi kunda ko'rilgan</option>
+              <option value="waiting">🟡 Hali ko'rikdan o'tmagan</option>
               <option value="switched">⚠️ Boshqa xonadan</option>
             </select>
           </th>
@@ -700,9 +717,11 @@
       // Statistika chiplari
       const statPillTotal = document.getElementById('statPillTotal');
       const statPillSeenToday = document.getElementById('statPillSeenToday');
+      const statPillSeenEarlierReg = document.getElementById('statPillSeenEarlierReg');
       const statPillSeenLater = document.getElementById('statPillSeenLater');
       const statPillWaiting = document.getElementById('statPillWaiting');
       const btnFilterSeenToday = document.getElementById('btnFilterSeenToday');
+      const btnFilterSeenEarlierReg = document.getElementById('btnFilterSeenEarlierReg');
       const btnFilterSeenLater = document.getElementById('btnFilterSeenLater');
       const btnFilterWaiting = document.getElementById('btnFilterWaiting');
       const statPillToday = document.getElementById('statPillToday');
@@ -861,7 +880,8 @@
       // Statistika hisob-kitobi va yangilash
       function updateStats() {
         const total = allCompletedPatients.length;
-        const seenTodayCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && (!p.timingCategory || p.timingCategory !== 'seen_later'))).length;
+        const seenTodayCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && p.isRegToday)).length;
+        const seenEarlierRegCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday))).length;
         const seenLaterCount = allCompletedPatients.filter(p => p.timingCategory === 'seen_later').length;
         const waitingCount = allCompletedPatients.filter(p => p.timingCategory === 'waiting' || (p.statusCode === 1 && !p.isConfirmedToday)).length;
 
@@ -889,11 +909,13 @@
         });
 
         if (statPillSeenToday) statPillSeenToday.textContent = `🟢 Shu kuni: ${seenTodayCount} ta`;
+        if (statPillSeenEarlierReg) statPillSeenEarlierReg.textContent = `🔄 Kechadan: ${seenEarlierRegCount} ta`;
         if (statPillSeenLater) statPillSeenLater.textContent = `🔵 Keyingi kunda: ${seenLaterCount} ta`;
         if (statPillWaiting) statPillWaiting.textContent = `🟡 Hali o'tmagan: ${waitingCount} ta`;
         if (statPillTotal) statPillTotal.textContent = `🟣 Jami: ${total} ta`;
 
         if (btnFilterSeenToday) btnFilterSeenToday.textContent = `🟢 Shu kuni (${seenTodayCount})`;
+        if (btnFilterSeenEarlierReg) btnFilterSeenEarlierReg.textContent = `🔄 Kechadan (${seenEarlierRegCount})`;
         if (btnFilterSeenLater) btnFilterSeenLater.textContent = `🔵 Keyingi kunda (${seenLaterCount})`;
         if (btnFilterWaiting) btnFilterWaiting.textContent = `🟡 Hali o'tmagan (${waitingCount})`;
 
@@ -926,7 +948,9 @@
 
         // 1. Tepa tezkor filtr tugmalari (Filter Pills)
         if (currentFilterPill === 'seen_today') {
-          list = list.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && (!p.timingCategory || p.timingCategory !== 'seen_later')));
+          list = list.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && p.isRegToday));
+        } else if (currentFilterPill === 'seen_earlier_reg') {
+          list = list.filter(p => p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday)));
         } else if (currentFilterPill === 'seen_later') {
           list = list.filter(p => p.timingCategory === 'seen_later');
         } else if (currentFilterPill === 'waiting') {
@@ -1010,8 +1034,10 @@
         }
 
         if (colFilters.status) {
-          if (colFilters.status === 'today') list = list.filter(p => p.isRegToday);
-          else if (colFilters.status === 'earlier') list = list.filter(p => p.isRegEarlier || p.isRegYesterday);
+          if (colFilters.status === 'seen_today') list = list.filter(p => p.timingCategory === 'seen_today' || (p.isConfirmedToday && p.isRegToday));
+          else if (colFilters.status === 'seen_earlier_reg') list = list.filter(p => p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday)));
+          else if (colFilters.status === 'seen_later') list = list.filter(p => p.timingCategory === 'seen_later');
+          else if (colFilters.status === 'waiting') list = list.filter(p => p.timingCategory === 'waiting' || (p.statusCode === 1 && !p.isConfirmedToday));
           else if (colFilters.status === 'switched') list = list.filter(p => p.hasDoctorSwitch || (p.queuedRoom && p.examiningRoom && p.queuedRoom !== p.examiningRoom));
         }
 
@@ -1052,8 +1078,8 @@
               valB = `${b.confirmationDate || ''} ${b.confirmationTime || ''}`;
               break;
             case 'status':
-              valA = a.hasDoctorSwitch ? '0' : (a.isRegToday ? '1' : '2');
-              valB = b.hasDoctorSwitch ? '0' : (b.isRegToday ? '1' : '2');
+              valA = a.hasDoctorSwitch ? '0' : (a.timingCategory === 'seen_earlier_reg' ? '2' : (a.isRegToday ? '1' : '3'));
+              valB = b.hasDoctorSwitch ? '0' : (b.timingCategory === 'seen_earlier_reg' ? '2' : (b.isRegToday ? '1' : '3'));
               break;
             default:
               return 0;
@@ -1126,6 +1152,10 @@
           let statusTag = '';
           if (p.timingCategory === 'seen_today') {
             statusTag = `<span class="tag-completed" style="background:rgba(34,197,94,0.2); color:#4ade80; border:1px solid rgba(34,197,94,0.45);">🟢 Shu kuni ko'rilgan</span>`;
+          } else if (p.timingCategory === 'seen_earlier_reg' || (p.isConfirmedToday && (p.isRegEarlier || p.isRegYesterday))) {
+            const regTitle = p.isRegYesterday ? "Kecha ro'yxatdan o'tgan, shu kuni ko'rilgan" : (p.registrationDate ? `${p.registrationDate} da ro'yxatdan o'tgan, shu kuni ko'rilgan` : "Oldin ro'yxatdan o'tgan");
+            const regBadgeText = p.isRegYesterday ? "Kecha ro'yxatdan o'tgan" : (p.registrationDate ? `${p.registrationDate} da ro'yxat` : "Oldin ro'yxatdan");
+            statusTag = `<span class="tag-earlier-reg" style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; font-size:11.5px; font-weight:700; background:rgba(20,184,166,0.22); color:#2dd4bf; border:1px solid rgba(20,184,166,0.5);" title="${escapeHtml(p.timingCategoryTitle || regTitle)}">🔄 ${escapeHtml(regBadgeText)}</span>`;
           } else if (p.timingCategory === 'seen_later') {
             statusTag = `<span class="tag-earlier-completed" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.45);" title="${escapeHtml(p.confirmationDate || '')} da o'tgan">🔵 Keyingi kunda (${escapeHtml(p.confirmationDate || 'keyin')})</span>`;
           } else if (p.timingCategory === 'waiting' || p.statusCode === 1) {
@@ -1142,7 +1172,12 @@
             ? `<span class="tag-switched" title="${escapeHtml(p.switchText || (p.queuedRoom + ' dan o\'tgan'))}">⚠️ ${escapeHtml(p.queuedRoom || 'Boshqa xona')}dan o'tgan</span>`
             : '';
 
-          const regDateTime = `${escapeHtml(p.registrationDate || '-')} ${escapeHtml(p.registrationTime || '')}`.trim();
+          const isEarlierPatient = p.timingCategory === 'seen_earlier_reg' || p.isRegEarlier || p.isRegYesterday;
+          const regDateStr = p.registrationDate || (p.registrationIso ? p.registrationIso.split('-').reverse().join('.') : '-');
+          const regDateTime = isEarlierPatient 
+            ? `<span style="color:#2dd4bf; font-weight:700;" title="Kechadan yoki oldin yo'naltirilgan: ${escapeHtml(regDateStr)}">🔄 ${escapeHtml(regDateStr)} ${escapeHtml(p.registrationTime || '')}</span>`
+            : `${escapeHtml(regDateStr)} ${escapeHtml(p.registrationTime || '')}`.trim();
+
           const confDateTime = p.confirmationDate ? `✅ ${escapeHtml(p.confirmationDate)} ${escapeHtml(p.confirmationTime || '')}` : '—';
 
           return `

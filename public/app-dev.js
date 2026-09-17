@@ -442,11 +442,24 @@
     if (btnModePost) btnModePost.classList.toggle('active', mode === 'post');
     if (btnModeMobile) btnModeMobile.classList.toggle('active', mode === 'mobile');
 
+    const mainAppHeader = document.getElementById('mainAppHeader');
+    const topInfoBar = document.getElementById('topInfoBar');
+    const mainAppFooter = document.getElementById('mainAppFooter');
+    const srHeaderBranding = document.getElementById('srHeaderBranding');
+    const srBigRoomNumberTitle = document.getElementById('srBigRoomNumberTitle');
+
+    const isSingleRoomMode = (mode === 'single-room' || mode === 'classic-room' || mode === 'empty-room');
+
+    if (mainAppHeader) mainAppHeader.style.display = isSingleRoomMode ? 'none' : 'flex';
+    if (topInfoBar) topInfoBar.style.display = isSingleRoomMode ? 'none' : 'flex';
+    if (mainAppFooter) mainAppFooter.style.display = isSingleRoomMode ? 'none' : 'flex';
+
     if (roomSelectorWrap) {
       roomSelectorWrap.style.display = (mode === 'single-room' || mode === 'classic-room' || mode === 'empty-room' || mode === 'tv') ? 'flex' : 'none';
     }
 
     if (mode === 'tv') {
+      if (srHeaderBranding) srHeaderBranding.style.display = 'none';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'flex';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'block';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
@@ -458,6 +471,8 @@
     } else if (mode === 'single-room') {
       singleRoomPage = 0;
       singleRoomLastSwitchTime = Date.now();
+      if (srHeaderBranding) srHeaderBranding.style.display = 'none';
+      if (srBigRoomNumberTitle) srBigRoomNumberTitle.style.display = 'block';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
@@ -473,6 +488,8 @@
     } else if (mode === 'classic-room') {
       singleRoomPage = 0;
       singleRoomLastSwitchTime = Date.now();
+      if (srHeaderBranding) srHeaderBranding.style.display = 'none';
+      if (srBigRoomNumberTitle) srBigRoomNumberTitle.style.display = 'block';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
@@ -488,6 +505,8 @@
     } else if (mode === 'empty-room') {
       singleRoomPage = 0;
       singleRoomLastSwitchTime = Date.now();
+      if (srHeaderBranding) srHeaderBranding.style.display = 'flex';
+      if (srBigRoomNumberTitle) srBigRoomNumberTitle.style.display = 'none';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
@@ -501,6 +520,7 @@
       const cleanParam = currentRoomId.replace('Ultratovush-', '');
       try { history.replaceState(null, '', `?mode=empty&room=${encodeURIComponent(cleanParam)}`); } catch (e) {}
     } else if (mode === 'post') {
+      if (srHeaderBranding) srHeaderBranding.style.display = 'none';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'flex';
@@ -510,6 +530,7 @@
       renderPostView();
       try { history.replaceState(null, '', '?mode=post'); } catch (e) {}
     } else if (mode === 'mobile') {
+      if (srHeaderBranding) srHeaderBranding.style.display = 'none';
       if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
       if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
       if (selectedPillWrap) selectedPillWrap.style.display = 'none';
@@ -1740,13 +1761,70 @@
     const now = getServerNow();
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
 
-    // 4-REJIM: XONADA BEMOR YO'Q HOLATI (Bemorlar haqida hech qanday ma'lumot berilmaydi)
+    // 4-REJIM: XONA EKRANI (BEMOR FISH CHIQMASIN, ASOSIY REJIM USLUBI)
     if (currentMode === 'empty-room') {
       if (srTableContainer) srTableContainer.style.display = 'none';
       if (srActiveCallContainer) srActiveCallContainer.style.display = 'none';
       if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'flex';
-      if (srDoctorFullTitle) {
-        srDoctorFullTitle.textContent = `${displayRoom}(${doctorName})`;
+
+      // Xona va shifokor nomi
+      const darkBadge = document.getElementById('srDarkRoomBadge');
+      const darkDoc = document.getElementById('srDarkDocName');
+      if (darkBadge) darkBadge.textContent = roomTitle;
+      if (darkDoc) darkDoc.textContent = doctorName;
+
+      // 4 ta ko'rsatkich (Aynan asosiy rejimdagi kabi!)
+      const seenToday = targetDoc ? (targetDoc.seenTodayCount || targetDoc.completedTodayCount || 0) : 0;
+      const seenEarlier = targetDoc ? (targetDoc.seenEarlierRegCount || targetDoc.completedEarlierCount || 0) : 0;
+      const seenLater = targetDoc ? (targetDoc.seenLaterCount || 0) : 0;
+      const waiting = targetDoc ? (typeof targetDoc.waitingCount === 'number' ? targetDoc.waitingCount : waitingPatients.length) : waitingPatients.length;
+      const total = targetDoc ? (typeof targetDoc.totalCount === 'number' ? targetDoc.totalCount : (seenToday + seenEarlier + seenLater + waiting)) : (seenToday + seenEarlier + seenLater + waiting);
+
+      const elToday = document.getElementById('srDfmToday');
+      const elEarlier = document.getElementById('srDfmEarlier');
+      const elLater = document.getElementById('srDfmLater');
+      const elWaiting = document.getElementById('srDfmWaiting');
+      const elTotal = document.getElementById('srDfmTotal');
+
+      if (elToday) elToday.textContent = seenToday;
+      if (elEarlier) elEarlier.textContent = seenEarlier;
+      if (elLater) elLater.textContent = seenLater;
+      if (elWaiting) elWaiting.textContent = waiting;
+      if (elTotal) elTotal.textContent = total;
+
+      // Chaqiruv yoki qabul holati (FAQAT NAVBAT RAQAMI, BEMOR FISH CHIQMAYDI!)
+      const activeCall = activeCalls[targetDoc ? targetDoc.room : currentRoomId] || activeCalls[currentRoomId];
+      const callBanner = document.getElementById('srDarkCallBanner');
+      const emptyBox = document.getElementById('srDarkEmptyBox');
+      const emptyTitle = document.getElementById('srDarkEmptyTitle');
+      const emptyDesc = document.getElementById('srDarkEmptyDesc');
+      const emptyHint = document.getElementById('srDarkEmptyHint');
+
+      if (activeCall && activeCall.queueNo) {
+        const isAccepted = (activeCall.status === 'accepted');
+        if (callBanner) {
+          callBanner.style.display = 'flex';
+          callBanner.className = `sr-dark-call-banner ${isAccepted ? 'banner-accepted' : 'banner-calling'}`;
+          callBanner.innerHTML = `
+            <span class="banner-pulse-dot"></span>
+            <span>${isAccepted ? '🟢 HOZIR QABULDA: NAVBAT № ' + activeCall.queueNo : '📢 QABULGA CHAQIRILDI: NAVBAT № ' + activeCall.queueNo}</span>
+          `;
+        }
+        if (emptyBox) emptyBox.style.display = 'none';
+      } else {
+        if (callBanner) callBanner.style.display = 'none';
+        if (emptyBox) {
+          emptyBox.style.display = 'flex';
+          if (waiting > 0) {
+            if (emptyTitle) emptyTitle.textContent = "XONADA BEMOR YO'Q";
+            if (emptyDesc) emptyDesc.textContent = `Navbatda kutayotganlar: ${waiting} ta`;
+            if (emptyHint) emptyHint.textContent = "Iltimos, shifokor chaqiruvini kuting";
+          } else {
+            if (emptyTitle) emptyTitle.textContent = "XONADA BEMOR YO'Q";
+            if (emptyDesc) emptyDesc.textContent = "Navbat kutayotganlar yo'q";
+            if (emptyHint) emptyHint.textContent = "Iltimos, shifokor chaqiruvini kuting";
+          }
+        }
       }
       return;
     }

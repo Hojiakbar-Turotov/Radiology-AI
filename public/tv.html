@@ -840,6 +840,15 @@
             <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
+          <!-- Markaz logotipi va rasmiy sarlavhasi (4-rejimda chiqadi) -->
+          <div class="sr-header-branding" id="srHeaderBranding" style="display: none;">
+            <img src="icons/logo-onko.png" alt="Logo" class="sr-brand-logo" onerror="this.style.display='none'">
+            <div class="sr-brand-titles">
+              <div class="sr-brand-org">RESPUBLIKA IXTISOSLASHTIRILGAN ONKOLOGIYA VA RADIOLOGIYA TIBBIYOT MARKAZI</div>
+              <div class="sr-brand-dept">Ultratovush Tekshiruvi (UTT) Bo'limi • TV Jonli Xona Monitori</div>
+            </div>
+          </div>
+
           <div class="sr-center-title" id="srBigRoomNumberTitle">UTT8-49 XONA</div>
 
           <div class="sr-header-right">
@@ -864,12 +873,45 @@
             </table>
           </div>
 
-          <!-- 4-REJIM: XONADA BEMOR YO'Q HOLATI (Bemorlar haqida ma'lumot berilmaydi) -->
+          <!-- 4-REJIM: XONA EKRANI (BEMOR FISH CHIQMASIN, ASOSIY REJIM USLUBI) -->
           <div class="sr-empty-room-box" id="srEmptyRoomBox" style="display: none;">
-            <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
-            <div class="sr-empty-title">XONADA BEMOR YO'Q</div>
-            <div class="sr-empty-desc">Navbat kutayotganlar yo'q</div>
-            <div class="sr-empty-footer-hint">Iltimos, shifokor chaqiruvini kuting</div>
+            <div class="sr-dark-card-header" id="srDarkCardHeader">
+              <div class="sr-dark-room-badge" id="srDarkRoomBadge">UTT-X XONA</div>
+              <div class="sr-dark-doc-name" id="srDarkDocName">Vrach F.I.SH.</div>
+            </div>
+            
+            <div class="sr-dark-four-metrics" id="srDarkFourMetrics">
+              <div class="dfm-item dfm-today" title="Shu kuni ko'rilgan bemorlar soni">
+                <span class="dfm-num" id="srDfmToday">0</span>
+                <span class="dfm-label">Shu kuni</span>
+              </div>
+              <div class="dfm-item dfm-earlier" title="Kechadan yoki oldin ro'yxatdan o'tib ko'rilgan">
+                <span class="dfm-num" id="srDfmEarlier">0</span>
+                <span class="dfm-label">Kechadan</span>
+              </div>
+              <div class="dfm-item dfm-later" title="Keyingi kunda ko'rilgan">
+                <span class="dfm-num" id="srDfmLater">0</span>
+                <span class="dfm-label">Keyingi kunda</span>
+              </div>
+              <div class="dfm-item dfm-pending" title="Hali o'tmagan (kutayotgan)">
+                <span class="dfm-num" id="srDfmWaiting">0</span>
+                <span class="dfm-label">Hali o'tmagan</span>
+              </div>
+              <div class="dfm-item dfm-total" title="Jami biriktirilgan">
+                <span class="dfm-num" id="srDfmTotal">0</span>
+                <span class="dfm-label">Jami</span>
+              </div>
+            </div>
+
+            <div class="sr-dark-status-area" id="srDarkStatusArea">
+              <div class="sr-dark-call-banner" id="srDarkCallBanner" style="display: none;"></div>
+              <div class="sr-dark-empty-box" id="srDarkEmptyBox">
+                <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
+                <div class="sr-dark-empty-title" id="srDarkEmptyTitle">XONADA BEMOR YO'Q</div>
+                <div class="sr-dark-empty-desc" id="srDarkEmptyDesc">Navbat kutayotganlar yo'q</div>
+                <div class="sr-dark-empty-hint" id="srDarkEmptyHint">Iltimos, shifokor chaqiruvini kuting</div>
+              </div>
+            </div>
           </div>
         </div>
 
