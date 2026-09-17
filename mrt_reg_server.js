@@ -130,26 +130,15 @@ function sendJson(res, data, code = 200) {
 }
 
 function getClientIp(req) {
-  let ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket.remoteAddress;
-  if (!ip) ip = '127.0.0.1';
-  return ip.replace('::ffff:', '').trim();
+  return unifiedCore.getClientIp(req);
 }
 
 function isLocalhost(ip) {
-  return ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip === '10.34.14.33';
+  return unifiedCore.isLocalhost(ip);
 }
 
 function checkClientIpPermission(req) {
-  const ip = getClientIp(req);
-  if (isLocalhost(ip)) {
-    return { allowed: true, role: 'full', ip, isServer: true };
-  }
-  const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-  const entry = (data.allowed || []).find(a => a.ip === ip && a.status === 'approved');
-  if (entry) {
-    return { allowed: true, role: entry.role || 'full', ip, entry };
-  }
-  return { allowed: false, role: 'none', ip };
+  return unifiedCore.checkClientIpPermission(req, true);
 }
 
 // -------------------------------------------------------------
@@ -1186,23 +1175,10 @@ const server = http.createServer(async (req, res) => {
     // Agar IP ga ruxsat berilmagan bo'lsa
     if (pathname === '/api/request-access' && req.method === 'POST') {
       const body = await readBody(req);
-      const pcName = body.name || 'Lokal Kompyuter';
-      
-      const ipData = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-      ipData.pending = ipData.pending || [];
-
-      let pEntry = ipData.pending.find(p => p.ip === clientPerm.ip);
-      if (!pEntry) {
-        pEntry = {
-          ip: clientPerm.ip,
-          name: pcName,
-          requestedAt: new Date().toISOString()
-        };
-        ipData.pending.push(pEntry);
-        writeJson(ALLOWED_IPS_FILE, ipData);
-      }
-
-      return sendJson(res, { success: true, message: "Ruxsat so'rovi adminga yuborildi", entry: pEntry });
+      const pcName = String(body.name || '').trim() || 'Lokal Kompyuter';
+      const userAgent = req.headers ? req.headers['user-agent'] : '';
+      const rec = unifiedCore.recordIpAttempt(clientPerm.ip, userAgent, pathname, pcName);
+      return sendJson(res, { success: true, message: "Ruxsat so'rovi adminga yuborildi", entry: rec ? rec.entry : null });
     }
 
     if (pathname === '/api/check-access') {
@@ -1223,6 +1199,25 @@ const server = http.createServer(async (req, res) => {
     // GET /api/check-access - IP ruxsat holatini tekshirish
     if (pathname === '/api/check-access') {
       return sendJson(res, { allowed: true, role: clientPerm.role, ip: clientPerm.ip });
+    }
+
+    // GET /api/admin/ips - Ruxsat berilgan va kutilayotgan IP lar ro'yxati
+    if (pathname === '/api/admin/ips' && req.method === 'GET') {
+      return sendJson(res, unifiedCore.getAllowedIps());
+    }
+
+    // POST /api/admin/ips/approve - IP ga ruxsat berish (full yoki view_only)
+    if (pathname === '/api/admin/ips/approve' && req.method === 'POST') {
+      const body = await readBody(req);
+      const resData = unifiedCore.approveIp(body.ip, body.name, body.role);
+      return sendJson(res, resData, resData.success ? 200 : 400);
+    }
+
+    // POST /api/admin/ips/reject - IP ni rad etish yoki ro'yxatdan o'chirish
+    if (pathname === '/api/admin/ips/reject' && req.method === 'POST') {
+      const body = await readBody(req);
+      const resData = unifiedCore.rejectIp(body.ip);
+      return sendJson(res, resData, resData.success ? 200 : 400);
     }
 
     // POST /api/auth/login (va /api/operator/login) - Operator autentifikatsiyasi (TB1, TB2, TB3 / 14520)
@@ -1629,11 +1624,12 @@ function renderAccessDeniedHtml(ip) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 32px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
+    .card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
     .icon { font-size: 54px; color: #ef4444; margin-bottom: 16px; }
     h2 { margin: 0 0 10px 0; font-size: 22px; font-weight: 900; }
     p { color: #64748b; font-size: 14px; line-height: 1.5; margin: 0 0 20px 0; }
-    .ip-badge { background: #fee2e2; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-weight: 900; font-family: monospace; font-size: 15px; display: inline-block; margin-bottom: 20px; }
+    .ip-badge { background: #fee2e2; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-weight: 900; font-family: monospace; font-size: 16px; display: inline-block; margin-bottom: 16px; }
+    .auto-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; font-size: 13px; color: #1e40af; margin-bottom: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
     input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
     button { width: 100%; padding: 12px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; transition: background 0.2s; }
     button:hover { background: #0369a1; }
@@ -1646,19 +1642,27 @@ function renderAccessDeniedHtml(ip) {
     <h2>Kirish Cheklangan</h2>
     <p>Ushbu kompyuter uchun Navbat Portali (Port 9891) ga kirish ruxsati hali tasdiqlanmagan.</p>
     <div class="ip-badge">Sizning IP: ${ip}</div>
+
+    <div class="auto-notice">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>IP manzilingiz adminga yetkazildi. Ruxsat kutilmoqda...</span>
+    </div>
     
     <div id="requestArea">
       <input type="text" id="pcName" placeholder="Kompyuter nomi (masalan: 1-MRT Laborant xonasi)" required>
-      <button onclick="submitAccessRequest()"><i class="fa-solid fa-paper-plane"></i> Admindan Ruxsat So'rash</button>
-      <div style="font-size:12px; color:#94a3b8; margin-top:12px;">Ruxsat berilgach, sahifani yangilang yoki avtomatik ochiladi.</div>
+      <button onclick="submitAccessRequest()"><i class="fa-solid fa-paper-plane"></i> Kompyuter nomini yuborish</button>
+      <div style="font-size:12px; color:#94a3b8; margin-top:12px;">Admin ruxsat berishi bilanoq ushbu oyna avtomatik ochiladi.</div>
     </div>
 
     <div id="successMsg" class="alert-success">
-      ✅ Ruxsat so'rovi yuborildi! Asosiy serverdagi admin (http://localhost:9890/control) ruxsat bergach sahifa avtomatik ochiladi.
+      ✅ Kompyuter nomi saqlandi! Admin tasdiqlashi bilan sahifa avtomatik ochiladi.
     </div>
   </div>
 
   <script>
+    // Sahifa ochilishi bilanoq avtomatik tekshiruvni boshlash
+    setInterval(checkAccessPeriodically, 2000);
+
     async function submitAccessRequest() {
       const name = document.getElementById("pcName").value.trim() || "Lokal Kompyuter";
       try {
@@ -1671,7 +1675,6 @@ function renderAccessDeniedHtml(ip) {
         if (d.success) {
           document.getElementById("requestArea").style.display = "none";
           document.getElementById("successMsg").style.display = "block";
-          setInterval(checkAccessPeriodically, 3000);
         }
       } catch (e) {
         alert("Server bilan ulanish xatosi");

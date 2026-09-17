@@ -1466,6 +1466,7 @@
       try { loadSchedulesAdmin(); } catch (e) {}
       initWebSocket();
       checkBackendHealthStatus();
+      setInterval(loadAllowedIps, 4000);
     });
 
     function startLiveClock() {
@@ -1480,11 +1481,13 @@
       }, 1000);
     }
 
-    function switchTab(tabId) {
+    function switchTab(tabId, clickedBtn) {
       document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
       document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      event.currentTarget.classList.add("active");
+      const targetSec = document.getElementById(tabId);
+      if (targetSec) targetSec.classList.add("active");
+      const btn = clickedBtn || (typeof event !== 'undefined' && event && event.currentTarget ? event.currentTarget : document.querySelector(`.tab-btn[onclick*="${tabId}"]`));
+      if (btn) btn.classList.add("active");
 
       if (tabId === "tab-live-queue") {
         loadQueue(document.getElementById("queueDateSelect").value);
@@ -1537,6 +1540,8 @@
             if (data.type === "queue_updated" || data.type === "queue_init") {
               const curDate = document.getElementById("queueDateSelect").value;
               loadQueue(curDate);
+            } else if (data.type === "allowed_ips_updated" || data.type === "ip_requested") {
+              loadAllowedIps();
             }
           } catch (e) {}
         };
@@ -2363,69 +2368,83 @@
         const pList = document.getElementById("pendingIpsList");
 
         if (data.pending && data.pending.length > 0) {
-          badge.style.display = "inline-block";
-          badge.innerText = data.pending.length;
-          pCard.style.display = "block";
+          if (badge) {
+            badge.style.display = "inline-block";
+            badge.innerText = `${data.pending.length} ta so'rov`;
+          }
+          if (pCard) pCard.style.display = "block";
 
-          pList.innerHTML = data.pending.map(p => `
-            <div style="background:#fff; border:1px solid #fca5a5; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-              <div>
-                <strong style="color:#991b1b; font-size:14px;"><i class="fa-solid fa-desktop"></i> ${escapeHtml(p.name || 'Noma\'lum')}</strong>
-                <div style="font-family:monospace; font-size:13px; color:#475569; margin-top:2px;">IP: <b>${escapeHtml(p.ip)}</b> | So'ralgan: ${p.requestedAt ? new Date(p.requestedAt).toLocaleTimeString('uz-UZ') : ''}</div>
+          if (pList) {
+            pList.innerHTML = data.pending.map(p => `
+              <div style="background:#ffffff; border:1.5px solid #f87171; border-radius:10px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; box-shadow:0 2px 8px rgba(239,68,68,0.08);">
+                <div>
+                  <div style="font-size:15px; font-weight:900; color:#991b1b; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>${escapeHtml(p.name || 'Lokal Kompyuter')}</span>
+                  </div>
+                  <div style="font-family:monospace; font-size:13px; color:#334155; margin-top:4px;">
+                    IP: <b style="color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:4px; font-size:14px;">${escapeHtml(p.ip)}</b> 
+                    &bull; So'ralgan: <b>${p.requestedAt ? new Date(p.requestedAt).toLocaleTimeString('uz-UZ') : ''}</b>
+                    ${p.attemptsCount > 1 ? ` &bull; Urinishlar: <b style="color:#ef4444;">${p.attemptsCount} marta</b>` : ''}
+                    ${p.lastPath ? ` &bull; Sahifa: <code style="font-size:11px; background:#f1f5f9; padding:2px 4px; border-radius:4px;">${escapeHtml(p.lastPath)}</code>` : ''}
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn btn-success btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'full')" style="background:#16a34a; color:#fff; font-weight:800; padding:6px 12px;">
+                    <i class="fa-solid fa-check"></i> ✅ To'liq ruxsat (Registratura)
+                  </button>
+                  <button class="btn btn-warning btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'view_only')" style="background:#f59e0b; color:#fff; font-weight:800; padding:6px 12px;">
+                    <i class="fa-solid fa-eye"></i> 👁️ Faqat kuzatish (Laborant)
+                  </button>
+                  <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(p.ip)}')" style="background:#dc2626; color:#fff; font-weight:800; padding:6px 12px;">
+                    <i class="fa-solid fa-xmark"></i> ❌ Rad etish
+                  </button>
+                </div>
               </div>
-              <div style="display:flex; gap:8px;">
-                <button class="btn btn-success btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'full')">
-                  <i class="fa-solid fa-check"></i> Navbatga qo'yish va kuzatish
-                </button>
-                <button class="btn btn-warning btn-small" onclick="approveIp('${escapeHtml(p.ip)}', '${escapeHtml(p.name || 'Lokal PC')}', 'view_only')">
-                  <i class="fa-solid fa-eye"></i> Faqat kuzatish
-                </button>
-                <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(p.ip)}')">
-                  <i class="fa-solid fa-xmark"></i> Rad etish
-                </button>
-              </div>
-            </div>
-          `).join("");
+            `).join("");
+          }
         } else {
-          badge.style.display = "none";
-          pCard.style.display = "none";
+          if (badge) badge.style.display = "none";
+          if (pCard) pCard.style.display = "none";
         }
 
         const tbody = document.getElementById("allowedIpsTableBody");
-        if (!data.allowed || data.allowed.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">Hozircha qo'shimcha IP manzillar ruxsat berilmagan</td></tr>`;
-          return;
+        if (tbody) {
+          if (!data.allowed || data.allowed.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">Hozircha qo'shimcha IP manzillar ruxsat berilmagan</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = data.allowed.map(a => {
+            const isLocal = a.ip === '127.0.0.1' || a.ip === '::1' || a.ip === '10.34.14.33';
+            const roleLabel = a.role === 'full' 
+              ? '<span class="status-badge" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-check-double"></i> Navbatga qo\'yish va kuzatish</span>'
+              : '<span class="status-badge" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-eye"></i> Faqat kuzatish (Laborant)</span>';
+
+            const timeStr = a.approvedAt ? new Date(a.approvedAt).toLocaleDateString('uz-UZ') + ' ' + new Date(a.approvedAt).toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'}) : '-';
+
+            return `
+              <tr>
+                <td style="font-family:monospace; font-weight:800; font-size:14px; color:#0284c7;">${escapeHtml(a.ip)}</td>
+                <td><strong>${escapeHtml(a.name || 'Kompyuter')}</strong> ${isLocal ? '<span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; margin-left:4px;">Server</span>' : ''}</td>
+                <td>${roleLabel}</td>
+                <td style="font-size:12px; color:#64748b;">${timeStr}</td>
+                <td style="text-align:center;">
+                  ${isLocal ? '<span style="font-size:11px; color:#94a3b8;">Asosiy server</span>' : `
+                    <div style="display:inline-flex; gap:6px;">
+                      <button class="btn btn-small" style="background:#f1f5f9; color:#334155;" onclick="toggleRoleIp('${escapeHtml(a.ip)}', '${a.role === 'full' ? 'view_only' : 'full'}')">
+                        <i class="fa-solid fa-arrows-rotate"></i> Rolni almashtirish
+                      </button>
+                      <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(a.ip)}')">
+                        <i class="fa-solid fa-trash"></i> O'chirish
+                      </button>
+                    </div>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join("");
         }
-
-        tbody.innerHTML = data.allowed.map(a => {
-          const isLocal = a.ip === '127.0.0.1' || a.ip === '::1' || a.ip === '10.34.14.33';
-          const roleLabel = a.role === 'full' 
-            ? '<span class="status-badge" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-check-double"></i> Navbatga qo\'yish va kuzatish</span>'
-            : '<span class="status-badge" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-eye"></i> Faqat kuzatish (Laborant)</span>';
-
-          const timeStr = a.approvedAt ? new Date(a.approvedAt).toLocaleDateString('uz-UZ') + ' ' + new Date(a.approvedAt).toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'}) : '-';
-
-          return `
-            <tr>
-              <td style="font-family:monospace; font-weight:800; font-size:14px; color:#0284c7;">${escapeHtml(a.ip)}</td>
-              <td><strong>${escapeHtml(a.name || 'Kompyuter')}</strong> ${isLocal ? '<span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; margin-left:4px;">Server</span>' : ''}</td>
-              <td>${roleLabel}</td>
-              <td style="font-size:12px; color:#64748b;">${timeStr}</td>
-              <td style="text-align:center;">
-                ${isLocal ? '<span style="font-size:11px; color:#94a3b8;">Asosiy server</span>' : `
-                  <div style="display:inline-flex; gap:6px;">
-                    <button class="btn btn-small" style="background:#f1f5f9; color:#334155;" onclick="toggleRoleIp('${escapeHtml(a.ip)}', '${a.role === 'full' ? 'view_only' : 'full'}')">
-                      <i class="fa-solid fa-arrows-rotate"></i> Rolni almashtirish
-                    </button>
-                    <button class="btn btn-danger btn-small" onclick="rejectIp('${escapeHtml(a.ip)}')">
-                      <i class="fa-solid fa-trash"></i> O'chirish
-                    </button>
-                  </div>
-                `}
-              </td>
-            </tr>
-          `;
-        }).join("");
 
       } catch (e) {
         console.error("loadAllowedIps error:", e);
@@ -2470,18 +2489,23 @@
     }
 
     async function addManualIp() {
-      const ip = document.getElementById("newIpAddress").value.trim();
-      const name = document.getElementById("newIpName").value.trim() || `Kompyuter (${ip})`;
-      const role = document.getElementById("newIpRole").value;
+      const ipInput = document.getElementById("newIpAddress");
+      const nameInput = document.getElementById("newIpName");
+      const roleInput = document.getElementById("newIpRole");
+
+      const ip = (ipInput ? ipInput.value : '').trim();
+      const name = (nameInput ? nameInput.value : '').trim() || `Kompyuter (${ip})`;
+      const role = (roleInput ? roleInput.value : 'full');
 
       if (!ip) {
-        alert("Iltimos, IP manzilni kiriting!");
+        alert("Iltimos, qo'shilishi kerak bo'lgan IP manzilni kiriting!\nMasalan: 10.34.14.187");
+        if (ipInput) ipInput.focus();
         return;
       }
 
       await approveIp(ip, name, role);
-      document.getElementById("newIpAddress").value = "";
-      document.getElementById("newIpName").value = "";
+      if (ipInput) ipInput.value = "";
+      if (nameInput) nameInput.value = "";
     }
 
     // -------------------------------------------------------------

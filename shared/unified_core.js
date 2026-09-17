@@ -233,17 +233,76 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
+function cleanIp(raw) {
+  if (!raw) return '127.0.0.1';
+  let ip = String(raw).trim();
+  if (ip.startsWith('::ffff:')) ip = ip.slice(7);
+  if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(ip)) {
+    ip = ip.split(':')[0];
+  }
+  return ip.trim();
+}
+
 function getClientIp(req) {
-  let ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket.remoteAddress;
-  if (!ip) ip = '127.0.0.1';
-  return ip.replace('::ffff:', '').trim();
+  let ip = (req.headers && req.headers['cf-connecting-ip']) || 
+           (req.headers && req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) || 
+           (req.socket ? req.socket.remoteAddress : null);
+  return cleanIp(ip);
 }
 
 function isLocalhost(ip) {
-  return ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip === '10.34.14.33';
+  const clean = cleanIp(ip);
+  return clean === '127.0.0.1' || clean === '::1' || clean === 'localhost' || clean === '10.34.14.33';
 }
 
-function checkClientIpPermission(req) {
+function recordIpAttempt(ip, userAgent = '', path = '', pcName = '') {
+  const clean = cleanIp(ip);
+  if (isLocalhost(clean)) return null;
+
+  const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
+  data.allowed = data.allowed || [];
+  data.pending = data.pending || [];
+
+  // Agar allaqachon ruxsat berilgan bo'lsa
+  const allowedEntry = data.allowed.find(a => a.ip === clean && a.status === 'approved');
+  if (allowedEntry) {
+    return { isAllowed: true, entry: allowedEntry };
+  }
+
+  // Pending ro'yxatida tekshiramiz
+  let p = data.pending.find(item => item.ip === clean);
+  let isNew = false;
+  if (!p) {
+    isNew = true;
+    p = {
+      ip: clean,
+      name: pcName || `Lokal Kompyuter (${clean})`,
+      requestedAt: new Date().toISOString(),
+      lastAttemptAt: new Date().toISOString(),
+      userAgent: String(userAgent || '').substring(0, 150),
+      lastPath: path || '/',
+      attemptsCount: 1
+    };
+    data.pending.push(p);
+  } else {
+    p.lastAttemptAt = new Date().toISOString();
+    p.attemptsCount = (p.attemptsCount || 1) + 1;
+    if (path) p.lastPath = path;
+    if (pcName) p.name = pcName;
+    if (userAgent && !p.userAgent) p.userAgent = String(userAgent).substring(0, 150);
+  }
+
+  writeJson(ALLOWED_IPS_FILE, data);
+  if (isNew) {
+    console.log(`[IP Access Alert] 🔔 Yangi kompyuter ruxsat so'radi: ${clean} (${p.name}) | Path: ${path}`);
+    broadcastWs('ip_requested', { ip: clean, entry: p });
+  }
+  broadcastWs('allowed_ips_updated', { allowed: data.allowed, pending: data.pending });
+
+  return { isAllowed: false, entry: p, isNew };
+}
+
+function checkClientIpPermission(req, autoRecord = true) {
   const ip = getClientIp(req);
   if (isLocalhost(ip)) {
     return { allowed: true, role: 'full', ip, isServer: true };
@@ -253,7 +312,74 @@ function checkClientIpPermission(req) {
   if (entry) {
     return { allowed: true, role: entry.role || 'full', ip, entry };
   }
+
+  if (autoRecord) {
+    const userAgent = req.headers ? req.headers['user-agent'] : '';
+    const reqPath = req.url ? req.url.split('?')[0] : '';
+    recordIpAttempt(ip, userAgent, reqPath);
+  }
+
   return { allowed: false, role: 'none', ip };
+}
+
+function getAllowedIps() {
+  const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
+  return {
+    success: true,
+    allowed: data.allowed || [],
+    pending: data.pending || []
+  };
+}
+
+function approveIp(targetIp, name = '', role = 'full') {
+  const clean = cleanIp(targetIp);
+  if (!clean) return { success: false, error: "IP ko'rsatilmadi" };
+
+  const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
+  data.allowed = data.allowed || [];
+  data.pending = data.pending || [];
+
+  // Pending dan olib tashlash
+  data.pending = data.pending.filter(p => p.ip !== clean);
+
+  const existingIdx = data.allowed.findIndex(a => a.ip === clean);
+  const finalRole = role === 'view_only' ? 'view_only' : 'full';
+  const finalName = name || (existingIdx !== -1 ? data.allowed[existingIdx].name : `Kompyuter (${clean})`);
+
+  const entry = {
+    ip: clean,
+    name: finalName,
+    role: finalRole,
+    status: 'approved',
+    approvedAt: new Date().toISOString()
+  };
+
+  if (existingIdx !== -1) {
+    data.allowed[existingIdx] = entry;
+  } else {
+    data.allowed.push(entry);
+  }
+
+  writeJson(ALLOWED_IPS_FILE, data);
+  console.log(`[IP Access Approved] ✅ IP ${clean} ga ruxsat berildi (${finalRole})`);
+  broadcastWs('allowed_ips_updated', { allowed: data.allowed, pending: data.pending });
+
+  return { success: true, entry, message: `IP ${clean} uchun ruxsat berildi (${finalRole})` };
+}
+
+function rejectIp(targetIp) {
+  const clean = cleanIp(targetIp);
+  if (!clean) return { success: false, error: "IP ko'rsatilmadi" };
+
+  const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
+  data.allowed = (data.allowed || []).filter(a => a.ip !== clean);
+  data.pending = (data.pending || []).filter(p => p.ip !== clean);
+
+  writeJson(ALLOWED_IPS_FILE, data);
+  console.log(`[IP Access Revoked] ❌ IP ${clean} ruxsati o'chirildi`);
+  broadcastWs('allowed_ips_updated', { allowed: data.allowed, pending: data.pending });
+
+  return { success: true, message: `IP ${clean} o'chirildi / rad etildi` };
 }
 
 // -------------------------------------------------------------
@@ -1399,8 +1525,13 @@ module.exports = {
   readBody,
   sendJson,
   getClientIp,
+  cleanIp,
   isLocalhost,
+  recordIpAttempt,
   checkClientIpPermission,
+  getAllowedIps,
+  approveIp,
+  rejectIp,
   karmedRawRequest,
   loginToKarmedLive,
   getActiveKarmedSession,

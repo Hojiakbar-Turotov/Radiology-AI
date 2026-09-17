@@ -180,10 +180,13 @@ function broadcastWs(type, payload, isLoopback = false) {
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
   const startTime = Date.now();
-  const clientIp = req.headers['cf-connecting-ip'] || 
-                   (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) || 
-                   (req.socket.remoteAddress ? req.socket.remoteAddress.replace('::ffff:', '') : 'unknown');
+  const clientIp = unifiedCore.getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
+
+  // Har qanday so'rov kelganda, agar IP localhost bo'lmasa, uni avtomatik tekshirish va kutilayotganlar ro'yxatiga olish
+  if (!unifiedCore.isLocalhost(clientIp)) {
+    unifiedCore.recordIpAttempt(clientIp, userAgent, req.url);
+  }
 
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -523,86 +526,30 @@ const server = http.createServer(async (req, res) => {
 
     // GET /api/admin/ips - Ruxsat berilgan va kutilayotgan IP lar ro'yxati
     if (req.method === 'GET' && pathname === '/api/admin/ips') {
-      const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-      return sendJson(res, { success: true, allowed: data.allowed || [], pending: data.pending || [] });
+      return sendJson(res, unifiedCore.getAllowedIps());
     }
 
     // POST /api/admin/ips/approve - IP ga ruxsat berish (full yoki view_only)
     if (req.method === 'POST' && pathname === '/api/admin/ips/approve') {
       const body = await readBody(req);
-      const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-      const targetIp = String(body.ip || '').trim();
-      if (!targetIp) return sendJson(res, { success: false, error: "IP ko'rsatilmadi" }, 400);
-
-      data.allowed = data.allowed || [];
-      data.pending = data.pending || [];
-
-      // Pending dan o'chirish
-      data.pending = data.pending.filter(p => p.ip !== targetIp);
-
-      const existingIdx = data.allowed.findIndex(a => a.ip === targetIp);
-      const role = body.role === 'view_only' ? 'view_only' : 'full';
-      const name = body.name || (existingIdx !== -1 ? data.allowed[existingIdx].name : `Kompyuter (${targetIp})`);
-
-      const entry = {
-        ip: targetIp,
-        name: name,
-        role: role,
-        status: 'approved',
-        approvedAt: new Date().toISOString()
-      };
-
-      if (existingIdx !== -1) {
-        data.allowed[existingIdx] = entry;
-      } else {
-        data.allowed.push(entry);
-      }
-
-      writeJson(ALLOWED_IPS_FILE, data);
-      return sendJson(res, { success: true, entry, message: `IP ${targetIp} uchun ruxsat berildi (${role})` });
+      const resData = unifiedCore.approveIp(body.ip, body.name, body.role);
+      return sendJson(res, resData, resData.success ? 200 : 400);
     }
 
     // POST /api/admin/ips/reject - IP ni rad etish yoki ro'yxatdan o'chirish
     if (req.method === 'POST' && pathname === '/api/admin/ips/reject') {
       const body = await readBody(req);
-      const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-      const targetIp = String(body.ip || '').trim();
-
-      data.allowed = (data.allowed || []).filter(a => a.ip !== targetIp);
-      data.pending = (data.pending || []).filter(p => p.ip !== targetIp);
-
-      writeJson(ALLOWED_IPS_FILE, data);
-      return sendJson(res, { success: true, message: `IP ${targetIp} o'chirildi / rad etildi` });
+      const resData = unifiedCore.rejectIp(body.ip);
+      return sendJson(res, resData, resData.success ? 200 : 400);
     }
 
     // POST /api/admin/ips/request - Masofaviy kompyuterdan kirish ruxsati so'rash
     if (req.method === 'POST' && pathname === '/api/admin/ips/request') {
       const body = await readBody(req);
-      const clientIp = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket.remoteAddress.replace('::ffff:', '');
-      const targetIp = String(body.ip || clientIp).trim();
+      const targetIp = body.ip || clientIp;
       const pcName = String(body.name || 'Lokal Kompyuter').trim();
-
-      const data = readJson(ALLOWED_IPS_FILE, { allowed: [], pending: [] });
-      data.allowed = data.allowed || [];
-      data.pending = data.pending || [];
-
-      const isAllowed = data.allowed.find(a => a.ip === targetIp);
-      if (isAllowed) {
-        return sendJson(res, { success: true, status: 'already_approved', entry: isAllowed });
-      }
-
-      let pEntry = data.pending.find(p => p.ip === targetIp);
-      if (!pEntry) {
-        pEntry = {
-          ip: targetIp,
-          name: pcName,
-          requestedAt: new Date().toISOString()
-        };
-        data.pending.push(pEntry);
-        writeJson(ALLOWED_IPS_FILE, data);
-      }
-
-      return sendJson(res, { success: true, status: 'pending', entry: pEntry });
+      const resData = unifiedCore.recordIpAttempt(targetIp, userAgent, pathname, pcName);
+      return sendJson(res, { success: true, entry: resData ? resData.entry : null });
     }
 
     // POST /api/karmed/search - Bemor ID / Talon bo'yicha qidirish (Admin uchun Karmed proxy)

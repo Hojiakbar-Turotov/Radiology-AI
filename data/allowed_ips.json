@@ -20,6 +20,13 @@
       "role": "full",
       "status": "approved",
       "approvedAt": "2026-09-12T17:28:00.000Z"
+    },
+    {
+      "ip": "10.34.14.187",
+      "name": "Kompyuter (10.34.14.187)",
+      "role": "full",
+      "status": "approved",
+      "approvedAt": "2026-09-17T15:47:09.129Z"
     }
   ],
   "pending": []
