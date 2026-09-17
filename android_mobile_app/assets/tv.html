@@ -678,8 +678,10 @@
       <div class="header-right">
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
-          <button type="button" class="view-btn active" id="btnModeTv" title="Barcha xonalar">🖥️ Barcha xonalar</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="Xona ekrani">📺 Xona ekrani</button>
+          <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
+          <button type="button" class="view-btn" id="btnModeClassicRoom" title="2-Rejim: Xona navbat jadvali (v11.0.0 3 ustun)">📋 2-Rejim: Xona jadvali</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="3-Rejim: 2 ustunli navbat jadvali">📊 3-Rejim: 2 Ustunli</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Bo'sh xona (Bemor yo'q)">🚪 4-Rejim: Bo'sh rejim</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -696,11 +698,11 @@
 
         <!-- Soat -->
         <div class="live-clock-card">
-          <div class="live-date" id="liveDate">📅 16.09.2026</div>
+          <div class="live-date" id="liveDate">📅 17.09.2026</div>
           <div class="live-time" id="liveTime">--:--:--</div>
           <div class="live-connection-chip connected" id="liveConnChip">
             <span class="pulse-dot"></span>
-            <span id="liveConnText">Jonli TV v8.1.0</span>
+            <span id="liveConnText">Jonli TV v11.6.0</span>
           </div>
           <span id="karmedBadge" style="display:inline-block; font-size:11px; font-weight:700; color:#4ade80; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.35); padding:3px 8px; border-radius:20px; margin-top:4px;" title="Karmed serveridan har 20 soniyada avto-yangilanadi">🟢 Karmed Direct</span>
         </div>
@@ -828,36 +830,54 @@
       <!-- B. YAGONA XONA TV EKRANI (SCREENSHOT 2 ASL KO'RINISHI - FOYDALANUVCHI TALABI BO'YICHA O'ZGARISHSIZ) -->
       <div class="single-room-display-wrapper" id="singleRoomWrapper" style="display: none;">
         <div class="sr-top-header">
+          <!-- Chap tomondagi boshqaruv tugmalari (TV ekranda 100% yashirin, sichqoncha kelganda ko'rinadi) -->
           <div class="sr-header-left">
-            <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ Barcha xonalar</button>
-            <div class="sr-room-selector">
-              <label for="srRoomDropdown">Xona:</label>
-              <select id="srRoomDropdown" class="sr-room-select"></select>
+            <div class="sr-controls-overlay">
+              <button type="button" class="sr-back-btn" id="btnSrBackToAll" title="Barcha xonalarga qaytish">⬅ 1-Rejim</button>
+              <div class="sr-room-selector">
+                <label for="srRoomDropdown">Xona:</label>
+                <select id="srRoomDropdown" class="sr-room-select"></select>
+              </div>
+              <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
+              <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
             </div>
-            <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
-          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT10-51 XONA</div>
+          <!-- Markaziy yirik xona sarlavhasi (UTT3-46 XONA) -->
+          <div class="sr-center-title" id="srBigRoomNumberTitle">UTT3-46 XONA</div>
 
+          <!-- O'NG TOMONDAGI SANA VA SOAT (FOYDALANUVCHI TALABI: SOAT O'NG YUQORI BURCHAKDA BO'LSIN) -->
           <div class="sr-header-right">
-            <div class="sr-full-date" id="srFullDateUz">16 Sentabr 2026</div>
+            <div class="sr-full-date" id="srFullDateUz">17 Sentabr 2026</div>
             <div class="sr-full-clock" id="srFullClockTime">--:--:--</div>
           </div>
         </div>
 
         <div class="sr-main-card">
-          <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-10(Xudayberdiyeva Nigora Nizamovna)</div>
-          <div class="sr-table-scroll-container">
-            <table class="sr-patient-table">
-              <thead>
-                <tr>
-                  <th class="col-sr-name">ISM FAMILYA</th>
-                  <th class="col-sr-time">RO'YXATGA OLINGAN VAQTI</th>
-                  <th class="col-sr-queue">NAVBAT RAQAMI</th>
-                </tr>
+          <div class="sr-doctor-title" id="srDoctorFullTitle">
+            <span class="sr-doc-name-txt">Ultratovush-3(Abidjanov Alisher Maxamataliyevich)</span>
+            <span class="sr-page-badge" id="srPageBadge" style="display: none;">📄 Sahifa 1 / 2 (Jami: 9 ta)</span>
+          </div>
+          
+          <!-- Faol chaqirilayotgan bemor banneri (2-rejim Klassik v11.0.0 uchun) -->
+          <div id="srActiveCallContainer" style="display: none;"></div>
+
+          <!-- NAVBAT JADVALI (2-Rejim va 3-Rejim uchun) -->
+          <div class="sr-table-scroll-container" id="srTableContainer">
+            <table class="sr-patient-table" id="srPatientTable">
+              <thead id="srPatientTableHead">
+                <!-- Javascript orqali 2-rejimda 3 ustun, 3-rejimda 2 ustun chiziladi -->
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
+          </div>
+
+          <!-- 4-REJIM: BO'SH XONA EKRANI (BEMOR FISH YO'Q, KLASSIK ASL USLUB) -->
+          <div class="sr-classic-empty-box" id="srClassicEmptyBox" style="display: none;">
+            <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
+            <div class="sr-empty-status-title" id="srEmptyStateTitle">XONADA BEMOR YO'Q</div>
+            <div class="sr-empty-status-desc" id="srEmptyStateDesc">Kutayotgan bemor yo'q</div>
+            <div class="sr-empty-status-hint" id="srEmptyStateHint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>
 
@@ -919,13 +939,13 @@
         <span class="tv-remote-hint" style="margin-left: 14px; background: rgba(59, 130, 246, 0.22); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.45); color: #93c5fd; font-weight: 700; font-size: 11.5px;">🎮 Pult: 1-9 = UTT 1..9 | 0 = UTT 10 | BACK = Barcha xonalar</span>
       </div>
       <div class="footer-right">
-        <span id="footerServerInfo">TV Monitor v11.0.0 • Jonli Navbat • Karmed Direct</span>
+        <span id="footerServerInfo">TV Monitor v11.6.0 • Jonli Navbat • Karmed Direct</span>
       </div>
     </footer>
 
   </div>
 
   <script src="chime_engine.js"></script>
-  <script src="app.js?v=11.0.0"></script>
+  <script src="app.js?v=11.6.0"></script>
 </body>
 </html>

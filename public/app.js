@@ -762,7 +762,7 @@
 
   // Xona ekranida ko'p bemorlar bo'lsa, har 45 soniyada keyingi sahifaga o'tish
   function checkSingleRoomPageRotation() {
-    if (currentMode !== 'single-room') return;
+    if (currentMode !== 'single-room' && currentMode !== 'classic-room') return;
     if (!queueData || !queueData.doctors) return;
 
     let targetDoc = queueData.doctors.find(d => (d.id === currentRoomId || d.room === currentRoomId));
@@ -1738,11 +1738,18 @@
 
     // Foydalanuvchi talabi:
     // "qabuldagi bemor fish ko'rinmasin. navbatdagi bemor fish va navbat raqamini o'zi yetadi."
-    // "har bir vrach uchun bemorlar ro'yxati alohida navbatlansin."
+    // "navbat bugungi umumiy navbat raqamidan olinsin."
     const waitingPatients = patients.filter(p => {
       const isAccepted = p.statusCode === 4 || (p.status && p.status.toLowerCase().includes('kabul'));
       const isDone = p.statusCode === 2 || p.isCompleted || (p.status && (p.status.toLowerCase().includes('onay') || p.status.toLowerCase().includes('tamam')));
       return !isAccepted && !isDone;
+    });
+
+    // FOYDALANUVCHI TALABI: Bugungi umumiy navbat raqami bo'yicha ketma-ketlikda saralash
+    waitingPatients.sort((a, b) => {
+      const qA = a.globalQueueNo || a.queueNo || 0;
+      const qB = b.globalQueueNo || b.queueNo || 0;
+      return qA - qB;
     });
 
     // 3. Sana va soatni yangilash
@@ -1755,6 +1762,9 @@
       if (srTableContainer) srTableContainer.style.display = 'none';
       if (srActiveCallContainer) srActiveCallContainer.style.display = 'none';
       if (srClassicEmptyBox) srClassicEmptyBox.style.display = 'flex';
+
+      const emptyDesc = document.getElementById('srEmptyStateDesc');
+      if (emptyDesc) emptyDesc.textContent = "Kutayotgan bemor yo'q";
 
       if (srDoctorFullTitle) {
         srDoctorFullTitle.innerHTML = `<span class="sr-doc-name-txt">${escapeHtml(displayRoom)}(${escapeHtml(doctorName)})</span>`;
@@ -1793,15 +1803,16 @@
       }
     }
 
-    // 3-Rejimda (Klassik v11.0.0) faol chaqirilayotgan bemor banneri
+    // 2-Rejimda (Klassik v11.0.0) faol chaqirilayotgan bemor banneri
     const activeCall = activeCalls[targetDoc ? targetDoc.room : currentRoomId] || activeCalls[currentRoomId];
     if (srActiveCallContainer) {
       if (isClassic && activeCall) {
         const isAccepted = activeCall.status === 'accepted';
+        const callQNo = activeCall.globalQueueNo || activeCall.queueNo || '';
         srActiveCallContainer.innerHTML = `
           <div class="sr-active-call-badge ${isAccepted ? 'sr-badge-accepted' : 'sr-badge-calling'}">
             <span class="pulse-dot"></span>
-            ${isAccepted ? '🟢 HOZIR QABUL QILMOQDA:' : '📢 CHAQIRILDI:'} №${activeCall.queueNo || ''} — ${escapeHtml(activeCall.fullName || '')}
+            ${isAccepted ? '🟢 HOZIR QABUL QILMOQDA:' : '📢 CHAQIRILDI:'} №${callQNo} — ${escapeHtml(activeCall.fullName || '')}
           </div>
         `;
         srActiveCallContainer.style.display = 'block';
@@ -1853,7 +1864,8 @@
 
     let rowsHtml = '';
     pagePatients.forEach(p => {
-      const qNo = p.doctorQueueNo || p.queueNo || '-';
+      // FOYDALANUVCHI TALABI: Navbat bugungi umumiy navbat raqamidan olinsin
+      const qNo = p.globalQueueNo || p.queueNo || '-';
       if (isClassic) {
         rowsHtml += `
           <tr>
