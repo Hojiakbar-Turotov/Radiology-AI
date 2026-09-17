@@ -1029,6 +1029,10 @@ async function executeKarmedHastaSorgula(token, cookie, targetDateStr) {
 function processKarmedPatientsForDate(rawList, targetDateStr) {
   const [d, mth, y] = targetDateStr.split('.');
   const targetDateIso = `${y}-${mth}-${d}`;
+  const pad2 = (n) => (n < 10 ? '0' : '') + n;
+  const tDateObj = new Date(parseInt(y, 10), parseInt(mth, 10) - 1, parseInt(d, 10));
+  const yDateObj = new Date(tDateObj.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayIso = `${yDateObj.getFullYear()}-${pad2(yDateObj.getMonth() + 1)}-${pad2(yDateObj.getDate())}`;
 
   const docsAuth = getDoctorsAuth();
   const doctorKeys = Object.keys(docsAuth || {});
@@ -1050,10 +1054,12 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
       patients: [],
       completedPatients: [],
       seenTodayPatients: [],
+      seenEarlierRegPatients: [],
       seenLaterPatients: [],
       waitingPatientsList: [],
       allAssignedPatients: [],
       seenTodayCount: 0,
+      seenEarlierRegCount: 0,
       seenLaterCount: 0,
       waitingCount: 0,
       totalCount: 0,
@@ -1075,10 +1081,12 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     patients: [],
     completedPatients: [],
     seenTodayPatients: [],
+    seenEarlierRegPatients: [],
     seenLaterPatients: [],
     waitingPatientsList: [],
     allAssignedPatients: [],
     seenTodayCount: 0,
+    seenEarlierRegCount: 0,
     seenLaterCount: 0,
     waitingCount: 0,
     totalCount: 0,
@@ -1102,6 +1110,7 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     const acceptingDoc = resolveAcceptingDoctor(kp, docsAuth);
 
     const regIso = kp.KayitTarihi ? kp.KayitTarihi.split('T')[0] : '';
+    const regPretty = formatIsoToDmy(regIso);
     const regTime = formatKarmedTimeString(kp.KayitTarihi || kp.KabulTarihi || kp.Saat);
     const acceptIso = kp.KabulTarihi ? kp.KabulTarihi.split('T')[0] : '';
     const acceptTime = kp.KabulTarihi ? formatKarmedTimeString(kp.KabulTarihi) : '';
@@ -1111,30 +1120,57 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     const statusCode = kp.DosyaDurumu || (kp.Durum === 'Bekleyen' ? 1 : (kp.Durum === 'Kabul Edilen' ? 4 : (kp.Durum === 'Rapor Onaylı' ? 8 : 1)));
     const isDone = statusCode === 8 || (kp.Durum && String(kp.Durum).toLowerCase().includes('onay'));
 
+    const isRegToday = (regIso === targetDateIso);
+    const isRegYesterday = (regIso === yesterdayIso);
+    const isRegEarlier = (!isRegToday && regIso && regIso < targetDateIso);
+    const isConfirmedToday = isDone && (confirmIso === targetDateIso);
+    const isConfirmedLater = isDone && confirmIso && (confirmIso > targetDateIso);
+
     let timingCategory = 'seen_today';
     let timingCategoryTitle = "Shu kuni ko'rilgan";
+    let dateTag = '';
+    let dateTagType = 'today';
     let targetDocObj = null;
 
     if (isDone) {
-      if (confirmIso && confirmIso > targetDateIso) {
+      if (isConfirmedLater) {
         // Shu kuni yo'naltirilgan ammo keyingi boshqa kunda ko'rilgan
         timingCategory = 'seen_later';
         timingCategoryTitle = `Keyingi boshqa kunda ko'rilgan (${formatIsoToDmy(confirmIso)})`;
+        dateTag = `${formatIsoToDmy(confirmIso)} da tekshiruvdan o'tgan`;
+        dateTagType = 'seen_later';
         const tDoc = queuedDoc || acceptingDoc;
         targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
         targetDocObj.seenLaterCount++;
+      } else if (isRegEarlier || isRegYesterday) {
+        // Kecha yoki oldin ro'yxatdan o'tib, shu kuni ko'rilgan (FOYDALANUVCHI TALABI)
+        timingCategory = 'seen_earlier_reg';
+        timingCategoryTitle = isRegYesterday 
+          ? "Kecha ro'yxatdan o'tgan, shu kuni ko'rilgan" 
+          : `${regPretty || 'Oldin'} da ro'yxatdan o'tgan, shu kuni ko'rilgan`;
+        dateTag = isRegYesterday 
+          ? "Kecha yo'naltirilgan, shu kuni tekshiruvdan o'tgan" 
+          : `${regPretty || 'Oldin'} da yo'naltirilgan, shu kuni tekshiruvdan o'tgan`;
+        dateTagType = isRegYesterday ? 'yesterday_done' : 'earlier_done';
+        const tDoc = acceptingDoc || queuedDoc;
+        targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
+        targetDocObj.seenEarlierRegCount = (targetDocObj.seenEarlierRegCount || 0) + 1;
       } else {
-        // Shu kuni ko'rilgan
+        // Shu kuni ro'yxatdan o'tib, shu kuni ko'rilgan
         timingCategory = 'seen_today';
         timingCategoryTitle = "Shu kuni ko'rilgan";
+        dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
+        dateTagType = 'today_done';
         const tDoc = acceptingDoc || queuedDoc;
         targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
         targetDocObj.seenTodayCount++;
       }
     } else {
-      // Shu kuni yo'naltirilgan ammo hali tekshiruvdan o'tmagan
+      // Hali tekshiruvdan o'tmagan
       timingCategory = 'waiting';
       timingCategoryTitle = "Hali tekshiruvdan o'tmagan";
+      dateTag = isRegToday ? "Bugun ro'yxatga olingan" : (isRegYesterday ? "Kecha yo'naltirilgan, navbatda kutmoqda" : `${regPretty} da yo'naltirilgan, navbatda kutmoqda`);
+      dateTagType = isRegToday ? 'today_waiting' : (isRegYesterday ? 'yesterday_waiting' : 'earlier_waiting');
       const tDoc = queuedDoc || acceptingDoc;
       targetDocObj = tDoc ? (doctorMap[tDoc.roomId] || fallbackDoc) : fallbackDoc;
       targetDocObj.waitingCount++;
@@ -1206,7 +1242,7 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
       doctorQueueNo: kp.MuayeneSirano || (idx + 1),
       status: kp.Durum || (isDone ? 'Rapor Onaylı' : 'Bekleyen'),
       statusCode: statusCode,
-      registrationDate: targetDateStr,
+      registrationDate: regPretty || targetDateStr,
       registrationIso: regIso,
       registrationTime: regTime,
       acceptanceDate: formatIsoToDmy(acceptIso),
@@ -1215,6 +1251,8 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
       confirmationTime: confirmTime,
       timingCategory: timingCategory,
       timingCategoryTitle: timingCategoryTitle,
+      dateTag: dateTag,
+      dateTagType: dateTagType,
       room: targetDocObj.room,
       doctorName: targetDocObj.doctorName,
       referringDoctor: kp.DosyaDoktoru || '',
@@ -1233,8 +1271,10 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
       stayTitle: stayTitle,
       stayBadge: stayBadge,
       department: departmentName,
-      isRegToday: true,
-      isConfirmedToday: timingCategory === 'seen_today'
+      isRegToday: isRegToday,
+      isRegYesterday: isRegYesterday,
+      isRegEarlier: isRegEarlier,
+      isConfirmedToday: isConfirmedToday
     };
 
     allPatients.push(patientObj);
@@ -1242,6 +1282,10 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
 
     if (timingCategory === 'seen_today') {
       targetDocObj.seenTodayPatients.push(patientObj);
+      targetDocObj.completedPatients.push(patientObj);
+      allCompletedList.push(patientObj);
+    } else if (timingCategory === 'seen_earlier_reg') {
+      targetDocObj.seenEarlierRegPatients.push(patientObj);
       targetDocObj.completedPatients.push(patientObj);
       allCompletedList.push(patientObj);
     } else if (timingCategory === 'seen_later') {
@@ -1255,32 +1299,45 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
   });
 
   let seenTodayTotal = 0;
+  let seenEarlierRegTotal = 0;
   let seenLaterTotal = 0;
   let waitingTotal = 0;
   let totalPatients = 0;
 
   const docsList = Object.values(doctorMap).filter(d => d.totalCount > 0 || d.roomId !== 'Boshqa');
   const completedByDoctor = {};
+  const completedTodayByDoctor = {};
+  const completedEarlierByDoctor = {};
 
   docsList.forEach(d => {
-    d.patients.forEach((p, pIdx) => {
-      p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
-      p.queueNo = p.doctorQueueNo;
+    // Vrach bo'yicha barcha bemorlar (ko'rilganlar va kutayotganlar) ro'yxatini olamiz
+    const allDocPatients = [...(d.completedPatients || []), ...(d.patients || [])];
+    allDocPatients.sort((a, b) => {
+      const tA = a.registrationTime || '00:00';
+      const tB = b.registrationTime || '00:00';
+      if (tA !== tB) return tA.localeCompare(tB);
+      return (a.labDosyaId || 0) - (b.labDosyaId || 0);
     });
+
+    // Har bir bemorga navbatda takrorlanmas, ketma-ket xronologik navbat raqami beramiz
+    allDocPatients.forEach((p, pIdx) => {
+      p.doctorQueueNo = pIdx + 1;
+      p.queueNo = pIdx + 1;
+    });
+
     d.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
-    d.waitingPatientsList.forEach((p, pIdx) => {
-      p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
-      p.queueNo = p.doctorQueueNo;
-    });
     d.waitingPatientsList.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
 
-    // Foydalanuvchi talabi: keyingi kunda ko'rilganlar o'sha kunda ko'rilganlarga qo'shilmasin!
-    d.completedCount = d.seenTodayCount;
+    // Shifokor ko'rgan bemorlar: Shu kuni ro'yxatdan o'tganlar + Kechadan/oldingi kundan o'tganlar
+    d.completedCount = d.seenTodayCount + (d.seenEarlierRegCount || 0);
     d.count = d.patients.length;
     d.waitingCount = d.waitingPatientsList.length;
-    completedByDoctor[d.room] = d.seenTodayCount;
+    completedByDoctor[d.room] = d.completedCount;
+    completedTodayByDoctor[d.room] = d.seenTodayCount;
+    completedEarlierByDoctor[d.room] = d.seenEarlierRegCount || 0;
 
     seenTodayTotal += d.seenTodayCount;
+    seenEarlierRegTotal += (d.seenEarlierRegCount || 0);
     seenLaterTotal += d.seenLaterCount;
     waitingTotal += d.waitingCount;
     totalPatients += d.totalCount;
@@ -1301,13 +1358,16 @@ function processKarmedPatientsForDate(rawList, targetDateStr) {
     summary: {
       totalPatients: totalPatients,
       totalWaiting: waitingTotal,
-      totalCompleted: seenTodayTotal,
+      totalCompleted: seenTodayTotal + seenEarlierRegTotal,
       seenTodayTotal: seenTodayTotal,
+      seenEarlierRegTotal: seenEarlierRegTotal,
       seenLaterTotal: seenLaterTotal,
       waitingTotal: waitingTotal,
-      completedTotal: seenTodayTotal,
+      completedTotal: seenTodayTotal + seenEarlierRegTotal,
       earlierPatientsList: allCompletedList,
-      completedByDoctor: completedByDoctor
+      completedByDoctor: completedByDoctor,
+      completedTodayByDoctor: completedTodayByDoctor,
+      completedEarlierByDoctor: completedEarlierByDoctor
     }
   };
 }
@@ -1570,17 +1630,29 @@ async function syncMasterQueueFromKarmedDirect() {
       const regPretty = formatIsoToDmy(regIso);
       const confPretty = formatIsoToDmy(confirmIso);
 
+      let timingCategory = 'waiting';
+      let timingCategoryTitle = "Hali tekshiruvdan o'tmagan";
+
       if (isConfirmedToday) {
         if (isRegToday) {
+          timingCategory = 'seen_today';
+          timingCategoryTitle = "Shu kuni ko'rilgan";
           dateTag = "Bugun yo'naltirilgan, bugun tekshiruvdan o'tgan";
           dateTagType = "today_done";
         } else if (isRegYesterday) {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = "Kecha ro'yxatdan o'tgan, bugun tekshiruvdan o'tgan";
           dateTag = "Kecha yo'naltirilgan, bugun tekshiruvdan o'tgan";
           dateTagType = "yesterday_done";
         } else {
+          timingCategory = 'seen_earlier_reg';
+          timingCategoryTitle = `${regPretty} da ro'yxatdan o'tgan, bugun tekshiruvdan o'tgan`;
           dateTag = `${regPretty} da yo'naltirilgan, bugun tekshiruvdan o'tgan`;
           dateTagType = "earlier_done";
         }
+      } else if (isFinished && confirmIso && confirmIso > todayIso) {
+        timingCategory = 'seen_later';
+        timingCategoryTitle = `Keyingi boshqa kunda ko'rilgan (${confPretty})`;
       } else if (isAccepted && (acceptIso === todayIso)) {
         if (isRegToday) {
           dateTag = "Bugun yo'naltirilgan, bugun qabul qilingan";
@@ -1683,6 +1755,8 @@ async function syncMasterQueueFromKarmedDirect() {
         isRegToday: isRegToday,
         isRegYesterday: isRegYesterday,
         isRegEarlier: isRegEarlier,
+        timingCategory: timingCategory,
+        timingCategoryTitle: timingCategoryTitle,
         dateTag: dateTag,
         dateTagType: dateTagType,
         room: activeDoc ? activeDoc.roomId : (kp.AltBolumAdi || 'Biriktirilmagan'),
@@ -1784,19 +1858,32 @@ async function syncMasterQueueFromKarmedDirect() {
     });
 
     Object.values(doctorMap).forEach(doc => {
-      doc.patients.forEach((p, pIdx) => {
+      const rId = doc.room || doc.id;
+      const completedList = completedPatientsByDoctor[rId] || [];
+      const waitingList = doc.patients || [];
+
+      // Barcha shu vrach bemorlari (ko'rilganlar va kutayotganlar) xronologik tartibda birlashtiriladi
+      const allDocPatients = [...completedList, ...waitingList];
+      allDocPatients.sort((a, b) => {
+        const tA = a.registrationTime || '00:00';
+        const tB = b.registrationTime || '00:00';
+        if (tA !== tB) return tA.localeCompare(tB);
+        return (a.labDosyaId || 0) - (b.labDosyaId || 0);
+      });
+
+      // Har bir bemorga takrorlanmas, ketma-ket xronologik navbat raqami (1, 2, 3...) beriladi
+      allDocPatients.forEach((p, idx) => {
+        p.doctorQueueNo = idx + 1;
+        p.queueNo = idx + 1;
         const pKey = String(p.patientId).trim();
         if (idToGlobalQueue.has(pKey)) {
           p.globalQueueNo = idToGlobalQueue.get(pKey);
         }
-        // Vrach bo'yicha alohida navbat raqami (v11.6.0)
-        p.doctorQueueNo = p.muayeneSirano || (pIdx + 1);
-        p.queueNo = p.doctorQueueNo;
       });
+
       doc.patients.sort((a, b) => (a.doctorQueueNo || 0) - (b.doctorQueueNo || 0));
       doc.count = doc.patients.length;
       doc.waitingCount = doc.patients.filter(p => p.statusCode !== 4).length;
-      const rId = doc.room || doc.id;
 
       doc.completedCount = completedByDoctor[rId] || 0;
       doc.completedTodayCount = completedTodayByDoctor[rId] || 0;
@@ -1810,10 +1897,12 @@ async function syncMasterQueueFromKarmedDirect() {
       doc.totalEarlier = docEarlierReg;
       doc.totalAll = docTodayReg + docEarlierReg;
       doc.earlierPatients = earlierPatientsList.filter(p => p.room === rId || p.queuedRoom === rId);
-      doc.completedPatients = completedPatientsByDoctor[rId] || [];
+      doc.completedPatients = completedList;
+      doc.allAssignedPatients = [...completedList, ...doc.patients];
 
-      // 4 ta aniq ko'rsatkich (Shu kuni ko'rilgan, Keyingi kunda, Kutmoqda, Jami)
-      doc.seenTodayCount = doc.completedCount;
+      // 4 ta aniq ko'rsatkich (Shu kuni ko'rilgan, Kechadan ko'rilgan, Keyingi kunda, Kutmoqda, Jami)
+      doc.seenTodayCount = doc.completedTodayCount;
+      doc.seenEarlierRegCount = doc.completedEarlierCount;
       doc.seenLaterCount = 0;
       doc.totalCount = doc.totalAll || (doc.completedCount + doc.waitingCount);
 
@@ -2353,14 +2442,16 @@ async function handleHttpRequest(req, res, defaultHtml, serverPort) {
       room: docObj ? docObj.room : qRoom,
       doctorName: docObj ? docObj.doctorName : '',
       seenTodayCount: docObj ? (docObj.seenTodayCount ?? (docObj.completedCount || 0)) : 0,
+      seenEarlierRegCount: docObj ? (docObj.seenEarlierRegCount || 0) : 0,
       seenLaterCount: docObj ? (docObj.seenLaterCount ?? 0) : 0,
       waitingCount: docObj ? (docObj.waitingCount ?? 0) : 0,
       totalCount: docObj ? (docObj.totalCount ?? patients.length) : 0,
-      totalCompleted: docObj ? ((docObj.seenTodayCount ?? (docObj.completedCount || 0)) + (docObj.seenLaterCount ?? 0)) : patients.length,
+      totalCompleted: docObj ? (docObj.completedCount ?? ((docObj.seenTodayCount || 0) + (docObj.seenEarlierRegCount || 0))) : patients.length,
       completedTodayCount: docObj ? (docObj.seenTodayCount ?? (docObj.completedCount || 0)) : 0,
-      completedEarlierCount: docObj ? (docObj.seenLaterCount ?? 0) : 0,
+      completedEarlierCount: docObj ? (docObj.seenEarlierRegCount ?? 0) : 0,
       patients: patients,
       seenTodayPatients: docObj ? (docObj.seenTodayPatients || []) : [],
+      seenEarlierRegPatients: docObj ? (docObj.seenEarlierRegPatients || []) : [],
       seenLaterPatients: docObj ? (docObj.seenLaterPatients || []) : [],
       waitingPatients: docObj ? (docObj.waitingPatientsList || []) : []
     }));

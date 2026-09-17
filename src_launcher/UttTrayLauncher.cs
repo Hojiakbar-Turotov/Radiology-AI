@@ -312,6 +312,64 @@ namespace UttServerLauncher
             return item;
         }
 
+        private void CleanupOrphanedNodeProcesses()
+        {
+            try
+            {
+                int[] ports = new int[] { 9876, 9877, 9878, 9879, 9880 };
+                foreach (int port in ports)
+                {
+                    try
+                    {
+                        Process p = new Process();
+                        p.StartInfo.FileName = "cmd.exe";
+                        p.StartInfo.Arguments = "/c netstat -ano | findstr :" + port;
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.CreateNoWindow = true;
+                        p.Start();
+                        string output = p.StandardOutput.ReadToEnd();
+                        p.WaitForExit(1500);
+
+                        if (!string.IsNullOrEmpty(output))
+                        {
+                            string[] lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (string line in lines)
+                            {
+                                if (line.Contains("LISTENING"))
+                                {
+                                    string[] parts = line.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length > 0)
+                                    {
+                                        int pid;
+                                        if (int.TryParse(parts[parts.Length - 1], out pid) && pid > 0)
+                                        {
+                                            try
+                                            {
+                                                Process proc = Process.GetProcessById(pid);
+                                                if (proc.ProcessName.ToLower().Contains("node"))
+                                                {
+                                                    WriteLog("Eski yetim node jarayoni topildi (Port " + port + ", PID: " + pid + "). To'xtatilmoqda...");
+                                                    proc.Kill();
+                                                    proc.WaitForExit(2000);
+                                                }
+                                            }
+                                            catch { }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog("Yetim jarayonlarni tozalashda xatolik: " + ex.Message);
+            }
+        }
+
         private void StartServers()
         {
             scriptPath = Path.Combine(baseDir, "logger_server.js");
@@ -325,6 +383,9 @@ namespace UttServerLauncher
                 );
                 return;
             }
+
+            // Oldingi ehtimoliy yetim jarayonlarni tozalash
+            CleanupOrphanedNodeProcesses();
 
             try
             {
@@ -356,7 +417,15 @@ namespace UttServerLauncher
                 nodeProcess.BeginOutputReadLine();
                 nodeProcess.BeginErrorReadLine();
 
-                WriteLog("Node.js jarayoni boshlandi. PID: " + nodeProcess.Id);
+                Thread.Sleep(800);
+                if (nodeProcess.HasExited)
+                {
+                    WriteLog("OGOHLANTIRISH: Node.js jarayoni darhol to'xtadi! ExitCode: " + nodeProcess.ExitCode);
+                }
+                else
+                {
+                    WriteLog("Node.js jarayoni boshlandi. PID: " + nodeProcess.Id);
+                }
             }
             catch (Exception ex)
             {
@@ -434,6 +503,9 @@ namespace UttServerLauncher
             {
                 cloudProcess = null;
             }
+
+            // Qo'shimcha qolib ketgan port band qiluvchi jarayonlarni tozalash
+            CleanupOrphanedNodeProcesses();
         }
 
         private void ExitApplication()

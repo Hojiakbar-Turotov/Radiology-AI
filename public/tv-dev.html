@@ -679,8 +679,9 @@
         <!-- Rejim tanlash -->
         <div class="view-switch-group">
           <button type="button" class="view-btn active" id="btnModeTv" title="1-Rejim: Barcha xonalar umumiy monitori">🖥️ 1-Rejim: Umumiy</button>
-          <button type="button" class="view-btn" id="btnModeSingleRoom" title="2-Rejim: Xona navbat jadvali">📋 2-Rejim: Navbat jadvali</button>
-          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="3-Rejim: Xonada bemor yo'q">🚪 3-Rejim: Bemor yo'q</button>
+          <button type="button" class="view-btn" id="btnModeSingleRoom" title="2-Rejim: Xona navbat jadvali (2 ustun)">📋 2-Rejim: Navbat jadvali</button>
+          <button type="button" class="view-btn" id="btnModeClassicRoom" title="3-Rejim: Klassik xona ekrani (v11.0.0)">📊 3-Rejim: Klassik xona</button>
+          <button type="button" class="view-btn" id="btnModeEmptyRoom" title="4-Rejim: Xonada bemor yo'q">🚪 4-Rejim: Bemor yo'q</button>
         </div>
 
         <div class="room-selector-wrap" id="roomSelectorWrap" style="display: none;">
@@ -835,7 +836,7 @@
               <label for="srRoomDropdown">Xona:</label>
               <select id="srRoomDropdown" class="sr-room-select"></select>
             </div>
-            <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="2-rejim va 3-rejim o'rtasida almashtirish">🚪 3-Rejim</button>
+            <button type="button" class="sr-mode-btn" id="btnSrToggleMode" title="Rejimlarni almashtirish (TV pultida ◄ / ► yonga bosing)">🔁 Rejim</button>
             <button type="button" class="sr-fs-btn" id="btnSrFullscreen" title="To'liq ekran (F11)">⛶ To'liq ekran</button>
           </div>
 
@@ -850,25 +851,24 @@
         <div class="sr-main-card">
           <div class="sr-doctor-title" id="srDoctorFullTitle">Ultratovush-8(Saidbayeva Zulfiya Yergeshovna)</div>
           
-          <!-- 2-REJIM: NAVBAT JADVALI (2 USTUNLI: ISM FAMILYA | NAVBAT RAQAMI) -->
+          <!-- Faol chaqirilayotgan bemor banneri (3-rejim Klassik v11.0.0 uchun) -->
+          <div id="srActiveCallContainer" style="display: none;"></div>
+
+          <!-- NAVBAT JADVALI (2-Rejim va 3-Rejim uchun) -->
           <div class="sr-table-scroll-container" id="srTableContainer">
-            <table class="sr-patient-table">
-              <thead>
-                <tr>
-                  <th class="col-sr-name">ISM FAMILYA</th>
-                  <th class="col-sr-queue">NAVBAT RAQAMI</th>
-                </tr>
+            <table class="sr-patient-table" id="srPatientTable">
+              <thead id="srPatientTableHead">
+                <!-- Javascript orqali 2-rejimda 2 ustun, 3-rejimda 3 ustun chiziladi -->
               </thead>
               <tbody id="srPatientTableBody"></tbody>
             </table>
           </div>
 
-          <!-- 3-REJIM: XONADA BEMOR YO'Q HOLATI (O'RTACHA YOZUVDA) -->
+          <!-- 4-REJIM: XONADA BEMOR YO'Q HOLATI (Bemorlar haqida ma'lumot berilmaydi) -->
           <div class="sr-empty-room-box" id="srEmptyRoomBox" style="display: none;">
             <div class="sr-empty-status-pill">🚪 QABUL HOLATI</div>
             <div class="sr-empty-title">XONADA BEMOR YO'Q</div>
-            <div class="sr-empty-desc">Hozirda xonada bemor qabul qilinmayapti</div>
-            <div class="sr-empty-waiting-info" id="srEmptyWaitingInfo" style="display: none;"></div>
+            <div class="sr-empty-desc">Navbat kutayotganlar yo'q</div>
             <div class="sr-empty-footer-hint">Iltimos, shifokor chaqiruvini kuting</div>
           </div>
         </div>

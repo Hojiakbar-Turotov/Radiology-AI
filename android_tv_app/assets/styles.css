@@ -1433,9 +1433,53 @@ body.is-fullscreen .sr-header-left:focus-within {
   text-align: left;
 }
 
+.col-sr-time {
+  width: 27%;
+  text-align: center;
+}
+
 .col-sr-queue {
   width: 28%;
   text-align: center;
+}
+
+.sr-patient-table.cols-3 .col-sr-name {
+  width: 48%;
+}
+
+.sr-patient-table.cols-3 .col-sr-time {
+  width: 27%;
+}
+
+.sr-patient-table.cols-3 .col-sr-queue {
+  width: 25%;
+}
+
+/* Faol chaqirilayotgan bemor banneri (Klassik v11.0.0 uchun) */
+.sr-active-call-badge {
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sr-active-call-badge.sr-badge-accepted {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.sr-active-call-badge.sr-badge-calling {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #0b1536;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 /* Jadval qatorlari */
@@ -1463,6 +1507,15 @@ body.is-fullscreen .sr-header-left:focus-within {
   color: #1e293b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-right: 1.5px solid #e2e8f0;
+}
+
+.col-sr-time-td {
+  padding: 16px 20px;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0284c7;
+  text-align: center;
   border-right: 1.5px solid #e2e8f0;
 }
 
@@ -1523,25 +1576,10 @@ body.is-fullscreen .sr-header-left:focus-within {
 }
 
 .sr-empty-desc {
-  font-size: 18px;
-  font-weight: 600;
-  color: #475569;
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
   margin-bottom: 10px;
-}
-
-.sr-empty-waiting-info {
-  margin-top: 14px;
-  background: #ffffff;
-  border: 1.5px solid #bfdbfe;
-  padding: 10px 22px;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #1e293b;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.sr-empty-waiting-info b {
-  color: #2563eb;
 }
 
 .sr-empty-footer-hint {

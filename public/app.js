@@ -96,6 +96,7 @@
   // Rejim tugmalari
   const btnModeTv = document.getElementById('btnModeTv');
   const btnModeSingleRoom = document.getElementById('btnModeSingleRoom');
+  const btnModeClassicRoom = document.getElementById('btnModeClassicRoom');
   const btnModeEmptyRoom = document.getElementById('btnModeEmptyRoom');
   const btnModePost = document.getElementById('btnModePost');
   const btnModeMobile = document.getElementById('btnModeMobile');
@@ -145,10 +146,12 @@
   const srFullDateUz = document.getElementById('srFullDateUz');
   const srFullClockTime = document.getElementById('srFullClockTime');
   const srDoctorFullTitle = document.getElementById('srDoctorFullTitle');
+  const srActiveCallContainer = document.getElementById('srActiveCallContainer');
   const srTableContainer = document.getElementById('srTableContainer');
+  const srPatientTable = document.getElementById('srPatientTable');
+  const srPatientTableHead = document.getElementById('srPatientTableHead');
   const srPatientTableBody = document.getElementById('srPatientTableBody');
   const srEmptyRoomBox = document.getElementById('srEmptyRoomBox');
-  const srEmptyWaitingInfo = document.getElementById('srEmptyWaitingInfo');
 
   // TV-DEV: Vrachlar ko'rib bo'lgan va oldingi kundan yo'naltirilgan bemorlar elementlari
   const totalCompletedCount = document.getElementById('totalCompletedCount');
@@ -434,12 +437,13 @@
 
     if (btnModeTv) btnModeTv.classList.toggle('active', mode === 'tv');
     if (btnModeSingleRoom) btnModeSingleRoom.classList.toggle('active', mode === 'single-room');
+    if (btnModeClassicRoom) btnModeClassicRoom.classList.toggle('active', mode === 'classic-room');
     if (btnModeEmptyRoom) btnModeEmptyRoom.classList.toggle('active', mode === 'empty-room');
     if (btnModePost) btnModePost.classList.toggle('active', mode === 'post');
     if (btnModeMobile) btnModeMobile.classList.toggle('active', mode === 'mobile');
 
     if (roomSelectorWrap) {
-      roomSelectorWrap.style.display = (mode === 'single-room' || mode === 'empty-room' || mode === 'tv') ? 'flex' : 'none';
+      roomSelectorWrap.style.display = (mode === 'single-room' || mode === 'classic-room' || mode === 'empty-room' || mode === 'tv') ? 'flex' : 'none';
     }
 
     if (mode === 'tv') {
@@ -462,10 +466,25 @@
       if (singleRoomWrapper) singleRoomWrapper.style.display = 'flex';
       if (srTableContainer) srTableContainer.style.display = 'block';
       if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'none';
-      if (btnSrToggleMode) btnSrToggleMode.textContent = '🚪 3-Rejim';
+      if (btnSrToggleMode) btnSrToggleMode.textContent = '📊 3-Rejim (Klassik)';
       renderSingleRoomView(currentRoomId);
       const cleanParam = currentRoomId.replace('Ultratovush-', '');
       try { history.replaceState(null, '', `?room=${encodeURIComponent(cleanParam)}`); } catch (e) {}
+    } else if (mode === 'classic-room') {
+      singleRoomPage = 0;
+      singleRoomLastSwitchTime = Date.now();
+      if (tvDoctorSummaryRibbon) tvDoctorSummaryRibbon.style.display = 'none';
+      if (earlierPatientsSection) earlierPatientsSection.style.display = 'none';
+      if (selectedPillWrap) selectedPillWrap.style.display = 'none';
+      if (tvQueueGrid) tvQueueGrid.style.display = 'none';
+      if (postTableContainer) postTableContainer.style.display = 'none';
+      if (singleRoomWrapper) singleRoomWrapper.style.display = 'flex';
+      if (srTableContainer) srTableContainer.style.display = 'block';
+      if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'none';
+      if (btnSrToggleMode) btnSrToggleMode.textContent = '🚪 4-Rejim (Bo\'sh)';
+      renderSingleRoomView(currentRoomId);
+      const cleanParam = currentRoomId.replace('Ultratovush-', '');
+      try { history.replaceState(null, '', `?mode=classic&room=${encodeURIComponent(cleanParam)}`); } catch (e) {}
     } else if (mode === 'empty-room') {
       singleRoomPage = 0;
       singleRoomLastSwitchTime = Date.now();
@@ -477,7 +496,7 @@
       if (singleRoomWrapper) singleRoomWrapper.style.display = 'flex';
       if (srTableContainer) srTableContainer.style.display = 'none';
       if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'flex';
-      if (btnSrToggleMode) btnSrToggleMode.textContent = '📋 2-Rejim';
+      if (btnSrToggleMode) btnSrToggleMode.textContent = '📋 2-Rejim (Jadval)';
       renderSingleRoomView(currentRoomId);
       const cleanParam = currentRoomId.replace('Ultratovush-', '');
       try { history.replaceState(null, '', `?mode=empty&room=${encodeURIComponent(cleanParam)}`); } catch (e) {}
@@ -504,15 +523,35 @@
 
   if (btnModeTv) btnModeTv.addEventListener('click', () => setViewMode('tv'));
   if (btnModeSingleRoom) btnModeSingleRoom.addEventListener('click', () => setViewMode('single-room'));
+  if (btnModeClassicRoom) btnModeClassicRoom.addEventListener('click', () => setViewMode('classic-room'));
   if (btnModeEmptyRoom) btnModeEmptyRoom.addEventListener('click', () => setViewMode('empty-room'));
   if (btnSrToggleMode) {
     btnSrToggleMode.addEventListener('click', () => {
-      setViewMode(currentMode === 'empty-room' ? 'single-room' : 'empty-room');
+      if (currentMode === 'single-room') {
+        setViewMode('classic-room', currentRoomId);
+      } else if (currentMode === 'classic-room') {
+        setViewMode('empty-room', currentRoomId);
+      } else {
+        setViewMode('single-room', currentRoomId);
+      }
     });
   }
   if (btnModePost) btnModePost.addEventListener('click', () => setViewMode('post'));
   if (btnModeMobile) btnModeMobile.addEventListener('click', () => setViewMode('mobile'));
   if (btnSrBackToAll) btnSrBackToAll.addEventListener('click', () => setViewMode('tv'));
+
+  // 6.0 REJIMLARNI ALMASHTIRISH (TV PULITI YONGA BOSISH: ◄ / ► VA 'M' TUGMASI)
+  window.uttCycleMode = function(dir) {
+    const modes = ['tv', 'single-room', 'classic-room', 'empty-room'];
+    let idx = modes.indexOf(currentMode);
+    if (idx === -1) idx = 0;
+    if (dir === 'prev') {
+      idx = (idx - 1 + modes.length) % modes.length;
+    } else {
+      idx = (idx + 1) % modes.length;
+    }
+    setViewMode(modes[idx], currentRoomId || 'Ultratovush-8');
+  };
 
   // 6.1 TV PULITI VA KLAVIATURA RAQAMLARI ORQALI XONAGA TEZKOR O'TISH (0-9)
   // Foydalanuvchi talabi: 0 -> UTT 10, 1 -> UTT 1, ..., 9 -> UTT 9
@@ -538,18 +577,18 @@
     }
 
     // Agar allaqachon shu xona ochilgan bo'lsa -> umumiy TV ekranga toggle qilish!
-    if ((currentMode === 'single-room' || currentMode === 'empty-room') && currentRoomId === targetRoom) {
+    if ((currentMode === 'single-room' || currentMode === 'classic-room' || currentMode === 'empty-room') && currentRoomId === targetRoom) {
       setViewMode('tv');
       return;
     }
 
-    // Xonani ochish (agar 3-rejimda bo'lsa, 3-rejimda qoladi)
-    const targetMode = currentMode === 'empty-room' ? 'empty-room' : 'single-room';
+    // Xonani ochish (agar bo'sh yoki klassik rejimda bo'lsa, shu rejim saqlanadi)
+    const targetMode = (currentMode === 'empty-room' || currentMode === 'classic-room') ? currentMode : 'single-room';
     setViewMode(targetMode, targetRoom);
   };
 
   window.uttBackToAllRooms = function() {
-    if (currentMode === 'single-room' || currentMode === 'empty-room') {
+    if (currentMode === 'single-room' || currentMode === 'classic-room' || currentMode === 'empty-room') {
       setViewMode('tv');
       return true;
     }
@@ -563,22 +602,28 @@
       return;
     }
 
-    // 'M' yoki 'm' pult tugmasi orqali rejimlar aylanmasi (1-Rejim -> 2-Rejim -> 3-Rejim -> 1-Rejim)
+    // YONGA BOSISH (Android TV pultidagi ◄ / ► tugmalari)
+    if (e.key === 'ArrowRight' || e.keyCode === 39) {
+      e.preventDefault();
+      window.uttCycleMode('next');
+      return;
+    }
+    if (e.key === 'ArrowLeft' || e.keyCode === 37) {
+      e.preventDefault();
+      window.uttCycleMode('prev');
+      return;
+    }
+
+    // 'M' yoki 'm' pult tugmasi orqali rejimlar aylanmasi
     if (e.key === 'm' || e.key === 'M') {
       e.preventDefault();
-      if (currentMode === 'tv') {
-        setViewMode('single-room', currentRoomId || 'Ultratovush-8');
-      } else if (currentMode === 'single-room') {
-        setViewMode('empty-room', currentRoomId);
-      } else {
-        setViewMode('tv');
-      }
+      window.uttCycleMode('next');
       return;
     }
 
     // Escape yoki Backspace
     if (e.key === 'Escape' || e.keyCode === 27 || e.key === 'Backspace') {
-      if (currentMode === 'single-room' || currentMode === 'empty-room') {
+      if (currentMode === 'single-room' || currentMode === 'classic-room' || currentMode === 'empty-room') {
         e.preventDefault();
         setViewMode('tv');
         return;
@@ -1695,30 +1740,64 @@
     const now = getServerNow();
     if (srFullDateUz) srFullDateUz.textContent = getUzbekFullDate(now);
 
-    // 3-REJIM: XONADA BEMOR YO'Q HOLATI
+    // 4-REJIM: XONADA BEMOR YO'Q HOLATI (Bemorlar haqida hech qanday ma'lumot berilmaydi)
     if (currentMode === 'empty-room') {
       if (srTableContainer) srTableContainer.style.display = 'none';
+      if (srActiveCallContainer) srActiveCallContainer.style.display = 'none';
       if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'flex';
       if (srDoctorFullTitle) {
         srDoctorFullTitle.textContent = `${displayRoom}(${doctorName})`;
       }
-      if (srEmptyWaitingInfo) {
-        if (waitingPatients.length > 0) {
-          const nextQ = waitingPatients[0].doctorQueueNo || waitingPatients[0].queueNo || 1;
-          srEmptyWaitingInfo.innerHTML = `Navbatda kutayotgan bemorlar soni: <b>${waitingPatients.length}</b> nafar (Keyingi navbat: <b>№${nextQ}</b>)`;
-          srEmptyWaitingInfo.style.display = 'block';
-        } else {
-          srEmptyWaitingInfo.style.display = 'none';
-        }
-      }
       return;
     }
 
-    // 2-REJIM: NAVBAT JADVALI (2 USTUNLI)
+    // 2-REJIM (single-room: 2 USTUNLI) va 3-REJIM (classic-room: 3 USTUNLI v11.0.0)
     if (srTableContainer) srTableContainer.style.display = 'block';
     if (srEmptyRoomBox) srEmptyRoomBox.style.display = 'none';
 
     if (!srPatientTableBody) return;
+
+    const isClassic = (currentMode === 'classic-room');
+
+    // Jadval sarlavhasi (2 ustunli yoki 3 ustunli)
+    if (srPatientTable) {
+      srPatientTable.className = isClassic ? 'sr-patient-table cols-3' : 'sr-patient-table cols-2';
+    }
+    if (srPatientTableHead) {
+      if (isClassic) {
+        srPatientTableHead.innerHTML = `
+          <tr>
+            <th class="col-sr-name">ISM FAMILYA</th>
+            <th class="col-sr-time">RO'YXATGA OLINGAN VAQTI</th>
+            <th class="col-sr-queue">NAVBAT RAQAMI</th>
+          </tr>
+        `;
+      } else {
+        srPatientTableHead.innerHTML = `
+          <tr>
+            <th class="col-sr-name">ISM FAMILYA</th>
+            <th class="col-sr-queue">NAVBAT RAQAMI</th>
+          </tr>
+        `;
+      }
+    }
+
+    // 3-Rejimda (Klassik v11.0.0) faol chaqirilayotgan bemor banneri
+    const activeCall = activeCalls[targetDoc ? targetDoc.room : currentRoomId] || activeCalls[currentRoomId];
+    if (srActiveCallContainer) {
+      if (isClassic && activeCall) {
+        const isAccepted = activeCall.status === 'accepted';
+        srActiveCallContainer.innerHTML = `
+          <div class="sr-active-call-badge ${isAccepted ? 'sr-badge-accepted' : 'sr-badge-calling'}">
+            <span class="pulse-dot"></span>
+            ${isAccepted ? '🟢 HOZIR QABUL QILMOQDA:' : '📢 CHAQIRILDI:'} №${activeCall.queueNo || ''} — ${escapeHtml(activeCall.fullName || '')}
+          </div>
+        `;
+        srActiveCallContainer.style.display = 'block';
+      } else {
+        srActiveCallContainer.style.display = 'none';
+      }
+    }
 
     if (waitingPatients.length === 0) {
       singleRoomPage = 0;
@@ -1728,7 +1807,7 @@
       }
       srPatientTableBody.innerHTML = `
         <tr>
-          <td colspan="2" class="sr-empty-state">
+          <td colspan="${isClassic ? 3 : 2}" class="sr-empty-state">
             Hozirda ushbu xonada navbatda kutayotgan bemorlar mavjud emas.
           </td>
         </tr>
@@ -1764,12 +1843,22 @@
     let rowsHtml = '';
     pagePatients.forEach(p => {
       const qNo = p.doctorQueueNo || p.queueNo || '-';
-      rowsHtml += `
-        <tr>
-          <td class="col-sr-name-td">${escapeHtml((p.fullName || '-').toUpperCase())}</td>
-          <td class="col-sr-queue-td">${qNo}</td>
-        </tr>
-      `;
+      if (isClassic) {
+        rowsHtml += `
+          <tr>
+            <td class="col-sr-name-td">${escapeHtml((p.fullName || '-').toUpperCase())}</td>
+            <td class="col-sr-time-td">🕐 ${escapeHtml(p.registrationTime || '-')}</td>
+            <td class="col-sr-queue-td">№ ${qNo}</td>
+          </tr>
+        `;
+      } else {
+        rowsHtml += `
+          <tr>
+            <td class="col-sr-name-td">${escapeHtml((p.fullName || '-').toUpperCase())}</td>
+            <td class="col-sr-queue-td">${qNo}</td>
+          </tr>
+        `;
+      }
     });
 
     srPatientTableBody.innerHTML = rowsHtml;
@@ -1877,6 +1966,8 @@
 
     if (modeParam === 'empty' || modeParam === 'empty-room') {
       setViewMode('empty-room', currentRoomId);
+    } else if (modeParam === 'classic' || modeParam === 'classic-room') {
+      setViewMode('classic-room', currentRoomId);
     } else if (modeParam === 'single' || modeParam === 'single-room' || roomParam) {
       setViewMode('single-room', currentRoomId);
     } else if (modeParam === 'post') {
@@ -1885,7 +1976,7 @@
       setViewMode('mobile');
     } else if (modeParam === 'tv') {
       setViewMode('tv');
-    } else if (savedMode && (savedMode === 'single-room' || savedMode === 'empty-room')) {
+    } else if (savedMode && (savedMode === 'single-room' || savedMode === 'classic-room' || savedMode === 'empty-room')) {
       setViewMode(savedMode, currentRoomId);
     } else {
       setViewMode('tv');

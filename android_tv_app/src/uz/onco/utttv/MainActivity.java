@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    isSingleRoomModeActive = "single-room".equals(mode);
+                    isSingleRoomModeActive = !"tv".equals(mode);
                     currentActiveRoom = (roomId != null) ? roomId : "";
                 }
             });
@@ -709,7 +709,14 @@ public class MainActivity extends Activity {
                 return true;
             }
 
-            // 2. BACK (Orqaga) tugmasi: agar yagona xona ekrani ochiq bo'lsa, barcha xonalarga qaytish
+            // 2. YONGA BOSISH (DPAD_LEFT / DPAD_RIGHT) - Xona ekranida rejimlarni almashtirish (Foydalanuvchi talabi)
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                final String dir = (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) ? "next" : "prev";
+                cycleMode(dir);
+                return true;
+            }
+
+            // 3. BACK (Orqaga) tugmasi: agar yagona xona ekrani ochiq bo'lsa, barcha xonalarga qaytish
             if (keyCode == KeyEvent.KEYCODE_BACK) {
                 if (isSingleRoomModeActive) {
                     backToAllRooms();
@@ -733,6 +740,21 @@ public class MainActivity extends Activity {
             }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    private void cycleMode(final String dir) {
+        if (webView == null) return;
+        final String js = "if (window.uttCycleMode) { window.uttCycleMode('" + dir + "'); }";
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    webView.evaluateJavascript(js, null);
+                } else {
+                    webView.loadUrl("javascript:" + js);
+                }
+            }
+        });
     }
 
     private void switchRoomByNumber(final int num) {
